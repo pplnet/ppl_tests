@@ -1,0 +1,12 @@
+test("kvm", ->{
+    &foo := ${STRING1='string',CANTIDAD1=1,PRECIO1=12.2}
+    assertEq('string', &foo.STRING1)
+    assertEq(1, &foo.CANTIDAD1)
+    assertEq(12.2, &foo.PRECIO1)
+})
+
+test("kvm anidado", ->{
+    &foo := ${STRING1='string',SUBKVM=${ENTERO1=10}}
+    assertEq('string', &foo.STRING1)
+    assertEq(10, &foo.SUBKVM.ENTERO1)
+})

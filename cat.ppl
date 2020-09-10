@@ -1,0 +1,5 @@
+test("string concat", ->{
+    assertEq("Hello" ~ " world!", "Hello world!")
+    assertEq("Hello" ~ " Wonderful" ~ " World!", "Hello Wonderful World!")
+    *assertError(10 ~ " Foo")
+})

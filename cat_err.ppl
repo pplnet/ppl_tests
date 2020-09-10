@@ -1,0 +1,2 @@
+*SyntaxError=no es posible concatenar un valor numerico. Line: 2
+10 ~ "foo"

@@ -1,0 +1,8 @@
+test("recorrer", ->{
+    &counter := 0
+    recorrer&i 1, 10
+        &counter := &counter + 1
+        assertEq(&counter, &i)
+    proximo
+    assertEq(10, &counter)
+})

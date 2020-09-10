@@ -1,0 +1,7 @@
+def one()
+  return 1
+end
+
+test("def func one", ->{
+    assertEq(1, one())
+})

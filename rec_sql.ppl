@@ -1,0 +1,21 @@
+test("recorrer_sql", ->{
+    sql.addrow(${Col1 = 1})
+    sql.addrow(${Col1 = 2})
+    &idx := 0
+    recorrer sql
+        &idx := &idx + 1
+        assertEq(&idx, fbn("Col1"))
+    proximo
+})
+
+*test("recorrer_sql anidado", ->{
+*    sql.addrow(${Col1 = 1})
+*    recorrer sql
+*        assertEq(1, fbn("Col1"))
+*        sql.addrow(${Col2 = 2})
+*        recorrer sql
+*            assertEq(2, fbn("Col2"))
+*        proximo
+*        **assertEq(1, fbn("Col1"))
+*    proximo
+*})

@@ -1,0 +1,24 @@
+
+*CrearDialogo
+*  Cliente1: 'Cliente'
+*  Especie1: 'Especie'
+*FinDialogo
+*
+*SetFilaActual(1)
+*CrearFont(1, "Arial,10,B")
+*Act(a:fac, "Operaciones por Especie")
+*SetFont(a:fac, 3)
+*
+*SetFilaActual(3)
+*Sql.Add("SELECT * FROM dbo.OPERACIONES")
+*Sql.Add(" WHERE Cliente1='" ~ Cliente1 ~ "'")
+*Sql.Add(" AND   Especie1='" ~ Especie1 ~ "'")
+*
+*Recorrer SQL
+*  Act(a:fac, fbn('Book1'))
+*  *** etc...
+*Proximo
+*
+*Act(a:fac, "Fin")
+
+

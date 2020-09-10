@@ -1,0 +1,7 @@
+def concat(arg1, arg2)
+    return arg1~arg2
+end
+
+test("def func args", -> {
+    assertEq('HolaMundo', concat('Hola', 'Mundo'))
+})
