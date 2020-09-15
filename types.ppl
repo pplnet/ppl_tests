@@ -29,6 +29,7 @@ test('types', -> {
   assertEq('DateTime', GetType(DateFromStr('02/01/2020')))
   assertEq('DateTime', GetType(&fechaDateTime))
   assertEq('DateTime', GetType(Ahora))
+  assertEq('DateTime', GetType(Dat(Ahora)))
   assertEq('Double', GetType(Num('123')))
   assertEq('Double', GetType(Num('123') + 10))
   assertEq('Double', GetType(1.123456))
