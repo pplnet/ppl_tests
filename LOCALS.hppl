@@ -1,8 +1,8 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <ScriptHeader xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-  <CodFpa>TYPES</CodFpa>
+  <CodFpa>LOCALS</CodFpa>
   <Type>RemoteTest</Type>
-  <Nombre>Tipos de Dato</Nombre>
+  <Nombre>Locals</Nombre>
   <Habilitado>true</Habilitado>
   <Orden>0</Orden>
   <Menu>0</Menu>
