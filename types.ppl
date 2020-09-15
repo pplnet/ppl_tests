@@ -36,6 +36,7 @@ test('types', -> {
   assertEq('Double', GetType(2 + 1.123456))
   assertEq('Double', GetType(2 - 1.123456))
   assertEq('Double', GetType(-1.123456))
+  assertEq('Double', GetType(Dbl(1.123456)))
   assertEq('Boolean', GetType(SI))
   assertEq('Boolean', GetType(NO))
   assertEq('Boolean', GetType(1=1))
