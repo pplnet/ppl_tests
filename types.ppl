@@ -11,6 +11,7 @@ test('types', -> {
   assertEq('Int32', GetType(1 + 1))
   assertEq('Int32', GetType(-10 + 1))
   assertEq('Int32', GetType(-10 - 1))
+  assertEq('Int32', GetType(Int(1)))
   assertEq('String', GetType('Hola'))
   assertEq('String', GetType(Copy('Hola',2,2)))
   assertEq('String', GetType(&string1))
