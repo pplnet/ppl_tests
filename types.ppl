@@ -22,6 +22,7 @@ test('types', -> {
   assertEq('String', GetType("Hola"))
   assertEq('String', GetType(FStr(100,0,0)))
   assertEq('String', GetType(FStr(123.55,0,2)~FStr(123.55,0,2)))
+  assertEq('String', GetType(Str('Hola')))
   assertEq(Null, GetType(Null))
   assertEq('DateTime', GetType(Fecha('02/01/2020')))
   assertEq('DateTime', GetType(Fecha('02/01/2020') - 1))
