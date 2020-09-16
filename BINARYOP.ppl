@@ -7,6 +7,7 @@ let(&fechaStr, '02/01/2020')
 let(&fechaPplObj, Fecha('02/01/2020')) 
 let(&fechaDateTime, DateFromStr('02/01/2020'))
 
+
 test('suma', -> {
   assertEq(2, 1 + 1)
   assertEq(1, 0 + 1)
