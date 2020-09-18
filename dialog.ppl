@@ -4,6 +4,6 @@ CrearDialogo
 FinDialogo
 
 test("dialog", -> {
-    assertEq(0, Dialogo.Cantidad1)
-    assertEq(1, Dialogo.Cantidad2)
+    assertEq(1, Dialogo.Cantidad1)
+    assertEq(0, Dialogo.Cantidad2)
 })
