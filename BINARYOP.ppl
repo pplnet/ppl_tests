@@ -1,7 +1,7 @@
-﻿** Operaciones Binarias entre tipos primitivos: int, double, decimal, datetime, string
+** Operaciones Binarias entre tipos primitivos:int, double, decimal, datetime, string
 ** y pplObj (nulleable y soft) en todas sus variantes
 
-** Operaciones binarias:  suma, resta, producto, division, div, mod, pow, =, <>, >, <, >=, <=
+** Operaciones binarias:suma, resta, producto, division, div, mod, pow, =, <>, >, <, >=, <=
 
 let(&fechaStr, '02/01/2020') 
 let(&fechaPplObj, Fecha('02/01/2020')) 
@@ -27,8 +27,8 @@ test('suma', -> {
   assertEq(2, (((1 + 1))))
   assertEq(-2, -(1 + 1))
   assertEq(2, ((1 + 1)))
-  assertEq(6, [2^2] + (1 + 1))
-  assertEq(2, [2^2] + (-(1 + 1)))
+  **assertEq(6, [2^2] + (1 + 1))
+  **assertEq(2, [2^2] + (-(1 + 1)))
   assertEq(11, Num('10') + 1)
   assertEq(3, Num('1.5') + Num('1.5'))
   assertEq(2.5, Num('1.5') + Num('1'))
@@ -52,8 +52,8 @@ test('resta', -> {
   assertEq(-1, 9 - 10)
   assertEq(0, 1 - 1)
   assertEq(5, Int(10) - Int(5))
-  assertEq(3, 2^2 - 1)
-  assertEq(5, 2^2 - (-(1)))
+  *assertEq(3, 2^2 - 1)
+  *assertEq(5, 2^2 - (-(1)))
   assertEq(9, Num('10') - 1)
   assertEq(1, Num('1.5') - Num('0.5'))
   assertEq(0.5, Num('1.5') - Num('1'))
@@ -76,8 +76,8 @@ test('producto', -> {
   assertEq(-20, -2 * 10)
   assertEq(0, 1 * 0)
   assertEq(50, Int(10) * Int(5))
-  assertEq(8, 2^2 * 2)
-  assertEq(-4, 2^2 * (-(1)))
+  *assertEq(8, 2^2 * 2)
+  *assertEq(-4, 2^2 * (-(1)))
   assertEq(10, Num('10') * 1)
   assertEq(0.75, Num('1.5') * Num('0.5'))
   assertEq(3, Num('1.5') * Num('2'))
@@ -96,8 +96,8 @@ test('division', -> {
   assertEq(-9, -27 / 3)
   assertEq(0, 0 / 1)
   assertEq(2, Int(10) / Int(5))
-  assertEq(2, 2^2 / 2)
-  assertEq(-4, 2^2 / (-(1)))
+  *assertEq(2, 2^2 / 2)
+  *assertEq(-4, 2^2 / (-(1)))
   assertEq(2.5, Num('10') / 4)
   assertEq(3, Num('1.5') / Num('0.5'))
   assertEq(1.75, Num('3.5') / Num('2'))

@@ -1,4 +1,4 @@
-﻿** Tests para verificar los tipos de datos
+** Tests para verificar los tipos de datos
 
 let(&string1, 'prueba1')
 let(&string2, 'prueba2')
