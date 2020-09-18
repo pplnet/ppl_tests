@@ -1,4 +1,4 @@
-** Operaciones Binarias entre tipos primitivos:int, double, decimal, datetime, string
+﻿** Operaciones Binarias entre tipos primitivos:int, double, decimal, datetime, string
 ** y pplObj (nulleable y soft) en todas sus variantes
 
 ** Operaciones binarias:suma, resta, producto, division, div, mod, pow, =, <>, >, <, >=, <=
@@ -6,6 +6,8 @@
 let(&fechaStr, '02/01/2020') 
 let(&fechaPplObj, Fecha('02/01/2020')) 
 let(&fechaDateTime, DateFromStr('02/01/2020'))
+
+
 
 test('suma', -> {
   assertEq(2, 1 + 1)
