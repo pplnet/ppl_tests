@@ -202,9 +202,9 @@ test('combinaciones', -> {
 })
 
 test('div-mod-pow', -> {
-*  assertEq(2, div(10,4))
-*  assertEq(2, div(Int(10),Int(4)))
-*  assertEq(2, div(Num('10'),Num('4')))
+  assertEq(2, div(10,4))
+  assertEq(2, div(Int(10),Int(4)))
+  assertEq(2, div(Num('10'),Num('4')))
   assertEq(5, mod(10,4))
   assertEq(5, mod(Int(10),Int(4)))
   assertEq(5, mod(Num('10'),Num('4')))
