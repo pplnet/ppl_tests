@@ -1,6 +1,5 @@
-﻿&counter := 0
-
-test("recorrer", ->{
+﻿test("recorrer", ->{
+    &counter := 0
     recorrer&i 1, 10
         &counter := &counter + 1
         assertEq(&counter, &i)
