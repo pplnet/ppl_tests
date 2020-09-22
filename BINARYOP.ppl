@@ -9,7 +9,7 @@
 &numero := 10
 
 test('suma', -> {
-  assertEq(11, 1 + &numero)
+  assertEq(2, 1 + 1)
   assertEq(1, 0 + 1)
   assertEq(9, -1 + 10)
   assertEq(0, -1 + 1)
