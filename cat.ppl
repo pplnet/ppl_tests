@@ -5,9 +5,9 @@
 &string3 := ' CHAU'
 
 test("concatenaciones", ->{
-    assertEq("Hello world!", "Hello"~" world!")
+    assertEq('Hello world!', "Hello"~" world!")
     assertEq('Hello world!', 'Hello'~' world!')
-    assertEq("Hello Wonderful World!", "Hello"~" Wonderful"~" World!")
+    assertEq('Hello Wonderful World!', "Hello"~" Wonderful"~" World!")
     assertEq('HOLA CHAU', &string1~' '~&string2)
     assertEq('HOLA CHAU', &string1~" "~&string2)
     assertEq('HOLA CHAU', &string1~&string3)
