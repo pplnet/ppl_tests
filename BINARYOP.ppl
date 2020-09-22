@@ -3,7 +3,7 @@
 
 ** Operaciones binarias:suma, resta, producto, division, div, mod, pow, =, <>, >, <, >=, <=
 
-let(&fechaStr, '02/01/2020') 
+&fechaStr := '02/01/2020'
 let(&fechaPplObj, Fecha('02/01/2020')) 
 let(&fechaDateTime, DateFromStr('02/01/2020'))
 
