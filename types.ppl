@@ -1,9 +1,9 @@
-** Tests para verificar los tipos de datos
+﻿** Tests para verificar los tipos de datos
 
-let(&string1, 'prueba1')
-let(&string2, 'prueba2')
-let(&fechaPplObj, Fecha('02/01/2020')) 
-let(&fechaDateTime, DateFromStr('02/01/2020'))
+&string1 := 'prueba1'
+&string2 := 'prueba2'
+&fechaPplObj := Fecha('02/01/2020')
+&fechaDateTime := DateFromStr('02/01/2020')
 
 test('types', -> {
   assertEq('Int32', GetType(1))
