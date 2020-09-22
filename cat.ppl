@@ -10,6 +10,5 @@ test("concatenaciones", ->{
     assertEq("Hello Wonderful World!", "Hello"~" Wonderful"~" World!")
     assertEq("HOLA CHAU", &string1~' '~&string2)
     assertEq("HOLA CHAU", &string1~&string3)
-    assertEq('1234',12~34)
     *assertError(10 ~ " Foo")
 })
