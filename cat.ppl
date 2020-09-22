@@ -3,7 +3,7 @@
 &string1 := 'HOLA'
 &string2 := 'CHAU'
 &string3 := ' CHAU'
-ACT(A:1,'')
+
 test("concatenaciones", ->{
     assertEq('Hello world!', "Hello"~" world!")
     assertEq('Hello world!', 'Hello'~' world!')
@@ -11,6 +11,6 @@ test("concatenaciones", ->{
     assertEq('HOLA CHAU', &string1~' '~&string2)
     assertEq('HOLA CHAU', &string1~" "~&string2)
     assertEq('HOLA CHAU', &string1~&string3)
-    assertEq('HOLA CHAU', &string1~Val(A:1)~&string3)
+    assertEq('HOLA CHAU', &string1~''~&string3)
     *assertError(10 ~ " Foo")
 })
