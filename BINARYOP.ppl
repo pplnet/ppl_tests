@@ -4,10 +4,8 @@
 ** Operaciones binarias:suma, resta, producto, division, div, mod, pow, =, <>, >, <, >=, <=
 
 &fechaStr := '02/01/2020'
-let(&fechaPplObj, Fecha('02/01/2020')) 
-let(&fechaDateTime, DateFromStr('02/01/2020'))
-
-
+&fechaPplObj := Fecha('02/01/2020')
+&fechaDateTime := DateFromStr('02/01/2020')
 
 test('suma', -> {
   assertEq(2, 1 + 1)
