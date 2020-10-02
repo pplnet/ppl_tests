@@ -5,10 +5,13 @@
     assertEq(12.2, &prueba1.PRECIO1)
 })
 
-
-&tmp := ${foo = 'bar'}
-&tmp2 := ${foo = &tmp.foo}
-
+test("kvm set kvmprop", ->{
+    let &foo ${bar='bar'}
+    let &foo2 ${bar = &foo.bar}
+    
+    assertEq('bar', &foo.bar)
+    assertEq('bar', &foo2.bar)
+})
 
 *test("kvm anidado", ->{
 *    &prueba2 := ${STRING1='string',SUBKVM=${ENTERO1=10}}
