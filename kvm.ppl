@@ -13,6 +13,15 @@ test("kvm set kvmprop", ->{
     assertEq('bar', &foo2.bar)
 })
 
+test("kvm props case insensitive", ->{
+    let &foo ${FOO = 'foo', bar='bar'}
+    
+    assertEq('foo', &foo.foo)
+    assertEq('foo', &foo.FOO)
+    assertEq('bar', &foo.bar)
+    assertEq('bar', &foo.BAR)
+})
+
 *test("kvm anidado", ->{
 *    &prueba2 := ${STRING1='string',SUBKVM=${ENTERO1=10}}
 *    assertEq('string', &prueba2.STRING1)
