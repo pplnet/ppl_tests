@@ -1,4 +1,4 @@
-﻿&prueba1 := ${STRING1='string',CANTIDAD1=1,PRECIO1=12.2}
+﻿let &prueba1 ${STRING1='string',CANTIDAD1=1,PRECIO1=12.2}
 
 test("kvm", ->{
     
