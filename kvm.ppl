@@ -1,26 +1,26 @@
-﻿test("kvm", ->{
-    let &prueba1 ${STRING1='string',CANTIDAD1=1,PRECIO1=12.2}    
-    assertEq('string', &prueba1.STRING1)
-    assertEq(1, &prueba1.CANTIDAD1)
-    assertEq(12.2, &prueba1.PRECIO1)
-})
-
-test("kvm set kvmprop", ->{
-    let &foo ${bar='bar'}
-    let &foo2 ${bar = &foo.bar}
-    
-    assertEq('bar', &foo.bar)
-    assertEq('bar', &foo2.bar)
-})
-
-test("kvm props case insensitive", ->{
-    let &foo ${FOO = 'foo', bar='bar'}
-    
-    assertEq('foo', &foo.foo)
-    assertEq('foo', &foo.FOO)
-    assertEq('bar', &foo.bar)
-    assertEq('bar', &foo.BAR)
-})
+﻿*test("kvm", ->{
+*    let &prueba1 ${STRING1='string',CANTIDAD1=1,PRECIO1=12.2}    
+*    assertEq('string', &prueba1.STRING1)
+*    assertEq(1, &prueba1.CANTIDAD1)
+*    assertEq(12.2, &prueba1.PRECIO1)
+*})
+*
+*test("kvm set kvmprop", ->{
+*    let &foo ${bar='bar'}
+*    let &foo2 ${bar = &foo.bar}
+*    
+*    assertEq('bar', &foo.bar)
+*    assertEq('bar', &foo2.bar)
+*})
+*
+*test("kvm props case insensitive", ->{
+*    let &foo ${FOO = 'foo', bar='bar'}
+*    
+*    assertEq('foo', &foo.foo)
+*    assertEq('foo', &foo.FOO)
+*    assertEq('bar', &foo.bar)
+*    assertEq('bar', &foo.BAR)
+*})
 
 test("kvm set kvmprop", ->{
     let &foo ${bar='bar'}
