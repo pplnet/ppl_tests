@@ -10,5 +10,5 @@ test("kvm", ->{
 
 test("kvm anidado", ->{
     assertEq('string', &prueba2.STRING1)
-    assertEq(10, &prueba2.SUBKVM.ENTERO1)
+    assertEq(10, (&prueba2.SUBKVM).ENTERO1)
 })
