@@ -1,7 +1,7 @@
-&foo := 123
-&foo1 := "foo1";
+﻿&foo := 123
+&foo1 := "foo1"
 let(&foo2, SI)
-test("assign var", ->{
+test("assign var", -> {
     asserteq(&foo, 123)
     asserteq(&foo1, "foo1")
     asserteq(&foo2, SI)
