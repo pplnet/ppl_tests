@@ -1,14 +1,12 @@
-﻿&prueba1 := ${STRING1='string',CANTIDAD1=1,PRECIO1=12.2}
-
-test("kvm", ->{
+﻿test("kvm", ->{
+    &prueba1 := ${STRING1='string',CANTIDAD1=1,PRECIO1=12.2}
     assertEq('string', &prueba1.STRING1)
     assertEq(1, &prueba1.CANTIDAD1)
     assertEq(12.2, &prueba1.PRECIO1)
 })
 
-&prueba2 := ${STRING1='string',SUBKVM=${ENTERO1=10}}
-
-test("kvm anidado", ->{
-    assertEq('string', &prueba2.STRING1)
-    assertEq(10, (&prueba2.SUBKVM).ENTERO1)
-})
+*test("kvm anidado", ->{
+*    &prueba2 := ${STRING1='string',SUBKVM=${ENTERO1=10}}
+*    assertEq('string', &prueba2.STRING1)
+*    assertEq(10, &prueba2.SUBKVM.ENTERO1)
+*})
