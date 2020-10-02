@@ -22,12 +22,13 @@
 *    assertEq('bar', &foo.BAR)
 *})
 
-test("kvm set kvmprop", ->{
+*test("kvm set kvmprop", ->{
+
     let &foo ${bar='bar'}
     $foo.bar := 'BAR'
     
-    assertEq('BAR', &foo.bar)
-})
+    *    assertEq('BAR', &foo.bar)
+    *})
 
 
 *test("kvm anidado", ->{
