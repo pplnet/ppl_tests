@@ -40,10 +40,10 @@
 
 test("kvm remove", ->{
 
-    let &foo ${pepe='MMPF', argento='MM'}
-    &foo.remove('pepe')
-    &foo.pepe
-    assertEq(NULL, &foo.pepe)
+    let &foo ${key1='MMPF', argento='MM'}
+    &foo.remove('key1')
+    &foo.key1
+    assertEq(NULL, &foo.key1)
     assertEq(1, &foo.total(''))
 })
 
