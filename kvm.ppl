@@ -40,8 +40,8 @@ test("kvm set kvmprop", ->{
 
 test("kvm remove", ->{
     ** &foo := ${codigo: 'MMPF', nombre: 'MM'}
-    let &foo ${codigo: 'MMPF', nombre: 'MM'}
-    &foo.remove('nombre')
+    let &foo ${pepe: 'MMPF', argento: 'MM'}
+    &foo.remove('argento')
     &foo.nombre
 })
 
