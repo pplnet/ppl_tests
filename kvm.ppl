@@ -44,7 +44,7 @@ test("kvm remove", ->{
     &foo.remove('pepe')
     &foo.pepe
     assertEq('MM', &foo.argento)
-    assertEq(1, &foo.Count())
+    assertEq(1, &foo.count())
 })
 
 
