@@ -38,9 +38,9 @@ test("kvm set kvmprop", ->{
 *    assertEq(10, &prueba2.SUBKVM.ENTERO1)
 *})
 
-test("kvm anidado", ->{
+test("kvm remove", ->{
+    ** &foo := ${codigo: 'MMPF', nombre: 'MM'}
     let &foo ${codigo: 'MMPF', nombre: 'MM'}
-    *&foo := ${codigo: 'MMPF', nombre: 'MM'}
     &foo.remove('nombre')
     &foo.nombre
 })
