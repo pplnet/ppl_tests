@@ -42,7 +42,7 @@ test("kvm remove", ->{
 
     let &foo ${pepe='MMPF', argento='MM'}
     &foo.remove('pepe')
-    &foo.argento
+    &foo.pepe
 })
 
 
