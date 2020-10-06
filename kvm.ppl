@@ -6,7 +6,7 @@
 *})
 *
 test("kvm set kvmprop", ->{
-    let &foo ${bar='bar'}
+    &foo := ${bar='bar'}
     let &foo2 ${bar = &foo.bar}
     
     assertEq('bar', &foo.bar)
