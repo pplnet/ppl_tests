@@ -44,7 +44,7 @@ test("kvm remove", ->{
     &foo.remove('pepe')
     &foo.pepe
     assertEq(NULL, &foo.pepe)
-    assertEq(1, &foo.total())
+    assertEq(1, &foo.total(''))
 })
 
 
