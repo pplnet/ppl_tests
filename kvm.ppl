@@ -5,14 +5,14 @@
 *    assertEq(12.2, &prueba1.PRECIO1)
 *})
 *
-test("kvm set kvmprop", ->{
-    let &foo ${bar='bar'}
-    **&foo := ${bar='bar'}
-    let &foo2 ${bar = &foo.bar}
-    
-    assertEq('bar', &foo.bar)
-    assertEq('bar', &foo2.bar)
-})
+*test("kvm set kvmprop", ->{
+*    let &foo ${bar='bar'}
+*    **&foo := ${bar='bar'}
+*    let &foo2 ${bar = &foo.bar}
+*    
+*    assertEq('bar', &foo.bar)
+*    assertEq('bar', &foo2.bar)
+*})
 *
 *test("kvm props case insensitive", ->{
 *    let &foo ${FOO = 'foo', bar='bar'}
