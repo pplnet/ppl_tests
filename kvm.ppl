@@ -39,7 +39,7 @@
 *})
 
 test("kvm remove", ->{
-    ** &foo := ${codigo: 'MMPF', nombre: 'MM'}
+
     let &foo ${pepe: 'MMPF', argento: 'MM'}
     &foo.remove('argento')
     &foo.nombre
