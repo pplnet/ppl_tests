@@ -1,0 +1,4 @@
+﻿test("list", -> {
+    &arr := |1,2,3|
+    assertEq(, itemAt(&arr, 0))
+})
