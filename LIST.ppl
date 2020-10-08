@@ -1,4 +1,7 @@
 ﻿test("list", -> {
-    &arr := |1,2,3|
+    **&lst := |1,2,3|
+    **assertEq(1, &lst.itemAt(0))
+    
+    let &lst |1,2,3|
     assertEq(, itemAt(&arr, 0))
 })
