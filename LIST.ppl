@@ -3,5 +3,5 @@
     **assertEq(1, &lst.itemAt(0))
     
     let &lst |1,2,3|
-    assertEq(1, itemAt(&arr, 0))
+    assertEq(1, itemAt(&lst, 0))
 })
