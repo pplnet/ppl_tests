@@ -43,11 +43,22 @@ test("kvm remove kvmprop", ->{
     assertEq(NULL, &persona.dni)
 })
 
+test("kvm contains kvmprop", ->{
+    let &persona ${nombre = 'Pepe', apellido = 'Argento', dni = 12345678}
+*    &persona := ${nombre = 'Pepe', apellido = 'Argento', dni = 12345678}
+    &persona.remove('dni')
+    assertEq(SI, &persona.contains('nombre'))
+    assertEq(SI, &persona.contains('apellido'))
+    assertEq(NO, &persona.contains('dni'))
+    &persona.add(dni = 12345678)
+    assertEq(SI, &persona.contains('dni'))
+})
+
 test("kvm anidado", ->{
     let &prueba ${STRING1='string', SUBKVM=${ENTERO1=10}}
 *    &prueba := ${STRING1='string',SUBKVM=${ENTERO1=10}}
     assertEq('string', &prueba.STRING1)
-    assertEq(10, &prueba.SUBKVM.ENTERO1)
+*    assertEq(10, &prueba.SUBKVM.ENTERO1)
 })
 
 test("kvm count", ->{
