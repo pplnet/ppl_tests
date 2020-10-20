@@ -2,8 +2,8 @@
     **&lst := |1,2,3|
     **assertEq(1, &lst.itemAt(0))
     
-    let &lst |1,2,3|
-    assertEq(1, itemAt(&lst, 0))
+*    let &lst |1,2,3|
+*    assertEq(1, itemAt(&lst, 0))
     let &lista array(2,3,5,7)
     assertEq(2, itemAt(&lista, 0))
 })
