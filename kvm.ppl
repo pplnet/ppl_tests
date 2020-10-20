@@ -36,7 +36,8 @@ test("kvm add kvmprop", ->{
 test("kvm remove kvmprop", ->{
     let &persona ${nombre = 'Pepe', apellido = 'Argento', dni = 12345678}
 *    &persona := ${nombre = 'Pepe', apellido = 'Argento', dni = 12345678}
-    &persona.remove('apellido','dni')
+    &persona.remove('apellido')
+    &persona.remove('dni')
     assertEq('Pepe', &persona.nombre)
     assertEq(NULL, &persona.apellido)
     assertEq(NULL, &persona.dni)
