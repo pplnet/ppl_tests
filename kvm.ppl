@@ -16,8 +16,8 @@ test("kvm set kvmprop", ->{
 })
 
 test("kvm props case insensitive", ->{
-    let &op ${codigo = 'MMPF', nombre='Plazo Fijo'}
-*    &op := ${codigo = 'MMPF', nombre='Plazo Fijo'}
+    let &op ${codigo = 'MMPF', NOMBRE='Plazo Fijo'}
+*    &op := ${codigo = 'MMPF', NOMBRE='Plazo Fijo'}
     
     assertEq('MMPF', &op.codigo)
     assertEq('MMPF', &op.CODIGO)
