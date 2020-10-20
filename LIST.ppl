@@ -1,9 +1,8 @@
-﻿test("list", -> {
-    **&lst := |1,2,3|
-    **assertEq(1, &lst.itemAt(0))
-    
+﻿test("list itemAt", -> {
     let &lista1 |1,2,3|
     let &lista2 array(2,3,5,7)
+*    &lista1 := |1,2,3|
+*    &lista2 := array(2,3,5,7)
     
     assertEq(1, itemAt(&lista1, 0))
     assertEq(3, itemAt(&lista1, 2))
@@ -11,6 +10,16 @@
     assertEq(2, itemAt(&lista2, 0))
     assertEq(7, itemAt(&lista2, 3))
     assertEq(NULL, itemAt(&lista2, 4))
+})
+
+test("list indexOf", -> {
+    let &lista1 |1,2,3|
+    let &lista2 array(2,3,5,7)
+*    &lista1 := |1,2,3|
+*    &lista2 := array(2,3,5,7)
+    
     assertEq(2, indexOf(&lista1, 3))
+    assertEq(NULL, indexOf(&lista1, 4))
     assertEq(2, indexOf(&lista2, 5))
+    assertEq(NULL, indexOf(&lista2, 6))
 })
