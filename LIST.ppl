@@ -23,3 +23,30 @@ test("list indexOf", -> {
     assertEq(2, indexOf(&lista2, 5))
     assertEq(NULL, indexOf(&lista2, 6))
 })
+
+test("list InsertAt", -> {
+    let &lista1 |1,2,3|
+    let &lista2 array(2,3,5,7)
+*    &lista1 := |1,2,3|
+*    &lista2 := array(2,3,5,7)
+    
+    insertAt(&lista1,4,3)
+    insertAt(&lista2,6,3)
+    
+    assertEq(4, itemAt(&lista1, 3))
+    assertEq(6, itemAt(&lista2, 3))
+})
+
+test("list RemoveAt", -> {
+    let &lista1 |1,2,3|
+    let &lista2 array(2,3,5,7)
+*    &lista1 := |1,2,3|
+*    &lista2 := array(2,3,5,7)
+    
+    removeAt(&lista1,1)
+    removeAt(&lista2,2)
+    
+    assertEq(3, itemAt(&lista1, 1))
+    assertEq(7, itemAt(&lista2, 2))
+})
+
