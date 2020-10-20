@@ -27,9 +27,18 @@ test("kvm props case insensitive", ->{
 
 test("kvm add kvmprop", ->{
     let &persona ${nombre = 'Pepe'}
+*    &persona := ${nombre = 'Pepe'}
     &persona.add(apellido = 'Argento', dni = 12345678)
     assertEq('Argento', &persona.apellido)
     assertEq(12345678, &persona.dni)
+})
+
+test("kvm remove kvmprop", ->{
+    let &persona ${nombre = 'Pepe', apellido = 'Argento', dni = 12345678}
+*    &persona := ${nombre = 'Pepe', apellido = 'Argento', dni = 12345678}
+    &persona.remove(dni = 12345678)
+    assertEq('Argento', &persona.apellido)
+    assertEq(Null, &persona.dni)
 })
 
 *test("kvm anidado", ->{
