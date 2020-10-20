@@ -16,12 +16,12 @@ test("kvm set kvmprop", ->{
 })
 
 test("kvm props case insensitive", ->{
-    let &foo ${FOO = 'foo', bar='bar'}
+    let &op ${codigo = 'MMPF', nombre='Plazo Fijo'}
     
-    assertEq('foo', &foo.foo)
-    assertEq('foo', &foo.FOO)
-    assertEq('bar', &foo.bar)
-    assertEq('bar', &foo.BAR)
+    assertEq('foo', &op.codigo)
+    assertEq('foo', &op.CODIGO)
+    assertEq('bar', &op.nombre)
+    assertEq('bar', &op.NOMBRE)
 })
 
 *test("kvm set kvmprop", ->{
