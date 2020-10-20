@@ -11,4 +11,6 @@
     assertEq(2, itemAt(&lista2, 0))
     assertEq(7, itemAt(&lista2, 3))
     assertEq(NULL, itemAt(&lista2, 4))
+    assertEq(2, indexOf(&lista1, 3))
+    assertEq(2, indexOf(&lista2, 5))
 })
