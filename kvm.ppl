@@ -43,7 +43,7 @@ test("kvm remove", ->{
     let &foo ${key1='MMPF', argento='MM'}
     &foo.remove('key1')
     assertEq(NULL, &foo.key1)
-    *assertEq(1, &foo.count)
+    assertEq(1, &foo.count)
 })
 
 
