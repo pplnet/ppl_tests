@@ -64,10 +64,10 @@ test("kvm anidado", ->{
 *    assertEq(10, &prueba.SUBKVM.ENTERO1)
 })
 
-test("kvm count", ->{
-    let &op ${codigo='MMPF', nombre='Plazo Fijo'}
-    &op.remove('nombre')
-    assertEq(1, &op.count)
-})
+*test("kvm count", ->{
+*    let &op ${codigo='MMPF', nombre='Plazo Fijo'}
+*    &op.remove('nombre')
+*    assertEq(1, &op.count)
+*})
 
 
