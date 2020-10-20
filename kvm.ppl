@@ -24,10 +24,6 @@ test("kvm props case insensitive", ->{
     assertEq('bar', &foo.BAR)
 })
 
-
-
-
-
 *test("kvm set kvmprop", ->{
 
 **    let &foo ${bar='bar'}
@@ -35,7 +31,6 @@ test("kvm props case insensitive", ->{
     
     *    assertEq('BAR', &foo.bar)
     *})
-
 
 *test("kvm anidado", ->{
 *    &prueba2 := ${STRING1='string',SUBKVM=${ENTERO1=10}}
