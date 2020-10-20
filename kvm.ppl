@@ -36,7 +36,7 @@ test("kvm add kvmprop", ->{
 test("kvm remove kvmprop", ->{
     let &persona ${nombre = 'Pepe', apellido = 'Argento', dni = 12345678}
 *    &persona := ${nombre = 'Pepe', apellido = 'Argento', dni = 12345678}
-    &persona.remove(dni = 12345678)
+    &persona.remove('dni')
     assertEq('Argento', &persona.apellido)
     assertEq(NULL, &persona.dni)
 })
@@ -47,12 +47,11 @@ test("kvm remove kvmprop", ->{
 *    assertEq(10, &prueba2.SUBKVM.ENTERO1)
 *})
 
-test("kvm remove", ->{
-
-    let &foo ${key1='MMPF', argento='MM'}
-    &foo.remove('key1')
-    assertEq(NULL, &foo.key1)
-*    assertEq(1, &foo.count)
+test("kvm count", ->{
+    let &op ${codigo='MMPF', nombre='Plazo Fijo'}
+    &op.remove('nombre')
+    assertEq(NULL, &op.nombre)
+*    assertEq(1, &op.count)
 })
 
 
