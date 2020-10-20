@@ -1,6 +1,6 @@
 ﻿test("kvm", ->{
     let &prueba1 ${STRING1='string', CANTIDAD1=1, PRECIO1=12.2}
-    ** &prueba1 := ${STRING1='string', CANTIDAD1=1, PRECIO1=12.2}
+*    &prueba1 := ${STRING1='string', CANTIDAD1=1, PRECIO1=12.2}
     assertEq('string', &prueba1.STRING1)
     assertEq(1, &prueba1.CANTIDAD1)
     assertEq(12.2, &prueba1.PRECIO1)
