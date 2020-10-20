@@ -7,12 +7,12 @@
 })
 
 test("kvm set kvmprop", ->{
-    let &operacion ${codigo='FCS', nombre='Suscripcion de fondos', tipo='FCI'}
-*    &operacion := ${codigo='FCS', nombre='Suscripcion de fondos', tipo='FCI'}
-    let &operacion1 ${tipo = &operacion.tipo}
+    let &suscripcion ${codigo='FCS', nombre='Suscripcion de fondos', tipo='FCI'}
+*    &suscripcion := ${codigo='FCS', nombre='Suscripcion de fondos', tipo='FCI'}
+    let &rescate ${codigo='FCR', nombre='Rescate de fondos', tipo = &suscripcion.tipo}
     
-    assertEq('FCI', &operacion.tipo)
-    assertEq('FCI', &operacion1.tipo)
+    assertEq('FCI', &suscripcion.tipo)
+    assertEq('FCI', &rescate.tipo)
 })
 
 test("kvm props case insensitive", ->{
