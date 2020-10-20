@@ -1,12 +1,14 @@
-﻿let &lst |1,2,3|
-let &lista array(2,3,5,7)
-
-test("list", -> {
+﻿test("list", -> {
     **&lst := |1,2,3|
     **assertEq(1, &lst.itemAt(0))
     
-*    let &lst |1,2,3|
-    assertEq(1, itemAt(&lst, 0))
-*    let &lista array(2,3,5,7)
-    assertEq(2, itemAt(&lista, 0))
+    let &lista1 |1,2,3|
+    let &lista2 array(2,3,5,7)
+    
+    assertEq(1, itemAt(&lista1, 0))
+    assertEq(3, itemAt(&lista1, 2))
+    assertEq(NULL, itemAt(&lista1, 3))
+    assertEq(2, itemAt(&lista2, 0))
+    assertEq(7, itemAt(&lista2, 3))
+    assertEq(NULL, itemAt(&lista2, 4))
 })
