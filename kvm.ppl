@@ -25,13 +25,11 @@ test("kvm props case insensitive", ->{
     assertEq('Plazo Fijo', &op.NOMBRE)
 })
 
-*test("kvm set kvmprop", ->{
-
-**    let &foo ${bar='bar'}
-**    &foo.add(bar: 'BAR')
-    
-    *    assertEq('BAR', &foo.bar)
-    *})
+test("kvm add kvmprop", ->{
+    let &persona ${nombre = 'Pepe'}
+    &persona.add(apellido = 'Argento')
+    assertEq('Argento', &persona.apellido)
+})
 
 *test("kvm anidado", ->{
 *    &prueba2 := ${STRING1='string',SUBKVM=${ENTERO1=10}}
