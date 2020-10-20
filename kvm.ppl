@@ -64,6 +64,7 @@ test("kvm anidado", ->{
 test("kvm count", ->{
     let &op ${codigo='MMPF', nombre='Plazo Fijo'}
     &op.remove('nombre')
+    assertEq(SI, &op.contains('nombre'))
 *    assertEq(1, &op.count)
 })
 
