@@ -31,9 +31,11 @@ test("list InsertAt", -> {
 *    &lista2 := array(2,3,5,7)
     
     insertAt(&lista1,4,3)
+    insertAt(&lista1,5,2)
     insertAt(&lista2,6,3)
     
     assertEq(4, itemAt(&lista1, 3))
+    assertEq(5, itemAt(&lista1, 2))
     assertEq(6, itemAt(&lista2, 3))
 })
 
