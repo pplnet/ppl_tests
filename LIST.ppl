@@ -20,6 +20,10 @@ test("list indexOf", -> {
     
     assertEq(2, indexOf(&lista1, 3))
     assertEq(NULL, indexOf(&lista1, 4))
+    
+    removeAt(&lista1,1)
+    assertEq(1, indexOf(&lista1, 3))
+    
     assertEq(2, indexOf(&lista2, 5))
     assertEq(NULL, indexOf(&lista2, 6))
 })
