@@ -37,8 +37,8 @@ test("list InsertAt", -> {
     &lista1.insertAt(4,3)
     &lista2.insertAt(6,4)
     
-    assertEq(4, &lista1.itemAt(3))
- *   assertEq(6, &lista2.itemAt(4))
+*    assertEq(4, &lista1.itemAt(3))
+*    assertEq(6, &lista2.itemAt(4))
 })
 
 test("list RemoveAt", -> {
