@@ -54,3 +54,16 @@ test("list RemoveAt", -> {
     assertEq(7, &lista2.itemAt(2))
 })
 
+test("list ReplaceAt", -> {
+    let &lista1 |1,2,3|
+    let &lista2 list(2,3,5,7)
+*    &lista1 := |1,2,3|
+*    &lista2 := list(2,3,5,7)
+    
+    &lista1.replaceAt(1,4)
+    &lista2.replaceAt(2,6)
+    
+    assertEq(4, &lista1.itemAt(1))
+    assertEq(6, &lista2.itemAt(2))
+})
+
