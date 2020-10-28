@@ -19,13 +19,13 @@ test("list indexOf", -> {
 *    &lista2 := list(2,3,5,7)
     
     assertEq(2, &lista1.indexOf(3))
-    assertEq(NULL, &lista1.indexOf(4))
+    assertEq(-1, &lista1.indexOf(4))
     
     &lista1.removeAt(1)
     assertEq(1, &lista1.indexOf(3))
     
     assertEq(2, &lista2.indexOf(5))
-    assertEq(NULL, &lista2.indexOf(6))
+    assertEq(-1, &lista2.indexOf(6))
 })
 
 test("list InsertAt", -> {
