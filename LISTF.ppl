@@ -6,3 +6,11 @@
         let &counter &counter + 1
     end
 })
+
+test("list recorrer", -> {
+    let &lista |1,2,3|
+    let &counter 0
+    recorrer&k 0, 2
+        assertEq(&lista.itemAt(&k), &val)
+    proximo
+})
