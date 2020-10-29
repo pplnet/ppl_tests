@@ -1,5 +1,5 @@
 ﻿test("list for in", -> {
-    &lista:=|1,2,3|
+    let &lista |1,2,3|
     let &counter 0
     for &val in &lista
         assertEq(&lista.itemAt(&counter), &val)
