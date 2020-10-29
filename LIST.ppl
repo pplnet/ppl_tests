@@ -67,3 +67,12 @@ test("list ReplaceAt", -> {
     assertEq(6, &lista2.itemAt(2))
 })
 
+test("list for in", -> {
+    let &lista |1,2,3|
+    let &counter 0
+    for &val in &lista
+        assertEq(&lista.itemAt(&counter), &val)
+        let &counter &counter + 1
+    end
+})
+
