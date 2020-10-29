@@ -1,0 +1,9 @@
+﻿test("kvm for in", -> {
+    let &kvm ${key1=1,key2=2,key3=3}
+    let &counter 1
+    for &val in &kvm
+        assertEq("key"~&counter, &val.get_key)
+        assertEq(&kvm.get("key"~&counter), &val.get_value)
+        let &counter &counter + 1
+    end
+})
