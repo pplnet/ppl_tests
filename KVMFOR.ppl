@@ -3,6 +3,7 @@
     let &counter 1
     for &val in &kvm
         let &key "key"~&counter
+        Watch(&counter)
         Watch(&key)
         Watch(&val.get_key)
         **assertEq(&key, &val.get_key)
