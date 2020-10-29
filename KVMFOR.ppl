@@ -2,7 +2,6 @@
     let &kvm ${key1=1,key2=2,key3=3}
     let &counter 1
     for &val in &kvm
-        Watch(InnerVal(&val))
         let &key "key"~FSTR(&counter,0,0)
         assertEq(&key, &val.get_key)
         assertEq(&kvm.get(&key), &val.get_value)
