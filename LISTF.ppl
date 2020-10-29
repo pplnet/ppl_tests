@@ -2,7 +2,7 @@
     let &lista |1,2,3|
     let &cr 0
     for &val in &lista
-    **    assertEq(&lista.itemAt(&counter), &val)
-    **    let &counter &counter + 1
+        assertEq(&lista.itemAt(&counter), &val)
+        let &counter &counter + 1
     end
 })
