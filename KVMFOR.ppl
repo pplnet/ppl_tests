@@ -5,6 +5,6 @@
         let &key "key"~&counter
         assertEq(&key, &val.get_key)
         **assertEq(&kvm.get(&key), &val.get_value)
-        let &counter &counter + 1
+        **let &counter &counter + 1
     end
 })
