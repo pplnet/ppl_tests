@@ -4,14 +4,20 @@ ACN(A:3,12.2)
 test("kvm", ->{
     let &prueba ${STRING1='string', CANTIDAD1=1, PRECIO1=12.2}
 *    &prueba := ${STRING1='string', CANTIDAD1=1, PRECIO1=12.2}
-    let &prueba2 ${STRING1=Val(A:1), CANTIDAD1=Val(A:2), PRECIO1=Val(A:3)}
+*    let &prueba2 ${STRING1=Val(A:1), CANTIDAD1=Val(A:2), PRECIO1=Val(A:3)}
 *    &prueba2 := ${STRING1=Val(A:1), CANTIDAD1=Val(A:2), PRECIO1=Val(A:3)}
+    let &prueba3 ${STRING1='string', CANTIDAD1=NewPplObj('1',SI,SI), PRECIO1=NewPplObj('12.2',SI,SI)}
+*    &prueba3 := ${STRING1='string', CANTIDAD1=NewPplObj('1',SI,SI), PRECIO1=NewPplObj('12.2',SI,SI)}
+
     assertEq('string', &prueba.STRING1)
     assertEq(1, &prueba.CANTIDAD1)
     assertEq(12.2, &prueba.PRECIO1)
-    assertEq('string', &prueba2.STRING1)
-    assertEq(1, &prueba2.CANTIDAD1)
-    assertEq(12.2, &prueba2.PRECIO1)
+*    assertEq('string', &prueba2.STRING1)
+*    assertEq(1, &prueba2.CANTIDAD1)
+*    assertEq(12.2, &prueba2.PRECIO1)
+    assertEq('string', &prueba3.STRING1)
+    assertEq(1, &prueba3.CANTIDAD1)
+    assertEq(12.2, &prueba3.PRECIO1)
 })
 
 test("kvm set kvmprop", ->{
