@@ -98,7 +98,7 @@ test("kvm for in", -> {
        let &key 'key'~FSTR(&counter,0,0)
        assertEq(&key, &val.get_key)
        assertEq(&kvm.get(&key), &val.get_value)
-       assertEq('key'~&counter, &val.get_key)
+       assertEq('key'~FSTR(&counter,0,0)), &val.get_key)
        assertEq(&kvm.get('key'~FSTR(&counter,0,0)), &val.get_value)
        let &counter &counter + 1
     end
