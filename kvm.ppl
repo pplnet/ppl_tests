@@ -95,7 +95,8 @@ test("kvm for in", -> {
     let &kvm ${key1=1,key2=2,key3=3}
     let &counter 1
     let &counter2 Num('1')
-    let &counter3 NewPplObj('1',SI,SI)
+    let &counter3 Int(1)
+    let &counter4 NewPplObj('1',SI,SI)
     
     for &val in &kvm
        let &key 'key'~FSTR(&counter,0,0)
@@ -116,9 +117,16 @@ test("kvm for in", -> {
        assertEq('key'~FSTR(&counter3,0,0), &val.get_key)
        assertEq(&kvm.get('key'~FSTR(&counter3,0,0)), &val.get_value)
        
+       let &key4 'key'~FSTR(&counter3,0,0)
+       assertEq(&key4, &val.get_key)
+       assertEq(&kvm.get(&key4), &val.get_value)
+       assertEq('key'~FSTR(&counter3,0,0), &val.get_key)
+       assertEq(&kvm.get('key'~FSTR(&counter3,0,0)), &val.get_value)
+       
        let &counter &counter + 1
        let &counter2 &counter2 + 1
        let &counter3 &counter3 + 1
+       let &counter4 &counter4 + 1
     end
 })
 
