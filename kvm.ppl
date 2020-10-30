@@ -10,19 +10,19 @@ test("kvm", ->{
 *    &prueba3 := ${STRING1='string', CANTIDAD1=NewPplObj('1',SI,SI), PRECIO1=NewPplObj('12.2',SI,SI)}
     let &prueba4 ${STRING1='string', CANTIDAD1=Num('1'), PRECIO1=Dbl(12.2)}
 *    &prueba4 := ${STRING1='string', CANTIDAD1=Num('1'), PRECIO1=Dbl(12.2)}
+    let &prueba5 ${STRING1='string', CANTIDAD1=Int(1), PRECIO1=Dbl(12.2)}
+*    &prueba5 := ${STRING1='string', CANTIDAD1=Int(1), PRECIO1=Dbl(12.2)}
 
     assertEq('string', &prueba.STRING1)
     assertEq(1, &prueba.CANTIDAD1)
     assertEq(12.2, &prueba.PRECIO1)
-*    assertEq('string', &prueba2.STRING1)
 *    assertEq(1, &prueba2.CANTIDAD1)
 *    assertEq(12.2, &prueba2.PRECIO1)
-    assertEq('string', &prueba3.STRING1)
     assertEq(1, &prueba3.CANTIDAD1)
     assertEq(12.2, &prueba3.PRECIO1)
-    assertEq('string', &prueba4.STRING1)
     assertEq(1, &prueba4.CANTIDAD1)
     assertEq(12.2, &prueba4.PRECIO1)
+    assertEq(1, &prueba5.CANTIDAD1)
 })
 
 test("kvm set kvmprop", ->{
