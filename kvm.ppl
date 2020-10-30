@@ -2,9 +2,12 @@
 ACN(A:2,1)
 ACN(A:3,12.2)
 test("kvm", ->{
+    ACT(A:1,'string')
+    ACN(A:2,1)
+    ACN(A:3,12.2)
     let &prueba ${STRING1='string', CANTIDAD1=1, PRECIO1=12.2}
 *    &prueba := ${STRING1='string', CANTIDAD1=1, PRECIO1=12.2}
-*    let &prueba2 ${STRING1=Val(A:1), CANTIDAD1=Val(A:2), PRECIO1=Val(A:3)}
+    let &prueba2 ${STRING1=Val(A:1), CANTIDAD1=Val(A:2), PRECIO1=Val(A:3)}
 *    &prueba2 := ${STRING1=Val(A:1), CANTIDAD1=Val(A:2), PRECIO1=Val(A:3)}
     let &prueba3 ${STRING1='string', CANTIDAD1=NewPplObj('1',SI,SI), PRECIO1=NewPplObj('12.2',SI,SI)}
 *    &prueba3 := ${STRING1='string', CANTIDAD1=NewPplObj('1',SI,SI), PRECIO1=NewPplObj('12.2',SI,SI)}
