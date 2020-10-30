@@ -136,7 +136,7 @@ test("kvm for in anidados", -> {
     let &counter 1
     let &counter2 1
     
-    for &val in &kvm1
+    for &val1 in &kvm1
        let &key 'key'~FSTR(&counter,0,0)
        assertEq(&key, &val.get_key)
        assertEq(&kvm1.get(&key), &val.get_value)
@@ -144,7 +144,7 @@ test("kvm for in anidados", -> {
        assertEq(&kvm1.get('key'~FSTR(&counter,0,0)), &val.get_value)
        let &counter &counter + 1
        
-       for &val in &kvm2
+       for &val2 in &kvm2
           let &key2 'key'~FSTR(&counter2,0,0)
           assertEq(&key2, &val.get_key)
           assertEq(&kvm2.get(&key2), &val.get_value)
