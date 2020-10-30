@@ -94,32 +94,30 @@ test("kvm count", ->{
 test("kvm for in", -> {
     let &kvm ${key1=1,key2=2,key3=3}
     let &counter 1
+    let &counter2 Num('1')
+    let &counter3 NewPplObj('1',SI,SI)
+    
     for &val in &kvm
        let &key 'key'~FSTR(&counter,0,0)
        assertEq(&key, &val.get_key)
        assertEq(&kvm.get(&key), &val.get_value)
        assertEq('key'~FSTR(&counter,0,0), &val.get_key)
        assertEq(&kvm.get('key'~FSTR(&counter,0,0)), &val.get_value)
-       let &counter &counter + 1
-    end
-    
-    let &counter2 Num('1')
-    for &val in &kvm
-       let &key 'key'~FSTR(&counter2,0,0)
-       assertEq(&key, &val.get_key)
-       assertEq(&kvm.get(&key), &val.get_value)
+       
+       let &key2 'key'~FSTR(&counter2,0,0)
+       assertEq(&key2, &val.get_key)
+       assertEq(&kvm.get(&key2), &val.get_value)
        assertEq('key'~FSTR(&counter2,0,0), &val.get_key)
        assertEq(&kvm.get('key'~FSTR(&counter2,0,0)), &val.get_value)
-       let &counter2 &counter2 + 1
-    end
-    
-    let &counter3 NewPplObj('1',SI,SI)
-    for &val in &kvm
-       let &key 'key'~FSTR(&counter3,0,0)
-       assertEq(&key, &val.get_key)
-       assertEq(&kvm.get(&key), &val.get_value)
+       
+       let &key3 'key'~FSTR(&counter3,0,0)
+       assertEq(&key3, &val.get_key)
+       assertEq(&kvm.get(&key3), &val.get_value)
        assertEq('key'~FSTR(&counter3,0,0), &val.get_key)
        assertEq(&kvm.get('key'~FSTR(&counter3,0,0)), &val.get_value)
+       
+       let &counter &counter + 1
+       let &counter2 &counter2 + 1
        let &counter3 &counter3 + 1
     end
 })
