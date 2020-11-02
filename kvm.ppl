@@ -133,8 +133,8 @@ test("kvm for in", -> {
 })
 
 test("kvm for in anidados", -> {
-    let &kvm1 ${key1=1,key2=2,key3=3}
-    let &kvm2 ${key1=4,key2=5,key3=6}
+    let &kvm1 ${key1=1, key2=2, key3=3}
+    let &kvm2 ${key1=4, key2=5, key3=6}
     let &counter 1
     let &counter2 1
     
