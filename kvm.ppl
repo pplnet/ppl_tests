@@ -13,8 +13,6 @@ test("kvm", ->{
 *    &prueba4 := ${STRING1='string', CANTIDAD1=Num('1'), PRECIO1=Dbl(12.2)}
     let &prueba5 ${STRING1='string', CANTIDAD1=Int(1), PRECIO1=Dbl(12.2)}
 *    &prueba5 := ${STRING1='string', CANTIDAD1=Int(1), PRECIO1=Dbl(12.2)}
-    let &prueba6 ${CANTIDAD1=10}
-*    &prueba6 := ${CANTIDAD1=10}
 
     assertEq('string', &prueba.STRING1)
     assertEq(1, &prueba.CANTIDAD1)
@@ -26,9 +24,6 @@ test("kvm", ->{
     assertEq(1, &prueba4.CANTIDAD1)
     assertEq(12.2, &prueba4.PRECIO1)
     assertEq(1, &prueba5.CANTIDAD1)
-    
-    assertEq('CANTIDAD1', &prueba6.get_key)
-    assertEq(10, &prueba6.get_value)
 })
 
 test("kvm set kvmprop", ->{
