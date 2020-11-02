@@ -27,7 +27,7 @@ test("kvm", ->{
     assertEq(12.2, &prueba4.PRECIO1)
     assertEq(1, &prueba5.CANTIDAD1)
     
-    assertEq(&prueba6.get('CANTIDAD1'), &prueba6.get_key)
+    assertEq(&prueba6.get(key), &prueba6.get_key)
     assertEq(&prueba6.get('CANTIDAD1'), &prueba6.get_value)
 })
 
