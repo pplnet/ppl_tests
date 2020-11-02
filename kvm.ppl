@@ -1,6 +1,7 @@
 ﻿ACT(A:1,'string')
 ACN(A:2,1)
 ACN(A:3,12.2)
+
 test("kvm", ->{
     let &prueba ${STRING1='string', CANTIDAD1=1, PRECIO1=12.2}
 *    &prueba := ${STRING1='string', CANTIDAD1=1, PRECIO1=12.2}
@@ -86,8 +87,9 @@ test("kvm anidado", ->{
 })
 
 test("kvm count", ->{
-    let &op ${codigo='MMPF', nombre='Plazo Fijo'}
+    let &op ${codigo='MMPF', nombre='Plazo Fijo', count=30}
     &op.remove('nombre')
+    assertEq(30, &op.count)
     assertEq(1, &op.count())
 })
 
