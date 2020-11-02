@@ -94,7 +94,7 @@ test("kvm count", ->{
 })
 
 test("kvm for in", -> {
-    let &kvm ${key1=1,key2=2,key3=3}
+    let &kvm ${key1=1, key2=2, key3=3}
     let &counter 1
     let &counter2 Num('1')
     let &counter3 Int(1)
