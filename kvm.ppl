@@ -90,7 +90,7 @@ test("kvm count", ->{
     let &op ${codigo='MMPF', nombre='Plazo Fijo', count=30}
     &op.remove('nombre')
     assertEq(30, &op.count)
-    assertEq(1, &op.count())
+    assertEq(2, &op.count())
 })
 
 test("kvm for in", -> {
