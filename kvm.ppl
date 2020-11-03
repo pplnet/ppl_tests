@@ -52,8 +52,9 @@ test("kvm add kvmprop", ->{
     assertEq('Argento', &persona.apellido)
     assertEq(12345678, &persona.dni)
     
-    &persona.add(tel = NewPplObj('5555555',SI,SI))
+    &persona.add(tel = NewPplObj('5555555',SI,SI), FechaNac = Fecha('02/01/2020'))
     assertEq(5555555, &persona.tel)
+    assertEq(Fecha('02/01/2020'), &persona.FechaNac)
 })
 
 test("kvm remove kvmprop", ->{
