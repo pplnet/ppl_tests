@@ -73,8 +73,8 @@ test("kvm remove kvmprop", ->{
 })
 
 test("kvm contains kvmprop", ->{
-    let &persona ${nombre = 'Pepe', apellido = 'Argento', dni = 12345678}
-*    &persona := ${nombre = 'Pepe', apellido = 'Argento', dni = 12345678}
+    let &persona ${nombre = 'Pepe', apellido = 'Argento', dni = 12345678, tel = NewPplObj('5555555',SI,SI), FechaNac = Fecha('02/01/2020')}
+*    &persona := ${nombre = 'Pepe', apellido = 'Argento', dni = 12345678, tel = NewPplObj('5555555',SI,SI), FechaNac = Fecha('02/01/2020')}
     &persona.remove('dni')
     assertEq(SI, &persona.contains('nombre'))
     assertEq(SI, &persona.contains('NOMBRE'))
@@ -84,6 +84,10 @@ test("kvm contains kvmprop", ->{
     assertEq(NO, &persona.contains('DNI'))
     &persona.add(dni = 12345678)
     assertEq(SI, &persona.contains('dni'))
+    assertEq(SI, &persona.contains('tel'))
+    assertEq(SI, &persona.contains('TEL'))
+    assertEq(SI, &persona.contains('FechaNac'))
+    assertEq(SI, &persona.contains('FECHANAC'))
 })
 
 test("kvm anidado", ->{
