@@ -7,12 +7,9 @@
 *    end
 *})
 
-&idx := 0
-
 test("list recorrer", -> {
     let &lista |1,2,3|
-    assertEq(1, &lista.itemAt(&idx))
-*    recorrer&k 0, 2
-*        assertEq(&lista.itemAt(&k), &val)
-*    proximo
+    recorrer&k 0, 2
+        assertEq(&lista.itemAt(&k), &val)
+    proximo
 })
