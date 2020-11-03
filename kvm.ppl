@@ -58,13 +58,18 @@ test("kvm add kvmprop", ->{
 })
 
 test("kvm remove kvmprop", ->{
-    let &persona ${nombre = 'Pepe', apellido = 'Argento', dni = 12345678}
-*    &persona := ${nombre = 'Pepe', apellido = 'Argento', dni = 12345678}
+    let &persona ${nombre = 'Pepe', apellido = 'Argento', dni = 12345678, tel = NewPplObj('5555555',SI,SI), FechaNac = Fecha('02/01/2020')}
+*    &persona := ${nombre = 'Pepe', apellido = 'Argento', dni = 12345678, tel = NewPplObj('5555555',SI,SI), FechaNac = Fecha('02/01/2020')}
     &persona.remove('apellido')
     &persona.remove('dni')
     assertEq('Pepe', &persona.nombre)
     assertEq(NULL, &persona.apellido)
     assertEq(NULL, &persona.dni)
+    
+    &persona.remove('tel')
+    &persona.remove('FechaNac')
+    assertEq(NULL, &persona.tel)
+    assertEq(NULL, &persona.FechaNac)
 })
 
 test("kvm contains kvmprop", ->{
