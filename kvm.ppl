@@ -45,6 +45,9 @@ test("kvm props case insensitive", ->{
     assertEq('Plazo Fijo', &op.NOMBRE)
 })
 
+ACT(B:1,'direccion')
+ACT(B:2,'Calle Falsa 123')
+
 test("kvm add kvmprop", ->{
     let &persona ${nombre = 'Pepe'}
 *    &persona := ${nombre = 'Pepe'}
@@ -55,6 +58,8 @@ test("kvm add kvmprop", ->{
     &persona.add(tel = NewPplObj('5555555',SI,SI), FechaNac = Fecha('02/01/2020'))
     assertEq(5555555, &persona.tel)
     assertEq(Fecha('02/01/2020'), &persona.FechaNac)
+    &persona.add(Val(B:1) = Val(B:2))
+    assertEq('Calle Falsa 123', &persona.direccion)
 })
 
 test("kvm remove kvmprop", ->{
