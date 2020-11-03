@@ -10,7 +10,7 @@
 test("list recorrer", -> {
     let &lista |1,2,3|
     recorrer&k 0, 2
+        watch(&k)
         assertEq(&lista.itemAt(&k), &val)
-        assertEq(&lista.itemAt(0), &val)
     proximo
 })
