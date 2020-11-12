@@ -68,7 +68,7 @@ test("kvm remove kvmprop", ->{
     
     let &propTel 'tel'
     
-    &persona.remove(propTel)
+    &persona.remove(&propTel)
     &persona.remove('FechaNac')
     assertEq(NULL, &persona.tel)
     assertEq(NULL, &persona.FechaNac)
