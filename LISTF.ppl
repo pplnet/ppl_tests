@@ -7,9 +7,18 @@
 *    end
 *})
 
-test("list recorrer", -> {
-    let &lista |1,2,3|
-    recorrer&k 0, 2
-        assertEq(&k+1, &lista.itemAt(&k))
-    proximo
+*test("list recorrer", -> {
+*    let &lista |1,2,3|
+*    recorrer&k 0, 2
+*        assertEq(&k+1, &lista.itemAt(&k))
+*    proximo
+*})
+
+test("kvm add kvmprop", ->{
+    let &persona ${nombre = 'Pepe'}
+    
+    let &propTrabajo 'trabajo'
+    let &empresa 'FPA Software'
+    &persona.add(&propTrabajo, 'FPA Software')
+    assertEq('FPA Software', &persona.trabajo)
 })
