@@ -28,7 +28,7 @@ test("list for in", -> {
     end
 })
 
-test("list for in", -> {
+test("list for in 2", -> {
     let &lista2 |'HOLA','QUE','TAL'|
 
     let &counter 0
@@ -38,7 +38,7 @@ test("list for in", -> {
     end
 })
 
-test("list for in", -> {
+test("list for in 3", -> {
     let &lista3 |&cero,&uno,&dos|
 
     let &counter 0
