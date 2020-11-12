@@ -46,7 +46,7 @@ test("list InsertAt", -> {
     let &lista3 |'HOLA'|
 *    &lista1 := |1,2,3|
 *    &lista2 := list(2,3,5,7)
-*    &lista3 := ||
+*    &lista3 := |'HOLA'|
     
     &lista1.insertAt(3,4)
     &lista2.insertAt(4,6)
@@ -86,14 +86,24 @@ test("list RemoveAt", -> {
 test("list ReplaceAt", -> {
     let &lista1 |1,2,3|
     let &lista2 list(2,3,5,7)
+    let &lista3 |'','CHAU'|
 *    &lista1 := |1,2,3|
 *    &lista2 := list(2,3,5,7)
+*    &lista3 := |'','CHAU'|
     
     &lista1.replaceAt(1,4)
     &lista2.replaceAt(2,6)
     
     assertEq(4, &lista1.itemAt(1))
     assertEq(6, &lista2.itemAt(2))
+    
+    &lista3.replaceAt(&cero,'HO HO HOOOLA')
+    
+    assertEq('HO HO HOOOLA', &lista3.itemAt(&cero))
+    assertEq('CHAU', &lista3.itemAt(&uno))
+    
+    let &hola 'HOLA'
+    &lista3.replaceAt(&cero, &hola)
 })
 
 test("list for in", -> {
