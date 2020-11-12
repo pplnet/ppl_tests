@@ -22,7 +22,7 @@ test("list InsertAt", -> {
     let &lista3 |''|
     
     watch(&lista3.indexOf(0))
-    watch(&lista3.indexOf(1))
+*    watch(&lista3.indexOf(1))
 *    &lista3.replaceAt(&uno,'CHAU')
 *    &lista3.insertAt(&uno,'CHAU')
     &lista3.insertAt(&cero,'HOLA')
