@@ -56,7 +56,7 @@ test("kvm add kvmprop", ->{
     assertEq(5555555, &persona.tel)
     assertEq(Fecha('02/01/2020'), &persona.FechaNac)
     
-    &persona.add(Direccion, 'Calle Falsa 123')
+    &persona.add('Direccion', 'Calle Falsa 123')
     assertEq('Calle Falsa 123', &persona.Direccion)
 })
 
