@@ -21,12 +21,15 @@
 test("list InsertAt", -> {
     let &lista3 |''|
     
+    watch(&lista3.itemAt(&cero))
     &lista3.insertAt(&uno,'CHAU')
+    watch(&lista3.itemAt(&cero))
     &lista3.insertAt(&cero,'HOLA')
+    watch(&lista3.itemAt(&cero))
     
     let &string '!!!'
     &lista3.insertAt(&dos,&string)
-    watch(&lista3.itemAt(&uno))
+    
     
 *    assertEq('HOLA', &lista3.itemAt(&cero))
     assertEq('CHAU', &lista3.itemAt(&uno))
