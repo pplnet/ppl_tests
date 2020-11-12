@@ -43,7 +43,7 @@ test("list indexOf", -> {
 test("list InsertAt", -> {
     let &lista1 |1,2,3|
     let &lista2 list(2,3,5,7)
-    let &lista3 |''|
+    let &lista3 |'HOLA'|
 *    &lista1 := |1,2,3|
 *    &lista2 := list(2,3,5,7)
 *    &lista3 := ||
@@ -60,7 +60,6 @@ test("list InsertAt", -> {
     assertEq(4, &lista1.itemAt(&tres))
     
     &lista3.insertAt(&uno,'CHAU')
-    &lista3.insertAt(&cero,'HOLA')
     
     let &string '!!!'
     &lista3.insertAt(&dos,&string)
