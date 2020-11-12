@@ -21,7 +21,8 @@
 test("list InsertAt", -> {
     let &lista3 |''|
     
-    &lista3.insertAt(&uno,'CHAU')
+    &lista1.replaceAt(&uno,'CHAU')
+*    &lista3.insertAt(&uno,'CHAU')
     &lista3.insertAt(&cero,'HOLA')
     watch(&lista3.itemAt(&cero))
     watch(&lista3.itemAt(&uno))
