@@ -19,13 +19,14 @@
 &dos := NewPPLObj(2)
 
 test("list InsertAt", -> {
-    let &lista3 |'prueba'|
+    let &lista3 |''|
     
     &lista3.insertAt(&uno,'CHAU')
     &lista3.insertAt(&cero,'HOLA')
     
     let &string '!!!'
     &lista3.insertAt(&dos,&string)
+    watch(&lista3.itemAt(&uno))
     
 *    assertEq('HOLA', &lista3.itemAt(&cero))
     assertEq('CHAU', &lista3.itemAt(&uno))
