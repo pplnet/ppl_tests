@@ -115,9 +115,9 @@ test("list for in", -> {
     end
 })
 
-test("list recorrer", -> {
+test("list recorrer&i", -> {
     let &lista |1,2,3|
-    recorrer&k 0, 2
-        assertEq(&k+1, &lista.itemAt(&k))
+    recorrer&i 0, 2
+        assertEq(&i+1, &lista.itemAt(&i))
     proximo
 })
