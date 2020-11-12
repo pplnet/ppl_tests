@@ -23,10 +23,10 @@ test("list InsertAt", -> {
     
     watch(&lista3.indexOf(''))
 *    &lista3.replaceAt(&uno,'CHAU')
-*    &lista3.insertAt(&uno,'CHAU')
+    &lista3.insertAt(&uno,'CHAU')
 *    &lista3.insertAt(&cero,'HOLA')
-*    watch(&lista3.itemAt(&cero))
-*    watch(&lista3.itemAt(&uno))
+    watch(&lista3.itemAt(&cero))
+    watch(&lista3.itemAt(&uno))
 *    watch(&lista3.itemAt(&dos))
 *    
 *    let &string '!!!'
