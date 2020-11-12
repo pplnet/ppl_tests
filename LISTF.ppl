@@ -19,7 +19,7 @@
 &dos := NewPPLObj(2)
 
 test("list InsertAt", -> {
-*    let &lista3 Null
+    let &lista3 |''|
     
     &lista3.insertAt(&uno,'CHAU')
     &lista3.insertAt(&cero,'HOLA')
