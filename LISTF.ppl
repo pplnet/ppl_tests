@@ -19,9 +19,9 @@
 &dos := NewPPLObj(2)
 
 test("list InsertAt", -> {
-    let &lista3 |'HOLA'|
+    let &lista3 |'','CHAU'|
     
-    &lista3.insertAt(&uno,'CHAU')
+    &lista3.repleaceAt(&cero,'HOLA')
     
     let &string '!!!'
     &lista3.insertAt(&dos,&string)
