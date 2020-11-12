@@ -43,7 +43,7 @@ test("list indexOf", -> {
 test("list InsertAt", -> {
     let &lista1 |1,2,3|
     let &lista2 list(2,3,5,7)
-    let &lista3 ||
+    let &lista3 |''|
 *    &lista1 := |1,2,3|
 *    &lista2 := list(2,3,5,7)
 *    &lista3 := ||
