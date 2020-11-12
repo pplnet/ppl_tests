@@ -170,3 +170,11 @@ test("kvm for in anidados", -> {
     end
 })
 
+
+test("kvm recorrer&i", -> {
+    let &lista |1,2,3|
+    recorrer&k 0, 2
+        assertEq(&k+1, &lista.get_value)
+    proximo
+})
+
