@@ -21,7 +21,7 @@
 test("list InsertAt", -> {
     let &lista3 |'','CHAU'|
     
-    &lista3.repleaceAt(&cero,'HOLA')
+    &lista3.replaceAt(&cero,'HOLA')
     
     let &string '!!!'
     &lista3.insertAt(&dos,&string)
