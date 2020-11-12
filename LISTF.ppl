@@ -18,15 +18,15 @@
 &uno := NewPPLObj(1)
 &dos := NewPPLObj(2)
 
-test("list for in", -> {
-    let &lista |1,2,3|
-    
-    let &counter 0
-    for &val in &lista
-        assertEq(&lista.itemAt(&counter), &val)
-        let &counter &counter + 1
-    end
-})
+*test("list for in", -> {
+*    let &lista |1,2,3|
+*    
+*    let &counter 0
+*    for &val in &lista
+*        assertEq(&lista.itemAt(&counter), &val)
+*        let &counter &counter + 1
+*    end
+*})
 
 test("list for in 2", -> {
     let &lista2 |'HOLA','QUE','TAL'|
