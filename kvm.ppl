@@ -172,9 +172,9 @@ test("kvm for in anidados", -> {
 
 
 test("kvm recorrer&i", -> {
-    let &lista |1,2,3|
+    let &kvm ${key1=1, key2=2, key3=3}
     recorrer&k 0, 2
-        assertEq(&k+1, &lista.get_value)
+    assertEq(&k+1, &key~FSTR(&k+1,0,0).get_value)
     proximo
 })
 
