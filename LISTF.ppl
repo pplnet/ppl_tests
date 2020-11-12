@@ -21,11 +21,11 @@
 test("list InsertAt", -> {
     let &lista3 |''|
     
-    watch(&lista3.itemAt(&cero))
+    watch(&lista3.itemAt(&uno))
     &lista3.insertAt(&uno,'CHAU')
-    watch(&lista3.itemAt(&cero))
+    watch(&lista3.itemAt(&uno))
     &lista3.insertAt(&cero,'HOLA')
-    watch(&lista3.itemAt(&cero))
+    watch(&lista3.itemAt(&uno))
     
     let &string '!!!'
     &lista3.insertAt(&dos,&string)
