@@ -63,6 +63,7 @@ test("list InsertAt", -> {
     &lista3.insertAt(&cero,'HOLA')
     
     let &string '!!!'
+    &lista3.insertAt(&dos,&string)
     
     assertEq('HOLA', &lista1.itemAt(&cero))
     assertEq('CHAU', &lista1.itemAt(&uno))
