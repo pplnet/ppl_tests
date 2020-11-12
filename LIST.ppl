@@ -4,13 +4,13 @@
 &tres := NewPPLObj(3)
 
 test("list itemAt", -> {
-    let &lista1 |1,2,3|
+    let &lista1 |'1',2,3|
     let &lista2 list(2,3,5,7)
 *    &lista1 := |1,2,3|
 *    &lista2 := list(2,3,5,7)
     
-    assertEq(1, &lista1.itemAt(0))
-    assertEq(1, &lista1.itemAt(&cero))
+    assertEq('1', &lista1.itemAt(0))
+    assertEq('1', &lista1.itemAt(&cero))
     assertEq(3, &lista1.itemAt(2))
     assertEq(3, &lista1.itemAt(Num('2')))
     assertEq(NULL, &lista1.itemAt(3))
