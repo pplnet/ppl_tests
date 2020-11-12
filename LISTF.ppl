@@ -27,8 +27,8 @@ test("list InsertAt", -> {
     let &string '!!!'
     &lista3.insertAt(&dos,&string)
     
-    assertEq('HOLA', &lista3.itemAt(&cero))
+*    assertEq('HOLA', &lista3.itemAt(&cero))
     assertEq('CHAU', &lista3.itemAt(&uno))
-    assertEq(&string, &lista3.itemAt(&dos))
+*    assertEq(&string, &lista3.itemAt(&dos))
 })
 
