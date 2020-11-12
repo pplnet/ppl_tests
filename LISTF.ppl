@@ -30,14 +30,14 @@ test("list for in", -> {
     end
     
     let &counter 0
-    for &val in &lista2
-        assertEq(&lista2.itemAt(&counter), &val)
+    for &val2 in &lista2
+        assertEq(&lista2.itemAt(&counter), &val2)
         let &counter &counter + 1
     end
     
     let &counter 0
-    for &val in &lista3
-        assertEq(&lista3.itemAt(&counter), &val)
+    for &val3 in &lista3
+        assertEq(&lista3.itemAt(&counter), &val3)
         let &counter &counter + 1
     end
 })
