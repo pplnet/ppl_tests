@@ -7,27 +7,9 @@
 *    end
 *})
 
-*test("list recorrer", -> {
-*    let &lista |1,2,3|
-*    recorrer&k 0, 2
-*        assertEq(&k+1, &lista.itemAt(&k))
-*    proximo
-*})
-
-&cero := NewPPLObj(0)
-&uno := NewPPLObj(1)
-&dos := NewPPLObj(2)
-
-test("list InsertAt", -> {
-    let &lista3 |'','CHAU'|
-    
-    &lista3.replaceAt(&cero,'HOLA')
-    
-    let &string '!!!'
-    &lista3.insertAt(&dos,&string)
-    
-    assertEq('HOLA', &lista3.itemAt(&cero))
-    assertEq('CHAU', &lista3.itemAt(&uno))
-    assertEq(&string, &lista3.itemAt(&dos))
+test("list recorrer", -> {
+    let &lista |1,2,3|
+    recorrer&k 0, 2
+        assertEq(&k+1, &lista.itemAt(&k))
+    proximo
 })
-
