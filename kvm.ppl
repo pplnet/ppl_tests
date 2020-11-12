@@ -173,9 +173,8 @@ test("kvm for in anidados", -> {
 
 test("kvm recorrer&i", -> {
     let &kvm ${key1=1, key2=2, key3=3}
-    recorrer&k 0, 2
-      let &key 'key'~FSTR(&k+1,0,0)
-      assertEq(&k+1, &kvm.get('key'~FSTR(&k+1,0,0)))
+    recorrer&k 1, 3
+      assertEq(&k, &kvm.get('key'~FSTR(&k,0,0)))
     proximo
 })
 
