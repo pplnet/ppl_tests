@@ -59,10 +59,10 @@ test("kvm add kvmprop", ->{
     &persona.add('Direccion', 'Calle Falsa 123')
     assertEq('Calle Falsa 123', &persona.Direccion)
     
-    let &propTrabajo 'Trabajo'
+    let &propTrabajo 'trabajo'
     let &empresa 'FPA Software'
     &persona.add(&propTrabajo, &empresa)
-*    assertEq('FPA Software', &persona.Trabajo)
+    assertEq('FPA Software', &persona.trabajo)
 })
 
 test("kvm remove kvmprop", ->{
