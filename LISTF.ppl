@@ -7,9 +7,37 @@
 *    end
 *})
 
-test("list recorrer", -> {
+*test("list recorrer", -> {
+*    let &lista |1,2,3|
+*    recorrer&k 0, 2
+*        assertEq(&k+1, &lista.itemAt(&k))
+*    proximo
+*})
+
+&cero := NewPPLObj(0)
+&uno := NewPPLObj(1)
+&dos := NewPPLObj(2)
+
+test("list for in", -> {
     let &lista |1,2,3|
-    recorrer&k 0, 2
-        assertEq(&k+1, &lista.itemAt(&k))
-    proximo
+    let &lista2 |'HOLA','QUE','TAL'|
+    let &lista3 |&cero,&uno,&dos|
+    
+    let &counter 0
+    for &val in &lista
+        assertEq(&lista.itemAt(&counter), &val)
+        let &counter &counter + 1
+    end
+    
+    let &counter 0
+    for &val in &lista2
+        assertEq(&lista2.itemAt(&counter), &val)
+        let &counter &counter + 1
+    end
+    
+    let &counter 0
+    for &val in &lista3
+        assertEq(&lista3.itemAt(&counter), &val)
+        let &counter &counter + 1
+    end
 })
