@@ -108,7 +108,7 @@ test("list ReplaceAt", -> {
 
 test("list for in", -> {
     let &lista |1,2,3|
-    let &list2 |'HOLA','QUE','TAL'|
+    let &lista2 |'HOLA','QUE','TAL'|
     
     let &counter 0
     for &val in &lista
