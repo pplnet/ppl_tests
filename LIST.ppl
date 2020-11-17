@@ -177,5 +177,16 @@ test("list addRange", -> {
 })
 
 
-
+test("list matriz", -> {
+    let &lista1 |1,2,3|
+    let &lista2 |4,5,6|
+    let &matriz list()
+    
+    &matriz.Add(&lista1)
+    &matriz.Add(&lista2)
+    
+    assertEq(2, &matriz.Count())
+    assertEq(3, &matriz.ItemAt(0))
+    assertEq(3, &matriz.ItemAt(1))
+})
 
