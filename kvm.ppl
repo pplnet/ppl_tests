@@ -64,7 +64,8 @@ test("kvm add kvmprop", ->{
     &persona.add(&propTrabajo, &empresa)
     assertEq('FPA Software', &persona.trabajo)
     
-    &persona.add(nombre = 'Pepito')
+    let &nombre ${nombre = 'Pepito'}
+    &persona.add(&nombre)
     assertEq('Pepito', &persona.nombre)
 })
 
