@@ -165,4 +165,16 @@ test("list addRange", -> {
     recorrer&i 0, 5
       assertEq(&i+1, &lista1.itemAt(&i))
     proximo
+    
+    let &lista3 list()
+    
+    &lista3.AddRange(&lista1)
+    &lista3.AddRange(&lista2)
+    
+    assertEq(9, &lista3.Count())
+    assertEq(6, &lista3.ItemAt(5))
 })
+
+
+
+
