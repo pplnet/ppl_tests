@@ -173,6 +173,7 @@ test("list addRange", -> {
     
     assertEq(9, &lista3.Count())
     assertEq(6, &lista3.ItemAt(5))
+    assertEq(6, &lista3.ItemAt(8))
 })
 
 
