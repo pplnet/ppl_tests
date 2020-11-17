@@ -154,3 +154,15 @@ test("list recorrer&i", -> {
         assertEq(&i+1, &lista.itemAt(&i))
     proximo
 })
+
+
+test("list addRange", -> {
+    let &lista1 |1,2,3|
+    let &lista2 |4,5,6|
+    
+    &lista1.AddRange(&lista2)
+
+    recorrer&i 0, 5
+      assertEq(&i+1, &lista1.itemAt(&i))
+    proximo
+})
