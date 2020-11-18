@@ -48,7 +48,7 @@ test("list indexOf", -> {
     
     assertEq(2, &lista1.indexOf(3))
     assertEq(2, &lista1.indexOf(&tres))
-    assertEq('HOLA', &lista1.indexOf(4))
+    assertEq(3, &lista1.indexOf('HOLA'))
     assertEq(-1, &lista1.indexOf(5))
     
     &lista1.removeAt(1)
