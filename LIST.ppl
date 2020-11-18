@@ -48,7 +48,6 @@ test("list indexOf", -> {
     
     assertEq(2, &lista1.indexOf(3))
     assertEq(2, &lista1.indexOf(&tres))
-    assertEq(2, &lista1.indexOf('3'))
     assertEq(-1, &lista1.indexOf(4))
     
     &lista1.removeAt(1)
@@ -59,7 +58,7 @@ test("list indexOf", -> {
     assertEq(1, &lista1.indexOf(3))
     
     assertEq(2, &lista2.indexOf(5))
-*    assertEq(-1, &lista2.indexOf(6))
+    assertEq(-1, &lista2.indexOf(6))
 })
 
 test("list InsertAt", -> {
