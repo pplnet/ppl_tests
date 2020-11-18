@@ -41,14 +41,15 @@ test("list itemAt", -> {
 })
 
 test("list indexOf", -> {
-    let &lista1 |1,2,3|
+    let &lista1 |1,2,3,'HOLA'|
     let &lista2 list(2,3,5,7)
 *    &lista1 := |1,2,3|
 *    &lista2 := list(2,3,5,7)
     
     assertEq(2, &lista1.indexOf(3))
     assertEq(2, &lista1.indexOf(&tres))
-    assertEq(-1, &lista1.indexOf(4))
+    assertEq('HOLA', &lista1.indexOf(4))
+    assertEq(-1, &lista1.indexOf(5))
     
     &lista1.removeAt(1)
     assertEq(1, &lista1.indexOf(3))
