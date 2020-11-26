@@ -8,7 +8,6 @@ ACN(A:3,2)
 ACN(A:4,3)
 
 test("list add", -> {
-**    let &lista list()
     &lista := ||
     &lista.add('HOLA')
     &lista.add(1)
@@ -22,10 +21,8 @@ test("list add", -> {
 })
 
 test("list itemAt", -> {
-    let &lista1 |'HOLA',2,3|
-    let &lista2 list(2,3,5,7)
-*    &lista1 := |1,2,3|
-*    &lista2 := list(2,3,5,7)
+    &lista1 := |'HOLA',2,3|
+    &lista2 := list(2,3,5,7)
     
     assertEq('HOLA', &lista1.itemAt(0))
     assertEq('HOLA', &lista1.itemAt(Num('0')))
@@ -41,9 +38,8 @@ test("list itemAt", -> {
 })
 
 test("list indexOf", -> {
-    let &lista1 |1,2,3,'HOLA'|
-    let &lista2 list(2,3,5,7)
-    &tres:=3
+    &lista1 := |1,2,3,'HOLA'|
+    &lista2 := list(2,3,5,7)
     
     assertEq(2, &lista1.indexOf(3))
     assertEq(2, &lista1.indexOf(&tres))
@@ -65,12 +61,9 @@ test("list indexOf", -> {
 })
 
 test("list InsertAt", -> {
-    let &lista1 |1,2,3|
-    let &lista2 list(2,3,5,7)
-    let &lista3 |'HOLA'|
-*    &lista1 := |1,2,3|
-*    &lista2 := list(2,3,5,7)
-*    &lista3 := |'HOLA'|
+    &lista1 := |1,2,3|
+    &lista2 := list(2,3,5,7)
+    &lista3 := |'HOLA'|
     
     &lista1.insertAt(3,4)
     &lista2.insertAt(4,6)
@@ -94,10 +87,8 @@ test("list InsertAt", -> {
 })
 
 test("list RemoveAt", -> {
-    let &lista1 |1,2,3|
-    let &lista2 list(2,3,5,7)
-*    &lista1 := |1,2,3|
-*    &lista2 := list(2,3,5,7)
+    &lista1 := |1,2,3|
+    &lista2 := list(2,3,5,7)
     
     &lista1.removeAt(1)
     &lista2.removeAt(2)
@@ -108,12 +99,9 @@ test("list RemoveAt", -> {
 })
 
 test("list ReplaceAt", -> {
-    let &lista1 |1,2,3|
-    let &lista2 list(2,3,5,7)
-    let &lista3 |'','CHAU'|
-*    &lista1 := |1,2,3|
-*    &lista2 := list(2,3,5,7)
-*    &lista3 := |'','CHAU'|
+    &lista1 := |1,2,3|
+    &lista2 := list(2,3,5,7)
+    &lista3 := |'','CHAU'|
     
     &lista1.replaceAt(1,4)
     &lista2.replaceAt(2,6)
@@ -131,9 +119,9 @@ test("list ReplaceAt", -> {
 })
 
 test("list for in", -> {
-    let &lista |1,2,3|
-    let &lista2 |'HOLA','QUE','TAL'|
-    let &lista3 |&cero,&uno,&dos|
+    &lista  := |1,2,3|
+    &lista2 := |'HOLA','QUE','TAL'|
+    &lista3 := |&cero,&uno,&dos|
     
     let &counter 0
     for &val in &lista
@@ -163,8 +151,8 @@ test("list recorrer&i", -> {
 
 
 test("list addRange", -> {
-    let &lista1 |1,2,3|
-    let &lista2 |4,5,6|
+    &lista1 := |1,2,3|
+    &lista2 := |4,5,6|
     
     &lista1.AddRange(&lista2)
 
@@ -184,9 +172,9 @@ test("list addRange", -> {
 
 
 test("list matriz", -> {
-    let &lista1 |1,2,3|
-    let &lista2 |4,5,6,7|
-    let &matriz list()
+    &lista1 := |1,2,3|
+    &lista2 := |4,5,6,7|
+    &matriz := list()
     
     &matriz.Add(&lista1)
     &matriz.Add(&lista2)
