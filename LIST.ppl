@@ -8,8 +8,8 @@ ACN(A:3,2)
 ACN(A:4,3)
 
 test("list add", -> {
-    **let &lista list()
-    &lista := list()
+**    let &lista list()
+    &lista := ||
     &lista.add('HOLA')
     &lista.add(1)
     &lista.add(&dos)
