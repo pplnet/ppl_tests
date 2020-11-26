@@ -10,7 +10,7 @@ test("list for in", -> {
         assertEq(&lista.itemAt(&counter), &val)
         let &counter &counter + 1
     end
-    assertEq(&counter, 3)
+    assertEq(3, &counter)
 })
 **
 **test("list for in 2", -> {
@@ -31,7 +31,7 @@ test("list for in 3", -> {
         assertEq(&lista3.itemAt(&counter), &val3)
         let &counter &counter + 1
     end
-    assertEq(&counter, 3)
+    assertEq(3, &counter)
     **let &lista3 |1,2,3|
 
     **let &counter 0
