@@ -3,15 +3,10 @@ ACN(A:2,1)
 ACN(A:3,12.2)
 
 test("kvm", ->{
-*    let &prueba ${STRING1='string', CANTIDAD1=1, PRECIO1=12.2}
     &prueba := ${STRING1='string', CANTIDAD1=1, PRECIO1=12.2}
-    *    let &prueba2 ${STRING1=Val(A:1), CANTIDAD1=Val(A:2), PRECIO1=Val(A:3)}
     &prueba2 := ${STRING1=Val(A:1), CANTIDAD1=Val(A:2), PRECIO1=Val(A:3)}
-    *    let &prueba3 ${STRING1='string', CANTIDAD1=NewPplObj('1',SI,SI), PRECIO1=NewPplObj('12.2',SI,SI)}
     &prueba3 := ${STRING1='string', CANTIDAD1=NewPplObj('1',SI,SI), PRECIO1=NewPplObj('12.2',SI,SI)}
-    *    let &prueba4 ${STRING1='string', CANTIDAD1=Num('1'), PRECIO1=Dbl(12.2)}
     &prueba4 := ${STRING1='string', CANTIDAD1=Num('1'), PRECIO1=Dbl(12.2)}
-    *    let &prueba5 ${STRING1='string', CANTIDAD1=Int(1), PRECIO1=Dbl(12.2)}
     &prueba5 := ${STRING1='string', CANTIDAD1=Int(1), PRECIO1=Dbl(12.2)}
 
     assertEq('string', &prueba.STRING1)
@@ -27,7 +22,6 @@ test("kvm", ->{
 })
 
 test("kvm set kvmprop", ->{
-*    let &suscripcion ${codigo='FCS', nombre='Suscripcion de fondos', tipo='FCI'}
     &suscripcion := ${codigo='FCS', nombre='Suscripcion de fondos', tipo='FCI'}
     &rescate := ${codigo='FCR', nombre='Rescate de fondos', tipo = &suscripcion.tipo}
     
@@ -36,7 +30,6 @@ test("kvm set kvmprop", ->{
 })
 
 test("kvm props case insensitive", ->{
-*    let &op ${codigo = 'MMPF', NOMBRE='Plazo Fijo'}
     &op := ${codigo = 'MMPF', NOMBRE='Plazo Fijo'}
     
     assertEq('MMPF', &op.codigo)
@@ -46,7 +39,6 @@ test("kvm props case insensitive", ->{
 })
 
 test("kvm add kvmprop", ->{
-    *let &persona ${nombre = 'Pepe'}
     &persona := ${nombre = 'Pepe'}
     &persona.add(apellido = 'Argento', dni = 12345678)
     assertEq('Argento', &persona.apellido)
@@ -70,7 +62,6 @@ test("kvm add kvmprop", ->{
 })
 
 test("kvm remove kvmprop", ->{
-*    let &persona ${nombre = 'Pepe', apellido = 'Argento', dni = 12345678, tel = NewPplObj('5555555',SI,SI), FechaNac = Fecha('02/01/2020')}
     &persona := ${nombre = 'Pepe', apellido = 'Argento', dni = 12345678, tel = NewPplObj('5555555',SI,SI), FechaNac = Fecha('02/01/2020')}
     &persona.remove('apellido')
     &persona.remove('dni')
@@ -87,7 +78,6 @@ test("kvm remove kvmprop", ->{
 })
 
 test("kvm contains kvmprop", ->{
- *   let &persona ${nombre = 'Pepe', apellido = 'Argento', dni = 12345678, tel = NewPplObj('5555555',SI,SI), FechaNac = Fecha('02/01/2020')}
     &persona := ${nombre = 'Pepe', apellido = 'Argento', dni = 12345678, tel = NewPplObj('5555555',SI,SI), FechaNac = Fecha('02/01/2020')}
     &persona.remove('dni')
     assertEq(SI, &persona.contains('nombre'))
@@ -105,7 +95,6 @@ test("kvm contains kvmprop", ->{
 })
 
 test("kvm anidado", ->{
-*    let &prueba ${STRING1='string', SUBKVM=${ENTERO1=10}}
     &prueba := ${STRING1='string',SUBKVM=${ENTERO1=10}}
     assertEq('string', &prueba.STRING1)
 *    assertEq(10, &prueba.SUBKVM.ENTERO1)
