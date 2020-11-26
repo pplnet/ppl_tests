@@ -1,4 +1,4 @@
-CrearDialogo
+﻿CrearDialogo
     Cantidad1: 'Monto'  ;1;1;;SI;SI;SI;'Valido';SI;1;1;;;'#0.000';'1=1'
     Cantidad2: 'Precio' ;
 FinDialogo
