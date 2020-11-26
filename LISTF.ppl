@@ -12,16 +12,17 @@ test("list for in", -> {
     end
     assertEq(3, &counter)
 })
-**
-**test("list for in 2", -> {
-**    let &lista2 |'HOLA','QUE','TAL'|
-**
-**    let &counter 0
-**    for &val2 in &lista2
-**        assertEq(&lista2.itemAt(&counter), &val2)
-**        let &counter &counter + 1
-**    end
-**})
+
+test("list for in 2", -> {
+    let &lista2 |'HOLA','QUE','TAL'|
+
+    let &counter 0
+    for &val2 in &lista2
+        assertEq(&lista2.itemAt(&counter), &val2)
+        let &counter &counter + 1
+    end
+    assertEq(3, &counter)
+})
 
 test("list for in 3", -> {
     let &lista3 |&cero,&uno,&dos|
@@ -32,13 +33,4 @@ test("list for in 3", -> {
         let &counter &counter + 1
     end
     assertEq(3, &counter)
-    **let &lista3 |1,2,3|
-
-    **let &counter 0
-    **for &val3 in &lista3
-    **    Messagebox(FSTR(&val3,1,0))
-    **    let &counter &counter + 1
-    **end
-
-    **Messagebox(FSTR(&counter,1,0))
 })
