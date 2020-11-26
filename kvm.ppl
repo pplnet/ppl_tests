@@ -97,7 +97,7 @@ test("kvm contains kvmprop", ->{
 test("kvm anidado", ->{
     &prueba := ${STRING1='string',SUBKVM=${ENTERO1=10}}
     assertEq('string', &prueba.STRING1)
-*    assertEq(10, &prueba.SUBKVM.ENTERO1)
+    assertEq(10, &prueba.SUBKVM.ENTERO1)
     let &tmp &prueba.SUBKVM
     assertEq(10, &tmp.ENTERO1)
 })
