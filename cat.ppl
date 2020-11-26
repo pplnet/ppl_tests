@@ -14,3 +14,5 @@ test("concatenaciones", ->{
     assertEq('HOLA CHAU', &string1~''~&string3)
     *assertError(10 ~ " Foo")
 })
+
+
