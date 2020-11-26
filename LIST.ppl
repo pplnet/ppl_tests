@@ -43,11 +43,12 @@ test("list itemAt", -> {
 test("list indexOf", -> {
     let &lista1 |1,2,3,'HOLA'|
     let &lista2 list(2,3,5,7)
-*    &lista1 := |1,2,3|
-*    &lista2 := list(2,3,5,7)
     &tres:=3
+    
     assertEq(2, &lista1.indexOf(3))
     assertEq(2, &lista1.indexOf(&tres))
+    *Los siguientes casos dan error por comparacion
+    *en PPL entre un nro y un string
     *assertEq(3, &lista1.indexOf('HOLA'))
     *assertEq(-1, &lista1.indexOf(4))
     *assertEq(-1, &lista1.indexOf('HOLA '))
