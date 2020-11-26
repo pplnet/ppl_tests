@@ -2,7 +2,7 @@
 <ScriptHeader xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
   <CodFpa>KVMFOR</CodFpa>
   <Type>RemoteTest</Type>
-  <Nombre>asdasd</Nombre>
+  <Nombre>KVM For in</Nombre>
   <Habilitado>true</Habilitado>
   <Orden>0</Orden>
   <Menu>0</Menu>
