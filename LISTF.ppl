@@ -39,5 +39,5 @@ test("list for in 3", -> {
         let &counter &counter + 1
     end
 
-Messagebox(FSTR(&counter,1,0))
+    **Messagebox(FSTR(&counter,1,0))
 })
