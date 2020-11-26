@@ -159,17 +159,17 @@ test("kvm for in anidados", -> {
     for &val in &kvm1
        &key := 'key'~FSTR(&counter,0,0)
        assertEq(&key, &val.get_key)
-*       assertEq(&kvm1.get(&key), &val.get_value)
-*       assertEq('key'~FSTR(&counter,0,0), &val.get_key)
-*       assertEq(&kvm1.get('key'~FSTR(&counter,0,0)), &val.get_value)
+       assertEq(&kvm1.get(&key), &val.get_value)
+       assertEq('key'~FSTR(&counter,0,0), &val.get_key)
+       assertEq(&kvm1.get('key'~FSTR(&counter,0,0)), &val.get_value)
        let &counter &counter + 1
        
        for &val in &kvm2
           &key2 := 'key'~FSTR(&counter2,0,0)
           assertEq(&key2, &val.get_key)
-*          assertEq(&kvm2.get(&key2), &val.get_value)
-*          assertEq('key'~FSTR(&counter2,0,0), &val.get_key)
-*          assertEq(&kvm2.get('key'~FSTR(&counter2,0,0)), &val.get_value)
+          assertEq(&kvm2.get(&key2), &val.get_value)
+          assertEq('key'~FSTR(&counter2,0,0), &val.get_key)
+          assertEq(&kvm2.get('key'~FSTR(&counter2,0,0)), &val.get_value)
           let &counter2 &counter2 + 1
        end
     end
