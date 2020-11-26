@@ -51,12 +51,12 @@ test("kvm add kvmprop", ->{
     &persona.add('Direccion', 'Calle Falsa 123')
     assertEq('Calle Falsa 123', &persona.Direccion)
     
-    let &propTrabajo 'trabajo'
-    let &empresa 'FPA Software'
+    &propTrabajo := 'trabajo'
+    &empresa := 'FPA Software'
     &persona.add(&propTrabajo, &empresa)
     assertEq('FPA Software', &persona.trabajo)
     
-    let &nombre ${nombre = 'Pepito'}
+    &nombre := ${nombre = 'Pepito'}
     &persona.add(&nombre)
     assertEq('Pepito', &persona.nombre)
 })
@@ -69,7 +69,7 @@ test("kvm remove kvmprop", ->{
     assertEq(NULL, &persona.apellido)
     assertEq(NULL, &persona.dni)
     
-    let &propTel 'tel'
+    &propTel := 'tel'
     
     &persona.remove(&propTel)
     &persona.remove('FechaNac')
@@ -100,23 +100,23 @@ test("kvm anidado", -> {
     *Este caso por el momento no lo vamos a soportar
     *assertEq(10, &prueba.SUBKVM.ENTERO1)
     *El workarround es setearlo en una variable temporal
-    let &tmp &prueba.SUBKVM
+    &tmp := &prueba.SUBKVM
     assertEq(10, &tmp.ENTERO1)
 })
 
 test("kvm count", ->{
-    let &op ${codigo='MMPF', nombre='Plazo Fijo', count=30}
+    &op := ${codigo='MMPF', nombre='Plazo Fijo', count=30}
     &op.remove('nombre')
     assertEq(30, &op.count)
     assertEq(2, &op.count())
 })
 
 test("kvm for in", -> {
-    let &kvm ${key1=1, key2=2, key3=3}
-    let &counter 1
-    let &counter2 Num('1')
-    let &counter3 Int(1)
-    let &counter4 NewPplObj('1',SI,SI)
+    &kvm := ${key1=1, key2=2, key3=3}
+    &counter := 1
+    &counter2 := Num('1')
+    &counter3 := Int(1)
+    &counter4 := NewPplObj('1',SI,SI)
     
     for &val in &kvm
        let &key 'key'~FSTR(&counter,0,0)
@@ -157,27 +157,37 @@ test("kvm for in anidados", -> {
     let &counter2 1
     
     for &val in &kvm1
-       let &key 'key'~FSTR(&counter,0,0)
+       &key := 'key'~FSTR(&counter,0,0)
        assertEq(&key, &val.get_key)
-       assertEq(&kvm1.get(&key), &val.get_value)
-       assertEq('key'~FSTR(&counter,0,0), &val.get_key)
-       assertEq(&kvm1.get('key'~FSTR(&counter,0,0)), &val.get_value)
+*       assertEq(&kvm1.get(&key), &val.get_value)
+*       assertEq('key'~FSTR(&counter,0,0), &val.get_key)
+*       assertEq(&kvm1.get('key'~FSTR(&counter,0,0)), &val.get_value)
        let &counter &counter + 1
        
        for &val in &kvm2
-          let &key2 'key'~FSTR(&counter2,0,0)
+          &key2 := 'key'~FSTR(&counter2,0,0)
           assertEq(&key2, &val.get_key)
-          assertEq(&kvm2.get(&key2), &val.get_value)
-          assertEq('key'~FSTR(&counter2,0,0), &val.get_key)
-          assertEq(&kvm2.get('key'~FSTR(&counter2,0,0)), &val.get_value)
+*          assertEq(&kvm2.get(&key2), &val.get_value)
+*          assertEq('key'~FSTR(&counter2,0,0), &val.get_key)
+*          assertEq(&kvm2.get('key'~FSTR(&counter2,0,0)), &val.get_value)
           let &counter2 &counter2 + 1
        end
     end
 })
 
+*test("kvm for in", -> {
+*    let &kvm ${key1=1,key2=2,key3=3}
+*    let &counter 1
+*    for &val in &kvm
+*        let &key "key"~FSTR(&counter,0,0)
+*        assertEq(&key, &val.get_key)
+*        assertEq(&kvm.get(&key), &val.get_value)
+*        let &counter &counter + 1
+*    end
+*})
 
 test("kvm recorrer&i", -> {
-    let &kvm ${key1=1, key2=2, key3=3}
+    &kvm := ${key1=1, key2=2, key3=3}
     recorrer&k 1, 3
       assertEq(&k, &kvm.get('key'~FSTR(&k,0,0)))
     proximo
