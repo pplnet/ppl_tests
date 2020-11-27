@@ -78,7 +78,7 @@ test("list InsertAt", -> {
     
     &lista3.insertAt(&uno,'CHAU')
     
-    let &string '!!!'
+    &string := '!!!'
     &lista3.insertAt(&dos,&string)
     
     assertEq('HOLA', &lista3.itemAt(&cero))
@@ -114,7 +114,7 @@ test("list ReplaceAt", -> {
     assertEq('HO HO HOOOLA', &lista3.itemAt(&cero))
     assertEq('CHAU', &lista3.itemAt(&uno))
     
-    let &hola 'HOLA'
+    &hola := 'HOLA'
     &lista3.replaceAt(&cero, &hola)
 })
 
@@ -123,27 +123,27 @@ test("list for in", -> {
     &lista2 := |'HOLA','QUE','TAL'|
     &lista3 := |&cero,&uno,&dos|
     
-    let &counter 0
+    &counter := 0
     for &val in &lista
         assertEq(&lista.itemAt(&counter), &val)
-        let &counter &counter + 1
+        &counter := &counter + 1
     end
     
-    let &counter 0
+    &counter := 0
     for &val in &lista2
         assertEq(&lista2.itemAt(&counter), &val)
-        let &counter &counter + 1
+        &counter := &counter + 1
     end
     
-    let &counter 0
+    &counter := 0
     for &val in &lista3
         assertEq(&lista3.itemAt(&counter), &val)
-        let &counter &counter + 1
+        &counter := &counter + 1
     end
 })
 
 test("list recorrer&i", -> {
-    let &lista |1,2,3|
+    &lista := |1,2,3|
     recorrer&i 0, 2
         assertEq(&i+1, &lista.itemAt(&i))
     proximo
@@ -160,7 +160,7 @@ test("list addRange", -> {
       assertEq(&i+1, &lista1.itemAt(&i))
     proximo
     
-    let &lista3 list()
+    &lista3 := ||
     
     &lista3.AddRange(&lista1)
     &lista3.AddRange(&lista2)
@@ -174,7 +174,7 @@ test("list addRange", -> {
 test("list matriz", -> {
     &lista1 := |1,2,3|
     &lista2 := |4,5,6,7|
-    &matriz := list()
+    &matriz := ||
     
     &matriz.Add(&lista1)
     &matriz.Add(&lista2)
