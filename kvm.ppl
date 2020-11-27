@@ -185,8 +185,14 @@ test("kvm recorrer&i", -> {
     proximo
 })
 
-test("kvm error", ->{
+test("kvm errors", ->{
     &prueba := ${STRING1='string'}
-
-    assertEq('string', &prueba.STRING2)
+    
+    assertError('La clave del KVM no puede ser NULL o vacia', -> {
+        &prueba.Add(NULL, NULL)
+    })
+    
+    assertError('No se pudo agregar los valores al diccionario', -> {
+        &prueba.Add(1)
+    })
 })
