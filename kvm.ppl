@@ -192,6 +192,10 @@ test("kvm errors", ->{
         &prueba.Add(NULL, NULL)
     })
     
+    assertError('La clave del KVM no puede ser NULL o vacia', -> {
+        &prueba.Add('', NULL)
+    })
+    
     assertError('No se pudo agregar los valores al diccionario', -> {
         &prueba.Add(1)
     })
