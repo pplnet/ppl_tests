@@ -1,2 +1,3 @@
-*SyntaxError=no es posible concatenar un valor numerico. Line: 2
+﻿*SyntaxError=no es posible concatenar un valor numerico. Line: 2
+*SyntaxErrorV6=se esperaba un texto.
 10 ~ "foo"
