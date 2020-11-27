@@ -43,11 +43,9 @@ test("list indexOf", -> {
     
     assertEq(2, &lista1.indexOf(3))
     assertEq(2, &lista1.indexOf(&tres))
-    *Los siguientes casos dan error por comparacion
-    *en PPL entre un nro y un string
-    *assertEq(3, &lista1.indexOf('HOLA'))
-    *assertEq(-1, &lista1.indexOf(4))
-    *assertEq(-1, &lista1.indexOf('HOLA '))
+    assertEq(3, &lista1.indexOf('HOLA'))
+    assertEq(-1, &lista1.indexOf(4))
+    assertEq(-1, &lista1.indexOf('HOLA '))
     
     &lista1.removeAt(1)
     assertEq(1, &lista1.indexOf(3))
