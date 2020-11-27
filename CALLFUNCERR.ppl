@@ -1,2 +1,3 @@
-*SyntaxError='NoExiste' no es una funcion valida
+﻿*SyntaxError='NoExiste' no es una funcion valida
+*SyntaxErrorV6=error al **compilar** la llamada a 'noexiste'
 noexiste()
