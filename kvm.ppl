@@ -19,6 +19,9 @@ test("kvm", ->{
     assertEq(1, &prueba4.CANTIDAD1)
     assertEq(12.2, &prueba4.PRECIO1)
     assertEq(1, &prueba5.CANTIDAD1)
+    
+    ** Si no existe la clave, devuelve null
+    assertEq(NULL, &prueba.STRING2)
 })
 
 test("kvm set kvmprop", ->{
@@ -182,3 +185,8 @@ test("kvm recorrer&i", -> {
     proximo
 })
 
+test("kvm error", ->{
+    &prueba := ${STRING1='string'}
+
+    assertEq('string', &prueba.STRING2)
+})
