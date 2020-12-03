@@ -102,10 +102,6 @@ test("list RemoveAt", -> {
     assertEq(3, &lista1.itemAt(&uno))
     assertEq(7, &lista2.itemAt(2))
     
-    watch(&lista1.itemAt(0))
-    watch(&lista1.itemAt(1))
-    watch(&lista1.itemAt(2))
-    
     &lista1.insertAt(2,4)
     &lista1.insertAt(3,5)
     &lista1.removeAt(&tres)
@@ -259,3 +255,18 @@ test("list errors", ->{
     })
 })
 
+test("list pipe2List", -> {
+    &lista1 := Pipe2List('1|2|3|')
+    recorrer&i 0, 2
+      assertEq(FStr(&i+1,0,0), &lista1.itemAt(&i))
+    proximo
+    assertEq(3, &lista1.count)
+    
+    &lista2 := Pipe2List()
+    assertEq(0, &lista2.count)
+    
+    &lista3 := Pipe2List('HOLA|10|CHAU|')
+    assertEq('HOLA', &lista3.itemAt(0))
+    assertEq(FStr(10,0,0), &lista3.itemAt(1))
+    assertEq('CHAU', &lista3.itemAt(2))
+})
