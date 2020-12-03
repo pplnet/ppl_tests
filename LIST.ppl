@@ -6,6 +6,7 @@ ACN(A:1,0)
 ACN(A:2,1)
 ACN(A:3,2)
 ACN(A:4,3)
+ACN(A:5,4)
 
 test("list add", -> {
     &lista := ||
@@ -43,11 +44,14 @@ test("list indexOf", -> {
     
     assertEq(2, &lista1.indexOf(3))
     assertEq(2, &lista1.indexOf(&tres))
+    assertEq(2, &lista1.indexOf(Val(A:4)))
     assertEq(3, &lista1.indexOf('HOLA'))
     assertEq(-1, &lista1.indexOf(4))
     assertEq(-1, &lista1.indexOf('HOLA '))
+    assertEq(-1, &lista1.indexOf(&cero))
+    assertEq(-1, &lista1.indexOf(Val(A:1)))
     
-    &lista1.removeAt(1)
+    &lista1.removeAt(0)
     assertEq(1, &lista1.indexOf(3))
     
     &lista1.insertAt(0,1)
@@ -74,6 +78,9 @@ test("list InsertAt", -> {
     
     assertEq(4, &lista1.itemAt(&tres))
     
+    &lista1.insertAt(Val(A:5),5)
+    assertEq(5, &lista1.itemAt(4))
+    
     &lista3.insertAt(&uno,'CHAU')
     
     &string := '!!!'
@@ -94,6 +101,18 @@ test("list RemoveAt", -> {
     assertEq(3, &lista1.itemAt(1))
     assertEq(3, &lista1.itemAt(&uno))
     assertEq(7, &lista2.itemAt(2))
+    
+    watch(&lista1.itemAt(0))
+    watch(&lista1.itemAt(1))
+    watch(&lista1.itemAt(2))
+    
+    &lista1.insertAt(2,4)
+    &lista1.insertAt(3,5)
+    &lista1.removeAt(&tres)
+    &lista1.removeAt(Val(A:3))
+    
+    assertEq(NULL, &lista1.itemAt(2))
+    assertEq(NULL, &lista1.itemAt(3))
 })
 
 test("list ReplaceAt", -> {
@@ -114,6 +133,29 @@ test("list ReplaceAt", -> {
     
     &hola := 'HOLA'
     &lista3.replaceAt(&cero, &hola)
+    &lista3.replaceAt(Val(A:2), 'CHAU !!!')
+    
+    assertEq('HOLA', &lista3.itemAt(0))
+    assertEq('CHAU !!!', &lista3.itemAt(1))
+})
+
+test("list count", -> {
+    &lista := ||
+    
+    assertEq(0, &lista.count)
+    assertEq(0, &lista.count())
+    
+    &lista.add('HOLA')
+    assertEq(1, &lista.count)
+    assertEq(1, &lista.count())
+    
+    &lista.add('CHAU')
+    assertEq(2, &lista.count)
+    assertEq(2, &lista.count())
+    
+    &lista.RemoveAt(1)
+    assertEq(1, &lista.count)
+    assertEq(1, &lista.count())
 })
 
 test("list for in", -> {
@@ -182,5 +224,64 @@ test("list matriz", -> {
     assertEq(4, &matriz.ItemAt(1).Count())
     assertEq(3, &matriz.ItemAt(0).ItemAt(2))
     assertEq(7, &matriz.ItemAt(1).ItemAt(3))
+})
+
+test("list errors", ->{
+    &lista := |1,2,3|
+    
+    assertError('El item a agregar no puede ser NULL o vacio.', -> {
+        &lista.Add(NULL)
+    })
+    
+    assertError('El indice no puede ser NULL o vacio.', -> {
+        &lista.ItemAt(NULL)
+    })
+    assertError('El indice no puede ser NULL o vacio.', -> {
+        &lista.ItemAt('')
+    })
+    
+    assertError('El item no puede ser NULL o vacio.', -> {
+        &lista.IndexOf(NULL)
+    })
+    assertError('El item no puede ser NULL o vacio.', -> {
+        &lista.IndexOf('')
+    })
+    
+    assertError('El indice no puede ser NULL o vacio.', -> {
+        &lista.InsertAt(NULL,4)
+    })
+    assertError('El indice no puede ser NULL o vacio.', -> {
+        &lista.InsertAt('',4)
+    })
+    
+    assertError('El indice no puede ser NULL o vacio.', -> {
+        &lista.RemoveAt(NULL)
+    })
+    assertError('El indice no puede ser NULL o vacio.', -> {
+        &lista.RemoveAt('')
+    })
+    
+    assertError('El indice no puede ser NULL o vacio.', -> {
+        &lista.ReplaceAt(NULL,4)
+    })
+    assertError('El indice no puede ser NULL o vacio.', -> {
+        &lista.ReplaceAt('',4)
+    })
+    
+    assertError('AddRange debe recibir una lista.', -> {
+        &lista.AddRange(NULL)
+    })
+    assertError('AddRange debe recibir una lista.', -> {
+        &lista.AddRange('')
+    })
+    assertError('AddRange debe recibir una lista.', -> {
+        &lista.AddRange(1)
+    })
+    assertError('AddRange debe recibir una lista.', -> {
+        &lista.AddRange(&uno)
+    })
+    assertError('AddRange debe recibir una lista.', -> {
+        &lista.AddRange(Val(A:2))
+    })
 })
 
