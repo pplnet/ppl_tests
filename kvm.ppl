@@ -140,9 +140,6 @@ test("kvm errors", ->{
     assertError('La Clave del KVM no puede ser NULL o vacia.', -> {
         &kvm.Remove('')
     })
-*    assertError('No se pudo agregar los valores al diccionario', -> {
-*        &kvm.Remove(1)
-*    })
 })
 
 
