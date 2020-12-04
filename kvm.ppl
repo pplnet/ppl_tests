@@ -1,6 +1,7 @@
 ﻿ACT(A:1,'string')
 ACN(A:2,1)
 ACN(A:3,12.2)
+&ErrMsgKeyNull := 'La Clave del KVM no puede ser NULL o vacia'
 
 test("kvm", ->{
     &prueba := ${STRING1='string', CANTIDAD1=1, PRECIO1=12.2}
@@ -124,21 +125,14 @@ test("kvm recorrer&i", -> {
 test("kvm errors", ->{
     &kvm := ${STRING1='string'}
     
-    assertError('La Clave del KVM no puede ser NULL o vacia', -> {
-        &kvm.Add(NULL, NULL)
-    })
-    assertError('La Clave del KVM no puede ser NULL o vacia', -> {
-        &kvm.Add('', NULL)
-    })
+    assertError(&ErrMsgKeyNull, -> &kvm.Add(NULL, NULL))
+    assertError(&ErrMsgKeyNull, -> &kvm.Add('', NULL))
+    
     assertError('No se pudo agregar los valores al KVM', -> {
         &kvm.Add(1)
     })
     
-    assertError('La Clave del KVM no puede ser NULL o vacia.', -> {
-        &kvm.Remove(NULL)
-    })
-    assertError('La Clave del KVM no puede ser NULL o vacia.', -> {
-        &kvm.Remove('')
-    })
+    assertError(&ErrMsgKeyNull, -> &kvm.Remove(NULL))
+    assertError(&ErrMsgKeyNull, -> &kvm.Remove(''))
 })
 
