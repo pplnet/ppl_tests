@@ -8,6 +8,10 @@ ACN(A:3,2)
 ACN(A:4,3)
 ACN(A:5,4)
 
+&ErrMsgIdxNull := 'El indice no puede ser NULL o vacio.'
+&ErrMsgItemNull := 'El item no puede ser NULL o vacio.'
+&ErrMsgAddRange := 'AddRange debe recibir una lista.'
+
 test("list add", -> {
     &lista := ||
     &lista.add('HOLA')
@@ -203,56 +207,26 @@ test("list errors", ->{
         &lista.Add(NULL)
     })
     
-    assertError('El indice no puede ser NULL o vacio.', -> {
-        &lista.ItemAt(NULL)
-    })
-    assertError('El indice no puede ser NULL o vacio.', -> {
-        &lista.ItemAt('')
-    })
+    assertError(&ErrMsgIdxNull, -> &lista.ItemAt(NULL))
+    assertError(&ErrMsgIdxNull, -> &lista.ItemAt(''))
     
-    assertError('El item no puede ser NULL o vacio.', -> {
-        &lista.IndexOf(NULL)
-    })
-    assertError('El item no puede ser NULL o vacio.', -> {
-        &lista.IndexOf('')
-    })
+    assertError(&ErrMsgItemNull, -> &lista.IndexOf(NULL))
+    assertError(&ErrMsgItemNull, -> &lista.IndexOf(''))
     
-    assertError('El indice no puede ser NULL o vacio.', -> {
-        &lista.InsertAt(NULL,4)
-    })
-    assertError('El indice no puede ser NULL o vacio.', -> {
-        &lista.InsertAt('',4)
-    })
+    assertError(&ErrMsgIdxNull, -> &lista.InsertAt(NULL,4))
+    assertError(&ErrMsgIdxNull, -> &lista.InsertAt('',4))
     
-    assertError('El indice no puede ser NULL o vacio.', -> {
-        &lista.RemoveAt(NULL)
-    })
-    assertError('El indice no puede ser NULL o vacio.', -> {
-        &lista.RemoveAt('')
-    })
+    assertError(&ErrMsgIdxNull, -> &lista.RemoveAt(NULL))
+    assertError(&ErrMsgIdxNull, -> &lista.RemoveAt(''))
     
-    assertError('El indice no puede ser NULL o vacio.', -> {
-        &lista.ReplaceAt(NULL,4)
-    })
-    assertError('El indice no puede ser NULL o vacio.', -> {
-        &lista.ReplaceAt('',4)
-    })
+    assertError(&ErrMsgIdxNull, -> &lista.ReplaceAt(NULL,4))
+    assertError(&ErrMsgIdxNull, -> &lista.ReplaceAt('',4))
     
-    assertError('AddRange debe recibir una lista.', -> {
-        &lista.AddRange(NULL)
-    })
-    assertError('AddRange debe recibir una lista.', -> {
-        &lista.AddRange('')
-    })
-    assertError('AddRange debe recibir una lista.', -> {
-        &lista.AddRange(1)
-    })
-    assertError('AddRange debe recibir una lista.', -> {
-        &lista.AddRange(&uno)
-    })
-    assertError('AddRange debe recibir una lista.', -> {
-        &lista.AddRange(Val(A:2))
-    })
+    assertError(&ErrMsgAddRange, -> &lista.AddRange(NULL))
+    assertError(&ErrMsgAddRange, -> &lista.AddRange(''))
+    assertError(&ErrMsgAddRange, -> &lista.AddRange(1))
+    assertError(&ErrMsgAddRange, -> &lista.AddRange(&uno))
+    assertError(&ErrMsgAddRange, -> &lista.AddRange(Val(A:2)))
 })
 
 test("list pipe2List", -> {
