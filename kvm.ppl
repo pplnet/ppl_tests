@@ -121,25 +121,24 @@ test("kvm recorrer&i", -> {
     proximo
 })
 
-*test("kvm errors", ->{
-*    &kvm := ${STRING1='string'}
-*    
-*    assertError('La Clave del KVM no puede ser NULL o vacia', -> {
-*        &kvm.Add(NULL, NULL)
-*    })
-*    assertError('La Clave del KVM no puede ser NULL o vacia', -> {
-*        &kvm.Add('', NULL)
-*    })
-*    assertError('No se pudo agregar los valores al KVM', -> {
-*        &kvm.Add(1)
-*    })
-*    
-*    assertError('La Clave del KVM no puede ser NULL o vacia.', -> {
-*        &kvm.Remove(NULL)
-*    })
-*    assertError('La Clave del KVM no puede ser NULL o vacia.', -> {
-*        &kvm.Remove('')
-*    })
-*})
-
+test("kvm errors", ->{
+    &kvm := ${STRING1='string'}
+    
+    assertError('La Clave del KVM no puede ser NULL o vacia', -> {
+        &kvm.Add(NULL, NULL)
+    })
+    assertError('La Clave del KVM no puede ser NULL o vacia', -> {
+        &kvm.Add('', NULL)
+    })
+    assertError('No se pudo agregar los valores al KVM', -> {
+        &kvm.Add(1)
+    })
+    
+    assertError('La Clave del KVM no puede ser NULL o vacia.', -> {
+        &kvm.Remove(NULL)
+    })
+    assertError('La Clave del KVM no puede ser NULL o vacia.', -> {
+        &kvm.Remove('')
+    })
+})
 
