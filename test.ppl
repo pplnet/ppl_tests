@@ -1,2 +1,0 @@
-test("testName1", -> { assert(1 + 1 = 2, "1 + 1 debe ser igual a 2") })
-test("testName2", -> { assertEq(4, 2 + 2, "2 + 2 debe ser igual a 4") })
