@@ -1,0 +1,5 @@
+test("getters", -> {
+    &foo := "FOO"
+    assertEq(3, &foo.get_Length)
+    assertEq(3, &foo.Length)
+})
