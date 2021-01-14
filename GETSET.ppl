@@ -9,7 +9,7 @@ test('setter', -> {
     assertEq(1, &foo.get_prop)
 })
 
-if Version() = 6
+if(Version() = 6)
    Cancelar
 endif
 
