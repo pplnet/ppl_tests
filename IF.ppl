@@ -1,1 +1,13 @@
-﻿
+﻿test('if', -> { 
+    if SI
+        assert(SI)
+    else
+        assert(NO)
+    endif
+    
+    if(SI)
+        assert(SI)
+    else
+        assert(NO)
+    endif
+})
