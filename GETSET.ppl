@@ -8,3 +8,11 @@ test('setter', -> {
     &foo.set_prop(1)
     assert(1, &foo.get_prop)
 })
+
+test('getset embebido', -> { 
+    &foo := NewGetSet()
+    &bar := NewGetSet()
+    &bar.set_prop(2)
+    &foo.set_prop(&bar)
+    assert(2, &foo.get_prop.get_prop)
+})
