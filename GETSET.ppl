@@ -1,18 +1,22 @@
 ﻿test('getter', -> { 
     &foo := '123'
-    assert(3, &foo.get_length)
+    assertEq(3, &foo.get_length)
 })
 
 test('setter', -> { 
     &foo := NewGetSet()
     &foo.set_prop(1)
-    assert(1, &foo.get_prop)
+    assertEq(1, &foo.get_prop)
 })
+
+if Version() = 6
+   Cancelar
+endif
 
 test('getset embebido', -> { 
     &foo := NewGetSet()
     &bar := NewGetSet()
     &bar.set_prop(2)
     &foo.set_prop(&bar)
-    assert(2, &foo.get_prop.get_prop)
+    assertEq(2, &foo.get_prop.get_prop)
 })
