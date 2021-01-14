@@ -1,1 +1,10 @@
-﻿
+﻿test('getter', -> { 
+    &foo := '123'
+    assert(3, &foo.get_length)
+})
+
+test('setter', -> { 
+    &foo := NewGetSet()
+    &foo.set_prop(1)
+    assert(1, &foo.get_prop)
+})
