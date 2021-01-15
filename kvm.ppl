@@ -125,7 +125,9 @@ test("kvm recorrer&i", -> {
 test("kvm errors", ->{
     &kvm := ${STRING1='string'}
     
-    assertError(&ErrMsgKeyNull, -> &kvm.Add(NULL, NULL))
+    assertError(&ErrMsgKeyNull, -> {
+        &kvm.Add(NULL, NULL)
+    })
     assertError(&ErrMsgKeyNull, -> &kvm.Add('', NULL))
     
     assertError('No se pudo agregar los valores al KVM', -> {
