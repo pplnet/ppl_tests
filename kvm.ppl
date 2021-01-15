@@ -128,13 +128,16 @@ test("kvm errors", ->{
     assertError(&ErrMsgKeyNull, -> {
         &kvm.Add(NULL, NULL)
     })
-    assertError(&ErrMsgKeyNull, -> &kvm.Add('', NULL))
-    
+    assertError(&ErrMsgKeyNull, -> {
+        &kvm.Add('', NULL)
+    })
     assertError('No se pudo agregar los valores al KVM', -> {
         &kvm.Add(1)
     })
-    
-    assertError(&ErrMsgKeyNull, -> &kvm.Remove(NULL))
-    assertError(&ErrMsgKeyNull, -> &kvm.Remove(''))
+    assertError(&ErrMsgKeyNull, -> {
+        &kvm.Remove(NULL)
+    })
+    assertError(&ErrMsgKeyNull, -> {
+        &kvm.Remove('')
+    })
 })
-
