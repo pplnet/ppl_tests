@@ -1,0 +1,5 @@
+﻿test('call object method', -> { 
+    &foo := NewGetSet()
+    &foo.set_prop(1)
+    assertEq(1, &foo.get_prop)
+})
