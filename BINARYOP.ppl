@@ -7,7 +7,6 @@
 
 &fechaStr := '02/01/2020'
 &fechaPplObj := Fecha('02/01/2020')
-&fechaDateTime := DateFromStr('02/01/2020')
 &numero := 10
 
 test('suma', -> {
@@ -24,8 +23,7 @@ test('suma', -> {
   assertEq(2.5, Num('1.5') + Num('1'))
   assertEq(3, Dbl(1.5) + Dbl(1.5))
   assertEq(&fechaPplObj, Fecha('01/01/2020') + 1)
-  assertEq(NewPplObj(DateFromStr('02/01/2020')), Fecha('01/01/2020') + 1)
-  assertEq(NewPplObj(Fecha('02/01/2020')), DateFromStr('01/01/2020') + 1)
+  assertEq(Fecha('02/01/2020'), Fecha('01/01/2020') + 1)
   assertEq(3, NewPplObj('1',SI,SI) * 1 + 2)
   assertEq(1, NewPplObj('1',SI,SI) * 0 + 1)
   assertEq(3, NewPplObj('1',SI,SI) + 1 * 2)
@@ -49,8 +47,7 @@ test('resta', -> {
   assertEq(0.5, Num('1.5') - Num('1'))
   assertEq(1, Dbl(1.5) - Dbl(0.5))
   assertEq(&fechaPplObj, Fecha('03/01/2020') - 1)
-  assertEq(NewPplObj(DateFromStr('02/01/2020')), Fecha('03/01/2020') - 1)
-  assertEq(NewPplObj(Fecha('02/01/2020')), DateFromStr('03/01/2020') - 1)
+  assertEq(Fecha('02/01/2020'), Fecha('03/01/2020') - 1)
   assertEq(1, NewPplObj('1',SI,SI) * 2 - 1)
   assertEq(-1, NewPplObj('1',SI,SI) * 0 - 1)
   assertEq(1, NewPplObj('3',SI,SI) - 1 * 2)
