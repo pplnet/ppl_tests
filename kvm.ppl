@@ -93,7 +93,7 @@ test("kvm contains kvmprop", ->{
     assertEq(SI, &persona.contains('APELLIDO'))
     assertEq(NO, &persona.contains('dni'))
     assertEq(NO, &persona.contains('DNI'))
-    &persona.add(dni = 12345678)
+    &persona.add(${dni = 12345678})
     assertEq(SI, &persona.contains('dni'))
     assertEq(SI, &persona.contains('tel'))
     assertEq(SI, &persona.contains('TEL'))
