@@ -44,11 +44,14 @@ test("kvm props case insensitive", ->{
 
 test("kvm add kvmprop", ->{
     &persona := ${nombre = 'Pepe'}
-    &persona.add(apellido = 'Argento', dni = 12345678)
+    &persona.add(${apellido = 'Argento', dni = 12345678})
+    **&persona.apellido := 'Argento'
+    **&persona.dni := 12345678
+    
     assertEq('Argento', &persona.apellido)
     assertEq(12345678, &persona.dni)
     
-    &persona.add(tel = NewPplObj('5555555',SI,SI), FechaNac = Fecha('02/01/2020'))
+    &persona.add(${tel = NewPplObj('5555555',SI,SI), FechaNac = Fecha('02/01/2020')})
     assertEq(5555555, &persona.tel)
     assertEq(Fecha('02/01/2020'), &persona.FechaNac)
     
