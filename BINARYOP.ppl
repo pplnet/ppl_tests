@@ -8,6 +8,7 @@
 &fechaStr := '02/01/2020'
 &fechaPplObj := Fecha('02/01/2020')
 &numero := 10
+&datetime := Fecha('02/01/2020')
 
 test('suma', -> {
   assertEq(2, 1 + 1)
@@ -32,6 +33,25 @@ test('suma', -> {
   assertEq(4, NewPplObj('1',SI,NO) + 3)
   assertEq(3, NewPplObj('1',NO,NO) + 3)
   assertEq(4, Decimal(2) + Decimal(2))
+  
+  &datetime2 := &datetime + 1.5
+  assertEq(0, &datetime.get_Hour)
+  assertEq(12, &datetime2.get_Hour)
+  
+  &datetime3 := 1.5 + &datetime
+  assertEq('12:00:00',Hora(&datetime3))
+  
+  assertError(-> &datetime3.get_Hour)
+  assertError(-> &datetime + '1')
+  assertError(-> '1' + &datetime)
+  
+  * Si bien no falla el test, no estaría andando porque no sería ese el mensaje de error
+  assertError('Error', -> &datetime3.get_Hour)
+  
+  ** No toma la property Hour
+  *assertEq('12',Fecha(&datetime3).get_Hour)
+  *assertEq('12',Dat(&datetime3).get_Hour)
+  
 })
 
 test('resta', -> {
@@ -82,6 +102,8 @@ test('division', -> {
   assertEq(3, 6 / 2)
   assertEq(-9, -27 / 3)
   assertEq(0, 0 / 1)
+  assertEq(1, 1 / 0)
+  assertEq(4, 4 / 0)
   assertEq(2, Int(10) / Int(5))
   **assertEq(2, 2^2 / 2)
   **assertEq(-4, 2^2 / (-(1)))
@@ -91,11 +113,13 @@ test('division', -> {
   assertEq(3, Dbl(1.5) / Dbl(0.5))
   assertEq(50, NewPplObj('100',SI,SI) / 2)
   assertEq(0, 0 / NewPplObj('1',SI,SI))
+  assertEq(1, NewPplObj('1',SI,SI) / 0)
   assertEq(2, NewPplObj('4',SI,SI) / 2)
   assertEq(0, NewPplObj('2',NO,SI) / 3)
   assertEq(2, NewPplObj('4',SI,NO) / 2)
   assertEq(0, NewPplObj('2',NO,NO) / 3)
   assertEq(2, Decimal(4) / Decimal(2))
+  assertEq(2, Decimal(2) / 0)
 })
 
 test('comparaciones', -> {
@@ -207,6 +231,8 @@ test('div-mod-pow', -> {
   assertEq(1, 10 mod 3)
   assertEq(1, Int(10) mod Int(3))
   assertEq(1, Num('10') mod Num('3'))
+  assertEq(1, pow(2,0))
+  assertEq(0, pow(0,1))
   assertEq(8, pow(2,3))
   assertEq(-8, -pow(2,3))
 })
