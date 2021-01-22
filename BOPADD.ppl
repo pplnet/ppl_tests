@@ -98,6 +98,7 @@ test('suma', -> {
   assertEq(Fecha('04/01/2020'), &datetime2.get_Date)
   
   &datetime3 := 1.5 + &datetime
+  assertEq(43833.5, &datetime3)
   assertEq('12:00:00',Hora(&datetime3))
   
   ** No toma la property Hour
