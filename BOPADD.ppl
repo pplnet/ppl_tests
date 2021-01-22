@@ -1,0 +1,146 @@
+﻿** Operaciones Binarias entre tipos primitivos:int, double, decimal, datetime, string
+** y pplObj (nulleable y soft) en todas sus variantes
+
+** Operacion binarias: suma
+
+** Los tests con operador '^' por el momento no compilan en v7.
+
+&fechaStr := '02/01/2020'
+&fechaPplObj := Fecha('02/01/2020')
+&numero := 10
+&datetime := Fecha('02/01/2020')
+
+test('suma', -> {
+  assertEq(2, 1 + 1)
+  assertEq(1, 0 + 1)
+  assertEq(9, -1 + 10)
+  assertEq(0, -1 + 1)
+  assertEq(-1, -2 + 1)
+  assertEq(2.1, 1 + 1.1)
+  assertEq(20, Int(10) + Int(10))
+  
+  #ifdef V6
+  assertEq(6, [2^2] + 2)
+  assertEq(2, [2^2] + (-2))
+  #endif
+  
+  assertEq(11, Num('10') + 1)
+  assertEq(3, Num('1.5') + Num('1.5'))
+  assertEq(2.5, Num('1.5') + Num('1'))
+  assertEq(3, Dbl(1.5) + Dbl(1.5))
+  assertEq(2.5, Dbl(1.5) + 1)
+  assertEq(2.5, Dbl(1.5) + Int(1))
+  assertEq(2.5, Dbl(1.5) + Num('1'))
+  assertEq(4.5, Dbl(1.5) + Decimal(3))
+  assertEq(2.5, 1 + Dbl(1.5))
+  assertEq(2.5, Int(1) + Dbl(1.5))
+  assertEq(2.5, Num('1') + Dbl(1.5))
+  assertEq(4.5, Decimal(3) + Dbl(1.5))
+  
+  assertEq(3, NewPplObj('1',SI,SI) * 1 + 2)
+  assertEq(1, NewPplObj('1',SI,SI) * 0 + 1)
+  assertEq(3, NewPplObj('1',SI,SI) + 1 * 2)
+  assertEq(4, NewPplObj('1',SI,SI) + 3)
+  assertEq(3, NewPplObj('1',NO,SI) + 3)
+  assertEq(4, NewPplObj('1',SI,NO) + 3)
+  assertEq(3, NewPplObj('1',NO,NO) + 3)
+  
+  assertEq(3, NewPplObj('',SI,SI) + 3)
+  assertEq(4, NewPplObj('1',SI,SI) + Int(3))
+  assertEq(5, NewPplObj('1.5',SI,SI) + Dbl(3.5))
+  assertEq(4, NewPplObj('1',SI,SI) + Num('3'))
+  assertEq(5, NewPplObj('1.5',SI,SI) + Decimal(3.5))
+  assertEq(4, Int(3) + NewPplObj('1',SI,SI))
+  assertEq(5, Dbl(3.5) + NewPplObj('1.5',SI,SI))
+  assertEq(4, Num('3') + NewPplObj('1',SI,SI))
+  assertEq(5, Decimal(3.5) + NewPplObj('1.5',SI,SI))
+  
+  assertEq(4, Decimal(2) + Decimal(2))
+  assertEq(5, Decimal(3) + 2)
+  assertEq(5, Decimal(3) + Int(2))
+  assertEq(5, Decimal(3) + Dbl(2))
+  assertEq(5, Decimal(3) + Num('2'))
+  assertEq(5, 2 + Decimal(3))
+  assertEq(5, Int(2) + Decimal(3))
+  assertEq(5, Dbl(2) + Decimal(3))
+  assertEq(5, Num('2') + Decimal(3))
+  assertEq(5.5, Dbl(2) + Decimal(3.5))
+  
+  assertError('No se puede realizar una operacion de suma entre System.Int32 y System.String', -> 1 + '1')
+  assertError('No se puede realizar una operacion de suma entre System.Int32 y System.String', -> 1 + 'foo')
+  assertError('No se puede realizar una operacion de suma entre System.Int32 y System.String', -> 1 + 'NaN')
+  assertError('No se puede realizar una operacion de suma entre System.Int32 y System.String', -> 1 + '')
+  assertError('No se puede realizar una operacion de suma entre System.Int32 y System.Boolean', -> 1 + SI)
+  
+  assertError('No se puede realizar una operacion de suma entre System.Double y System.String', -> Dbl(1) + '1')
+  assertError('No se puede realizar una operacion de suma entre System.Double y System.String', -> Dbl(1) + 'foo')
+  assertError('No se puede realizar una operacion de suma entre System.Double y System.String', -> Dbl(1) + 'NaN')
+  assertError('No se puede realizar una operacion de suma entre System.Double y System.String', -> Dbl(1) + '')
+  assertError('No se puede realizar una operacion de suma entre System.Double y System.Boolean', -> Dbl(1) + SI)
+  
+  assertError('No se puede realizar una operacion de suma entre System.String y System.Int32', -> '1' + 1)
+  assertError('No se puede realizar una operacion de suma entre System.String y System.String', -> '1' + '1')
+  assertError('No se puede realizar una operacion de suma entre System.String y System.Double', -> '1.1' + 1.1)
+  assertError('No se puede realizar una operacion de suma entre System.String y System.Boolean', -> '1' + SI)
+  
+  assertEq(&fechaPplObj, Fecha('01/01/2020') + 1)
+  assertEq(Fecha('02/01/2020'), Fecha('01/01/2020') + 1)
+  
+  assertEq(84040, Fecha('31/01/2015') + Fecha('01/01/2015'))
+  
+  &datetime2 := &datetime + 1.5
+  assertEq(0, &datetime.get_Hour)
+  assertEq(12, &datetime2.get_Hour)
+  
+  &datetime3 := 1.5 + &datetime
+  assertEq('12:00:00',Hora(&datetime3))
+  
+  assertError(-> &datetime3.get_Hour)
+  assertError(-> &datetime + '1')
+  assertError(-> '1' + &datetime)
+  
+  assertError('No se puede realizar una operacion de suma entre System.DateTime y System.String', -> Fecha('31/01/2015') + '1')
+  assertError('No se puede realizar una operacion de suma entre System.DateTime y System.Boolean', -> fecha('31/01/2015') + SI)
+  
+  * Si bien no falla el test, no estaría andando porque no sería ese el mensaje de error
+  assertError('Error', -> &datetime3.get_Hour)
+  
+  ** No toma la property Hour
+  *assertEq('12',Fecha(&datetime3).get_Hour)
+  *assertEq('12',Dat(&datetime3).get_Hour)
+  
+  assertEq(0, Val(Z:1) + DbNull())
+  assertEq(0, Val(Z:1) + Null())
+  assertEq(1, Val(Z:1) + 1)
+  assertEq(0, NewPPLObj(DbNull(),SI,SI) + DbNull())
+  assertEq(0, NewPPLObj(DbNull(),SI,SI) + Null())
+  assertEq(1, NewPPLObj(DbNull(),SI,SI) + 1)
+  assertEq(1, NewPPLObj('str',SI,SI) + 1)
+  assertEq(0, DbNull() + NewPPLObj(DbNull(),SI,SI))
+  assertEq(0, Null() + NewPPLObj(DbNull(),SI,SI))
+  assertEq(1, 1 + NewPPLObj(DbNull(),SI,SI))
+  assertEq(5, 5 + NewPPLObj('5',NO,NO))
+  assertEq(5, 5 + NewPPLObj('str',SI,SI))
+  assertEq(5, NewPPLObj('5',NO,NO) + 5)
+  assertEq(1, NewPPLObj(1,SI,SI) + NewPPLObj(DbNull(),SI,SI))
+  assertEq(1, NewPPLObj(DbNull(),SI,SI) + NewPPLObj(1,SI,SI))
+  assertEq(1, NewPPLObj('str',SI,SI) + NewPPLObj(1,SI,SI))
+  assertEq(2, NewPPLObj('1',SI,SI) + NewPPLObj(1,SI,SI))
+  
+  assertEq(1, 1 + NewValObj('str'))
+  assertEq(1, 1 + NewValObj('1.5'))
+  assertEq(1, 1 + NewFbnObj('str'))
+  assertEq(2.5, 1 + NewFbnObj('1.5'))
+  assertEq(1, NewValObj('str') + 1)
+  assertEq(1, NewValObj('1.5') + 1)
+  assertEq(1, NewFbnObj('str') + 1)
+  assertEq(2.5, NewFbnObj('1.5') + 1)
+  
+  assertEq(2, Echo_Int64(1) + 1)
+  assertEq(2, 1 + Echo_Int64(1))
+  
+  #ifdef V6
+  assertEq(29, 2 + 3 ^3)
+  assertEq(125, (2 + 3) ^3)
+  #endif
+})
