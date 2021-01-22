@@ -13,19 +13,18 @@
 &ErrMsgMulIntBol := 'No se puede realizar una multiplicacion entre System.Int32 y System.Boolean'
 &ErrMsgMulDblStr := 'No se puede realizar una multiplicacion entre System.Double y System.String'
 &ErrMsgMulDblBol := 'No se puede realizar una multiplicacion entre System.Double y System.Boolean'
-  
 &ErrMsgMulStrInt := 'No se puede realizar una multiplicacion entre System.String y System.Int32'
 &ErrMsgMulStrStr := 'No se puede realizar una multiplicacion entre System.String y System.String'
 &ErrMsgMulStrDbl := 'No se puede realizar una multiplicacion entre System.String y System.Double'
 &ErrMsgMulStrBol := 'No se puede realizar una multiplicacion entre System.String y System.Boolean'
 
 test('producto', -> {
-  assertEq(6, 2 * 3)
+  assertEq(6,    2 * 3)
   assertEq(-20, -2 * 10)
   assertEq(-20, -2 * &numero)
-  assertEq(0, 1 * 0)
-  assertEq(0, 0 * 1)
-  assertEq(7.5, 2.5 * 3)
+  assertEq(0,    1 * 0)
+  assertEq(0,    0 * 1)
+  assertEq(7.5,  2.5 * 3)
   assertEq(8.75, 2.5 * 3.5)
   assertEq(50, Int(10) * Int(5))
   
@@ -34,16 +33,16 @@ test('producto', -> {
   assertEq(-4, 2^2 * (-(1)))
   #endif
   
-  assertEq(10, Num('10') * 1)
+  assertEq(10,   Num('10')  * 1)
   assertEq(0.75, Num('1.5') * Num('0.5'))
-  assertEq(3, Num('1.5') * Num('2'))
+  assertEq(3,    Num('1.5') * Num('2'))
   assertEq(0.75, Dbl(1.5) * Dbl(0.5))
-  assertEq(2, NewPplObj('1',SI,SI) * 2)
-  assertEq(0, NewPplObj('1',SI,SI) * 0)
-  assertEq(12, NewPplObj('4',SI,SI) * 3)
-  assertEq(0, NewPplObj('2',NO,SI) * 3)
+  assertEq(2,  NewFbnObj('1') * 2)
+  assertEq(0,  NewFbnObj('1') * 0)
+  assertEq(12, NewFbnObj('4') * 3)
+  assertEq(0,  NewPplObj('2',NO,SI) * 3)
   assertEq(12, NewPplObj('4',SI,NO) * 3)
-  assertEq(0, NewPplObj('2',NO,NO) * 3)
+  assertEq(0,  NewValObj('2') * 3)
   
   assertEq(6, Decimal(3) * Decimal(2))
   assertEq(6, Decimal(3) * 2)
