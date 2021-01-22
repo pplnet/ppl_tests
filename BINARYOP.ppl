@@ -153,12 +153,18 @@ test('combinaciones', -> {
   assertEq(2, (((1 + 1))))
   assertEq(-2, -(1 + 1))
   assertEq(2, ((1 + 1)))
-  **assertEq(6, [2^2] + (1 + 1))
-  **assertEq(2, [2^2] + (-(1 + 1)))
+  
+  #ifdef V6
+  assertEq(29, 2 + 3 ^3)
+  assertEq(125, (2 + 3) ^3)
+  assertEq(6, [2^2] + (1 + 1))
+  assertEq(2, [2^2] + (-(1 + 1)))
+  assertEq(2^25, 2^20 * 2^5)
+  #endif
+  
   assertEq(7, [2 + (3 * 4)] / 2)
   assertEq(7, [Num('2') + (Int(3) * Dbl(4.0))] / Num('2'))
   assertEq(7.3, [Dbl(2.5) + (Num('3.5') * Dbl(4.5))] / Dbl(2.5))
-  **assertEq(2^25, 2^20 * 2^5)
   assertEq(7, [NewPplObj('2',SI,SI) + (Dbl(3.0) * Num('4'))] / NewPplObj('2',SI,NO))
   assertEq(4, [(Decimal(2) + Decimal(2)) * Decimal(2)] / Decimal(2))
 })
