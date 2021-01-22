@@ -1,1 +1,34 @@
-﻿
+﻿** Operaciones Binarias entre tipos primitivos:int, double, decimal, datetime, string
+** y pplObj (nulleable y soft) en todas sus variantes
+
+** Operacion binarias: suma
+
+** Los tests con operador '^' por el momento no compilan en v7.
+
+&fechaPplObj := Fecha('02/01/2020')
+&numero := 10
+&datetime := Fecha('02/01/2020')
+
+test('producto', -> {
+  assertEq(6, 2 * 3)
+  assertEq(-20, -2 * 10)
+  assertEq(0, 1 * 0)
+  assertEq(50, Int(10) * Int(5))
+  
+  #ifdef V6
+  assertEq(8, 2^2 * 2)
+  assertEq(-4, 2^2 * (-(1)))
+  #endif
+  
+  assertEq(10, Num('10') * 1)
+  assertEq(0.75, Num('1.5') * Num('0.5'))
+  assertEq(3, Num('1.5') * Num('2'))
+  assertEq(0.75, Dbl(1.5) * Dbl(0.5))
+  assertEq(2, NewPplObj('1',SI,SI) * 2)
+  assertEq(0, NewPplObj('1',SI,SI) * 0)
+  assertEq(12, NewPplObj('4',SI,SI) * 3)
+  assertEq(0, NewPplObj('2',NO,SI) * 3)
+  assertEq(12, NewPplObj('4',SI,NO) * 3)
+  assertEq(0, NewPplObj('2',NO,NO) * 3)
+  assertEq(8, Decimal(4) * Decimal(2))
+})
