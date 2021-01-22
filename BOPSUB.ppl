@@ -86,8 +86,15 @@ test('resta', -> {
   assertEq(0, &datetime.get_Hour)
   assertEq(12, &datetime2.get_Hour)
   
+  &datetime2 := &datetime2 + 0.6
+  assertEq(Fecha('03/01/2020'), &datetime2.get_Date)
+  
   &datetime3 := 1.5 - &datetime
   assertEq('12:00:00',Hora(&datetime3))
+  
+  ** No toma la property Hour
+  *assertEq('12',Fecha(&datetime3).get_Hour)
+  *assertEq('12',Dat(&datetime3).get_Hour)
   
   assertError(-> &datetime3.get_Hour)
   assertError(-> &datetime - '1')
