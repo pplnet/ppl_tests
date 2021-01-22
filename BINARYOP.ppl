@@ -7,34 +7,6 @@
 
 &fechaPplObj := Fecha('02/01/2020')
 
-test('resta', -> {
-  assertEq(1, 2 - 1)
-  assertEq(1, 1 - 0)
-  assertEq(-1, 9 - 10)
-  assertEq(0, 1 - 1)
-  assertEq(5, Int(10) - Int(5))
-  
-  #ifdef V6
-  assertEq(3, 2^2 - 1)
-  assertEq(5, 2^2 - (-(1)))
-  #endif
-  
-  assertEq(9, Num('10') - 1)
-  assertEq(1, Num('1.5') - Num('0.5'))
-  assertEq(0.5, Num('1.5') - Num('1'))
-  assertEq(1, Dbl(1.5) - Dbl(0.5))
-  assertEq(&fechaPplObj, Fecha('03/01/2020') - 1)
-  assertEq(Fecha('02/01/2020'), Fecha('03/01/2020') - 1)
-  assertEq(1, NewPplObj('1',SI,SI) * 2 - 1)
-  assertEq(-1, NewPplObj('1',SI,SI) * 0 - 1)
-  assertEq(1, NewPplObj('3',SI,SI) - 1 * 2)
-  assertEq(1, NewPplObj('4',SI,SI) - 3)
-  assertEq(-3, NewPplObj('2',NO,SI) - 3)
-  assertEq(1, NewPplObj('4',SI,NO) - 3)
-  assertEq(-3, NewPplObj('2',NO,NO) - 3)
-  assertEq(2, Decimal(4) - Decimal(2))
-})
-
 test('producto', -> {
   assertEq(6, 2 * 3)
   assertEq(-20, -2 * 10)
