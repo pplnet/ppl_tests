@@ -9,6 +9,18 @@
 &numero := 10
 &datetime := Fecha('04/01/2020')
 
+&ErrMsgSubIntStr := 'No se puede realizar una operacion de resta entre System.Int32 y System.String'
+&ErrMsgSubIntBol := 'No se puede realizar una operacion de resta entre System.Int32 y System.Boolean'
+&ErrMsgSubDblStr := 'No se puede realizar una operacion de resta entre System.Double y System.String'
+&ErrMsgSubDblBol := 'No se puede realizar una operacion de resta entre System.Double y System.Boolean'
+&ErrMsgSubStrDbl := 'No se puede realizar una operacion de resta entre System.String y System.Double'
+&ErrMsgSubStrStr := 'No se puede realizar una operacion de resta entre System.String y System.String'
+&ErrMsgSubStrInt := 'No se puede realizar una operacion de resta entre System.String y System.Int32'
+&ErrMsgSubStrDbl := 'No se puede realizar una operacion de resta entre System.String y System.Double'
+&ErrMsgSubStrBol := 'No se puede realizar una operacion de resta entre System.String y System.Boolean'
+&ErrMsgSubDatStr := 'No se puede realizar una operacion de resta entre System.DateTime y System.String'
+&ErrMsgSubDatBol := 'No se puede realizar una operacion de resta entre System.DateTime y System.Boolean'
+
 test('resta', -> {
   assertEq(1, 2 - 1)
   assertEq(1, 1 - 0)
@@ -29,23 +41,23 @@ test('resta', -> {
   assertEq(0.5, Num('1.5') - Num('1'))
   assertEq(1, Dbl(1.5) - Dbl(0.5))
 
-  assertEq( 1, NewPplObj('1',SI,SI) * 2 - 1)
-  assertEq(-1, NewPplObj('1',SI,SI) * 0 - 1)
-  assertEq( 1, NewPplObj('3',SI,SI) - 1 * 2)
-  assertEq( 1, NewPplObj('4',SI,SI) - 3)
+  assertEq( 1, NewFbnObj('1') * 2 - 1)
+  assertEq(-1, NewFbnObj('1') * 0 - 1)
+  assertEq( 1, NewFbnObj('3') - 1 * 2)
+  assertEq( 1, NewFbnObj('4') - 3)
   assertEq(-3, NewPplObj('2',NO,SI) - 3)
   assertEq( 1, NewPplObj('4',SI,NO) - 3)
-  assertEq(-3, NewPplObj('2',NO,NO) - 3)
+  assertEq(-3, NewValObj('2') - 3)
   
-  assertEq(-3, NewPplObj('',SI,SI) - 3)
-  assertEq( 2, NewPplObj('5',SI,SI) - Int(3))
-  assertEq( 2, NewPplObj('3.5',SI,SI) - Dbl(1.5))
-  assertEq( 4, NewPplObj('5',SI,SI) - Num('1'))
-  assertEq( 2, NewPplObj('3.5',SI,SI) - Decimal(1.5))
-  assertEq( 2, Int(3) - NewPplObj('1',SI,SI))
-  assertEq( 2, Dbl(3.5) - NewPplObj('1.5',SI,SI))
-  assertEq( 2, Num('3') - NewPplObj('1',SI,SI))
-  assertEq( 2, Decimal(3.5) - NewPplObj('1.5',SI,SI))
+  assertEq(-3, NewFbnObj('')    - 3)
+  assertEq( 2, NewFbnObj('5')   - Int(3))
+  assertEq( 2, NewFbnObj('3.5') - Dbl(1.5))
+  assertEq( 4, NewFbnObj('5')   - Num('1'))
+  assertEq( 2, NewFbnObj('3.5') - Decimal(1.5))
+  assertEq( 2, Int(3)       - NewFbnObj('1'))
+  assertEq( 2, Dbl(3.5)     - NewFbnObj('1.5'))
+  assertEq( 2, Num('3')     - NewFbnObj('1'))
+  assertEq( 2, Decimal(3.5) - NewFbnObj('1.5'))
   
   assertEq(2, Decimal(4) - Decimal(2))
   assertEq(1, Decimal(3) - 2)
@@ -58,24 +70,24 @@ test('resta', -> {
   assertEq(1, Num('3') - Decimal(2))
   assertEq(1.5, Dbl(3.5) - Decimal(2))
   
-  assertError('No se puede realizar una operacion de resta entre System.Int32 y System.String', -> 3 - '1')
-  assertError('No se puede realizar una operacion de resta entre System.Int32 y System.String', -> 3 - 'foo')
-  assertError('No se puede realizar una operacion de resta entre System.Int32 y System.String', -> 3 - 'NaN')
-  assertError('No se puede realizar una operacion de resta entre System.Int32 y System.String', -> 3 - '')
-  assertError('No se puede realizar una operacion de resta entre System.Int32 y System.Boolean', -> 3 - SI)
+  assertError(&ErrMsgSubIntStr, -> 3 - '1')
+  assertError(&ErrMsgSubIntStr, -> 3 - 'foo')
+  assertError(&ErrMsgSubIntStr, -> 3 - 'NaN')
+  assertError(&ErrMsgSubIntStr, -> 3 - '')
+  assertError(&ErrMsgSubIntBol, -> 3 - SI)
   
-  assertError('No se puede realizar una operacion de resta entre System.Double y System.String', -> Dbl(3.5) - '1')
-  assertError('No se puede realizar una operacion de resta entre System.Double y System.String', -> Dbl(3.5) - 'foo')
-  assertError('No se puede realizar una operacion de resta entre System.Double y System.String', -> Dbl(3.5) - 'NaN')
-  assertError('No se puede realizar una operacion de resta entre System.Double y System.String', -> Dbl(3.5) - '')
-  assertError('No se puede realizar una operacion de resta entre System.Double y System.Boolean', -> Dbl(3.5) - SI)
-  assertError('No se puede realizar una operacion de resta entre System.String y System.Double', -> 'NaN' - Dbl(3.5))
-  assertError('No se puede realizar una operacion de resta entre System.String y System.String', -> 'NaN' - 'NaN')
+  assertError(&ErrMsgSubDblStr, -> Dbl(3.5) - '1')
+  assertError(&ErrMsgSubDblStr, -> Dbl(3.5) - 'foo')
+  assertError(&ErrMsgSubDblStr, -> Dbl(3.5) - 'NaN')
+  assertError(&ErrMsgSubDblStr, -> Dbl(3.5) - '')
+  assertError(&ErrMsgSubDblBol, -> Dbl(3.5) - SI)
+  assertError(&ErrMsgSubStrDbl, -> 'NaN' - Dbl(3.5))
+  assertError(&ErrMsgSubStrStr, -> 'NaN' - 'NaN')
   
-  assertError('No se puede realizar una operacion de resta entre System.String y System.Int32', -> '1' - 1)
-  assertError('No se puede realizar una operacion de resta entre System.String y System.String', -> '1' - '1')
-  assertError('No se puede realizar una operacion de resta entre System.String y System.Double', -> '1.1' - 1.1)
-  assertError('No se puede realizar una operacion de resta entre System.String y System.Boolean', -> '1' - SI)
+  assertError(&ErrMsgSubStrInt, -> '1' - 1)
+  assertError(&ErrMsgSubStrStr, -> '1' - '1')
+  assertError(&ErrMsgSubStrDbl, -> '1.1' - 1.1)
+  assertError(&ErrMsgSubStrBol, -> '1' - SI)
   
   assertEq(&fechaPplObj, Fecha('03/01/2020') - 1)
   assertEq(Fecha('02/01/2020'), Fecha('03/01/2020') - 1)
@@ -105,8 +117,8 @@ test('resta', -> {
   assertError(-> &datetime - '1')
   assertError(-> '1' - &datetime)
   
-  assertError('No se puede realizar una operacion de resta entre System.DateTime y System.String', -> Fecha('31/01/2015') - '1')
-  assertError('No se puede realizar una operacion de resta entre System.DateTime y System.Boolean', -> fecha('31/01/2015') - SI)
+  assertError(&ErrMsgSubDatStr, -> Fecha('31/01/2015') - '1')
+  assertError(&ErrMsgSubDatBol, -> fecha('31/01/2015') - SI)
   
   * Si bien no falla el test, no estaría andando porque no sería ese el mensaje de error
   assertError('Error', -> &datetime3.get_Hour)
@@ -114,20 +126,20 @@ test('resta', -> {
   assertEq( 0, Val(Z:1) - DbNull())
   assertEq( 0, Val(Z:1) - Null())
   assertEq(-1, Val(Z:1) - 1)
-  assertEq( 0, NewPPLObj(DbNull(),SI,SI) - DbNull())
-  assertEq( 0, NewPPLObj(DbNull(),SI,SI) - Null())
-  assertEq(-1, NewPPLObj(DbNull(),SI,SI) - 1)
-  assertEq(-1, NewPPLObj('str',SI,SI) - 1)
-  assertEq( 0, DbNull() - NewPPLObj(DbNull(),SI,SI))
-  assertEq( 0, Null() - NewPPLObj(DbNull(),SI,SI))
-  assertEq( 1, 1 - NewPPLObj(DbNull(),SI,SI))
-  assertEq( 5, 5 - NewPPLObj('5',NO,NO))
-  assertEq( 5, 5 - NewPPLObj('str',SI,SI))
-  assertEq(-5, NewPPLObj('5',NO,NO) - 5)
-  assertEq( 1, NewPPLObj(1,SI,SI) - NewPPLObj(DbNull(),SI,SI))
-  assertEq(-1, NewPPLObj(DbNull(),SI,SI) - NewPPLObj(1,SI,SI))
-  assertEq(-1, NewPPLObj('str',SI,SI) - NewPPLObj(1,SI,SI))
-  assertEq( 0, NewPPLObj('1',SI,SI) - NewPPLObj(1,SI,SI))
+  assertEq( 0, NewFbnObj(DbNull()) - DbNull())
+  assertEq( 0, NewFbnObj(DbNull()) - Null())
+  assertEq(-1, NewFbnObj(DbNull()) - 1)
+  assertEq(-1, NewFbnObj('str')    - 1)
+  assertEq( 0, DbNull() - NewFbnObj(DbNull()))
+  assertEq( 0, Null()   - NewFbnObj(DbNull()))
+  assertEq( 1, 1        - NewFbnObj(DbNull()))
+  assertEq( 5, 5        - NewValObj('5'))
+  assertEq( 5, 5        - NewFbnObj('str'))
+  assertEq(-5, NewValObj('5') - 5)
+  assertEq( 1, NewFbnObj(1)        - NewFbnObj(DbNull()))
+  assertEq(-1, NewFbnObj(DbNull()) - NewFbnObj(1))
+  assertEq(-1, NewFbnObj('str')    - NewFbnObj(1))
+  assertEq( 0, NewFbnObj('1')      - NewFbnObj(1))
   
   assertEq(  2, 2 - NewValObj('str'))
   assertEq(  2, 2 - NewValObj('1.5'))
