@@ -5,54 +5,7 @@
 
 ** Los tests con operador '^' estan comentados porque en v7 no compilan por el momento.
 
-&fechaStr := '02/01/2020'
 &fechaPplObj := Fecha('02/01/2020')
-&numero := 10
-&datetime := Fecha('02/01/2020')
-
-test('suma', -> {
-  assertEq(2, 1 + 1)
-  assertEq(1, 0 + 1)
-  assertEq(9, -1 + 10)
-  assertEq(0, -1 + 1)
-  assertEq(-1, -2 + 1)
-  assertEq(20, Int(10) + Int(10))
-  **assertEq(6, [2^2] + 2)
-  **assertEq(2, [2^2] + (-2))
-  assertEq(11, Num('10') + 1)
-  assertEq(3, Num('1.5') + Num('1.5'))
-  assertEq(2.5, Num('1.5') + Num('1'))
-  assertEq(3, Dbl(1.5) + Dbl(1.5))
-  assertEq(&fechaPplObj, Fecha('01/01/2020') + 1)
-  assertEq(Fecha('02/01/2020'), Fecha('01/01/2020') + 1)
-  assertEq(3, NewPplObj('1',SI,SI) * 1 + 2)
-  assertEq(1, NewPplObj('1',SI,SI) * 0 + 1)
-  assertEq(3, NewPplObj('1',SI,SI) + 1 * 2)
-  assertEq(4, NewPplObj('1',SI,SI) + 3)
-  assertEq(3, NewPplObj('1',NO,SI) + 3)
-  assertEq(4, NewPplObj('1',SI,NO) + 3)
-  assertEq(3, NewPplObj('1',NO,NO) + 3)
-  assertEq(4, Decimal(2) + Decimal(2))
-  
-  &datetime2 := &datetime + 1.5
-  assertEq(0, &datetime.get_Hour)
-  assertEq(12, &datetime2.get_Hour)
-  
-  &datetime3 := 1.5 + &datetime
-  assertEq('12:00:00',Hora(&datetime3))
-  
-  assertError(-> &datetime3.get_Hour)
-  assertError(-> &datetime + '1')
-  assertError(-> '1' + &datetime)
-  
-  * Si bien no falla el test, no estaría andando porque no sería ese el mensaje de error
-  assertError('Error', -> &datetime3.get_Hour)
-  
-  ** No toma la property Hour
-  *assertEq('12',Fecha(&datetime3).get_Hour)
-  *assertEq('12',Dat(&datetime3).get_Hour)
-  
-})
 
 test('resta', -> {
   assertEq(1, 2 - 1)
@@ -60,8 +13,12 @@ test('resta', -> {
   assertEq(-1, 9 - 10)
   assertEq(0, 1 - 1)
   assertEq(5, Int(10) - Int(5))
-  **assertEq(3, 2^2 - 1)
-  **assertEq(5, 2^2 - (-(1)))
+  
+  #ifdef V6
+  assertEq(3, 2^2 - 1)
+  assertEq(5, 2^2 - (-(1)))
+  #endif
+  
   assertEq(9, Num('10') - 1)
   assertEq(1, Num('1.5') - Num('0.5'))
   assertEq(0.5, Num('1.5') - Num('1'))
@@ -83,8 +40,12 @@ test('producto', -> {
   assertEq(-20, -2 * 10)
   assertEq(0, 1 * 0)
   assertEq(50, Int(10) * Int(5))
-  **assertEq(8, 2^2 * 2)
-  **assertEq(-4, 2^2 * (-(1)))
+  
+  #ifdef V6
+  assertEq(8, 2^2 * 2)
+  assertEq(-4, 2^2 * (-(1)))
+  #endif
+  
   assertEq(10, Num('10') * 1)
   assertEq(0.75, Num('1.5') * Num('0.5'))
   assertEq(3, Num('1.5') * Num('2'))
@@ -101,12 +62,18 @@ test('producto', -> {
 test('division', -> {
   assertEq(3, 6 / 2)
   assertEq(-9, -27 / 3)
+  assertEq(9, -27 / -3)
   assertEq(0, 0 / 1)
   assertEq(1, 1 / 0)
   assertEq(4, 4 / 0)
+  assertEq(2, 5 / 2.5)
   assertEq(2, Int(10) / Int(5))
-  **assertEq(2, 2^2 / 2)
-  **assertEq(-4, 2^2 / (-(1)))
+  
+  #ifdef V6
+  assertEq(2, 2^2 / 2)
+  assertEq(-4, 2^2 / (-(1)))
+  #endif
+  
   assertEq(2.5, Num('10') / 4)
   assertEq(3, Num('1.5') / Num('0.5'))
   assertEq(1.75, Num('3.5') / Num('2'))
