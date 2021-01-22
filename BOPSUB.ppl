@@ -7,6 +7,7 @@
 
 &fechaPplObj := Fecha('02/01/2020')
 &numero := 10
+&datetime := Fecha('04/01/2020')
 
 test('resta', -> {
   assertEq(1, 2 - 1)
@@ -27,15 +28,24 @@ test('resta', -> {
   assertEq(1, Num('1.5') - Num('0.5'))
   assertEq(0.5, Num('1.5') - Num('1'))
   assertEq(1, Dbl(1.5) - Dbl(0.5))
-  assertEq(&fechaPplObj, Fecha('03/01/2020') - 1)
-  assertEq(Fecha('02/01/2020'), Fecha('03/01/2020') - 1)
-  assertEq(1, NewPplObj('1',SI,SI) * 2 - 1)
+
+  assertEq( 1, NewPplObj('1',SI,SI) * 2 - 1)
   assertEq(-1, NewPplObj('1',SI,SI) * 0 - 1)
-  assertEq(1, NewPplObj('3',SI,SI) - 1 * 2)
-  assertEq(1, NewPplObj('4',SI,SI) - 3)
+  assertEq( 1, NewPplObj('3',SI,SI) - 1 * 2)
+  assertEq( 1, NewPplObj('4',SI,SI) - 3)
   assertEq(-3, NewPplObj('2',NO,SI) - 3)
-  assertEq(1, NewPplObj('4',SI,NO) - 3)
+  assertEq( 1, NewPplObj('4',SI,NO) - 3)
   assertEq(-3, NewPplObj('2',NO,NO) - 3)
+  
+  assertEq(-3, NewPplObj('',SI,SI) - 3)
+  assertEq( 2, NewPplObj('5',SI,SI) - Int(3))
+  assertEq( 2, NewPplObj('3.5',SI,SI) - Dbl(1.5))
+  assertEq( 4, NewPplObj('5',SI,SI) - Num('1'))
+  assertEq( 2, NewPplObj('3.5',SI,SI) - Decimal(1.5))
+  assertEq( 2, Int(3) - NewPplObj('1',SI,SI))
+  assertEq( 2, Dbl(3.5) - NewPplObj('1.5',SI,SI))
+  assertEq( 2, Num('3') - NewPplObj('1',SI,SI))
+  assertEq( 2, Decimal(3.5) - NewPplObj('1.5',SI,SI))
   
   assertEq(2, Decimal(4) - Decimal(2))
   assertEq(1, Decimal(3) - 2)
@@ -47,5 +57,46 @@ test('resta', -> {
   assertEq(1, Dbl(3) - Decimal(2))
   assertEq(1, Num('3') - Decimal(2))
   assertEq(1.5, Dbl(3.5) - Decimal(2))
+  
+  assertError('No se puede realizar una operacion de resta entre System.Int32 y System.String', -> 3 - '1')
+  assertError('No se puede realizar una operacion de resta entre System.Int32 y System.String', -> 3 - 'foo')
+  assertError('No se puede realizar una operacion de resta entre System.Int32 y System.String', -> 3 - 'NaN')
+  assertError('No se puede realizar una operacion de resta entre System.Int32 y System.String', -> 3 - '')
+  assertError('No se puede realizar una operacion de resta entre System.Int32 y System.Boolean', -> 3 - SI)
+  
+  assertError('No se puede realizar una operacion de resta entre System.Double y System.String', -> Dbl(3.5) - '1')
+  assertError('No se puede realizar una operacion de resta entre System.Double y System.String', -> Dbl(3.5) - 'foo')
+  assertError('No se puede realizar una operacion de resta entre System.Double y System.String', -> Dbl(3.5) - 'NaN')
+  assertError('No se puede realizar una operacion de resta entre System.Double y System.String', -> Dbl(3.5) - '')
+  assertError('No se puede realizar una operacion de resta entre System.Double y System.Boolean', -> Dbl(3.5) - SI)
+  assertError('No se puede realizar una operacion de resta entre System.String y System.Double', -> 'NaN' - Dbl(3.5))
+  assertError('No se puede realizar una operacion de resta entre System.String y System.String', -> 'NaN' - 'NaN')
+  
+  assertError('No se puede realizar una operacion de resta entre System.String y System.Int32', -> '1' - 1)
+  assertError('No se puede realizar una operacion de resta entre System.String y System.String', -> '1' - '1')
+  assertError('No se puede realizar una operacion de resta entre System.String y System.Double', -> '1.1' - 1.1)
+  assertError('No se puede realizar una operacion de resta entre System.String y System.Boolean', -> '1' - SI)
+  
+  assertEq(&fechaPplObj, Fecha('03/01/2020') - 1)
+  assertEq(Fecha('02/01/2020'), Fecha('03/01/2020') - 1)
+  assertEq(30, Fecha('31/01/2015') - Fecha('01/01/2015'))
+  
+  &datetime2 := &datetime - 1.5
+  assertEq(Fecha('02/01/2020'), &datetime2.get_Date)
+  assertEq(0, &datetime.get_Hour)
+  assertEq(12, &datetime2.get_Hour)
+  
+  &datetime3 := 1.5 - &datetime
+  assertEq('12:00:00',Hora(&datetime3))
+  
+  assertError(-> &datetime3.get_Hour)
+  assertError(-> &datetime - '1')
+  assertError(-> '1' - &datetime)
+  
+  assertError('No se puede realizar una operacion de resta entre System.DateTime y System.String', -> Fecha('31/01/2015') - '1')
+  assertError('No se puede realizar una operacion de resta entre System.DateTime y System.Boolean', -> fecha('31/01/2015') - SI)
+  
+  * Si bien no falla el test, no estaría andando porque no sería ese el mensaje de error
+  assertError('Error', -> &datetime3.get_Hour)
   
 })
