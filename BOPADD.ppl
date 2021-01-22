@@ -5,7 +5,6 @@
 
 ** Los tests con operador '^' por el momento no compilan en v7.
 
-&fechaStr := '02/01/2020'
 &fechaPplObj := Fecha('02/01/2020')
 &numero := 10
 &datetime := Fecha('02/01/2020')
@@ -14,6 +13,7 @@ test('suma', -> {
   assertEq(2, 1 + 1)
   assertEq(1, 0 + 1)
   assertEq(9, -1 + 10)
+  assertEq(9, -1 + &numero)
   assertEq(0, -1 + 1)
   assertEq(-1, -2 + 1)
   assertEq(2.1, 1 + 1.1)
