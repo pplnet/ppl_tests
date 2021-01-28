@@ -1,1 +1,133 @@
-﻿
+﻿** Operaciones Binarias entre tipos primitivos:int, double, decimal, datetime, string
+** y pplObj (nulleable y soft) en todas sus variantes
+
+** Operacion binarias: pow
+
+** Los tests con operador '^' por el momento no compilan en v7.
+
+&fechaPplObj := Fecha('03/01/2140')
+&numero := 2
+&datetime := Fecha('02/01/2020')
+
+&ErrMsgMulIntStr := 'No se puede realizar una multiplicacion entre System.Int32 y System.String'
+&ErrMsgMulIntBol := 'No se puede realizar una multiplicacion entre System.Int32 y System.Boolean'
+&ErrMsgMulDblStr := 'No se puede realizar una multiplicacion entre System.Double y System.String'
+&ErrMsgMulDblBol := 'No se puede realizar una multiplicacion entre System.Double y System.Boolean'
+&ErrMsgMulStrInt := 'No se puede realizar una multiplicacion entre System.String y System.Int32'
+&ErrMsgMulStrStr := 'No se puede realizar una multiplicacion entre System.String y System.String'
+&ErrMsgMulStrDbl := 'No se puede realizar una multiplicacion entre System.String y System.Double'
+&ErrMsgMulStrBol := 'No se puede realizar una multiplicacion entre System.String y System.Boolean'
+
+test('pow', -> {
+  assertEq(1, pow(2,0))
+  assertEq(0, pow(0,1))
+  assertEq(8, pow(2,3))
+  assertEq(-8, -pow(2,3))
+  
+  assertEq(1, pow(Int(2),Int(0)))
+  assertEq(0, pow(Int(0),Dbl(1)))
+  assertEq(8, pow(Int(2),Num('3')))
+  assertEq(-8, -pow(Int(2),Decimal(3)))
+  
+  #ifdef V6
+  assertEq(9, Decimal(3) ^ Decimal(2))
+  assertEq(9, Decimal(3) ^ 2)
+  assertEq(9, Decimal(3) ^ &numero)
+  assertEq(9, Decimal(3) ^ Int(2))
+  assertEq(9, Decimal(3) ^ Dbl(2))
+  assertEq(9, Decimal(3) ^ Num('2'))
+  assertEq(9, 3        ^ Decimal(2))
+  assertEq(9, Int(3)   ^ Decimal(2))
+  assertEq(9, Dbl(3)   ^ Decimal(2))
+  assertEq(9, Num('3') ^ Decimal(2))
+  assertEq(140.3, Round(Dbl(3) ^ Decimal(4.5), 2))
+  
+  assertEq(8  , 2^2 * 2)
+  assertEq(-4 , 2^2 * (-(1)))
+  assertEq(2  , 1+1^8)
+  assertEq(256, (1+1)^8)
+  #else
+  assertEq(256, (1+1)^8)
+  #endif
+  
+*  assertEq(10,   Num('10')  * 1)
+*  assertEq(0.75, Num('1.5') * Num('0.5'))
+*  assertEq(3,    Num('1.5') * Num('2'))
+*  assertEq(0.75, Dbl(1.5) * Dbl(0.5))
+*  assertEq(2,  NewFbnObj('1') * 2)
+*  assertEq(0,  NewFbnObj('1') * 0)
+*  assertEq(12, NewFbnObj('4') * 3)
+*  assertEq(0,  NewPplObj('2',NO,SI) * 3)
+*  assertEq(12, NewPplObj('4',SI,NO) * 3)
+*  assertEq(0,  NewValObj('2') * 3)
+*  
+*  assertEq(2.42, Round(2.2 * 1.1, 2))
+*  assertEq(2.42, Round(Dbl(2.2) * Dbl(1.1), 2))
+*  assertEq(2.42, Round(Decimal(2.2) * Decimal(1.1), 2))
+*  assertEq(2.42, Round(Num('2.2') * Num('1.1'), 2))
+*  
+*  assertError(&ErrMsgMulIntStr, -> 2 * '1')
+*  assertError(&ErrMsgMulIntStr, -> 2 * 'NaN')
+*  assertError(&ErrMsgMulIntStr, -> 2 * '')
+*  assertError(&ErrMsgMulIntBol, -> 2 * SI)
+*  
+*  assertError(&ErrMsgMulDblStr, -> Dbl(2.2) * '1.1')
+*  assertError(&ErrMsgMulDblStr, -> Dbl(1.1) * 'NaN')
+*  assertError(&ErrMsgMulDblStr, -> Dbl(1.1) * '')
+*  assertError(&ErrMsgMulDblBol, -> Dbl(2.1) * SI)
+*  
+*  assertError(&ErrMsgMulStrInt, -> '1' * 1)
+*  assertError(&ErrMsgMulStrStr, -> '2' * '1')
+*  assertError(&ErrMsgMulStrDbl, -> '2.2' * 1.1)
+*  assertError(&ErrMsgMulStrBol, -> '2' * SI)
+*  
+*  assertEq(&fechaPplObj, Fecha('01/01/2020') * 2)
+*  assertEq(&fechaPplObj, 2 * Fecha('01/01/2020'))
+*  assertEq(87662, Fecha('01/01/2020') * 2)
+*  assertEq(87662, 2 * Fecha('01/01/2020'))
+*  assertEq(Fecha(87662), Fecha('01/01/2020') * 2)
+*  assertEq(Fecha(87662), 2 * Fecha('01/01/2020'))
+*  
+*  &datetime2 := Fecha(&datetime * 1.5)
+*  assertEq(Fecha('03/01/2080'), &datetime2)
+*  assertEq(0, &datetime.get_Hour)
+*  assertEq(0, &datetime2.get_Hour)
+*  
+*  &datetime3 := 1.5 * &datetime
+*  assertEq(65748 , &datetime3)
+*  assertEq(Fecha('03/01/2080'), Fecha(&datetime3))
+*  assertEq('00:00:00',Hora(&datetime3))
+*  
+*  assertEq(0, Val(Z:1) * DbNull)
+*  assertEq(0, Val(Z:1) * Nil)
+*  assertEq(0, Val(Z:1) * 1)
+*  assertEq(0, NewFbnObj(DbNull) * DbNull)
+*  assertEq(0, NewFbnObj(DbNull) * Nil)
+*  assertEq(0, NewFbnObj(DbNull) * 1)
+*  assertEq(0, NewFbnObj('str')  * 1)
+*  assertEq(0, DbNull   * NewFbnObj(DbNull))
+*  assertEq(0, Nil      * NewFbnObj(DbNull))
+*  assertEq(0, 1        * NewFbnObj(DbNull))
+*  assertEq(0, 5        * NewValObj('5'))
+*  assertEq(0, 5        * NewFbnObj('str'))
+*  assertEq(0, NewValObj('5')      * 5)
+*  assertEq(0, NewFbnObj(1)        * NewFbnObj(DbNull))
+*  assertEq(0, NewFbnObj(DbNull)   * NewFbnObj(1))
+*  assertEq(0, NewFbnObj('str')    * NewFbnObj(1))
+*  assertEq(2, NewFbnObj('2')      * NewFbnObj(1))
+*  
+*  assertEq(0, 2 * NewValObj('str'))
+*  assertEq(0, 2 * NewValObj('1.5'))
+*  assertEq(0, 2 * NewFbnObj('str'))
+*  assertEq(3, 2 * NewFbnObj('1.5'))
+*  assertEq(0, NewValObj('str') * 2)
+*  assertEq(0, NewValObj('1.5') * 2)
+*  assertEq(0, NewFbnObj('str') * 2)
+*  assertEq(3, NewFbnObj('1.5') * 2)
+*  
+*  ACN(A:1,5)
+*  ACT(A:2,'300')
+*  assertEq(0, VAL(A:1) * VAL(A:2))
+*  assertEq(0, VAL(A:2) * VAL(A:1))
+  
+})
