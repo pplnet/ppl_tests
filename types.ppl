@@ -3,7 +3,7 @@
 &string1 := 'prueba1'
 &string2 := 'prueba2'
 &fechaPplObj := Fecha('02/01/2020')
-&fechaDateTime := DateFromStr('02/01/2020')
+***&fechaDateTime := DateFromStr('02/01/2020')
 
 test('types', -> {
   assertEq('Int32', GetType(1))
@@ -13,7 +13,6 @@ test('types', -> {
   assertEq('Int32', GetType(-10 - 1))
   assertEq('Int32', GetType(Int(1)))
   assertEq('String', GetType('Hola'))
-  assertEq('String', GetType(Copy('Hola',2,2)))
   assertEq('String', GetType(&string1))
   assertEq('String', GetType(&string1~&string2))
   assertEq('String', GetType(''))
@@ -28,10 +27,10 @@ test('types', -> {
   assertEq('DateTime', GetType(Fecha('02/01/2020') - 1))
   assertEq('DateTime', GetType(NewPplObj(Fecha('02/01/2020'))))
   assertEq('DateTime', GetType(&fechaPplObj))
-  assertEq('DateTime', GetType(DateFromStr('02/01/2020')))
-  assertEq('DateTime', GetType(&fechaDateTime))
-  assertEq('DateTime', GetType(Ahora))
-  assertEq('DateTime', GetType(Dat(Ahora)))
+  ***assertEq('DateTime', GetType(DateFromStr('02/01/2020')))
+  ***assertEq('DateTime', GetType(&fechaDateTime))
+  **assertEq('DateTime', GetType(Ahora))
+  **assertEq('DateTime', GetType(Dat(Ahora)))
   assertEq('Double', GetType(Num('123')))
   assertEq('Double', GetType(Num('123') + 10))
   assertEq('Double', GetType(1.123456))
