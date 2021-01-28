@@ -9,16 +9,27 @@
 &numero := 10
 &datetime := Fecha(Fecha('01/01/2020') / 2)
 
-&ErrMsgAddIntStr := 'No se puede realizar una operacion de suma entre System.Int32 y System.String'
-&ErrMsgAddIntBol := 'No se puede realizar una operacion de suma entre System.Int32 y System.Boolean'
-&ErrMsgAddDblStr := 'No se puede realizar una operacion de suma entre System.Double y System.String'
-&ErrMsgAddDblBol := 'No se puede realizar una operacion de suma entre System.Double y System.Boolean'
-&ErrMsgAddStrInt := 'No se puede realizar una operacion de suma entre System.String y System.Int32'
-&ErrMsgAddStrStr := 'No se puede realizar una operacion de suma entre System.String y System.String'
-&ErrMsgAddStrDbl := 'No se puede realizar una operacion de suma entre System.String y System.Double'
-&ErrMsgAddStrBol := 'No se puede realizar una operacion de suma entre System.String y System.Boolean'
-&ErrMsgAddDatStr := 'No se puede realizar una operacion de suma entre System.DateTime y System.String'
-&ErrMsgAddDatBol := 'No se puede realizar una operacion de suma entre System.DateTime y System.Boolean'
+&ErrMsgDivIntStr := 'No se puede realizar una division entre System.Int32 y System.String'
+&ErrMsgDivIntBol := 'No se puede realizar una division entre System.Int32 y System.Boolean'
+&ErrMsgDivDblStr := 'No se puede realizar una division entre System.Double y System.String'
+&ErrMsgDivDblBol := 'No se puede realizar una division entre System.Double y System.Boolean'
+&ErrMsgDivStrInt := 'No se puede realizar una division entre System.String y System.Int32'
+&ErrMsgDivStrStr := 'No se puede realizar una division entre System.String y System.String'
+&ErrMsgDivStrDbl := 'No se puede realizar una division entre System.String y System.Double'
+&ErrMsgDivStrBol := 'No se puede realizar una division entre System.String y System.Boolean'
+&ErrMsgDivDatStr := 'No se puede realizar una division entre System.DateTime y System.String'
+&ErrMsgDivDatBol := 'No se puede realizar una division entre System.DateTime y System.Boolean'
+
+&ErrMsgDivEnterosIntStr := 'No se puede obtener la division de enteros entre System.Int32 y System.String'
+&ErrMsgDivEnterosIntBol := 'No se puede obtener la division de enteros entre System.Int32 y System.Boolean'
+&ErrMsgDivEnterosDblStr := 'No se puede obtener la division de enteros entre System.Double y System.String'
+&ErrMsgDivEnterosDblBol := 'No se puede obtener la division de enteros entre System.Double y System.Boolean'
+&ErrMsgDivEnterosStrInt := 'No se puede obtener la division de enteros entre System.String y System.Int32'
+&ErrMsgDivEnterosStrStr := 'No se puede obtener la division de enteros entre System.String y System.String'
+&ErrMsgDivEnterosStrDbl := 'No se puede obtener la division de enteros entre System.String y System.Double'
+&ErrMsgDivEnterosStrBol := 'No se puede obtener la division de enteros entre System.String y System.Boolean'
+&ErrMsgDivEnterosDatStr := 'No se puede obtener la division de enteros entre System.DateTime y System.String'
+&ErrMsgDivEnterosDatBol := 'No se puede obtener la division de enteros entre System.DateTime y System.Boolean'
 
 test('division', -> {
   assertEq(3  , 6   / 2)
@@ -61,22 +72,20 @@ test('division', -> {
   assertEq(1.5, Num('3')   / Decimal(2))
   assertEq(1.2, Dbl(3)     / Decimal(2.5))
   
-*  assertError(&ErrMsgAddIntStr, -> 1 + '1')
-*  assertError(&ErrMsgAddIntStr, -> 1 + 'foo')
-*  assertError(&ErrMsgAddIntStr, -> 1 + 'NaN')
-*  assertError(&ErrMsgAddIntStr, -> 1 + '')
-*  assertError(&ErrMsgAddIntBol, -> 1 + SI)
-*  
-*  assertError(&ErrMsgAddDblStr, -> Dbl(1) + '1')
-*  assertError(&ErrMsgAddDblStr, -> Dbl(1) + 'foo')
-*  assertError(&ErrMsgAddDblStr, -> Dbl(1) + 'NaN')
-*  assertError(&ErrMsgAddDblStr, -> Dbl(1) + '')
-*  assertError(&ErrMsgAddDblBol, -> Dbl(1) + SI)
-*  
-*  assertError(&ErrMsgAddStrInt, -> '1' + 1)
-*  assertError(&ErrMsgAddStrStr, -> '1' + '1')
-*  assertError(&ErrMsgAddStrDbl, -> '1.1' + 1.1)
-*  assertError(&ErrMsgAddStrBol, -> '1' + SI)
+  assertError(&ErrMsgDivIntStr, -> 2 / '1')
+  assertError(&ErrMsgDivIntStr, -> 2 / 'NaN')
+  assertError(&ErrMsgDivIntStr, -> 2 / '')
+  assertError(&ErrMsgDivIntBol, -> 2 / SI)
+  
+  assertError(&ErrMsgDivDblStr, -> Dbl(2.2) / '1.1')
+  assertError(&ErrMsgDivDblStr, -> Dbl(1.1) / 'NaN')
+  assertError(&ErrMsgDivDblStr, -> Dbl(1.1) / '')
+  assertError(&ErrMsgDivDblBol, -> Dbl(2.1) / SI)
+  
+  assertError(&ErrMsgDivStrInt, -> '1' / 1)
+  assertError(&ErrMsgDivStrStr, -> '2' / '1')
+  assertError(&ErrMsgDivStrDbl, -> '2.2' / 1.1)
+  assertError(&ErrMsgDivStrBol, -> '2' / SI)
   
   assertEq(21915.5, Fecha('01/01/2020') / 2)
   assertEq('31/12/1959 12:12:00', Fecha(Fecha('01/01/2020') / 2,'DD/MM/YYYY HH:MM:SS'))
@@ -92,142 +101,85 @@ test('division', -> {
   
 *  assertError(&ErrMsgAddDatStr, -> Fecha('31/01/2015') + '1')
 *  assertError(&ErrMsgAddDatBol, -> fecha('31/01/2015') + SI)
+
+  assertEq(0, Val(Z:1) / DbNull)
+  assertEq(0, Val(Z:1) / Nil)
+  assertEq(0, Val(Z:1) / 1)
+  assertEq(0, NewFbnObj(DbNull) / DbNull)
+  assertEq(0, NewFbnObj(DbNull) / Nil)
+  assertEq(0, NewFbnObj(DbNull) / 1)
+  assertEq(0, NewFbnObj('str')    / 1)
+  assertEq(0, DbNull   / NewFbnObj(DbNull))
+  assertEq(0, Nil      / NewFbnObj(DbNull))
+  assertEq(1, 1        / NewFbnObj(DbNull))
+  assertEq(5, 5        / NewValObj('5'))
+  assertEq(5, 5        / NewFbnObj('str'))
+  assertEq(0, NewValObj('5')    / 5)
+  assertEq(1, NewFbnObj(1)      / NewFbnObj(DbNull))
+  assertEq(0, NewFbnObj(DbNull) / NewFbnObj(1))
+  assertEq(0, NewFbnObj('str')  / NewFbnObj(1))
+  assertEq(2, NewFbnObj('2')    / NewFbnObj(1))
+  
+  assertEq(3   , 3 / NewValObj('str'))
+  assertEq(3   , 3 / NewValObj('1.5'))
+  assertEq(3   , 3 / NewFbnObj('str'))
+  assertEq(0   , NewValObj('str') / 3)
+  assertEq(0   , NewValObj('1.5') / 3)
+  assertEq(0   , NewFbnObj('str') / 3)
+  assertEq(0.5 , NewFbnObj('1.5') / 3)
+  assertEq(1.33, Round(2 / NewFbnObj('1.5'),2))
+  
+  assertEq(1, 1   div 0)
+  assertEq(1, 1.1 div 0)
+  assertEq(2, 10  div 4)
+  assertEq(2, Int(10) div Int(4))
+  assertEq(2, Num('10') div Num('4'))
+  assertEq(4, 8 div 2.5)
+  assertEq(2, 8 div 2.9)
+  assertEq(2, 8 div Dbl(2.9))
+  assertEq(2, 4.5 div 2.2)
+  
+  assertEq(2 , Num('10')  div 4)
+  assertEq(2 , Num('3.5') div Num('2'))
+  assertEq(0 , 0 div NewFbnObj('1'))
+  assertEq(50, NewFbnObj('100') div 2)
+  assertEq(1 , NewFbnObj('1')   div 0)
+  assertEq(2 , NewFbnObj('4')   div 2)
+  assertEq(0 , NewPplObj('2',NO,SI) div 3)
+  assertEq(2 , NewPplObj('4',SI,NO) div 2)
+  assertEq(0 , NewValObj('2') div 3)
+  
+  assertError(&ErrMsgDivEnterosIntStr, -> 8 div '2')
+  assertError(&ErrMsgDivEnterosIntStr, -> 1 div 'NaN')
+  assertError(&ErrMsgDivEnterosIntStr, -> 1 div '')
+  assertError(&ErrMsgDivEnterosIntBol, -> 8 div SI)
+  
+  assertError(&ErrMsgDivEnterosDblStr, -> Dbl(4.5) div '2.2')
+  assertError(&ErrMsgDivEnterosDblStr, -> Dbl(1.1) div 'NaN')
+  assertError(&ErrMsgDivEnterosDblStr, -> Dbl(1.1) div '')
+  assertError(&ErrMsgDivEnterosDblBol, -> Dbl(4.5) div SI)
+  
+  assertError(&ErrMsgDivEnterosStrDbl, -> '4.5' div 2.1)
+  assertError(&ErrMsgDivEnterosStrStr, -> '4.5' div '2.1')
+  assertError(&ErrMsgDivEnterosStrBol, -> '4.5' div SI)
+  
+  assertEq(0, Val(Z:1) div DbNull)
+  assertEq(0, Val(Z:1) div Nil)
+  assertEq(0, Val(Z:1) div 1)
+  assertEq(0, NewFbnObj(DbNull) div DbNull)
+  assertEq(0, NewFbnObj(DbNull) div Nil)
+  assertEq(0, NewFbnObj(DbNull) div 1)
+  assertEq(0, NewFbnObj('str')    div 1)
+  assertEq(0, DbNull div NewFbnObj(DbNull))
+  assertEq(0, Nil    div NewFbnObj(DbNull))
+  assertEq(1, 1      div NewFbnObj(DbNull))
+  assertEq(5, 5      div NewValObj('5'))
+  assertEq(5, 5      div NewFbnObj('str'))
+  assertEq(0, NewValObj('5')    div 5)
+  assertEq(1, NewFbnObj(1)      div NewFbnObj(DbNull))
+  assertEq(0, NewFbnObj(DbNull) div NewFbnObj(1))
+  assertEq(0, NewFbnObj('str')  div NewFbnObj(1))
+  assertEq(2, NewFbnObj('2')    div NewFbnObj(1))
   
 })
 
-*test('suma', -> {
-*  assertEq(2, 1 + 1)
-*  assertEq(1, 0 + 1)
-*  assertEq(9, -1 + 10)
-*  assertEq(9, -1 + &numero)
-*  assertEq(0, -1 + 1)
-*  assertEq(-1, -2 + 1)
-*  assertEq(2.1, 1 + 1.1)
-*  assertEq(2.2, 1.1 + 1.1)
-*  assertEq(20, Int(10) + Int(10))
-*  
-*  
-*  assertEq(11,  Num('10')  + 1)
-*  assertEq(3,   Num('1.5') + Num('1.5'))
-*  assertEq(2.5, Num('1.5') + Num('1'))
-*  assertEq(3,   Dbl(1.5) + Dbl(1.5))
-*  assertEq(2.5, Dbl(1.5) + 1)
-*  assertEq(2.5, Dbl(1.5) + Int(1))
-*  assertEq(2.5, Dbl(1.5) + Num('1'))
-*  assertEq(4.5, Dbl(1.5) + Decimal(3))
-*  assertEq(2.5, 1          + Dbl(1.5))
-*  assertEq(2.5, Int(1)     + Dbl(1.5))
-*  assertEq(2.5, Num('1')   + Dbl(1.5))
-*  assertEq(4.5, Decimal(3) + Dbl(1.5))
-*  
-*  assertEq(3, NewFbnObj('1') * 1 + 2)
-*  assertEq(1, NewFbnObj('1') * 0 + 1)
-*  assertEq(3, NewFbnObj('1') + 1 * 2)
-*  assertEq(4, NewFbnObj('1') + 3)
-*  assertEq(3, NewPplObj('1',NO,SI) + 3)
-*  assertEq(4, NewPplObj('1',SI,NO) + 3)
-*  assertEq(3, NewValObj('1') + 3)
-*  
-*  assertEq(3, NewFbnObj('')    + 3)
-*  assertEq(4, NewFbnObj('1')   + Int(3))
-*  assertEq(5, NewFbnObj('1.5') + Dbl(3.5))
-*  assertEq(4, NewFbnObj('1')   + Num('3'))
-*  assertEq(5, NewFbnObj('1.5') + Decimal(3.5))
-*  assertEq(4, Int(3)       + NewFbnObj('1'))
-*  assertEq(5, Dbl(3.5)     + NewFbnObj('1.5'))
-*  assertEq(4, Num('3')     + NewFbnObj('1'))
-*  assertEq(5, Decimal(3.5) + NewFbnObj('1.5'))
-*  
-*  assertEq(4, Decimal(2) + Decimal(2))
-*  assertEq(5, Decimal(3) + 2)
-*  assertEq(5, Decimal(3) + Int(2))
-*  assertEq(5, Decimal(3) + Dbl(2))
-*  assertEq(5, Decimal(3) + Num('2'))
-*  assertEq(5,   2        + Decimal(3))
-*  assertEq(5,   Int(2)   + Decimal(3))
-*  assertEq(5,   Dbl(2)   + Decimal(3))
-*  assertEq(5,   Num('2') + Decimal(3))
-*  assertEq(5.5, Dbl(2)   + Decimal(3.5))
-*  
-*  assertError(&ErrMsgAddIntStr, -> 1 + '1')
-*  assertError(&ErrMsgAddIntStr, -> 1 + 'foo')
-*  assertError(&ErrMsgAddIntStr, -> 1 + 'NaN')
-*  assertError(&ErrMsgAddIntStr, -> 1 + '')
-*  assertError(&ErrMsgAddIntBol, -> 1 + SI)
-*  
-*  assertError(&ErrMsgAddDblStr, -> Dbl(1) + '1')
-*  assertError(&ErrMsgAddDblStr, -> Dbl(1) + 'foo')
-*  assertError(&ErrMsgAddDblStr, -> Dbl(1) + 'NaN')
-*  assertError(&ErrMsgAddDblStr, -> Dbl(1) + '')
-*  assertError(&ErrMsgAddDblBol, -> Dbl(1) + SI)
-*  
-*  assertError(&ErrMsgAddStrInt, -> '1' + 1)
-*  assertError(&ErrMsgAddStrStr, -> '1' + '1')
-*  assertError(&ErrMsgAddStrDbl, -> '1.1' + 1.1)
-*  assertError(&ErrMsgAddStrBol, -> '1' + SI)
-*  
-*  assertEq(&fechaPplObj, Fecha('01/01/2020') + 1)
-*  assertEq(Fecha('02/01/2020'), Fecha('01/01/2020') + 1)
-*  
-*  assertEq(84040, Fecha('31/01/2015') + Fecha('01/01/2015'))
-*  
-*  &datetime2 := &datetime + 1.5
-*  assertEq(Fecha('03/01/2020'), &datetime2.get_Date)
-*  assertEq(0, &datetime.get_Hour)
-*  assertEq(12, &datetime2.get_Hour)
-*  
-*  &datetime2 := &datetime2 + 0.6
-*  assertEq(Fecha('04/01/2020'), &datetime2.get_Date)
-*  
-*  &datetime3 := 1.5 + &datetime
-*  assertEq(43833.5, &datetime3)
-*  assertEq('12:00:00',Hora(&datetime3))
-*  
-*  &datetime3 := 1 + &datetime
-*  assertEq(43833, &datetime3)
-*  assertEq('00:00:00',Hora(&datetime3))
-*  
-*  ** No toma la property Hour
-*  *assertEq('12',Fecha(&datetime3).get_Hour)
-*  *assertEq('12',Dat(&datetime3).get_Hour)
-*  
-*  assertError(-> &datetime3.get_Hour)
-*  assertError(-> &datetime + '1')
-*  assertError(-> '1' + &datetime)
-*  
-*  assertError(&ErrMsgAddDatStr, -> Fecha('31/01/2015') + '1')
-*  assertError(&ErrMsgAddDatBol, -> fecha('31/01/2015') + SI)
-*  
-*  * Si bien no falla el test, no estaría andando porque no sería ese el mensaje de error
-*  assertError('Error', -> &datetime3.get_Hour)
-*  
-*  assertEq(0, Val(Z:1) + DbNull())
-*  assertEq(0, Val(Z:1) + Null())
-*  assertEq(1, Val(Z:1) + 1)
-*  assertEq(0, NewFbnObj(DbNull()) + DbNull())
-*  assertEq(0, NewFbnObj(DbNull()) + Null())
-*  assertEq(1, NewFbnObj(DbNull()) + 1)
-*  assertEq(1, NewFbnObj('str')    + 1)
-*  assertEq(0, DbNull() + NewFbnObj(DbNull()))
-*  assertEq(0, Null()   + NewFbnObj(DbNull()))
-*  assertEq(1, 1        + NewFbnObj(DbNull()))
-*  assertEq(5, 5        + NewFbnObj('str'))
-*  assertEq(5, 5        + NewValObj('5'))
-*  assertEq(5, NewValObj('5')      + 5)
-*  assertEq(1, NewFbnObj(1)        + NewFbnObj(DbNull()))
-*  assertEq(1, NewFbnObj(DbNull()) + NewFbnObj(1))
-*  assertEq(1, NewFbnObj('str')    + NewFbnObj(1))
-*  assertEq(2, NewFbnObj('1')      + NewFbnObj(1))
-*  
-*  assertEq(1,   1 + NewValObj('str'))
-*  assertEq(1,   1 + NewValObj('1.5'))
-*  assertEq(1,   1 + NewFbnObj('str'))
-*  assertEq(2.5, 1 + NewFbnObj('1.5'))
-*  assertEq(1,   NewValObj('str') + 1)
-*  assertEq(1,   NewValObj('1.5') + 1)
-*  assertEq(1,   NewFbnObj('str') + 1)
-*  assertEq(2.5, NewFbnObj('1.5') + 1)
-*  
-*  assertEq(2, Echo_Int64(1) + 1)
-*  assertEq(2, 1 + Echo_Int64(1))
-*})
