@@ -1,7 +1,7 @@
 ﻿** Operaciones Binarias entre tipos primitivos:int, double, decimal, datetime, string
 ** y pplObj (nulleable y soft) en todas sus variantes
 
-** Operacion binarias: division
+** Operacion binarias: division y div
 
 ** Los tests con operador '^' por el momento no compilan en v7.
 
@@ -17,19 +17,14 @@
 &ErrMsgDivStrStr := 'No se puede realizar una division entre System.String y System.String'
 &ErrMsgDivStrDbl := 'No se puede realizar una division entre System.String y System.Double'
 &ErrMsgDivStrBol := 'No se puede realizar una division entre System.String y System.Boolean'
-&ErrMsgDivDatStr := 'No se puede realizar una division entre System.DateTime y System.String'
-&ErrMsgDivDatBol := 'No se puede realizar una division entre System.DateTime y System.Boolean'
 
 &ErrMsgDivEnterosIntStr := 'No se puede obtener la division de enteros entre System.Int32 y System.String'
 &ErrMsgDivEnterosIntBol := 'No se puede obtener la division de enteros entre System.Int32 y System.Boolean'
 &ErrMsgDivEnterosDblStr := 'No se puede obtener la division de enteros entre System.Double y System.String'
 &ErrMsgDivEnterosDblBol := 'No se puede obtener la division de enteros entre System.Double y System.Boolean'
-&ErrMsgDivEnterosStrInt := 'No se puede obtener la division de enteros entre System.String y System.Int32'
 &ErrMsgDivEnterosStrStr := 'No se puede obtener la division de enteros entre System.String y System.String'
 &ErrMsgDivEnterosStrDbl := 'No se puede obtener la division de enteros entre System.String y System.Double'
 &ErrMsgDivEnterosStrBol := 'No se puede obtener la division de enteros entre System.String y System.Boolean'
-&ErrMsgDivEnterosDatStr := 'No se puede obtener la division de enteros entre System.DateTime y System.String'
-&ErrMsgDivEnterosDatBol := 'No se puede obtener la division de enteros entre System.DateTime y System.Boolean'
 
 test('division', -> {
   assertEq(3  , 6   / 2)
@@ -99,9 +94,6 @@ test('division', -> {
   assertError(-> &datetime + '1')
   assertError(-> '1' + &datetime)
   
-*  assertError(&ErrMsgAddDatStr, -> Fecha('31/01/2015') + '1')
-*  assertError(&ErrMsgAddDatBol, -> fecha('31/01/2015') + SI)
-
   assertEq(0, Val(Z:1) / DbNull)
   assertEq(0, Val(Z:1) / Nil)
   assertEq(0, Val(Z:1) / 1)
@@ -181,5 +173,13 @@ test('division', -> {
   assertEq(0, NewFbnObj('str')  div NewFbnObj(1))
   assertEq(2, NewFbnObj('2')    div NewFbnObj(1))
   
+  assertEq(3, 3 div NewValObj('str'))
+  assertEq(3, 3 div NewValObj('1.5'))
+  assertEq(3, 3 div NewFbnObj('str'))
+  assertEq(1, Round(3 div NewFbnObj('1.5'), 2))
+  assertEq(0, NewValObj('str') div 3)
+  assertEq(0, NewValObj('1.5') div 3)
+  assertEq(0, NewFbnObj('str') div 3)
+  assertEq(0, NewFbnObj('1.5') div 3)
 })
 
