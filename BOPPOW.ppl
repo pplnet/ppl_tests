@@ -25,11 +25,16 @@ test('pow', -> {
   assertEq(-8, -pow(2,3))
   
   assertEq(1, pow(Int(2),Int(0)))
-  assertEq(0, pow(Int(0),Dbl(1)))
   assertEq(8, pow(Int(2),Num('3')))
   assertEq(-8, -pow(Int(2),Decimal(3)))
   
   #ifdef V6
+  assertEq(8  , 2^2 * 2)
+  assertEq(-4 , 2^2 * (-(1)))
+  assertEq(2  , 1+1^8)
+  assertEq(256, (1+1)^8)
+  assertEq(0  , 0^-1)
+  
   assertEq(9, Decimal(3) ^ Decimal(2))
   assertEq(9, Decimal(3) ^ 2)
   assertEq(9, Decimal(3) ^ &numero)
@@ -42,12 +47,7 @@ test('pow', -> {
   assertEq(9, Num('3') ^ Decimal(2))
   assertEq(140.3, Round(Dbl(3) ^ Decimal(4.5), 2))
   
-  assertEq(8  , 2^2 * 2)
-  assertEq(-4 , 2^2 * (-(1)))
-  assertEq(2  , 1+1^8)
-  assertEq(256, (1+1)^8)
-  #else
-  assertEq(256, (1+1)^8)
+  
   #endif
   
   
