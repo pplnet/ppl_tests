@@ -101,26 +101,26 @@ test('suma', -> {
   assertEq(84040, Fecha('31/01/2015') + Fecha('01/01/2015'))
   
   &datetime2 := &datetime + 1.5
-  assertEq(Fecha('03/01/2020'), &datetime2.get_Date)
-  assertEq(0, &datetime.get_Hour)
-  assertEq(12, &datetime2.get_Hour)
+  assertEq(Fecha('03/01/2020'), Echo(&datetime2.get_Date))
+  assertEq(0, Echo(&datetime.get_Hour))
+  assertEq(12, Echo(&datetime2.get_Hour))
   
   &datetime2 := &datetime2 + 0.6
-  assertEq(Fecha('04/01/2020'), &datetime2.get_Date)
+  assertEq(Fecha('04/01/2020'), Echo(&datetime2.get_Date))
   
   &datetime3 := 1.5 + &datetime
   assertEq(43833.5, &datetime3)
-  assertEq('12:00:00',Hora(&datetime3))
+  assertEq('12:00:00',Echo(Hora(&datetime3)))
   
   &datetime3 := 1 + &datetime
-  assertEq(43833, &datetime3)
-  assertEq('00:00:00',Hora(&datetime3))
+  assertEq(43833, Echo(&datetime3))
+  assertEq('00:00:00',Echo(Hora(&datetime3)))
   
   ** No toma la property Hour
   *assertEq('12',Fecha(&datetime3).get_Hour)
   *assertEq('12',Dat(&datetime3).get_Hour)
   
-  assertError(-> &datetime3.get_Hour)
+  assertError(-> Echo(&datetime3.get_Hour))
   assertError(-> &datetime + '1')
   assertError(-> '1' + &datetime)
   
@@ -128,7 +128,7 @@ test('suma', -> {
   assertError(&ErrMsgAddDatBol, -> fecha('31/01/2015') + SI)
   
   * Si bien no falla el test, no estaría andando porque no sería ese el mensaje de error
-  assertError('Error', -> &datetime3.get_Hour)
+  assertError('Error', -> Echo(&datetime3.get_Hour))
   
   assertEq(0, Val(Z:1) + DbNull)
   assertEq(0, Val(Z:1) + Nil)
