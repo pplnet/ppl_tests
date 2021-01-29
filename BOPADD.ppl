@@ -110,11 +110,11 @@ test('suma', -> {
   
   &datetime3 := 1.5 + &datetime
   assertEq(43833.5, &datetime3)
-  assertEq('12:00:00',Echo(Hora(&datetime3)))
+  assertEq('12:00:00',Hora(&datetime3))
   
   &datetime3 := 1 + &datetime
   assertEq(43833, Echo(&datetime3))
-  assertEq('00:00:00',Echo(Hora(&datetime3)))
+  assertEq('00:00:00',Hora(&datetime3))
   
   ** No toma la property Hour
   *assertEq('12',Fecha(&datetime3).get_Hour)
