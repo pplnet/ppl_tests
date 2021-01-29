@@ -84,12 +84,12 @@ test('division', -> {
   
   assertEq(21915.5, Fecha('01/01/2020') / 2)
   assertEq('31/12/1959 12:12:00', Fecha(Fecha('01/01/2020') / 2,'DD/MM/YYYY HH:MM:SS'))
-  assertEq(12, &datetime.get_Hour)
+  assertEq(12, Echo(&datetime.get_Hour))
   
   &datetime2 := &datetime + 1.5
   assertEq(Fecha('02/01/1960'), &datetime2.get_Date)
   assertEq('00:00:00', Hora(&datetime2))
-  assertEq(0, &datetime2.get_Hour)
+  assertEq(0, Echo(&datetime2.get_Hour))
   
   assertError(-> &datetime + '1')
   assertError(-> '1' + &datetime)
