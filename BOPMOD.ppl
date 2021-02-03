@@ -5,9 +5,7 @@
 
 ** Los tests con operador '^' por el momento no compilan en v7.
 
-&fechaPplObj := Fecha('03/01/2140')
 &numero := 10
-&datetime := Fecha('02/01/2020')
 
 &ErrMsgModIntStr := 'No se puede obtener el resto de una division entre System.Int32 y System.String'
 &ErrMsgModIntBol := 'No se puede obtener el resto de una division entre System.Int32 y System.Boolean'
