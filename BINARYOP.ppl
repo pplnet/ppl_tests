@@ -112,9 +112,3 @@ test('combinaciones', -> {
   assertEq(7, [NewPplObj('2',SI,SI) + (Dbl(3.0) * Num('4'))] / NewPplObj('2',SI,NO))
   assertEq(4, [(Decimal(2) + Decimal(2)) * Decimal(2)] / Decimal(2))
 })
-
-test('mod', -> {
-  assertEq(1, 10 mod 3)
-  assertEq(1, Int(10) mod Int(3))
-  assertEq(1, Num('10') mod Num('3'))
-})
