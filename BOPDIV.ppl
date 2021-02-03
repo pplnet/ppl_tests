@@ -87,7 +87,8 @@ test('division', -> {
 #ifdef V6
   assertEq('31/12/1959 12:12:00', Fecha(Fecha('01/01/2020') / 2,'DD/MM/YYYY HH:MM:SS'))
 #endif
-  assertEq(12, &datetime.get_Hour)
+
+  assertEq(12, Echo(&datetime.get_Hour))
   
   assertEq(0, Val(Z:1) / DbNull)
   assertEq(0, Val(Z:1) / Nil)

@@ -1,1 +1,117 @@
-﻿
+﻿** Operaciones Binarias entre tipos primitivos:int, double, decimal, datetime, string
+** y pplObj (nulleable y soft) en todas sus variantes
+
+** Operacion binarias: pow
+
+** Los tests con operador '^' por el momento no compilan en v7.
+
+&numero := 2
+&datetime1 := Fecha('02/01/2020')
+&datetime2 := Fecha('05/01/2020')
+
+&ErrMsgPowIntStr := 'No se puede realizar una potencia entre System.Int32 y System.String'
+&ErrMsgPowIntBol := 'No se puede realizar una potencia entre System.Int32 y System.Boolean'
+&ErrMsgPowDblStr := 'No se puede realizar una potencia entre System.Double y System.String'
+&ErrMsgPowDblBol := 'No se puede realizar una potencia entre System.Double y System.Boolean'
+&ErrMsgPowStrInt := 'No se puede realizar una potencia entre System.String y System.Int32'
+&ErrMsgPowStrStr := 'No se puede realizar una potencia entre System.String y System.String'
+&ErrMsgPowStrDbl := 'No se puede realizar una potencia entre System.String y System.Double'
+&ErrMsgPowStrBol := 'No se puede realizar una potencia entre System.String y System.Boolean'
+
+test('pow', -> {
+  assertEq(1, pow(2,0))
+  assertEq(0, pow(0,1))
+  assertEq(8, pow(2,3))
+  assertEq(-8, -pow(2,3))
+  
+  assertEq(1, pow(Int(2),Int(0)))
+  assertEq(8, pow(Int(2),Num('3')))
+  assertEq(-8, -pow(Int(2),Decimal(3)))
+  
+  #ifdef V6
+  assertEq(8     , 2^2 * 2)
+  assertEq(-4    , 2^2 * (-(1)))
+  assertEq(2     , 1+1^8)
+  assertEq(256   , (1+1)^8)
+  assertEq(0     , 0^-1)
+  assertEq(1     , 1^0)
+  assertEq(0     , 0^0)
+  assertEq(274.37, Round(2   ^ 8.1, 2))
+  assertEq(593.78, Round(2.2 ^ 8.1, 2))
+  
+  assertEq(10    , Num('10')  ^ 1)
+  assertEq(32    , Num('2') ^ Num('5'))
+  assertEq(64    , Num('2') ^ Num('6'))
+  assertEq(593.78, Round(Dbl(2.2) ^ Dbl(8.1),2))
+  assertEq(1     , NewFbnObj('1') ^ 2)
+  assertEq(1     , NewFbnObj('1') ^ 0)
+  assertEq(8     , NewFbnObj('2') ^ 3)
+  assertEq(0     , NewPplObj('2',NO,SI) ^ 3)
+  assertEq(8     , NewPplObj('2',SI,NO) ^ 3)
+  assertEq(0     , NewValObj('2') ^ 3)
+  
+  assertEq(9, Decimal(3) ^ Decimal(2))
+  assertEq(9, Decimal(3) ^ 2)
+  assertEq(9, Decimal(3) ^ &numero)
+  assertEq(9, Decimal(3) ^ Int(2))
+  assertEq(9, Decimal(3) ^ Dbl(2))
+  assertEq(9, Decimal(3) ^ Num('2'))
+  assertEq(9, 3        ^ Decimal(2))
+  assertEq(9, Int(3)   ^ Decimal(2))
+  assertEq(9, Dbl(3)   ^ Decimal(2))
+  assertEq(9, Num('3') ^ Decimal(2))
+  assertEq(140.3, Round(Dbl(3) ^ Decimal(4.5), 2))
+  
+  assertEq(8, 2^(&datetime2 - &datetime1))
+  
+  assertError(&ErrMsgPowIntStr, -> 2 ^ '8')
+  assertError(&ErrMsgPowIntStr, -> 1 ^ 'NaN')
+  assertError(&ErrMsgPowIntStr, -> 1 ^ '')
+  assertError(&ErrMsgPowIntBol, -> 2 ^ SI)
+  
+  assertError(&ErrMsgPowDblStr, -> round(Dbl(2.2) ^ '8.1', 2))
+  assertError(&ErrMsgPowDblStr, -> Dbl(1.1) ^ 'NaN')
+  assertError(&ErrMsgPowDblStr, -> Dbl(1.1) ^ '')
+  assertError(&ErrMsgPowDblBol, -> Dbl(2.2) ^ SI)
+  
+  assertError(&ErrMsgPowStrInt, -> '2' ^ 1)
+  assertError(&ErrMsgPowStrStr, -> round('2.2' ^ '8.1', 2))
+  assertError(&ErrMsgPowStrDbl, -> round('2.2' ^  8.1 , 2))
+  assertError(&ErrMsgPowStrBol, -> '2.2' ^ SI)
+  
+  assertEq(0, Val(Z:1) ^ DbNull)
+  assertEq(0, Val(Z:1) ^ Nil)
+  assertEq(0, Val(Z:1) ^ 1)
+  assertEq(0, NewFbnObj(DbNull) ^ DbNull)
+  assertEq(0, NewFbnObj(DbNull) ^ Nil)
+  assertEq(0, NewFbnObj(DbNull) ^ 1)
+  assertEq(0, NewFbnObj('str')  ^ 1)
+  assertEq(0, DbNull   ^ NewFbnObj(DbNull))
+  assertEq(0, Nil      ^ NewFbnObj(DbNull))
+  assertEq(1, 1        ^ NewFbnObj(DbNull))
+  assertEq(1, 5        ^ NewValObj('5'))
+  assertEq(1, 5        ^ NewFbnObj('str'))
+  assertEq(0, NewValObj('2')      ^ 5)
+  assertEq(1, NewFbnObj(1)        ^ NewFbnObj(DbNull))
+  assertEq(0, NewFbnObj(DbNull)   ^ NewFbnObj(1))
+  assertEq(0, NewFbnObj('str')    ^ NewFbnObj(1))
+  assertEq(2, NewFbnObj('2')      ^ NewFbnObj(1))
+  
+  assertEq(1    , 3 ^ NewValObj('str'))
+  assertEq(1    , 3 ^ NewValObj('1.5'))
+  assertEq(1    , 3 ^ NewFbnObj('str'))
+  assertEq(5.2  , Round(3 ^ NewFbnObj('1.5'), 2))
+  assertEq(0    , NewValObj('str') ^ 3)
+  assertEq(0    , NewValObj('1.5') ^ 3)
+  assertEq(0    , NewFbnObj('str') ^ 3)
+  assertEq(3.375, NewFbnObj('1.5') ^ 3)
+  assertEq(27   , NewFbnObj(3) ^ 3)
+  
+  ACN(A:1,2)
+  ACN(A:2,4)
+  ACT(A:3,'4')
+  assertEq(16, Val(A:1) ^ Val(A:2))
+  assertEq(16, Val(A:1) ^ Num(Val(A:3)))
+  
+  #endif  
+})

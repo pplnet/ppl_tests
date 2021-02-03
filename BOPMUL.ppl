@@ -87,8 +87,9 @@ test('producto', -> {
 #ifdef V6
   assertEq(Fecha('03/01/2080'), &datetime2)
 #endif
-  assertEq(0, &datetime.get_Hour)
-  assertEq(0, &datetime2.get_Hour)
+
+  assertEq(0, Echo(&datetime.get_Hour))
+  assertEq(0, Echo(&datetime2.get_Hour))
   
   &datetime3 := 1.5 * &datetime
   assertEq(65748 , &datetime3)
