@@ -6,9 +6,19 @@
 ** Los tests con operador '^' estan comentados porque en v7 no compilan por el momento.
 
 test('combinaciones', -> {
-  assertEq(11, 1 + Int(10))
-  assertEq(11, 1 + Num('10'))
-  assertEq(11.5, Dbl(1.5) + Num('10'))
+  assertEq(-1.1, -1.1)
+  assertEq(2, 2*5/5)
+  assertEq(8, 2+2*3)
+  assertEq(8, 3*2+2)
+  assertEq(14, 3*2+2*4)
+  assertEq(11, 6/2+2*4)
+  assertEq(-5, 6/2-2*4)
+  assertEq(12, (2+2)*3)
+  assertEq(60, (2+2)*(3+2)*3)
+  assertEq(30, ((2+2*3)+2)*3)
+  assertEq(51, (3+(2+2)*3+2)*3)
+  assertEq(12, [2+2]*3)
+  
   assertEq(1, 1 + (10 * 0))
   assertEq(2, 1 + (1))
   assertEq(2, 1 + ((1)))
@@ -24,8 +34,10 @@ test('combinaciones', -> {
   assertEq(2, ((1 + 1)))
   
   #ifdef V6
-  assertEq(29, 2 + 3 ^3)
-  assertEq(125, (2 + 3) ^3)
+  assertEq(29, 2 + 3 ^ 3)
+  assertEq(125, (2 + 3) ^ 3)
+  assertEq(1, 125/5 ^ 3)
+  assertEq(25, 5^5/125)
   assertEq(6, [2^2] + (1 + 1))
   assertEq(2, [2^2] + (-(1 + 1)))
   assertEq(2^25, 2^20 * 2^5)
