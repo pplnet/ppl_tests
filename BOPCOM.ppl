@@ -1,7 +1,13 @@
 ﻿** Operaciones Binarias entre tipos primitivos:int, double, decimal, datetime, string
 ** y pplObj (nulleable y soft) en todas sus variantes
 
-** Operaciones binarias:suma, resta, producto, division, div, mod, pow, =, <>, >, <, >=, <=
+** Operaciones binarias: =, <>, >, <, >=, <=
+
+&ErrMsgCompStr := 'No se pueden comparar strings'
+*&ErrMsgCompMayor := 'El operador > no es valido'
+*&ErrMsgCompMenor := 'El operador < no es valido'
+*&ErrMsgCompMayorIgual := 'El operador >= no es valido'
+*&ErrMsgCompMenorIgual := 'El operador <= no es valido'
 
 test('comparaciones', -> {
   assertEq(SI, 2 = 2)
@@ -121,6 +127,51 @@ test('comparaciones', -> {
   assertEq(SI, DbNull <= DbNull)
   assertEq(SI, DbNull <= 1)
   
+  assertEq(SI, DbNull() = 0)
+  assertEq(SI, DbNull() = Null)
+  assertEq(SI, DbNull() = NewFbnObj(0))
+  assertEq(SI, DbNull() = NewFbnObj(DBNull))
+  assertEq(SI, DbNull() = NewFbnObj(''))
+  assertEq(SI, 0 = DbNull)
+  assertEq(SI, 0 = Null)
+  assertEq(SI, 0 = NewFbnObj(0))
+  assertEq(SI, 0 = NewFbnObj(DBNull))
+  assertEq(SI, 0 = NewFbnObj(''))
+  assertEq(SI, Null() = DbNull)
+  assertEq(SI, Null() = 0)
+  assertEq(SI, Null() = NewFbnObj(0))
+  assertEq(SI, Null() = NewFbnObj(DBNull))
+  assertEq(SI, Null() = NewFbnObj(''))
+  assertEq(SI, NewFbnObj(0) = DbNull())
+  assertEq(SI, NewFbnObj(0) = 0)
+  assertEq(SI, NewFbnObj(0) = Null())
+  assertEq(SI, NewFbnObj(0) = NewPplObj(DBNull))
+  assertEq(SI, NewFbnObj(0) = NewPplObj(''))
+  assertEq(SI, NewFbnObj(DbNull) = DbNull)
+  assertEq(SI, NewFbnObj(DbNull) = 0)
+  assertEq(SI, NewFbnObj(DbNull) = Null)
+  assertEq(SI, NewFbnObj(DbNull) = NewPplObj(0))
+  assertEq(SI, NewFbnObj(DbNull) = NewPplObj(''))
+  assertEq(SI, NewFbnObj('') = DbNull)
+  assertEq(SI, NewFbnObj('') = 0)
+  assertEq(SI, NewFbnObj('') = Null)
+  assertEq(SI, NewFbnObj('') = NewPplObj(0))
+  assertEq(SI, NewFbnObj('') = NewPplObj(DbNull))
+  
+  assertError(&ErrMsgCompStr, -> 'foo' =  'foo')
+  assertError(&ErrMsgCompStr, -> 'foo' =  'bar')
+  assertError(&ErrMsgCompStr, -> 'foo' <> 'bar')
+  assertError(&ErrMsgCompStr, -> 'foo' <> 'foo')
+  
+*  assertError(&ErrMsgCompMayor, -> 1 > 'foo')
+*  assertError(&ErrMsgCompMayor, -> 'fpp' > 1)
+*  assertError(&ErrMsgCompMenor, -> 1 < 'fo')
+*  assertError(&ErrMsgCompMenor, -> 'fpp' < 1)
+*  assertError(&ErrMsgCompMayorIgual, -> 1 >= 'foo')
+*  assertError(&ErrMsgCompMayorIgual, -> 'fpp' >= 1)
+*  assertError(&ErrMsgCompMenorIgual, -> 1 <= 'foo')
+*  assertError(&ErrMsgCompMenorIgual, -> 'fpp' <= 1)
+  
   assertEq(SI, Fecha('14/05/2012') =  Fecha('14/05/2012'))
   assertEq(NO, Fecha('14/05/2012') =  Fecha('15/05/2012'))
   assertEq(SI, Fecha('14/05/2012') <> Fecha('15/05/2012'))
@@ -184,4 +235,93 @@ test('comparaciones', -> {
   assertEq(NO, Val(A:1) <> 0)
   assertEq(SI, Val(A:2) =  Val(A:3))
   assertEq(SI, Val(A:3) =  Val(A:2))
+  
+  assertEq(SI, SI Y SI)
+  assertEq(NO, SI Y NO)
+  assertEq(NO, NO Y NO)
+  assertEq(NO, NO Y SI)
+  
+  assertEq(SI, 1 Y 1)
+  assertEq(NO, 1 Y 0)
+  assertEq(NO, 0 Y 0)
+  assertEq(NO, 0 Y 1)
+  
+  ACN(B:1,1)
+  ACN(B:2,0)
+  assertEq(SI, Val(B:1) Y 1)
+  assertEq(NO, Val(B:1) Y 0)
+  assertEq(NO, Val(B:2) Y 0)
+  assertEq(NO, Val(B:2) Y 1)
+  
+  assertEq(SI, 1 Y Val(B:1))
+  assertEq(NO, 0 Y Val(B:1))
+  assertEq(NO, 0 Y Val(B:2))
+  assertEq(NO, 1 Y Val(B:2))
+  
+  assertEq(SI, SI o SI)
+  assertEq(SI, SI o NO)
+  assertEq(NO, NO o NO)
+  assertEq(SI, NO o SI)
+  
+  assertEq(SI, 1 o 1)
+  assertEq(SI, 1 o 0)
+  assertEq(NO, 0 o 0)
+  assertEq(SI, 0 o 1)
+  
+  assertEq(SI, Val(B:1) o 1)
+  assertEq(SI, Val(B:1) o 0)
+  assertEq(NO, Val(B:2) o 0)
+  assertEq(SI, Val(B:2) o 1)
+  
+  assertEq(SI, 1 o Val(B:1))
+  assertEq(SI, 0 o Val(B:1))
+  assertEq(NO, 0 o Val(B:2))
+  assertEq(SI, 1 o Val(B:2))
+  
+  ACT(C:1, 'TEST')
+  assertEq(NO, Val(C:1) > 0)
+  assertEq(SI, Val(C:1) >= 0)
+  assertEq(NO, Val(C:1) < 0)
+  assertEq(SI, Val(C:1) <= 0)
+  assertEq(SI, Val(C:1) = 0)
+  assertEq(NO, Val(C:1) <> 0)
+  assertEq(NO, 0 > Val(C:1))
+  assertEq(SI, 0 >= Val(C:1))
+  assertEq(NO, 0 < Val(C:1))
+  assertEq(SI, 0 <= Val(C:1))
+  assertEq(SI, 0 = Val(C:1))
+  assertEq(NO, 0 <> Val(C:1))
+  
+  assertEq(NO, NewValObj('10') > 0)
+  assertEq(SI, NewValObj('10') >= 0)
+  assertEq(NO, NewValObj('10') < 0)
+  assertEq(SI, NewValObj('10') <= 0)
+  assertEq(SI, NewValObj('10') = 0)
+  assertEq(NO, NewValObj('10') <> 0)
+  assertEq(NO, 0 > NewValObj('10'))
+  assertEq(SI, 0 >= NewValObj('10'))
+  assertEq(NO, 0 < NewValObj('10'))
+  assertEq(SI, 0 <= NewValObj('10'))
+  assertEq(SI, 0 = NewValObj('10'))
+  assertEq(NO, 0 <> NewValObj('10'))
+  
+  assertEq(SI, NewFbnObj('10') > 0)
+  assertEq(SI, NewFbnObj('10') >= 0)
+  assertEq(NO, NewFbnObj('10') < 0)
+  assertEq(NO, NewFbnObj('10') <= 0)
+  assertEq(NO, NewFbnObj('10') = 0)
+  assertEq(SI, NewFbnObj('10') <> 0)
+  assertEq(NO, 0 > NewFbnObj('10'))
+  assertEq(NO, 0 >= NewFbnObj('10'))
+  assertEq(SI, 0 < NewFbnObj('10'))
+  assertEq(SI, 0 <= NewFbnObj('10'))
+  assertEq(NO, 0 = NewFbnObj('10'))
+  assertEq(SI, 0 <> NewFbnObj('10'))
+  
+  ACN(D:1, 5)
+  ACT(D:2, '300')
+  assertEq(SI, Val(D:1) * Val(D:2) = 0)
+  assertEq(SI, Val(D:1) * Val(D:2) = 0)
+  assertEq(SI, Val(D:2) * Val(D:1) = 0)
+  assertEq(SI, Val(D:2) * Val(D:1) = 0)
 })
