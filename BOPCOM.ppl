@@ -4,6 +4,10 @@
 ** Operaciones binarias: =, <>, >, <, >=, <=
 
 &ErrMsgCompStr := 'No se pueden comparar strings'
+*&ErrMsgCompMayor := 'El operador > no es valido'
+*&ErrMsgCompMenor := 'El operador < no es valido'
+*&ErrMsgCompMayorIgual := 'El operador >= no es valido'
+*&ErrMsgCompMenorIgual := 'El operador <= no es valido'
 
 test('comparaciones', -> {
   assertEq(SI, 2 = 2)
@@ -158,6 +162,15 @@ test('comparaciones', -> {
   assertError(&ErrMsgCompStr, -> 'foo' =  'bar')
   assertError(&ErrMsgCompStr, -> 'foo' <> 'bar')
   assertError(&ErrMsgCompStr, -> 'foo' <> 'foo')
+  
+*  assertError(&ErrMsgCompMayor, -> 1 > 'foo')
+*  assertError(&ErrMsgCompMayor, -> 'fpp' > 1)
+*  assertError(&ErrMsgCompMenor, -> 1 < 'fo')
+*  assertError(&ErrMsgCompMenor, -> 'fpp' < 1)
+*  assertError(&ErrMsgCompMayorIgual, -> 1 >= 'foo')
+*  assertError(&ErrMsgCompMayorIgual, -> 'fpp' >= 1)
+*  assertError(&ErrMsgCompMenorIgual, -> 1 <= 'foo')
+*  assertError(&ErrMsgCompMenorIgual, -> 'fpp' <= 1)
   
   assertEq(SI, Fecha('14/05/2012') =  Fecha('14/05/2012'))
   assertEq(NO, Fecha('14/05/2012') =  Fecha('15/05/2012'))
