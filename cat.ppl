@@ -3,6 +3,7 @@
 &string1 := 'HOLA'
 &string2 := 'CHAU'
 &string3 := ' CHAU'
+&ErrMsgText := 'Se esperaba un texto.'
 
 test("concatenaciones", ->{
     assertEq('Hello world!', "Hello"~" world!")
@@ -12,6 +13,26 @@ test("concatenaciones", ->{
     assertEq('HOLA CHAU', &string1~" "~&string2)
     assertEq('HOLA CHAU', &string1~&string3)
     assertEq('HOLA CHAU', &string1~''~&string3)
+    
+    assertEq('FOO', 'FOO'~Null)
+    assertEq('FOO', 'FOO'~DbNull)
+    assertEq('FOO', Null~'FOO')
+    assertEq('FOO', DbNull~'FOO')
+    
+    assertEq('Cotizacion: 2.00', 'Cotizacion: '~ NewPPLObj(2,NO,SI,'0.00'))
+    assertEq('2.00->Cotizacion', NewPPLObj(2,NO,SI,'0.00')~'->Cotizacion')
+    assertEq('Fecha: 01/01/2015', 'Fecha: '~NewFbnObj(Fecha('01/01/2015')))
+    assertEq('Fecha: ', 'Fecha: '~NewFbnObj(DbNull))
+    assertEq('Numero=0', 'Numero='~NewFbnObj(0))
+    assertEq('Numero=1','Numero='~NewFbnObj(1))
+    
+    assertError(&ErrMsgText, -> 'foo'~1)
+    assertError(&ErrMsgText, -> 'foo'~1.1)
+    assertError(&ErrMsgText, -> 'foo'~SI)
+    assertError(&ErrMsgText, -> 1~'foo')
+    assertError(&ErrMsgText, -> 1.1~'foo')
+    assertError(&ErrMsgText, -> 'foo' ~ DateFromStr('01/01/2015'))
+    assertError(&ErrMsgText, -> DateFromStr('01/01/2015') ~ 'foo')
     *assertError(10 ~ " Foo")
 })
 
