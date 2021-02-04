@@ -1,7 +1,7 @@
 ﻿** Operaciones Binarias entre tipos primitivos:int, double, decimal, datetime, string
 ** y pplObj (nulleable y soft) en todas sus variantes
 
-** Operaciones binarias:suma, resta, producto, division, div, mod, pow, =, <>, >, <, >=, <=
+** Operaciones binarias: =, <>, >, <, >=, <=
 
 test('comparaciones', -> {
   assertEq(SI, 2 = 2)
