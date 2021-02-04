@@ -184,4 +184,46 @@ test('comparaciones', -> {
   assertEq(NO, Val(A:1) <> 0)
   assertEq(SI, Val(A:2) =  Val(A:3))
   assertEq(SI, Val(A:3) =  Val(A:2))
+  
+  assertEq(SI, SI Y SI)
+  assertEq(NO, SI Y NO)
+  assertEq(NO, NO Y NO)
+  assertEq(NO, NO Y SI)
+  
+  assertEq(SI, 1 Y 1)
+  assertEq(NO, 1 Y 0)
+  assertEq(NO, 0 Y 0)
+  assertEq(NO, 0 Y 1)
+  
+  ACN(B:1,1)
+  ACN(B:2,0)
+  assertEq(SI, Val(B:1) Y 1)
+  assertEq(NO, Val(B:1) Y 0)
+  assertEq(NO, Val(B:2) Y 0)
+  assertEq(NO, Val(B:2) Y 1)
+  
+  assertEq(SI, 1 Y Val(B:1))
+  assertEq(NO, 0 Y Val(B:1))
+  assertEq(NO, 0 Y Val(B:2))
+  assertEq(NO, 1 Y Val(B:2))
+  
+  assertEq(SI, SI o SI)
+  assertEq(SI, SI o NO)
+  assertEq(NO, NO o NO)
+  assertEq(SI, NO o SI)
+  
+  assertEq(SI, 1 o 1)
+  assertEq(SI, 1 o 0)
+  assertEq(NO, 0 o 0)
+  assertEq(SI, 0 o 1)
+  
+  assertEq(SI, Val(B:1) o 1)
+  assertEq(SI, Val(B:1) o 0)
+  assertEq(NO, Val(B:2) o 0)
+  assertEq(SI, Val(B:2) o 1)
+  
+  assertEq(SI, 1 o Val(B:1))
+  assertEq(SI, 0 o Val(B:1))
+  assertEq(NO, 0 o Val(B:2))
+  assertEq(SI, 1 o Val(B:2))
 })
