@@ -135,8 +135,8 @@ test('comparaciones', -> {
   assertEq(SI, (1=1 y 2=3 o 3=1) o 4=4)
   assertEq(SI, 1+1>0)
   
-  assertEq(NO, DbNull() =  1)
-  assertEq(SI, DbNull() =  DbNull)
+  assertEq(NO, DbNull =  1)
+  assertEq(SI, DbNull =  DbNull)
   assertEq(NO, DbNull <> DbNull)
   assertEq(SI, DbNull <> 1)
   assertEq(NO, DbNull >  1)
