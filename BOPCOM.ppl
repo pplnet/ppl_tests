@@ -217,6 +217,8 @@ test('comparaciones', -> {
   assertEq(SI, Fecha('14/05/2012') >= 1)
   assertEq(NO, Fecha('14/05/2012') >= 41044)
   
+**// TODO: Migrar cuando este fixture + implementacion de Fecha()
+#ifdef V6
   assertEq(SI, NewFbnObj(Fecha('24/02/2016')) =  Fecha('24/02/2016'))
   assertEq(NO, NewFbnObj(Fecha('24/02/2016')) =  Fecha('25/02/2016'))
   assertEq(SI, NewFbnObj(Fecha('24/02/2016')) <> Fecha('25/02/2016'))
@@ -244,6 +246,7 @@ test('comparaciones', -> {
   assertEq(NO, NewValObj(Fecha('14/05/2012')) = Val(A:1))
   assertEq(NO, Val(A:1) = NewFbnObj(Fecha('14/05/2012')))
   assertEq(NO, Val(A:1) = NewValObj(Fecha('14/05/2012')))
+#endif
   
   ACD(A:1, DbNull)
   ACT(A:2, 'aaa')
