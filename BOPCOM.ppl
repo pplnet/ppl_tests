@@ -267,6 +267,15 @@ test('comparaciones', -> {
   assertEq(NO, 0 Y 0)
   assertEq(NO, 0 Y 1)
   
+  assertEq(SI,  2 Y 2)
+  assertEq(NO,  2 Y 0)
+  assertEq(NO,  0 Y 2)
+  assertEq(SI, -2 Y 2)
+  assertEq(NO, -2 Y 0)
+  assertEq(SI, (-2) Y (-2))
+* Falla en V6 por el - del segundo termino
+*  assertEq(SI, -2 Y -2)
+  
   ACN(B:1,1)
   ACN(B:2,0)
   assertEq(SI, Val(B:1) Y 1)
