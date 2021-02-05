@@ -278,7 +278,7 @@ test('comparaciones', -> {
   assertEq(NO, (-2) Y (-2))
   * Falla en V6 por el - del segundo termino
 #ifdef V7
-  assertEq(SI, -2 Y -2)
+  assertEq(NO, -2 Y -2)
 #endif
   
   ACN(B:1,1)
