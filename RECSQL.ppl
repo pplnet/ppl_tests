@@ -1,4 +1,4 @@
-test("recorrer_sql", ->{
+﻿test("recorrer_sql", ->{
     sql.addrow(${Col1 = 1})
     sql.addrow(${Col1 = 2})
     &idx := 0
@@ -8,14 +8,15 @@ test("recorrer_sql", ->{
     proximo
 })
 
-*test("recorrer_sql anidado", ->{
-*    sql.addrow(${Col1 = 1})
-*    recorrer sql
-*        assertEq(1, fbn("Col1"))
-*        sql.addrow(${Col2 = 2})
-*        recorrer sql
-*            assertEq(2, fbn("Col2"))
-*        proximo
-*        **assertEq(1, fbn("Col1"))
-*    proximo
-*})
+test("recorrer_sql anidado", ->{
+    sql.addrow(${Col1 = 1})
+    recorrer sql
+        assertEq(1, fbn("Col1"))
+        sql.addrow(${Col2 = 2})
+        recorrer sql
+            assertEq(2, fbn("Col2"))
+            sql.addrow(${Col3 = 3})
+        proximo
+        assertEq(1, fbn("Col1"))
+    proximo
+})
