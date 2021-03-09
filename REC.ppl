@@ -35,7 +35,37 @@ test("recorrer anidados", ->{
     Proximo
     assertEq(3, Val(B:1))
     
+    Recorrer&i 1,2
+      ACN(1+&i:1, 1)
+      Proximo
+    assertEq(1, Val(B:1))
     
+    ACN(C:1,123)
+    Recorrer&i 1, Val(Z:1)
+      ACN(C:1,456)
+    Proximo
+    assertEq(123, Val(C:1))
+    
+    SetFilaActual(1)
+    ACN(D:1,2)
+    Recorrer&i 1,10
+      ACF(E:FAC, Val(D:1) + FAC)
+      IFA
+    Proximo
+    Recorrer&i 1, 10
+      assertEq(2+&i, Val(E:&i))
+    Proximo
+    
+    SetFilaActual(10)
+    ACN(D:1,20)
+    Recorrer&i 1,11
+      ACF(E:FAC, Val(D:1) + FAC)
+      IFA
+    Proximo
+    
+    Recorrer&i 1, 10
+      assertEq(30+&i, Val(E:10+&i))
+    Proximo
 })
 
 
