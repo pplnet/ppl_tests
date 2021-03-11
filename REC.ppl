@@ -161,5 +161,90 @@ test("recorrer anidados", ->{
     assertEq(11, Val(A:6))
 })
 
+test("recorrer col", ->{
+    RecorrerColumnas 1,3
+      ACN(colciclo:1, colciclo)
+    Proximo
+    assertEq(1, val(A:1))
+    assertEq(2, val(B:1))
+    assertEq(3, val(C:1))
+    
+    RecorrerCol 1,3
+      ACN(colciclo:1, colciclo)
+    Proximo
+    assertEq(1, val(A:1))
+    assertEq(2, val(B:1))
+    assertEq(3, val(C:1))
+    
+    ACN(A:1,0)
+    ACN(B:1,0)
+    ACN(C:1,0)
+    RecorrerCol 1,3
+      ACN(colciclo:1, colciclo)
+      Break
+    Proximo
+    assertEq(1, val(A:1))
+    assertEq(0, val(B:1))
+    assertEq(0, val(C:1))
+    
+    ACN(A:1,0)
+    ACN(B:1,0)
+    ACN(C:1,0)
+    RecorrerCol 1,3
+      ACN(colciclo+1:1, colciclo)
+    Proximo
+    assertEq(0, val(A:1))
+    assertEq(1, val(B:1))
+    assertEq(2, val(C:1))
+    
+    ACN(Z:1,3)
+    RecorrerCol 1,Val(Z:1)
+      ACN(colciclo:1, colciclo)
+    Proximo
+    assertEq(1, val(A:1))
+    assertEq(2, val(B:1))
+    assertEq(3, val(C:1))
+    
+    RecorrerCol 1,Val(Z:1)+1
+      ACN(colciclo:1, colciclo)
+    Proximo
+    assertEq(1, val(A:1))
+    assertEq(2, val(B:1))
+    assertEq(3, val(C:1))
+    assertEq(4, val(D:1))
+})
 
-
+test("recorrer filas", ->{
+    Recorrer&i 1,9
+      ACN(A:&i,0)
+    Proximo
+    
+    RecorrerFilas 3,8
+      ACN(A:filaciclo, filaciclo)
+    Proximo
+    assertEq(0, val(A:1))
+    assertEq(0, val(A:2))
+    assertEq(3, val(A:3))
+    assertEq(4, val(A:4))
+    assertEq(5, val(A:5))
+    assertEq(6, val(A:6))
+    assertEq(7, val(A:7))
+    assertEq(8, val(A:8))
+    assertEq(0, val(A:9))
+    
+    RecorrerFilas 3,12
+      ACN(A:filaciclo, filaciclo)
+    Proximo
+    assertEq(NULL, val(A:1))
+    assertEq(NULL, val(A:2))
+    assertEq(3, val(A:3))
+    assertEq(4, val(A:4))
+    assertEq(5, val(A:5))
+    assertEq(6, val(A:6))
+    assertEq(7, val(A:7))
+    assertEq(8, val(A:8))
+    assertEq(9, val(A:9))
+    assertEq(NULL, val(A:10))
+    assertEq(NULL, val(A:11))
+    assertEq(NULL, val(A:12))
+})
