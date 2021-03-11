@@ -1,1 +1,34 @@
-﻿
+﻿test("recorrer filas", ->{
+    Recorrer&i 1,9
+      ACN(A:&i,0)
+    Proximo
+    
+    RecorrerFilas 3,8
+      ACN(A:filaciclo, filaciclo)
+    Proximo
+    assertEq(0, val(A:1))
+    assertEq(0, val(A:2))
+    assertEq(3, val(A:3))
+    assertEq(4, val(A:4))
+    assertEq(5, val(A:5))
+    assertEq(6, val(A:6))
+    assertEq(7, val(A:7))
+    assertEq(8, val(A:8))
+    assertEq(0, val(A:9))
+    
+    RecorrerFilas 3,12
+      ACN(A:filaciclo, filaciclo)
+    Proximo
+    assertEq(NULL, val(A:1))
+    assertEq(NULL, val(A:2))
+    assertEq(3, val(A:3))
+    assertEq(4, val(A:4))
+    assertEq(5, val(A:5))
+    assertEq(6, val(A:6))
+    assertEq(7, val(A:7))
+    assertEq(8, val(A:8))
+    assertEq(9, val(A:9))
+    assertEq(NULL, val(A:10))
+    assertEq(NULL, val(A:11))
+    assertEq(NULL, val(A:12))
+})
