@@ -42,6 +42,32 @@
     Recorrer&i,1,4
       assertEq(10+&i, Val(C:&i))
     Proximo
+    
+    SQL.ADDROW(Campo='1')
+    Recorrer SQL
+      If FBN['Campo']=1
+         ACT(A:1,'HO HO HOLA')
+      EndIf
+    Proximo
+    assertEq('HO HO HOLA', Val(A:1))
+    
+    SQL.ADDROW(Cliente1='RIO', Precio1=1000)
+    Recorrer SQL; ;SI
+      ACT(A:1, FBN['Cliente1'])
+    Proximo
+    assertEq('RIO', Val(A:1))
+    
+    SQL.ADDROW(Cliente1='RIO', Precio1=1000)
+    Recorrer SQL; ;
+      ACT(A:1, FBN['Cliente1'])
+    Proximo
+    assertEq('RIO', Val(A:1))
+    
+    SQL.ADDROW(Precio=Decimal(1.99))
+    Recorrer SQL
+      ACT(A:1, 'Precio: '~FBN['Precio'])
+    Proximo
+    assertEq('Precio: 1.99', Val(A:1))
 })
 
 test("recorrer sql anidado", ->{
@@ -55,4 +81,37 @@ test("recorrer sql anidado", ->{
       Proximo
       assertEq(1, fbn("Col1"))
     Proximo
+    
+    SQL.ADDROW(Foo=1)
+    SQL.ADDROW(Foo=2)
+    Recorrer SQL
+       SQL.ADDROW(Bar=1)
+       SQL.ADDROW(Bar=2)
+       Recorrer SQL
+           If 1=1 
+              Break
+           EndIf
+       Proximo
+       ACT(A:1, 'foo')
+    Proximo
+    assertEq('foo', Val(A:1))
+    
+    SetFilaActual(3)
+    ACN(A:1,0)
+    SQL.ADDROW(Foo=1)
+    SQL.ADDROW(Foo=2)
+    SQL.ADDROW(Foo=3)
+    SQL.ADDROW(Foo=4)
+    SQL.ADDROW(Foo=5)
+    SQL.ADDROW(Foo=6)
+    SQL.ADDROW(Foo=7)
+    SQL.ADDROW(Foo=8)
+    SQL.ADDROW(Foo=9)
+    SQL.ADDROW(Foo=10)
+    Recorrer SQL
+       Recorrer&i 1, FAC
+           SCN(A:1,1)
+       Proximo
+    Proximo
+    assertEq(85, Val(A:1))
 })
