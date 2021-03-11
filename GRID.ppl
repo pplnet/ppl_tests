@@ -1,1 +1,158 @@
-﻿
+﻿test("recorrer", ->{
+    Recorrer&i 1, 10
+      ACN(A:1, &i)
+    Proximo
+    assertEq(10, Val(A:1))
+    
+    Recorrer&i 1,10,2
+      ACN(AA:1, Val(AA:1)+1)
+    Proximo
+    assertEq(5, Val(AA:1))
+    
+    Recorrer&i 1,2
+      ACN(1+&i:1, 1)
+    Proximo
+    assertEq(1, Val(B:1))
+    
+    ACN(C:1,123)
+    Recorrer&i 1, Val(Z:1)
+      ACN(C:1,456)
+    Proximo
+    assertEq(123, Val(C:1))
+    
+    SetFilaActual(1)
+    ACN(D:1,2)
+    Recorrer&i 1,10
+      ACF(E:FAC, Val(D:1) + FAC)
+      IFA
+    Proximo
+    Recorrer&i 1, 10
+      assertEq(2+&i, Val(E:&i))
+    Proximo
+    
+    Recorrer&i 1,10
+      ACN(A:1, &i)
+      Break
+    Proximo
+    assertEq(1, Val(A:1))
+    
+    Recorrer&i 1,10
+      if(&i = 5)
+        break
+      endif
+      ACN(A:5, &i)
+    Proximo
+    assertEq(4, Val(A:5))
+    
+    SetFilaActual(10)
+    ACN(A:1,0)
+    Recorrer&i 1, FAC
+      IFA
+      SCN(A:1,1)
+    Proximo
+    assertEq(10, Val(A:1))
+    
+    SetFilaActual(0)
+    ACN(A:1, FAC)
+    Recorrer&i Val(A:1), 1
+      Echo_Int(&i+1)
+    Proximo
+    assertPass()
+    
+    Recorrer&i 1, 1
+      *comentario
+      ACN(A:1,2)
+    Proximo
+    assertEq(2, Val(A:1))
+})
+
+test("recorrer anidados", ->{
+    ACN(A:1,2)
+    ACN(A:2,0)
+    ACN(A:3,1)
+    ACN(B:1,0)
+    Recorrer&i 1, 3
+      Recorrer&j 1, Val(A:&i)
+        SCN(B:1,1)
+      Proximo
+    Proximo
+    assertEq(3, Val(B:1))
+    
+    Recorrer&i 1,10
+      Recorrer&j 1,10
+        ACN(A:2, &j + &i)
+      Proximo
+    Proximo
+    assertEq(20, Val(A:2))
+    
+    Recorrer&i 1,10
+      Recorrer&j 1,10
+        Recorrer&k 1,10
+          ACN(A:3, &j + &i + &k)
+        Proximo
+      Proximo
+    Proximo
+    assertEq(30, Val(A:3))
+    
+    Recorrer&i 1,3
+      SCN(AA:4,1)
+      Recorrer&j 1,3
+        SCN(BB:4,1)
+        Recorrer&k 6,9
+          SCN(CC:4,1)
+        Proximo
+      Proximo
+    Proximo
+    assertEq(3 , Val(AA:4))
+    assertEq(9 , Val(BB:4))
+    assertEq(36, Val(CC:4))
+    
+    Recorrer&i 1,5
+      Recorrer&j 1,10
+        if(&j = 7)
+          break
+        endif
+        ACN(A:6, &i + &j)
+      Proximo
+    Proximo
+    assertEq(11, Val(A:6))
+})
+
+test("ifa", ->{
+    SetFilaActual(1)
+    IFA
+    IFA
+    IFA
+    Recorrer&i 1,10
+      IFA
+    Proximo
+    assertEq(14, FAC)
+})
+
+test("ACF - Recalculos", ->{
+    ACN(A:1,2)
+    SetFilaActual(1)
+    Recorrer&i,1,10
+      ACF(C:FAC, Val(A:1) + FAC)
+      IFA
+    Proximo
+    SetFilaActual(10)
+    ACN(A:1,20)
+    RecalcCells()
+    Recorrer&i,1,10
+      assertEq(20+&i, Val(C:&i))
+    Proximo
+    
+    ACN(A:1,10)
+    SetFilaActual(1)
+    Recorrer&i,1,10
+      ACF(C:FAC, Fijar(Val(A:1)) + FAC)
+      IFA
+    Proximo
+    SetFilaActual(10)
+    ACN(A:1,20)
+    RecalcCells()
+    Recorrer&i,1,10
+      assertEq(10+&i, Val(C:&i))
+    Proximo
+})
