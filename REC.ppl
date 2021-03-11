@@ -121,7 +121,7 @@
     Proximo
     SetFilaActual(10)
     ACN(A:1,20)
-    recalccells()
+    RecalcCells()
     Recorrer&i,1,10
       assertEq(20+&i, Val(C:&i))
     Proximo
@@ -134,7 +134,7 @@
     Proximo
     SetFilaActual(10)
     ACN(A:1,20)
-    recalccells()
+    RecalcCells()
     Recorrer&i,1,10
       assertEq(10+&i, Val(C:&i))
     Proximo
