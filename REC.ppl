@@ -1,52 +1,28 @@
 ﻿test("recorrer", ->{
-    &counter := 0
+    &val := 0
     Recorrer&i 1, 10
-      &counter := &counter + 1
-      assertEq(&counter, &i)
+      &val := &val + 1
+      assertEq(&val, &i)
     Proximo
-    assertEq(10, &counter)
+    assertEq(10, &val)
     
+    &val := 0
     Recorrer&i 1, 10
-      ACN(A:1, &i)
+      &val := &i
     Proximo
-    assertEq(10, Val(A:1))
+    assertEq(10, &val)
     
+    &val := 0
     Recorrer&i 1,10,2
-      ACN(AA:1, Val(AA:1)+1)
+      &val := &val+1
     Proximo
-    assertEq(5, Val(AA:1))
+    assertEq(5, &val)
     
-    Recorrer&i 1,2
-      ACN(1+&i:1, 1)
+    &val := 123
+    Recorrer&i 1, 0
+      &val := 456
     Proximo
-    assertEq(1, Val(B:1))
-    
-    ACN(C:1,123)
-    Recorrer&i 1, Val(Z:1)
-      ACN(C:1,456)
-    Proximo
-    assertEq(123, Val(C:1))
-    
-    SetFilaActual(1)
-    ACN(D:1,2)
-    Recorrer&i 1,10
-      ACF(E:FAC, Val(D:1) + FAC)
-      IFA
-    Proximo
-    Recorrer&i 1, 10
-      assertEq(2+&i, Val(E:&i))
-    Proximo
-    
-    SetFilaActual(10)
-    ACN(D:1,20)
-    Recorrer&i 1,11
-      ACF(E:FAC, Val(D:1) + FAC)
-      IFA
-    Proximo
-    
-    Recorrer&i 1, 10
-      assertEq(30+&i, Val(E:10+&i))
-    Proximo
+    assertEq(123, &val)
     
     Recorrer&i 1,10
       *comment
@@ -57,87 +33,25 @@
     Proximo
     assertPass()
     
+    Recorrer&i 1, 1
+      *comentario
+      &val := 2
+    Proximo
+    assertEq(2, &val)
+    
     Recorrer&i 1,10
-      ACN(A:1, &i)
+      &val := &i
       Break
     Proximo
-    assertEq(1, Val(A:1))
+    assertEq(1, &val)
     
     Recorrer&i 1,10
       if(&i = 5)
         break
       endif
-      ACN(A:5, &i)
+      &val := &i
     Proximo
-    assertEq(4, Val(A:5))
-    
-    ACD(FI:1, Fecha('31/01/2019'))
-    Recorrer&i PriDeMes(Val(FI:1)), Val(FI:1)
-      ACD(FI:2, &i)
-    proximo
-    assertEq(Fecha('31/01/2019'), Val(FI:2))
-    
-    ACD(FI:1, Fecha('31/01/2019'))
-    Recorrer&i PriDeMes(Val(FI:1)), Val(FI:1)
-      SCN(CO:1, 1)
-    proximo
-    assertEq(31, Val(CO:1))
-    
-    SetFilaActual(1)
-    IFA
-    IFA
-    IFA
-    Recorrer&i 1,10
-      IFA
-    Proximo
-    assertEq(14, FAC)
-    
-    SetFilaActual(10)
-    ACN(A:1,0)
-    Recorrer&i 1, FAC
-      IFA
-      SCN(A:1,1)
-    Proximo
-    assertEq(10, Val(A:1))
-    
-    SetFilaActual(0)
-    ACN(A:1, FAC)
-    Recorrer&i Val(A:1), 1
-      Echo_Int(&i+1)
-    Proximo
-    assertPass()
-    
-    Recorrer&i 1, 1
-      *comentario
-      ACN(A:1,2)
-    Proximo
-    assertEq(2, Val(A:1))
-    
-    ACN(A:1,2)
-    SetFilaActual(1)
-    Recorrer&i,1,10
-      ACF(C:FAC, Val(A:1) + FAC)
-      IFA
-    Proximo
-    SetFilaActual(10)
-    ACN(A:1,20)
-    RecalcCells()
-    Recorrer&i,1,10
-      assertEq(20+&i, Val(C:&i))
-    Proximo
-    
-    ACN(A:1,10)
-    SetFilaActual(1)
-    Recorrer&i,1,10
-      ACF(C:FAC, Fijar(Val(A:1)) + FAC)
-      IFA
-    Proximo
-    SetFilaActual(10)
-    ACN(A:1,20)
-    RecalcCells()
-    Recorrer&i,1,10
-      assertEq(10+&i, Val(C:&i))
-    Proximo
+    assertEq(4, &val)
 })
 
 test("recorrer anidados", ->{
@@ -157,53 +71,58 @@ test("recorrer anidados", ->{
     proximo
     assertEq(12, &counter)
     
-    ACN(A:1,2)
-    ACN(A:2,0)
-    ACN(A:3,1)
-    ACN(B:1,0)
-    Recorrer&i 1, 3
-      Recorrer&j 1, Val(A:&i)
-        SCN(B:1,1)
-      Proximo
-    Proximo
-    assertEq(3, Val(B:1))
-    
     Recorrer&i 1,10
       Recorrer&j 1,10
-        ACN(A:2, &j + &i)
+        &val := &j + &i
       Proximo
     Proximo
-    assertEq(20, Val(A:2))
+    assertEq(20, &val)
     
     Recorrer&i 1,10
       Recorrer&j 1,10
         Recorrer&k 1,10
-          ACN(A:3, &j + &i + &k)
+        &val := &j + &i + &k
         Proximo
       Proximo
     Proximo
-    assertEq(30, Val(A:3))
+    assertEq(30, &val)
     
     Recorrer&i 1,3
-      SCN(AA:4,1)
+      &val1 := &val1 + 1
       Recorrer&j 1,3
-        SCN(BB:4,1)
+        &val2 := &val2 + 1
         Recorrer&k 6,9
-          SCN(CC:4,1)
+          &val3 := &val3 + 1
         Proximo
       Proximo
     Proximo
-    assertEq(3 , Val(AA:4))
-    assertEq(9 , Val(BB:4))
-    assertEq(36, Val(CC:4))
+    assertEq(3 , &val1)
+    assertEq(9 , &val2)
+    assertEq(36, &val3)
     
     Recorrer&i 1,5
       Recorrer&j 1,10
         if(&j = 7)
           break
         endif
-        ACN(A:6, &i + &j)
+        &val := &i + &j
       Proximo
     Proximo
-    assertEq(11, Val(A:6))
+    assertEq(11, &val)
+})
+
+test("recorrer fechas", ->{
+    &fecha1 := Fecha(PriDeMes(Fecha('31/01/2019')))
+    &fecha2 := Fecha('31/01/2019')
+    &val := 0
+    
+    Recorrer&i &fecha1, &fecha2
+      &fecha3 := &i
+    proximo
+    assertEq(Fecha('31/01/2019'), &fecha3)
+    
+    Recorrer&i &fecha1, &fecha2
+      &val := &val + 1
+    proximo
+    assertEq(31, &val)
 })
