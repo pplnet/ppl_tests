@@ -1,1 +1,5 @@
-﻿
+﻿test("recorrer sel", ->{
+    RecorrerSel
+      ACN(A:filaciclo, filaciclo)
+    Proximo
+})
