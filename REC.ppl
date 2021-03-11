@@ -24,6 +24,14 @@
     Proximo
     assertEq(123, &val)
     
+    Recorrer&i 1, 1
+      *comentario
+      &val := 2
+    Proximo
+    assertEq(2, &val)
+})
+
+test("recorrer vacio", ->{
     Recorrer&i 1,10
       *comment
     Proximo
@@ -32,13 +40,9 @@
     Recorrer&i 1,10
     Proximo
     assertPass()
-    
-    Recorrer&i 1, 1
-      *comentario
-      &val := 2
-    Proximo
-    assertEq(2, &val)
-    
+})
+
+test("recorrer con break", ->{
     Recorrer&i 1,10
       &val := &i
       Break
@@ -120,6 +124,7 @@ test("recorrer fechas", ->{
       &fecha3 := &i
     proximo
     assertEq(Fecha('31/01/2019'), &fecha3)
+    assertEq(&fecha2, &fecha3)
     
     Recorrer&i &fecha1, &fecha2
       &val := &val + 1
