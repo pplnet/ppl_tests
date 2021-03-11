@@ -1,1 +1,48 @@
-﻿
+﻿test("repetir", ->{
+    DialogoVisible NO
+    Repetir
+      DialogoVisible NO
+      CrearDialogo
+        Vehiculo1: 'Vehiculo';;;;;;;;;;'USD'
+      FinDialogo
+      Break
+    proximo
+    ACT(A:1, Dialogo.Vehiculo1)
+    assertEq('USD', Dialogo.Vehiculo1)
+    assertEq('USD', Val(A:1))
+    
+    ACN(A:1,10)
+    SetFilaActual(1)
+    Repetir
+      ACF(C:FAC, Fijar(Val(A:1)) + FAC)
+      IFA
+      If FAC = 11
+         Break
+      EndIf
+    Proximo
+    SetFilaActual(10)
+    ACN(A:1,20)
+    recalccells()
+    Recorrer&i,1,10
+      assertEq(10+&i, Val(C:&i))
+    Proximo
+    
+    ACN(A:1,0)
+    Repetir
+      If Val(A:1) = 2
+         Break
+      EndIf
+      ACN(A:1, Val(A:1)+1)
+    Proximo
+    assertEq(2, Val(A:1))
+    
+    try
+       Repetir
+         Cancelar
+         Break
+       Proximo
+       ACN(Z:1,123)
+    catch
+      assertEq(NULL, Val(Z:1))
+    end
+})
