@@ -1,4 +1,4 @@
-test("asignacion celdas", ->{
+﻿test("asignacion celdas", ->{
     ACT(a1,   'foo1')
     ACT(a:2,  'foo2')
     ACT(a:2+1,'foo3')
