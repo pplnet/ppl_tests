@@ -56,3 +56,17 @@ test("list for in break", -> {
     
     assertEq(&lista.itemAt(0), &res)
 })
+
+test("list for in continue", -> {
+    &lista  := |1,2,3|
+    &res := 0
+    
+    for &val in &lista
+       if &val=2
+          continue
+       endif
+       &res := &res + &val
+    end
+    
+    assertEq(4, &res)
+})
