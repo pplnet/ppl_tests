@@ -119,6 +119,11 @@ test("recorrer anidados", ->{
 })
 
 test("ifa", ->{
+    setfilaactual(0)
+    IFA
+    IFA
+    assertEq(2, FAC)
+    
     SetFilaActual(1)
     IFA
     IFA
@@ -127,6 +132,21 @@ test("ifa", ->{
       IFA
     Proximo
     assertEq(14, FAC)
+})
+
+test("dfa", ->{
+    setfilaactual(14)
+    DFA
+    DFA
+    assertEq(12, FAC)
+    
+    SetFilaActual(22)
+    DFA
+    DFA
+    Recorrer&i 1,10
+      DFA
+    Proximo
+    assertEq(10, FAC)
 })
 
 test("ACF - Recalculos", ->{
