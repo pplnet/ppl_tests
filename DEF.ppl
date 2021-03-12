@@ -1,7 +1,12 @@
-def one()
+﻿def one()
   return 1
+end
+
+def saludo
+  'Hello World!'
 end
 
 test("def func one", ->{
     assertEq(1, one())
+    assertEq('Hello World!', saludo())
 })
