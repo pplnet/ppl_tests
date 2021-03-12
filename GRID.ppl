@@ -176,3 +176,12 @@ test("ACF - Recalculos", ->{
       assertEq(10+&i, Val(C:&i))
     Proximo
 })
+
+    def sum a, b;
+    a+b;
+    end
+    
+test("sum", ->{
+    assertEq(5, sum(2,3))
+    
+})
