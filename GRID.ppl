@@ -177,11 +177,3 @@ test("ACF - Recalculos", ->{
     Proximo
 })
 
-    def sum a, b;
-    a+b;
-    end
-    
-test("sum", ->{
-    assertEq(5, sum(2,3))
-    
-})
