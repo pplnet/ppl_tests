@@ -104,7 +104,7 @@ test("def func args", -> {
          return core.eqstrtest(str1, str2) 
        end
     catch
-       assertEq(NO, eqstrtest('hello','world'))    
+       assertEq(NO, eqstrtest('hello','world'))
     end
     
     try
@@ -115,7 +115,7 @@ test("def func args", -> {
          return super
        end
     catch
-       assertEq(NO, eqstrtest('hello','world'))    
+       assertEq(NO, eqstrtest('hello','world'))
     end
     
     try
@@ -124,11 +124,13 @@ test("def func args", -> {
            return true
        end
     catch
-       assertEq(SI, eqstrtest('hello','world'))    
+       assertEq(SI, eqstrtest('hello','world'))
     end
     
 *    assertError('ERR. Se esperaban 2 argumentos pero especificaron 3.', -> {
 *       sum_two_args(1,2,3)
 *    })
+    
+    assertEq(1, sum_two_args(1))
 })
 
