@@ -1,4 +1,4 @@
-﻿test("recorrer", ->{
+﻿test('recorrer', ->{
     Recorrer&i 1, 10
       ACN(A:1, &i)
     Proximo
@@ -66,7 +66,7 @@
     assertEq(2, Val(A:1))
 })
 
-test("recorrer anidados", ->{
+test('recorrer anidados', ->{
     ACN(A:1,2)
     ACN(A:2,0)
     ACN(A:3,1)
@@ -118,7 +118,7 @@ test("recorrer anidados", ->{
     assertEq(11, Val(A:6))
 })
 
-test("ifa", ->{
+test('IFA', ->{
     setfilaactual(0)
     IFA
     IFA
@@ -134,7 +134,7 @@ test("ifa", ->{
     assertEq(14, FAC)
 })
 
-test("dfa", ->{
+test('DFA', ->{
     setfilaactual(14)
     DFA
     DFA
@@ -149,7 +149,7 @@ test("dfa", ->{
     assertEq(10, FAC)
 })
 
-test("ACF - Recalculos", ->{
+test('ACF - Recalculos', ->{
     ACN(A:1,2)
     SetFilaActual(1)
     Recorrer&i,1,10
@@ -175,4 +175,29 @@ test("ACF - Recalculos", ->{
     Recorrer&i,1,10
       assertEq(10+&i, Val(C:&i))
     Proximo
+})
+
+test('ACN', ->{
+    ACN(A:1, -DbNull)
+    ACN(A:2, -__new_pplobject__(DbNull))
+    assertEq(0, Val(A:1))
+    assertEq(0, Val(A:2))
+})
+
+test('SCN', ->{
+    ACN(A:1, 10)
+    SCN(A:1, 10 *-1)
+    assertEq(0, Val(A:1))
+    SCN(A:1, -10)
+    assertEq(-10, Val(A:1))
+    SCN(A:1, 5)
+    assertEq(-5, Val(A:1))
+})
+
+test('comparacion de celdas', ->{
+    assertEq(SI, 2 > Val(Z:1))
+    assertEq(SI, 0 >= Val(Z:1))
+    assertEq(NO, 2 < Val(Z:1))
+    assertEq(NO, 2 = Val(Z:1))
+    assertEq(SI, 0 = Val(Z:1))
 })
