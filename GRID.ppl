@@ -1,4 +1,5 @@
-﻿test('recorrer', ->{
+﻿*Ignore=V7
+test('recorrer', ->{
     Recorrer&i 1, 10
       ACN(A:1, &i)
     Proximo
