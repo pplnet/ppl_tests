@@ -72,6 +72,7 @@ def sum_two_args(arg1, arg2)
   arg1 + arg2
 end
 
+#ifdef V6
 test("def func args", -> {
     assertEq('HolaMundo', concat('Hola', 'Mundo'))
     assertEq('Hello pipex!', echo('Hello pipex!'))
@@ -125,4 +126,4 @@ test("def func args", -> {
     
     assertEq(1, sum_two_args(1))
 })
-
+#endif
