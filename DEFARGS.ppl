@@ -68,9 +68,6 @@ def factorial2(n)
   n * factorial(n-1)
 end
 
-import  PPLObject, 'PPLI.PPLObject'
-&b := new PPLObject(123)
-
 *&sum := lambda(a, b) -> a + b
 *&sum1 := `(a, b) -> a + b
 
@@ -91,7 +88,6 @@ test("def func args", -> {
     assertEq(5, down_to(10,5))
     assertEq(120, factorial(5))
     assertEq(120, factorial2(5))
-    assertEq('Int32', GetType(&b))
     assertEq('ExtendedPPL', GetType(core))
     *assertEq(5, &sum(2,3))
     *assertEq(5, &sum1(2,3))
