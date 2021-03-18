@@ -19,10 +19,6 @@ def sumar1(a, b)
   return a + b
 end
 
-def sumar2(a, b);
-  return a + b;
-end
-
 def even(num) 
   if num % 2 = 0
      return true
@@ -84,7 +80,6 @@ test("def func args", -> {
     assertEq('Hello pipex!', mensaje('Hello pipex!'))
     assertEq(5, sumar(2,3))
     assertEq(5, sumar1(2,3))
-    assertEq(5, sumar2(2,3))
     assertEq(SI, even(2))
     assertEq(NO, even(3))
     assertEq(10, double(5))

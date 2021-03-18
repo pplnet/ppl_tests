@@ -355,10 +355,15 @@ test('comparaciones', -> {
   
   assertEq(NO, NewFbnObj(Decimal(8.0)) <> NewValObj(NewFbnObj(Decimal(8.0))))
   assertEq(SI, NewFbnObj(Decimal(0.1)) >= 0)
-  assertEq(NO, NewFbnObj('8  ') <> NewValObj(NewFbnObj('8  ')))
+  ** TODO: el siguiente caso lo deberiamos testear en el test de grillas
+  ** Emula lo siguiente:
+  ** select '1' as f
+  ** ACN(a1, FBN('f'))
+  ** Val(a1) = 1 => true
+  ** assertEq(NO, NewFbnObj('8  ') <> NewValObj(NewFbnObj('8  ')))
   assertEq(SI, NewValObj(1) > DbNull)
   assertEq(SI, DbNull < NewValObj(1))
-  assertEq(SI, NewValObj('1') > NewValObj(Nil))
+  ** assertEq(SI, NewValObj('1') > NewValObj(Nil))
   assertEq(NO, NewValObj('') < NewValObj(Nil))
   
   ACN(D:1, 5)
