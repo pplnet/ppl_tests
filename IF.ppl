@@ -1,15 +1,22 @@
 ﻿test('if', -> { 
-    if SI
+    If SI
         assert(SI)
-    else
+    Else
         assert(NO)
-    endif
+    EndIf
     
-    if(SI)
+    If(SI)
         assert(SI)
-    else
+    Else
         assert(NO)
-    endif
+    EndIf
+    
+    If SI
+       ** comment
+    Else
+       ** comment
+    EndIf
+    assertPass()
 })
 
 DialogoVisible NO
