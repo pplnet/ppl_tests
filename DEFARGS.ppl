@@ -68,6 +68,7 @@ def factorial2(n)
   n * factorial(n-1)
 end
 
+**// Revisar asignacion de un lambda a una variables
 *&sum := lambda(a, b) -> a + b
 *&sum1 := `(a, b) -> a + b
 
