@@ -51,6 +51,8 @@
     Proximo
     assertEq('HO HO HOLA', Val(A:1))
     
+    
+    #ifdef V6
     SQL.ADDROW(Cliente1='RIO', Precio1=1000)
     Recorrer SQL; ;SI
       ACT(A:1, FBN['Cliente1'])
@@ -62,6 +64,7 @@
       ACT(A:1, FBN['Cliente1'])
     Proximo
     assertEq('RIO', Val(A:1))
+    #endif
     
     SQL.ADDROW(Precio=Decimal(1.99))
     Recorrer SQL
