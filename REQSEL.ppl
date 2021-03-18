@@ -1,4 +1,5 @@
-﻿test("recorrer sel", ->{
+﻿*Ignore=V7
+test("recorrer sel", ->{
     RecorrerSel
       ACN(A:filaciclo, filaciclo)
     Proximo
