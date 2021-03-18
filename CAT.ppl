@@ -42,7 +42,7 @@ test("concatenaciones", ->{
     assertError(&ErrMsgText, -> DateFromStr('01/01/2015') ~ 'foo')
     *assertError(10 ~ " Foo")
 #endif
-    ACT(AA:1,Ahora~' '~Hora(Ahora)~' ('~CodigoInforme~')')
+    **ACT(AA:1,Ahora~' '~Hora(Ahora)~' ('~CodigoInforme~')')
     assertPass()
 })
 
