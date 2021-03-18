@@ -31,29 +31,29 @@ def even(num)
 end
 
 def double(n)
-  let &res, n * 2
+  &res := n * 2
   &res
 end
 
 * Se asume que from > to.
 def down_to(from, to)
-  let &i from
+  &i := from
   while
     if &i = to
        break
     endif
-    let &i, &i - 1
+    &i := &i - 1
   next
   return &i
 end
 
 def factorial(n)
-  let &fac, 1
-  let &i, 1
+  &fac := 1
+  &i := 1
   while
     if &i < n
-       let &fac, &fac + &fac * &i
-       let &i, &i + 1
+       &fac := &fac + &fac * &i
+       &i := &i + 1
     else
        break   
     endif
@@ -69,10 +69,10 @@ def factorial2(n)
 end
 
 import  PPLObject, 'PPLI.PPLObject'
-let &b new PPLObject(123)
+&b := new PPLObject(123)
 
-let &sum, lambda(a, b) -> a + b
-let &sum1, `(a, b) -> a + b
+*&sum := lambda(a, b) -> a + b
+*&sum1 := `(a, b) -> a + b
 
 def sum_two_args(arg1, arg2)
   arg1 + arg2
@@ -93,8 +93,8 @@ test("def func args", -> {
     assertEq(120, factorial2(5))
     assertEq('Int32', GetType(&b))
     assertEq('ExtendedPPL', GetType(core))
-    assertEq(5, &sum(2,3))
-    assertEq(5, &sum1(2,3))
+    *assertEq(5, &sum(2,3))
+    *assertEq(5, &sum1(2,3))
     
     try
        def eqstrtest str1, str2
