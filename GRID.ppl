@@ -182,6 +182,8 @@ test('ACN', ->{
     ACN(A:2, -__new_pplobject__(DbNull))
     assertEq(0, Val(A:1))
     assertEq(0, Val(A:2))
+    ACN(TOT:1, 123)
+    assertEq(123, Val(TOT:1))
 })
 
 test('SCN', ->{
