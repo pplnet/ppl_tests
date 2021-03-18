@@ -1,4 +1,5 @@
-﻿test("recorrer col", ->{
+﻿*Ignore=V7
+test("recorrer col", ->{
     RecorrerColumnas 1,3
       ACN(colciclo:1, colciclo)
     Proximo
