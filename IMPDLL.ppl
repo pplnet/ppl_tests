@@ -1,4 +1,5 @@
-﻿import  PPLObject, 'PPLI.PPLObject'
+﻿*Ignore=V7
+import  PPLObject, 'PPLI.PPLObject'
 &b := new PPLObject(123)
 
 test('import', -> {
