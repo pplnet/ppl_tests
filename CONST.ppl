@@ -3,6 +3,8 @@
     assertEq('TRANSACCIONES2', trans2)
     assertEq('TIPOSESTRATEGIA', TIPOSESTRATEGIA)
     assertEq('CLIENTES', CLIENTES)
+    assertEq('CLIENTES', CLIENTE)
+    assertEq('CLIENTES', cliente)
     assertEq('OPERACIONES', OPERACIONES)
     assertEq('VARIABLES', VARIABLES)
     assertEq('VEHICULOS', VEHICULOS)
