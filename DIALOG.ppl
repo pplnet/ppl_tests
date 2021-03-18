@@ -1,17 +1,23 @@
-﻿DialogoVisible NO
+﻿#ifdef V6
+DialogoVisible NO
+#endif
 CrearDialogo
     Cantidad1: 'Monto'    ;1;1;;SI;SI;SI;'Valido';SI;1;1;;;'#0.000';'1=1'
     Cantidad2: 'Precio'   ;;;;;;;;;;
+#ifdef V6
     Vehiculo1: 'Vehiculo' ;;;;;;;;;;'STD'
     Fecha1:    'Fecha'    ;;;;;;;;;;FSYS
+#endif
 FinDialogo
 
 test('dialog', -> {
+    #ifdef V6
     assertEq(1, Dialogo.Cantidad1)
     assertEq(0, Dialogo.Cantidad2)
     assertEq(NULL, Dialogo.Cantidad3)
     assertEq('STD', Dialogo.Vehiculo1)
     assertEq(FSYS, Dialogo.Fecha1)
+    #endif
     
     #ifdef V7
        assertEq('Monto', DialogoMetaExec('cantidad1', 0))
