@@ -84,11 +84,12 @@ test("def func args", -> {
     assertEq(5, down_to(10,5))
     assertEq(120, factorial(5))
     assertEq(120, factorial2(5))
-    assertEq('ExtendedPPL', GetType(core))
     *assertEq(5, &sum(2,3))
     *assertEq(5, &sum1(2,3))
     
     #ifdef V6
+    assertEq('ExtendedPPL', GetType(core))
+    
     try
        def eqstrtest str1, str2
          * Le pasa la pelota a la funcion del core.
