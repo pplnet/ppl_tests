@@ -11,3 +11,18 @@
         assert(NO)
     endif
 })
+
+DialogoVisible NO
+CrearDialogo
+  Radio1: 'Radio1' ;;;;;;;;;
+  Radio2: 'Radio1|Opcion1|Opcion2' ;;;;;;;;;0
+FinDialogo
+
+test('iif', -> {
+    assertEq('HOLA', IIF(Dialogo.Radio1 < 0,'HOLA','CHAU'))
+    assertEq('CHAU', IIF(Dialogo.Radio1 = 1,'HOLA','CHAU'))
+    assertEq('Opcion1', IIF(Dialogo.Radio2 = 0,'Opcion1','Opcion2'))
+    assertEq('Opcion2', IIF(Dialogo.Radio2 = 1,'Opcion1','Opcion2'))
+    assertEq('SI', IIF(1=1,'SI','NO'))
+    assertEq('NO', IIF(1=2,'SI','NO'))
+})
