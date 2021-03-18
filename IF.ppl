@@ -17,6 +17,13 @@
        ** comment
     EndIf
     assertPass()
+    
+    If [Not EqStr('', Val(A:2))] o [Eqstr('', Val(A:2)) y '' <> Val(C1)]
+       ** comment
+    Else
+       ** comment
+    EndIf
+    assertPass()
 })
 
 DialogoVisible NO
@@ -32,4 +39,5 @@ test('iif', -> {
     assertEq('Opcion2', IIF(Dialogo.Radio2 = 1,'Opcion1','Opcion2'))
     assertEq('SI', IIF(1=1,'SI','NO'))
     assertEq('NO', IIF(1=2,'SI','NO'))
+    assertEq(NULL, IIF(EqStr('1','2'),' x Pase'))
 })

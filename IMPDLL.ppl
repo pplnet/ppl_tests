@@ -1,0 +1,6 @@
+﻿import  PPLObject, 'PPLI.PPLObject'
+&b := new PPLObject(123)
+
+test('import', -> {
+    assertEq('Int32', GetType(&b))
+})
