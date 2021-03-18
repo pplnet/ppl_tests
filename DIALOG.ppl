@@ -4,7 +4,7 @@ CrearDialogo
     Cantidad2: 'Precio' ;
 FinDialogo
 
-test("dialog", -> {
+test('dialog', -> {
     assertEq(1, Dialogo.Cantidad1)
     assertEq(0, Dialogo.Cantidad2)
     assertEq(NULL, Dialogo.Cantidad3)
