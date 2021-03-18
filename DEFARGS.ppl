@@ -120,12 +120,14 @@ test("def func args", -> {
     catch
        assertEq(SI, eqstrtest('hello','world'))
     end
+    
+    assertEq(1, sum_two_args(1))
     #endif
     
 *    assertError('ERR. Se esperaban 2 argumentos pero especificaron 3.', -> {
 *       sum_two_args(1,2,3)
 *    })
     
-    assertEq(1, sum_two_args(1))
+    
 })
 
