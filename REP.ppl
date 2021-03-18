@@ -1,4 +1,8 @@
-﻿test("repetir", ->{
+﻿*Ignore=V7
+
+** TODO: Evitar usar dialogo, no hace falta...
+
+test("repetir", ->{
     DialogoVisible NO
     Repetir
       DialogoVisible NO
