@@ -353,6 +353,14 @@ test('comparaciones', -> {
   assertEq(NO, 0 = NewFbnObj('10'))
   assertEq(SI, 0 <> NewFbnObj('10'))
   
+  assertEq(NO, NewFbnObj(Decimal(8.0)) <> NewValObj(NewFbnObj(Decimal(8.0))))
+  assertEq(SI, NewFbnObj(Decimal(0.1)) >= 0)
+  assertEq(NO, NewFbnObj('8  ') <> NewValObj(NewFbnObj('8  ')))
+  assertEq(SI, NewValObj(1) > DbNull)
+  assertEq(SI, DbNull < NewValObj(1))
+  assertEq(SI, NewValObj('1') > NewValObj(Nil))
+  assertEq(NO, NewValObj('') < NewValObj(Nil))
+  
   ACN(D:1, 5)
   ACT(D:2, '300')
   assertEq(SI, Val(D:1) * Val(D:2) = 0)
