@@ -18,13 +18,21 @@
     EndIf
     assertPass()
     
+    #ifdef V6
     If [Not EqStr('', Val(A:2))] o [Eqstr('', Val(A:2)) y '' <> Val(C1)]
        ** comment
     Else
        ** comment
     EndIf
+    #endif
+    
     assertPass()
 })
+
+#ifdef V6
+
+** TODO: Evitar usar dialogo, no hace falta...
+** Testear IIF con lo minimo y necesario
 
 DialogoVisible NO
 CrearDialogo
@@ -66,3 +74,5 @@ test('if then', -> {
     EndIf
     assertEq(123, Val(A:1))
 })
+
+#endif
