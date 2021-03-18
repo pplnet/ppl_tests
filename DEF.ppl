@@ -2,11 +2,19 @@
   return 1
 end
 
+test("def func one", ->{
+    assertEq(1, one())
+})
+
+
+#ifdef V6
+
 def saludo
   'Hello World!'
 end
 
-test("def func one", ->{
-    assertEq(1, one())
+test("def func saludo", ->{
     assertEq('Hello World!', saludo())
 })
+
+#endif
