@@ -1,4 +1,5 @@
-﻿test('constantes', ->{
+﻿*Ignore=V7
+test('constantes', ->{
     assertEq('ESPECIES', ESPECIES)
     assertEq('TRANSACCIONES2', trans2)
     assertEq('TIPOSESTRATEGIA', TIPOSESTRATEGIA)
