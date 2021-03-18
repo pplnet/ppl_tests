@@ -1,5 +1,5 @@
-﻿*Ignore=V7
-test('recorrer', ->{
+*Ignore=V7
+test('recorrer celdas', -> {
     Recorrer&i 1, 10
       ACN(A:1, &i)
     Proximo
@@ -67,7 +67,7 @@ test('recorrer', ->{
     assertEq(2, Val(A:1))
 })
 
-test('recorrer anidados', ->{
+test('recorrer anidados de celdas', ->{
     ACN(A:1,2)
     ACN(A:2,0)
     ACN(A:3,1)
@@ -176,6 +176,28 @@ test('ACF - Recalculos', ->{
     Recorrer&i,1,10
       assertEq(10+&i, Val(C:&i))
     Proximo
+    
+    SetFilaActual(1)
+    ACN(A:1, 1)
+    ACF(B:1, Val(A:1) + 2)
+    ACN(A:1, 2)
+    RecalcCells()
+    assertEq(4, Val(B:1))
+    
+    SetFilaActual(2)
+    ACN(A:1,2)
+    ACF(A:3, Val(A:1) + Val(A:2) + FAC)
+    SetFilaActual(10)
+    ACN(A:2,3)
+    RecalcCells()
+    assertEq(7, Val(A:3))
+    
+*    ACN(D:3, 1)
+*    ACF(D:1, Fijar(Val(D:3)) + Val(D:2))
+*    ACN(D:2, 2)
+*    ACN(D:3, 2)
+*    RecalcCells()
+*    assertEq(3, Val(D:1))
 })
 
 test('ACN', ->{

@@ -41,3 +41,28 @@ test('iif', -> {
     assertEq('NO', IIF(1=2,'SI','NO'))
     assertEq(NULL, IIF(EqStr('1','2'),' x Pase'))
 })
+
+test('no - not en condiciones', -> {
+    If No EqStr('jj','FX')
+       ACN(A:1, 1)
+    Else
+       ACN(A:1, 2)
+    EndIf
+    assertEq(1, Val(A:1))
+    
+    If Not EqStr('jj','jj')
+       ACN(A:2, 1)
+    Else
+       ACN(A:2, 2)
+    EndIf
+    assertEq(2, Val(A:2))
+})
+
+test('if then', -> {
+    If 1 > 0 then
+       ACN(A:1, 123)
+    Else
+       ACN(A:1, 456)
+    EndIf
+    assertEq(123, Val(A:1))
+})
