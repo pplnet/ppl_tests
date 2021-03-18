@@ -26,7 +26,7 @@ def even(num)
   return false
 end
 
-def double(n)
+def doble(n)
   &res := n * 2
   &res
 end
@@ -72,7 +72,6 @@ def sum_two_args(arg1, arg2)
   arg1 + arg2
 end
 
-#ifdef V6
 test("def func args", -> {
     assertEq('HolaMundo', concat('Hola', 'Mundo'))
     assertEq('Hello pipex!', echo('Hello pipex!'))
@@ -89,6 +88,7 @@ test("def func args", -> {
     *assertEq(5, &sum(2,3))
     *assertEq(5, &sum1(2,3))
     
+    #ifdef V6
     try
        def eqstrtest str1, str2
          * Le pasa la pelota a la funcion del core.
@@ -119,6 +119,7 @@ test("def func args", -> {
     catch
        assertEq(SI, eqstrtest('hello','world'))
     end
+    #endif
     
 *    assertError('ERR. Se esperaban 2 argumentos pero especificaron 3.', -> {
 *       sum_two_args(1,2,3)
@@ -126,4 +127,4 @@ test("def func args", -> {
     
     assertEq(1, sum_two_args(1))
 })
-#endif
+
