@@ -1,4 +1,5 @@
-﻿test("recorrer filas", ->{
+﻿*Ignore=V7
+test("recorrer filas", ->{
     Recorrer&i 1,9
       ACN(A:&i,0)
     Proximo
