@@ -1,3 +1,8 @@
 ﻿*SyntaxError=no es posible concatenar un valor numerico. (Line: 3)
 *SyntaxErrorV6=se esperaba un texto.
-1 ~ "foo"
+
+
+&se_esperaba_texto := "se esperaba un texto"
+
+assertSyntaxError(&se_esperaba_texto, '1 ~ "foo"')
+assertSyntaxError(&se_esperaba_texto, '"foo" ~ 1')
