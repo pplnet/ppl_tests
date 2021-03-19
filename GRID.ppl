@@ -1,9 +1,9 @@
 ﻿*Ignore=V7
 test('recorrer celdas', -> {
-    Recorrer&i 1, 10
+    Recorrer&i 1, 20
       ACN(A:1, &i)
     Proximo
-    assertEq(10, Val(A:1))
+    assertEq(20, Val(A:1))
     
     Recorrer&i 1,10,2
       ACN(AA:1, Val(AA:1)+1)
@@ -192,6 +192,8 @@ test('ACF - Recalculos', ->{
     RecalcCells()
     assertEq(7, Val(A:3))
     
+*    ACN(D:1, 0)
+*    ACN(D:2, 0)
 *    ACN(D:3, 1)
 *    ACF(D:1, Fijar(Val(D:3)) + Val(D:2))
 *    ACN(D:2, 2)
@@ -233,7 +235,4 @@ test('comparacion de celdas', ->{
     assertEq(NO, 2 = Val(Z:1))
     assertEq(SI, 0 = Val(Z:1))
 })
-
-  ** TODO: el siguiente caso lo deberiamos testear en el test de grillas
-  ** Emula lo siguiente:
 
