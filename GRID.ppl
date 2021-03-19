@@ -1,4 +1,4 @@
-*Ignore=V7
+﻿*Ignore=V7
 test('recorrer celdas', -> {
     Recorrer&i 1, 10
       ACN(A:1, &i)
@@ -207,6 +207,13 @@ test('ACN', ->{
     assertEq(0, Val(A:2))
     ACN(TOT:1, 123)
     assertEq(123, Val(TOT:1))
+    
+    sql.addrow(${f = '1'})
+    Recorrer SQL
+      ACN(A:1, FBN('f'))
+      assertEq(1, FBN('f'))
+    Proximo
+    assertEq(1, Val(A:1))
 })
 
 test('SCN', ->{
@@ -226,3 +233,7 @@ test('comparacion de celdas', ->{
     assertEq(NO, 2 = Val(Z:1))
     assertEq(SI, 0 = Val(Z:1))
 })
+
+  ** TODO: el siguiente caso lo deberiamos testear en el test de grillas
+  ** Emula lo siguiente:
+
