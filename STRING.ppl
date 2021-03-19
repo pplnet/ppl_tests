@@ -25,3 +25,12 @@ test('interpolation multiline', -> {
     
     assertEq(&res2, &str)
 })
+
+&no_cierra_comilla := "Índice fuera de los límites de la matriz."
+test('quotes', -> {
+    assertSyntaxError(&no_cierra_comilla, '"foo')
+    assertSyntaxError(&no_cierra_comilla, "'foo")
+    
+    assertEq(chr(39), "'")
+    assertEq(chr(34), '"')
+})
