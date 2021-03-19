@@ -118,7 +118,11 @@ test("recorrer anidados", ->{
 })
 
 test("recorrer fechas", ->{
-    &fecha1 := Fecha(PriDeMes(Fecha('31/01/2019')))
+    #ifdef V6
+    &fecha1 := PriDeMes(Fecha('31/01/2019'))
+    #else
+    &fecha1 := Fecha('01/01/2019'))
+    #endif
     &fecha2 := Fecha('31/01/2019')
     &val := 0
     
