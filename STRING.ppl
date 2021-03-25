@@ -26,7 +26,11 @@ test('interpolation multiline', -> {
     assertEq(&res2, &str)
 })
 
+#ifdef V6
 &no_cierra_comilla := "Índice fuera de los límites de la matriz."
+#else
+&no_cierra_comilla := "Literal string incorrecto. Se esperaba:"
+#endif
 test('quotes', -> {
     assertSyntaxError(&no_cierra_comilla, '"foo')
     assertSyntaxError(&no_cierra_comilla, "'foo")
