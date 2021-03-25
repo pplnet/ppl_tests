@@ -9,4 +9,6 @@ test('funciones de formato', ->{
     assertPass()
     AgregarMarco(1:FAC..7:FAC, -1, 0, RGB(209,209,209))
     assertPass()
+    RangoTitulo(A:1..D:FAC, Val(W:1) + 10)
+    assertPass()
 })
