@@ -25,7 +25,11 @@
        ** comment
     EndIf
     #endif
+    assertPass()
     
+    If 1=1
+    Else
+    EndIf
     assertPass()
 })
 
