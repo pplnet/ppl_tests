@@ -150,6 +150,8 @@ test('DFA', ->{
     assertEq(10, FAC)
 })
 
+&fijar := 0
+
 test('ACF - Recalculos', ->{
     ACN(A:1,2)
     SetFilaActual(1)
@@ -192,14 +194,21 @@ test('ACF - Recalculos', ->{
     RecalcCells()
     assertEq(7, Val(A:3))
     
-*    ACN(D:1, 0)
-*    ACN(D:2, 0)
-*    ACN(D:3, 1)
-*    ACF(D:1, Fijar(Val(D:3)) + Val(D:2))
-*    ACN(D:2, 2)
-*    ACN(D:3, 2)
-*    RecalcCells()
-*    assertEq(3, Val(D:1))
+    ACN(D:1, 0)
+    ACN(D:2, 0)
+    ACN(D:3, 1)
+    ACF(D:1, Fijar(Val(D:3)) + Val(D:2))
+    ACN(D:2, 2)
+    ACN(D:3, 10)
+    RecalcCells()
+    assertEq(12, Val(D:1))
+    
+    ACN(F:2, 10)
+    ACF(F:1, Val(F:Fijar(Val(F:2))) + 1)
+    ACN(F:10, 2)
+    ACN(F:2, 11)
+    RecalcCells()
+    assertEq(3, Val(F:1))
 })
 
 test('ACN', ->{
