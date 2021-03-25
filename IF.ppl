@@ -19,7 +19,9 @@
     assertPass()
     
     #ifdef V6
-    If [Not EqStr('', Val(A:2))] o [Eqstr('', Val(A:2)) y '' <> Val(C1)]
+    &string1 := 'hola'
+    &string2 := 'chau'
+    If [Not EqStr('', &string1)] o [Eqstr('', &string1) y &string1 <> &string2]
        ** comment
     Else
        ** comment
@@ -31,52 +33,53 @@
     Else
     EndIf
     assertPass()
+    
+    If SI
+       &num := 1 *** comment
+    EndIf
+    assertEq(1, &num)
+    
+    If SI
+       ** comment
+       &num := 2
+    EndIf
+    assertEq(2, &num)
 })
 
 #ifdef V6
 
-** TODO: Evitar usar dialogo, no hace falta...
-** Testear IIF con lo minimo y necesario
-
-DialogoVisible NO
-CrearDialogo
-  Radio1: 'Radio1' ;;;;;;;;;
-  Radio2: 'Radio1|Opcion1|Opcion2' ;;;;;;;;;0
-FinDialogo
-
 test('iif', -> {
-    assertEq('HOLA', IIF(Dialogo.Radio1 < 0,'HOLA','CHAU'))
-    assertEq('CHAU', IIF(Dialogo.Radio1 = 1,'HOLA','CHAU'))
-    assertEq('Opcion1', IIF(Dialogo.Radio2 = 0,'Opcion1','Opcion2'))
-    assertEq('Opcion2', IIF(Dialogo.Radio2 = 1,'Opcion1','Opcion2'))
     assertEq('SI', IIF(1=1,'SI','NO'))
     assertEq('NO', IIF(1=2,'SI','NO'))
     assertEq(NULL, IIF(EqStr('1','2'),' x Pase'))
+    assertEq(NULL, IIF(SI,  , 2))
+    assertEq(NULL, IIF(NO, 1,  ))
+    assertEq(  20, IIF(1=1, 2, 3) * (100/10))
 })
 
 test('no - not en condiciones', -> {
     If No EqStr('jj','FX')
-       ACN(A:1, 1)
+       &num := 1
     Else
-       ACN(A:1, 2)
+       &num := 2
     EndIf
-    assertEq(1, Val(A:1))
+    assertEq(1, &num)
     
     If Not EqStr('jj','jj')
-       ACN(A:2, 1)
+       &num := 1
     Else
-       ACN(A:2, 2)
+       &num := 2
     EndIf
-    assertEq(2, Val(A:2))
+    assertEq(2, &num)
 })
 
 test('if then', -> {
     If 1 > 0 then
-       ACN(A:1, 123)
+       &num := 123
     Else
-       ACN(A:1, 456)
+       &num := 456
     EndIf
-    assertEq(123, Val(A:1))
+    assertEq(123, &num)
 })
 
 #endif
