@@ -13,6 +13,10 @@
 
 &ErrMsgOp := 'No se puede realizar una operacion'
 
+def AssertErrorOp(expresion)
+  assertSyntaxError(&ErrMsgOp, expresion)
+end
+
 test('suma', -> {
   assertEq(2, 1 + 1)
   assertEq(1, 0 + 1)
@@ -71,37 +75,37 @@ test('suma', -> {
   assertEq(5,   Num('2') + Decimal(3))
   assertEq(5.5, Dbl(2)   + Decimal(3.5))
   
-  assertSyntaxError(&ErrMsgOp, "1 + 'foo'")
-  assertSyntaxError(&ErrMsgOp, "1 + ''")
-  assertSyntaxError(&ErrMsgOp, "1 + '1'")
+  AssertErrorOp("1 + 'foo'")
+  AssertErrorOp("1 + ''")
+  AssertErrorOp("1 + '1'")
   
-  assertSyntaxError(&ErrMsgOp, "'foo' + 1")
-  assertSyntaxError(&ErrMsgOp, "'' + 1")
-  assertSyntaxError(&ErrMsgOp, "'1' + 1")
+  AssertErrorOp("'foo' + 1")
+  AssertErrorOp("'' + 1")
+  AssertErrorOp("'1' + 1")
   
-  assertSyntaxError(&ErrMsgOp, "NewPplObj(1) + 'foo'")
-  assertSyntaxError(&ErrMsgOp, "NewPplObj(1) + ''")
-  assertSyntaxError(&ErrMsgOp, "NewPplObj(1) + '1'")
+  AssertErrorOp("NewPplObj(1) + 'foo'")
+  AssertErrorOp("NewPplObj(1) + ''")
+  AssertErrorOp("NewPplObj(1) + '1'")
   
-  assertSyntaxError(&ErrMsgOp, "'foo' + NewPplObj(1)")
-  assertSyntaxError(&ErrMsgOp, "'' + NewPplObj(1)")
-  assertSyntaxError(&ErrMsgOp, "'1' + NewPplObj(1)")
+  AssertErrorOp("'foo' + NewPplObj(1)")
+  AssertErrorOp("'' + NewPplObj(1)")
+  AssertErrorOp("'1' + NewPplObj(1)")
   
-  assertSyntaxError(&ErrMsgOp, 'SI + 1')
-  assertSyntaxError(&ErrMsgOp, '1 + SI')
+  AssertErrorOp('SI + 1')
+  AssertErrorOp('1 + SI')
   
-  assertSyntaxError(&ErrMsgOp, "Dbl(1) + '1'")
-  assertSyntaxError(&ErrMsgOp, "Dbl(1) + 'foo'")
-  assertSyntaxError(&ErrMsgOp, "Dbl(1) + 'NaN'")
-  assertSyntaxError(&ErrMsgOp, "Dbl(1) + ''")
+  AssertErrorOp("Dbl(1) + '1'")
+  AssertErrorOp("Dbl(1) + 'foo'")
+  AssertErrorOp("Dbl(1) + 'NaN'")
+  AssertErrorOp("Dbl(1) + ''")
   
-  assertSyntaxError(&ErrMsgOp, 'SI + Dbl(1)')
-  assertSyntaxError(&ErrMsgOp, 'Dbl(1) + SI')
+  AssertErrorOp('SI + Dbl(1)')
+  AssertErrorOp('Dbl(1) + SI')
   
-  assertSyntaxError(&ErrMsgOp, "'1' + 1")
-  assertSyntaxError(&ErrMsgOp, "'1' + '1'")
-  assertSyntaxError(&ErrMsgOp, "'1.1' + 1.1")
-  assertSyntaxError(&ErrMsgOp, "'1' + SI")
+  AssertErrorOp("'1' + 1")
+  AssertErrorOp("'1' + '1'")
+  AssertErrorOp("'1.1' + 1.1")
+  AssertErrorOp("'1' + SI")
   
   
   assertEq(&fechaPplObj, Fecha('01/01/2020') + 1)
@@ -133,14 +137,14 @@ test('suma', -> {
   *assertEq('12',Dat(&datetime3).get_Hour)
   
   #ifdef V7
-  assertSyntaxError(&ErrMsgOp, "&datetime + '1'")
-  assertSyntaxError(&ErrMsgOp, "'1' + &datetime")
+  AssertErrorOp("&datetime + '1'")
+  AssertErrorOp("'1' + &datetime")
   #endif
   
-  assertSyntaxError(&ErrMsgOp, "Fecha('31/01/2015') + '1'")
+  AssertErrorOp("Fecha('31/01/2015') + '1'")
   
-  assertSyntaxError(&ErrMsgOp, "SI + Fecha('31/01/2015')")
-  assertSyntaxError(&ErrMsgOp, "Fecha('31/01/2015') + SI")
+  AssertErrorOp("SI + Fecha('31/01/2015')")
+  AssertErrorOp("Fecha('31/01/2015') + SI")
   
   * En V6: No fue posible encontrar el metodo System.Double.get_hour()
   * En V7: No se encontraron candidatos para System.Double hour
