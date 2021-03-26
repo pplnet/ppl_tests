@@ -11,14 +11,11 @@
 &numero := 10
 &datetime := Fecha('02/01/2020')
 
-&ErrMsgMulIntStr := 'No se puede realizar una multiplicacion entre System.Int32 y System.String'
-&ErrMsgMulIntBol := 'No se puede realizar una multiplicacion entre System.Int32 y System.Boolean'
-&ErrMsgMulDblStr := 'No se puede realizar una multiplicacion entre System.Double y System.String'
-&ErrMsgMulDblBol := 'No se puede realizar una multiplicacion entre System.Double y System.Boolean'
-&ErrMsgMulStrInt := 'No se puede realizar una multiplicacion entre System.String y System.Int32'
-&ErrMsgMulStrStr := 'No se puede realizar una multiplicacion entre System.String y System.String'
-&ErrMsgMulStrDbl := 'No se puede realizar una multiplicacion entre System.String y System.Double'
-&ErrMsgMulStrBol := 'No se puede realizar una multiplicacion entre System.String y System.Boolean'
+&ErrMsgOp := 'No se puede realizar una operacion'
+
+def AssertErrorOp(expresion)
+  assertSyntaxError(&ErrMsgOp, expresion)
+end
 
 test('producto', -> {
   assertEq(6,    2 * 3)
@@ -62,34 +59,36 @@ test('producto', -> {
   assertEq(2.42, Round(Decimal(2.2) * Decimal(1.1), 2))
   assertEq(2.42, Round(Num('2.2') * Num('1.1'), 2))
   
-  assertSyntaxError(&ErrMsgMulIntStr, "2 * '1'")
-  assertSyntaxError(&ErrMsgMulIntStr, "2 * 'NaN'")
-  assertSyntaxError(&ErrMsgMulIntStr, "2 * ''")
+  AssertErrorOp("2 * '1'")
+  AssertErrorOp("2 * 'NaN'")
+  AssertErrorOp("2 * ''")
   
-  assertSyntaxError(&ErrMsgMulStrInt, "'1' * 2")
-  assertSyntaxError(&ErrMsgMulStrInt, "'NaN' * 2")
-  assertSyntaxError(&ErrMsgMulStrInt, "'' * 2")
+  AssertErrorOp("'1' * 2")
+  AssertErrorOp("'NaN' * 2")
+  AssertErrorOp("'' * 2")
   
-  assertSyntaxError(&ErrMsgMulIntStr, "NewPplObj(1) * 'foo'")
-  assertSyntaxError(&ErrMsgMulIntStr, "NewPplObj(1) * ''")
-  assertSyntaxError(&ErrMsgMulIntStr, "NewPplObj(1) * '1'")
+  AssertErrorOp("NewPplObj(1) * 'foo'")
+  AssertErrorOp("NewPplObj(1) * ''")
+  AssertErrorOp("NewPplObj(1) * '1'")
   
-  assertSyntaxError(&ErrMsgMulStrInt, "'foo' * NewPplObj(1)")
-  assertSyntaxError(&ErrMsgMulStrInt, "'' * NewPplObj(1)")
-  assertSyntaxError(&ErrMsgMulStrInt, "'1' * NewPplObj(1)")
+  AssertErrorOp("'foo' * NewPplObj(1)")
+  AssertErrorOp("'' * NewPplObj(1)")
+  AssertErrorOp("'1' * NewPplObj(1)")
   
-  assertError(&ErrMsgMulIntBol, -> 2 * SI)
+  AssertErrorOp('SI * 2')
+  AssertErrorOp('2 * SI')
   
-  assertSyntaxError(&ErrMsgMulDblStr, "Dbl(2.2) * '1.1'")
-  assertSyntaxError(&ErrMsgMulDblStr, "Dbl(1.1) * 'NaN'")
-  assertSyntaxError(&ErrMsgMulDblStr, "Dbl(1.1) * ''")
-  assertSyntaxError(&ErrMsgMulDblBol, "Dbl(2.1) * SI")
+  AssertErrorOp("Dbl(2.2) * '1.1'")
+  AssertErrorOp("Dbl(1.1) * 'NaN'")
+  AssertErrorOp("Dbl(1.1) * ''")
+  AssertErrorOp("Dbl(2.1) * SI")
   
-  assertSyntaxError(&ErrMsgMulStrInt, "'1' * 1")
-  assertSyntaxError(&ErrMsgMulStrStr, "'2' * '1'")
-  assertSyntaxError(&ErrMsgMulStrDbl, "'2.2' * 1.1")
+  AssertErrorOp("'1' * 1")
+  AssertErrorOp("'2' * '1'")
+  AssertErrorOp("'2.2' * 1.1")
   
-  assertError(&ErrMsgMulStrBol, -> '2' * SI)
+  AssertErrorOp("SI * '2'")
+  AssertErrorOp("'2' * SI")
   
   assertEq(&fechaPplObj, Fecha('01/01/2020') * 2)
   assertEq(&fechaPplObj, 2 * Fecha('01/01/2020'))
