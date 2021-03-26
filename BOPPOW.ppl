@@ -17,6 +17,7 @@
 &ErrMsgPowStrStr := 'No se puede realizar una potencia entre System.String y System.String'
 &ErrMsgPowStrDbl := 'No se puede realizar una potencia entre System.String y System.Double'
 &ErrMsgPowStrBol := 'No se puede realizar una potencia entre System.String y System.Boolean'
+&ErrMsgPowForCor := 'La cadena de entrada no tiene el formato correcto'
 
 test('pow', -> {
   assertEq(1, pow(2,0))
@@ -62,22 +63,34 @@ test('pow', -> {
   assertEq(9, Num('3') ^ Decimal(2))
   assertEq(140.3, Round(Dbl(3) ^ Decimal(4.5), 2))
   
-  assertEq(8, 2^(&datetime2 - &datetime1))
+  assertEq(8, 2 ^ (&datetime2 - &datetime1))
   
-  assertError(&ErrMsgPowIntStr, -> 2 ^ '8')
-  assertError(&ErrMsgPowIntStr, -> 1 ^ 'NaN')
-  assertError(&ErrMsgPowIntStr, -> 1 ^ '')
-  assertError(&ErrMsgPowIntBol, -> 2 ^ SI)
+  assertSyntaxError(&ErrMsgPowIntStr, "2 ^ '8'")
+  assertSyntaxError(&ErrMsgPowIntStr, "1 ^ 'NaN'")
+  assertSyntaxError(&ErrMsgPowIntStr, "1 ^ ''")
+  assertSyntaxError(&ErrMsgPowIntBol, "2 ^ SI")
+  assertSyntaxError(&ErrMsgPowStrInt, "'8' ^ 2")
+  assertSyntaxError(&ErrMsgPowStrInt, "'NaN' ^ 1")
+  assertSyntaxError(&ErrMsgPowForCor, "'' ^ 1")
+  assertSyntaxError(&ErrMsgPowBolInt, "SI ^ 2")
   
-  assertError(&ErrMsgPowDblStr, -> round(Dbl(2.2) ^ '8.1', 2))
-  assertError(&ErrMsgPowDblStr, -> Dbl(1.1) ^ 'NaN')
-  assertError(&ErrMsgPowDblStr, -> Dbl(1.1) ^ '')
-  assertError(&ErrMsgPowDblBol, -> Dbl(2.2) ^ SI)
+  assertSyntaxError(&ErrMsgPowIntStr, "NewPplObj(2) ^ 'foo'")
+  assertSyntaxError(&ErrMsgPowIntStr, "NewPplObj(2) ^ ''")
+  assertSyntaxError(&ErrMsgPowIntStr, "NewPplObj(2) ^ '1'")
   
-  assertError(&ErrMsgPowStrInt, -> '2' ^ 1)
-  assertError(&ErrMsgPowStrStr, -> round('2.2' ^ '8.1', 2))
-  assertError(&ErrMsgPowStrDbl, -> round('2.2' ^  8.1 , 2))
-  assertError(&ErrMsgPowStrBol, -> '2.2' ^ SI)
+  assertSyntaxError(&ErrMsgPowForCor, "'foo' ^ NewPplObj(1)")
+  assertSyntaxError(&ErrMsgPowForCor, "'' ^ NewPplObj(1)")
+  assertSyntaxError(&ErrMsgPowStrInt, "'2' ^ NewPplObj(1)")
+  
+  assertSyntaxError(&ErrMsgPowDblStr, "round(Dbl(2.2) ^ '8.1', 2)")
+  assertSyntaxError(&ErrMsgPowDblStr, "Dbl(1.1) ^ 'NaN'")
+  assertSyntaxError(&ErrMsgPowDblStr, "Dbl(1.1) ^ ''")
+  assertSyntaxError(&ErrMsgPowDblBol, "Dbl(2.2) ^ SI")
+  
+  assertSyntaxError(&ErrMsgPowStrInt, "'2' ^ 1")
+  assertSyntaxError(&ErrMsgPowStrStr, "round('2.2' ^ '8.1', 2)")
+  assertSyntaxError(&ErrMsgPowStrDbl, "round('2.2' ^  8.1 , 2)")
+  assertSyntaxError(&ErrMsgPowStrBol, "'2.2' ^ SI")
   
   assertEq(0, Val(Z:1) ^ DbNull)
   assertEq(0, Val(Z:1) ^ Nil)
