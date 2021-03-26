@@ -26,13 +26,13 @@
     Else
        ** comment
     EndIf
-    #endif
     assertPass()
     
     If 1=1
     Else
     EndIf
     assertPass()
+    #endif
     
     If SI
        &num := 1 *** comment
