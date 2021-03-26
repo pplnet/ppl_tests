@@ -11,8 +11,6 @@
 &numero := 10
 &datetime := Fecha('02/01/2020')
 
-&ErrMsgOp := 'No se puede realizar una operacion'
-
 &ErrMsgMulIntStr := 'No se puede realizar una multiplicacion entre System.Int32 y System.String'
 &ErrMsgMulIntBol := 'No se puede realizar una multiplicacion entre System.Int32 y System.Boolean'
 &ErrMsgMulDblStr := 'No se puede realizar una multiplicacion entre System.Double y System.String'
