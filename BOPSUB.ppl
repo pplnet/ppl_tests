@@ -14,7 +14,7 @@
 &ErrMsgOp := 'No se puede realizar una operacion'
 
 def AssertErrorOp(expresion)
-  assertSyntaxError(&ErrMsgOp, expresion)
+  return assertSyntaxError(&ErrMsgOp, expresion)
 end
 
 test('resta', -> {
