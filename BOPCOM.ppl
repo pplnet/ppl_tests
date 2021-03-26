@@ -337,6 +337,7 @@ test('operadores logicos', -> {
   assertEq(NO, -2 Y -2)
 #endif
   
+#ifdef V6
   ACN(B:1,1)
   ACN(B:2,0)
   assertEq(SI, Val(B:1) Y 1)
@@ -348,6 +349,7 @@ test('operadores logicos', -> {
   assertEq(NO, 0 Y Val(B:1))
   assertEq(NO, 0 Y Val(B:2))
   assertEq(NO, 1 Y Val(B:2))
+#endif
   
   assertEq(SI, SI o SI)
   assertEq(SI, SI o NO)
