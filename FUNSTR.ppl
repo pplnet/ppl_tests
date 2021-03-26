@@ -1,0 +1,78 @@
+﻿test('EqStr', ->{
+   assertEq(SI, Eqstr('foo', 'foo'))
+   assertEq(NO, Eqstr('foo', 'FOO'))
+   assertEq(NO, Eqstr('FOO', 'foo'))
+   assertEq(NO, Eqstr('FoO', 'fOo'))
+   assertEq(NO, Eqstr('foo', 'bar'))
+   assertEq(NO, Eqstr('foo1', 'foo'))
+   assertEq(NO, Eqstr('foo', 'foo1'))
+   assertEq(SI, Eqstr('foo', 'fo'~'o'))
+   
+   &num1 := 1
+   &num2 := 1
+   assertEq(SI, Eqstr(&num1, &num2))
+   
+   &fecha := Fecha('01/01/2015')
+   assertEq(SI, Eqstr('01/01/2015', &fecha))
+   assertEq(SI, Eqstr(&fecha, '01/01/2015'))
+   assertEq(SI, Eqstr(&fecha, NewFbnObj(Date(2015,1,1))))
+   
+   &string := '1'
+   assertEq(SI, Eqstr(&string, '1'))
+   assertEq(SI, Eqstr('1', &string))
+})
+
+test('EqStri', ->{
+   assertEq(SI, Eqstri('foo', 'foo'))
+   assertEq(SI, Eqstri('foo', 'FOO'))
+   assertEq(SI, Eqstri('FOO', 'foo'))
+   assertEq(SI, Eqstri('FoO', 'fOo'))
+   assertEq(NO, Eqstri('foo', 'bar'))
+   assertEq(NO, Eqstri('foo1', 'foo'))
+   assertEq(NO, Eqstri('foo', 'foo1'))
+   assertEq(SI, Eqstri('foo', 'fo'~'o'))
+   
+   &num1 := 1
+   &num2 := 1
+   assertEq(SI, Eqstri(&num1, &num2))
+   
+   &fecha := Fecha('01/01/2015')
+   assertEq(SI, Eqstri('01/01/2015', &fecha))
+   assertEq(SI, Eqstri(&fecha, '01/01/2015'))
+   
+   &string := '1'
+   assertEq(SI, Eqstri(&string, '1'))
+   assertEq(SI, Eqstri('1', &string))
+})
+
+&ErrorEqStrl := 'eqstrl'
+
+test('EqStrl', ->{
+   assertEq(SI, Eqstrl('foo', 'foo', 3))
+   assertEq(NO, Eqstrl('foo', 'FOO', 3))
+   assertEq(NO, Eqstrl('FOO', 'foo', 3))
+   assertEq(NO, Eqstrl('FoO', 'fOo', 3))
+   assertEq(SI, Eqstrl('foo1', 'foo', 3))
+   assertEq(NO, Eqstrl('foo2', 'foo', 4))
+   assertEq(SI, Eqstrl('foo2', 'foo1', 3.9))
+   
+   assertSyntaxError(&ErrorEqStrl, 'Eqstrl('~'foo'~', 1, 1)')
+   assertSyntaxError(&ErrorEqStrl, 'Eqstrl('~'foo'~', 1.1, 1)')
+   assertSyntaxError(&ErrorEqStrl, 'Eqstrl('~'foo'~', SI, 1)')
+   assertSyntaxError(&ErrorEqStrl, 'Eqstrl('~'foo'~', date(2012, 05, 14), 1)')
+   assertSyntaxError(&ErrorEqStrl, 'Eqstrl(1, '~'foo'~', 1)')
+   assertSyntaxError(&ErrorEqStrl, 'Eqstrl(1.1, '~'foo'~', 1)')
+   assertSyntaxError(&ErrorEqStrl, 'Eqstrl(SI, '~'foo'~', 1)')
+   assertSyntaxError(&ErrorEqStrl, 'Eqstrl(date(2014, 05, 14), '~'foo'~', 1)')
+   assertSyntaxError(&ErrorEqStrl, 'Eqstrl('~'foo'~', '~'foo'~', '~'1'~')')
+})
+
+test('EqStrli', ->{
+   assertEq(SI, Eqstrli('foo', 'foo', 3))
+   assertEq(SI, Eqstrli('foo', 'FOO', 3))
+   assertEq(SI, Eqstrli('FOO', 'foo', 3))
+   assertEq(SI, Eqstrli('FoO', 'fOo', 3))
+   assertEq(SI, Eqstrli('foo1', 'foo', 3))
+   assertEq(NO, Eqstrli('foo2', 'foo', 4))
+   assertEq(SI, Eqstrli('foo2', 'foo1', 3.9))
+})
