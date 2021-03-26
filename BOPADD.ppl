@@ -130,8 +130,6 @@ test('suma', -> {
   *assertEq('12',Fecha(&datetime3).get_Hour)
   *assertEq('12',Dat(&datetime3).get_Hour)
   
-  assertError(-> Echo(&datetime3.get_Hour))
-  
   #ifdef V7
   assertSyntaxError(&ErrMsgOp, "&datetime + '1'")
   assertSyntaxError(&ErrMsgOp, "'1' + &datetime")
