@@ -3,9 +3,17 @@
 end
 
 test("def func one", ->{
-    assertEq(1, one())
+  assertEq(1, one())
 })
 
+def nothing()
+  echo(0)
+end
+
+test("def func nothing", ->{
+  nothing()
+  assertPass()
+})
 
 #ifdef V6
 
