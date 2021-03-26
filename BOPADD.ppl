@@ -107,13 +107,16 @@ test('suma', -> {
   
   assertEq(84040, Fecha('31/01/2015') + Fecha('01/01/2015'))
   
-  &datetime2 := &datetime + 1.5
-  assertEq(Fecha('03/01/2020'), Echo(&datetime2.get_Date))
   assertEq(0, Echo(&datetime.get_Hour))
-  assertEq(12, Echo(&datetime2.get_Hour))
   
+  &datetime2 := &datetime + 1.5
+  ** En V6 retorna el tipo de datos del termino izquierdo.
+  #ifdef V6
+  assertEq(Fecha('03/01/2020'), Echo(&datetime2.get_Date))
+  assertEq(12, Echo(&datetime2.get_Hour))
   &datetime2 := &datetime2 + 0.6
   assertEq(Fecha('04/01/2020'), Echo(&datetime2.get_Date))
+  #endif
   
   &datetime3 := 1.5 + &datetime
   assertEq(43833.5, &datetime3)
