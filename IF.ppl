@@ -51,21 +51,21 @@
 test('iif', -> {
     assertEq('SI', IIF(1=1,'SI','NO'))
     assertEq('NO', IIF(1=2,'SI','NO'))
-    assertEq(NULL, IIF(EqStr('1','2'),' x Pase'))
+    assertEq(NULL, IIF(1=2,' x Pase'))
     assertEq(NULL, IIF(SI,  , 2))
     assertEq(NULL, IIF(NO, 1,  ))
     assertEq(  20, IIF(1=1, 2, 3) * (100/10))
 })
 
 test('no - not en condiciones', -> {
-    If No EqStr('jj','FX')
+    If No NO
        &num := 1
     Else
        &num := 2
     EndIf
     assertEq(1, &num)
     
-    If Not EqStr('jj','jj')
+    If Not SI
        &num := 1
     Else
        &num := 2
