@@ -78,22 +78,36 @@ test('suma', -> {
   assertEq(5,   Num('2') + Decimal(3))
   assertEq(5.5, Dbl(2)   + Decimal(3.5))
   
-  assertError(&ErrMsgAddIntStr, -> 1 + '1')
-  assertError(&ErrMsgAddIntStr, -> 1 + 'foo')
-  assertError(&ErrMsgAddIntStr, -> 1 + 'NaN')
-  assertError(&ErrMsgAddIntStr, -> 1 + '')
+  assertSyntaxError(&ErrMsgAddIntStr, "1 + 'foo'")
+  assertSyntaxError(&ErrMsgAddIntStr, "1 + ''")
+  assertSyntaxError(&ErrMsgAddIntStr, "1 + '1'")
+  
+  assertSyntaxError(&ErrMsgAddStrInt, "'foo' + 1")
+  assertSyntaxError(&ErrMsgAddStrInt, "'' + 1")
+  assertSyntaxError(&ErrMsgAddStrInt, "'1' + 1")
+  
+  assertSyntaxError(&ErrMsgAddIntStr, "NewPplObj(1) + 'foo'")
+  assertSyntaxError(&ErrMsgAddIntStr, "NewPplObj(1) + ''")
+  assertSyntaxError(&ErrMsgAddIntStr, "NewPplObj(1) + '1'")
+  
+  assertSyntaxError(&ErrMsgAddStrInt, "'foo' + NewPplObj(1)")
+  assertSyntaxError(&ErrMsgAddStrInt, "'' + NewPplObj(1)")
+  assertSyntaxError(&ErrMsgAddStrInt, "'1' + NewPplObj(1)")
+  
   assertError(&ErrMsgAddIntBol, -> 1 + SI)
   
-  assertError(&ErrMsgAddDblStr, -> Dbl(1) + '1')
-  assertError(&ErrMsgAddDblStr, -> Dbl(1) + 'foo')
-  assertError(&ErrMsgAddDblStr, -> Dbl(1) + 'NaN')
-  assertError(&ErrMsgAddDblStr, -> Dbl(1) + '')
+  assertSyntaxError(&ErrMsgAddDblStr, "Dbl(1) + '1'")
+  assertSyntaxError(&ErrMsgAddDblStr, "Dbl(1) + 'foo'")
+  assertSyntaxError(&ErrMsgAddDblStr, "Dbl(1) + 'NaN'")
+  assertSyntaxError(&ErrMsgAddDblStr, "Dbl(1) + ''")
+  
   assertError(&ErrMsgAddDblBol, -> Dbl(1) + SI)
   
-  assertError(&ErrMsgAddStrInt, -> '1' + 1)
-  assertError(&ErrMsgAddStrStr, -> '1' + '1')
-  assertError(&ErrMsgAddStrDbl, -> '1.1' + 1.1)
-  assertError(&ErrMsgAddStrBol, -> '1' + SI)
+  assertSyntaxError(&ErrMsgAddStrInt, "'1' + 1")
+  assertSyntaxError(&ErrMsgAddStrStr, "'1' + '1'")
+  assertSyntaxError(&ErrMsgAddStrDbl, "'1.1' + 1.1")
+  assertSyntaxError(&ErrMsgAddStrBol, "'1' + SI")
+  
   
   assertEq(&fechaPplObj, Fecha('01/01/2020') + 1)
   assertEq(Fecha('02/01/2020'), Fecha('01/01/2020') + 1)
@@ -121,10 +135,14 @@ test('suma', -> {
   *assertEq('12',Dat(&datetime3).get_Hour)
   
   assertError(-> Echo(&datetime3.get_Hour))
-  assertError(-> &datetime + '1')
-  assertError(-> '1' + &datetime)
   
-  assertError(&ErrMsgAddDatStr, -> Fecha('31/01/2015') + '1')
+  #ifdef V7
+  assertSyntaxError(&ErrMsgAddDatStr, "&datetime + '1'")
+  assertSyntaxError(&ErrMsgAddDatStr, "'1' + &datetime")
+  #endif
+  
+  assertSyntaxError(&ErrMsgAddDatStr, "Fecha('31/01/2015') + '1'")
+  
   assertError(&ErrMsgAddDatBol, -> fecha('31/01/2015') + SI)
   
   * Si bien no falla el test, no estaría andando porque no sería ese el mensaje de error
