@@ -97,6 +97,7 @@ test('comparaciones', -> {
   assertEq(NO, 1.1 >= 3.1)
   assertEq(SI, 1.1 <= 3.1)
   assertEq(NO, 1.1 <= 1.0)
+  assertEq(SI, 1+1>0)
           
   assertEq(SI, Decimal(1.1) =  Decimal(1.1))
   assertEq(NO, Decimal(1.1) =  Decimal(2.1))
@@ -115,25 +116,6 @@ test('comparaciones', -> {
   assertEq(NO, Decimal(1)   = 2)
   assertEq(SI, Decimal(1.1) = 1.1)
   assertEq(NO, Decimal(1.1) = 2)
-  
-  assertEq(SI, 1<>2 y 3<>4)
-  assertEq(NO, 1<>2 y 3<>3)
-  assertEq(SI, 1=2 o 3=3)
-  assertEq(NO, 1=2 o 3<>3)
-  
-  assertEq(NO, Not 1=1)
-  assertEq(SI, Not 1=2)
-  assertEq(NO, Not 1=1 y Not 2=2)
-  assertEq(NO, Not 1=1 o 2=3)
-  assertEq(NO, 1=2 o Not 2=2)
-  assertEq(SI, Not 1=2 y Not 2=3)
-  assertEq(SI, Not 1=2 y 2=2)
-  assertEq(SI, 1=1 y 2=2 o 3=3 y 4=2)
-  assertEq(NO, (1=1 y 2=2 o 3=3) y 4=2)
-  assertEq(SI, (1=1 y 2=2 o 3=3) y not 4=2)
-  assertEq(NO, (1=1 y 2=2 o 3=3) y not 4=4)
-  assertEq(SI, (1=1 y 2=3 o 3=1) o 4=4)
-  assertEq(SI, 1+1>0)
   
   assertEq(NO, DbNull =  1)
   assertEq(SI, DbNull =  DbNull)
@@ -246,7 +228,6 @@ test('comparaciones', -> {
   assertEq(NO, NewValObj(Fecha('14/05/2012')) = Val(A:1))
   assertEq(NO, Val(A:1) = NewFbnObj(Fecha('14/05/2012')))
   assertEq(NO, Val(A:1) = NewValObj(Fecha('14/05/2012')))
-#endif
   
   ACD(A:1, DbNull)
   ACT(A:2, 'aaa')
@@ -259,59 +240,7 @@ test('comparaciones', -> {
   assertEq(NO, Val(A:1) <> 0)
   assertEq(SI, Val(A:2) =  Val(A:3))
   assertEq(SI, Val(A:3) =  Val(A:2))
-  
-  assertEq(SI, SI Y SI)
-  assertEq(NO, SI Y NO)
-  assertEq(NO, NO Y NO)
-  assertEq(NO, NO Y SI)
-  
-  assertEq(SI, 1 Y 1)
-  assertEq(NO, 1 Y 0)
-  assertEq(NO, 0 Y 0)
-  assertEq(NO, 0 Y 1)
-  
-  assertEq(SI,  2 Y 2)
-  assertEq(NO,  2 Y 0)
-  assertEq(NO,  0 Y 2)
-  assertEq(NO, -2 Y 2)
-  assertEq(NO, -2 Y 0)
-  assertEq(NO, (-2) Y (-2))
-  * Falla en V6 por el - del segundo termino
-#ifdef V7
-  assertEq(NO, -2 Y -2)
 #endif
-  
-  ACN(B:1,1)
-  ACN(B:2,0)
-  assertEq(SI, Val(B:1) Y 1)
-  assertEq(NO, Val(B:1) Y 0)
-  assertEq(NO, Val(B:2) Y 0)
-  assertEq(NO, Val(B:2) Y 1)
-  
-  assertEq(SI, 1 Y Val(B:1))
-  assertEq(NO, 0 Y Val(B:1))
-  assertEq(NO, 0 Y Val(B:2))
-  assertEq(NO, 1 Y Val(B:2))
-  
-  assertEq(SI, SI o SI)
-  assertEq(SI, SI o NO)
-  assertEq(NO, NO o NO)
-  assertEq(SI, NO o SI)
-  
-  assertEq(SI, 1 o 1)
-  assertEq(SI, 1 o 0)
-  assertEq(NO, 0 o 0)
-  assertEq(SI, 0 o 1)
-  
-  assertEq(SI, Val(B:1) o 1)
-  assertEq(SI, Val(B:1) o 0)
-  assertEq(NO, Val(B:2) o 0)
-  assertEq(SI, Val(B:2) o 1)
-  
-  assertEq(SI, 1 o Val(B:1))
-  assertEq(SI, 0 o Val(B:1))
-  assertEq(NO, 0 o Val(B:2))
-  assertEq(SI, 1 o Val(B:2))
   
   ACT(C:1, 'TEST')
   assertEq(NO, Val(C:1) > 0)
@@ -367,4 +296,77 @@ test('comparaciones', -> {
   assertEq(SI, Val(D:1) * Val(D:2) = 0)
   assertEq(SI, Val(D:2) * Val(D:1) = 0)
   assertEq(SI, Val(D:2) * Val(D:1) = 0)
+})
+
+test('operadores logicos', -> {
+  assertEq(SI, 1<>2 y 3<>4)
+  assertEq(NO, 1<>2 y 3<>3)
+  assertEq(SI, 1=2 o 3=3)
+  assertEq(NO, 1=2 o 3<>3)
+  
+  assertEq(NO, Not 1=1)
+  assertEq(SI, Not 1=2)
+  assertEq(NO, Not 1=1 y Not 2=2)
+  assertEq(NO, Not 1=1 o 2=3)
+  assertEq(NO, 1=2 o Not 2=2)
+  assertEq(SI, Not 1=2 y Not 2=3)
+  assertEq(SI, Not 1=2 y 2=2)
+  assertEq(SI, 1=1 y 2=2 o 3=3 y 4=2)
+  assertEq(NO, (1=1 y 2=2 o 3=3) y 4=2)
+  assertEq(SI, (1=1 y 2=2 o 3=3) y not 4=2)
+  assertEq(NO, (1=1 y 2=2 o 3=3) y not 4=4)
+  assertEq(SI, (1=1 y 2=3 o 3=1) o 4=4)
+  
+  assertEq(SI, SI Y SI)
+  assertEq(NO, SI Y NO)
+  assertEq(NO, NO Y NO)
+  assertEq(NO, NO Y SI)
+  
+  assertEq(SI, 1 Y 1)
+  assertEq(NO, 1 Y 0)
+  assertEq(NO, 0 Y 0)
+  assertEq(NO, 0 Y 1)
+  
+  assertEq(SI,  2 Y 2)
+  assertEq(NO,  2 Y 0)
+  assertEq(NO,  0 Y 2)
+  assertEq(NO, -2 Y 2)
+  assertEq(NO, -2 Y 0)
+  assertEq(NO, (-2) Y (-2))
+  * Falla en V6 por el - del segundo termino
+#ifdef V7
+  assertEq(NO, -2 Y -2)
+#endif
+  
+  ACN(B:1,1)
+  ACN(B:2,0)
+  assertEq(SI, Val(B:1) Y 1)
+  assertEq(NO, Val(B:1) Y 0)
+  assertEq(NO, Val(B:2) Y 0)
+  assertEq(NO, Val(B:2) Y 1)
+  
+  assertEq(SI, 1 Y Val(B:1))
+  assertEq(NO, 0 Y Val(B:1))
+  assertEq(NO, 0 Y Val(B:2))
+  assertEq(NO, 1 Y Val(B:2))
+  
+  assertEq(SI, SI o SI)
+  assertEq(SI, SI o NO)
+  assertEq(NO, NO o NO)
+  assertEq(SI, NO o SI)
+  
+  assertEq(SI, 1 o 1)
+  assertEq(SI, 1 o 0)
+  assertEq(NO, 0 o 0)
+  assertEq(SI, 0 o 1)
+  
+  assertEq(SI, Val(B:1) o 1)
+  assertEq(SI, Val(B:1) o 0)
+  assertEq(NO, Val(B:2) o 0)
+  assertEq(SI, Val(B:2) o 1)
+  
+  assertEq(SI, 1 o Val(B:1))
+  assertEq(SI, 0 o Val(B:1))
+  assertEq(NO, 0 o Val(B:2))
+  assertEq(SI, 1 o Val(B:2))
 })
