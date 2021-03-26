@@ -5,14 +5,11 @@
 
 &numero := 10
 
-&ErrMsgModIntStr := 'No se puede obtener el resto de una division entre System.Int32 y System.String'
-&ErrMsgModIntBol := 'No se puede obtener el resto de una division entre System.Int32 y System.Boolean'
-&ErrMsgModDblStr := 'No se puede obtener el resto de una division entre System.Double y System.String'
-&ErrMsgModDblBol := 'No se puede obtener el resto de una division entre System.Double y System.Boolean'
-&ErrMsgModStrInt := 'No se puede obtener el resto de una division entre System.String y System.Int32'
-&ErrMsgModStrStr := 'No se puede obtener el resto de una division entre System.String y System.String'
-&ErrMsgModStrDbl := 'No se puede obtener el resto de una division entre System.String y System.Double'
-&ErrMsgModStrBol := 'No se puede obtener el resto de una division entre System.String y System.Boolean'
+&ErrMsgOp := 'No se puede realizar una operacion'
+
+def AssertErrorOp(expresion)
+  assertSyntaxError(&ErrMsgOp, expresion)
+end
 
 test('mod', -> {
   assertEq(2 , 11        mod 3)
@@ -44,33 +41,35 @@ test('mod', -> {
   assertEq(2, NewPplObj('11',SI,NO) mod 3)
   assertEq(0, NewValObj('11') mod 3)
   
-  assertSyntaxError(&ErrMsgModIntStr, "2 mod '8'")
-  assertSyntaxError(&ErrMsgModIntStr, "2 mod 'NaN'")
-  assertSyntaxError(&ErrMsgModIntStr, "2 mod ''")
-  assertSyntaxError(&ErrMsgModIntBol, "2 mod SI")
+  AssertErrorOp("2 mod '8'")
+  AssertErrorOp("2 mod 'NaN'")
+  AssertErrorOp("2 mod ''")
+  AssertErrorOp("2 mod SI")
   
-  assertSyntaxError(&ErrMsgModStrInt, "'8' mod 2")
-  assertSyntaxError(&ErrMsgModStrInt, "'NaN' mod 2")
-  assertSyntaxError(&ErrMsgModStrInt, "'' mod 2")
-  assertSyntaxError(&ErrMsgModBolInt, "SI mod 2")
+  AssertErrorOp("'8' mod 2")
+  AssertErrorOp("'NaN' mod 2")
+  AssertErrorOp("'' mod 2")
+  AssertErrorOp("SI mod 2")
   
-  assertSyntaxError(&ErrMsgModIntStr, "NewPplObj(2) mod 'foo'")
-  assertSyntaxError(&ErrMsgModIntStr, "NewPplObj(2) mod ''")
-  assertSyntaxError(&ErrMsgModIntStr, "NewPplObj(2) mod '1'")
+  AssertErrorOp("NewPplObj(2) mod 'foo'")
+  AssertErrorOp("NewPplObj(2) mod ''")
+  AssertErrorOp("NewPplObj(2) mod '1'")
   
-  assertSyntaxError(&ErrMsgModStrInt, "'foo' mod NewPplObj(2)")
-  assertSyntaxError(&ErrMsgModStrInt, "'' mod NewPplObj(2)")
-  assertSyntaxError(&ErrMsgModStrInt, "'1' mod NewPplObj(2)")
+  AssertErrorOp("'foo' mod NewPplObj(2)")
+  AssertErrorOp("'' mod NewPplObj(2)")
+  AssertErrorOp("'1' mod NewPplObj(2)")
   
-  assertSyntaxError(&ErrMsgModDblStr, "Dbl(2.2) mod '1.1'")
-  assertSyntaxError(&ErrMsgModDblStr, "Dbl(1.1) mod 'NaN'")
-  assertSyntaxError(&ErrMsgModDblStr, "Dbl(1.1) mod ''")
-  assertSyntaxError(&ErrMsgModDblBol, "Dbl(2.1) mod SI")
+  AssertErrorOp("Dbl(2.2) mod '1.1'")
+  AssertErrorOp("Dbl(1.1) mod 'NaN'")
+  AssertErrorOp("Dbl(1.1) mod ''")
   
-  assertSyntaxError(&ErrMsgModStrInt, "'1' mod 1")
-  assertSyntaxError(&ErrMsgModStrStr, "'2' mod '1'")
-  assertSyntaxError(&ErrMsgModStrDbl, "'2.2' mod 1.1")
-  assertSyntaxError(&ErrMsgModStrBol, "'2' mod SI")
+  AssertErrorOp("SI mod Dbl(2.1)")
+  AssertErrorOp("Dbl(2.1) mod SI")
+  
+  AssertErrorOp("'1' mod 1")
+  AssertErrorOp("'2' mod '1'")
+  AssertErrorOp("'2.2' mod 1.1")
+  AssertErrorOp("'2' mod SI")
   
   assertEq(0, Val(Z:1) mod DbNull)
   assertEq(0, Val(Z:1) mod Nil)
@@ -142,33 +141,35 @@ test('mod2', -> {
   assertEq(2, NewPplObj('11',SI,NO) mod2 3)
   assertEq(0, NewValObj('11') mod2 3)
   
-  assertSyntaxError(&ErrMsgModIntStr, "2 mod2 '8'")
-  assertSyntaxError(&ErrMsgModIntStr, "2 mod2 'NaN'")
-  assertSyntaxError(&ErrMsgModIntStr, "2 mod2 ''")
-  assertSyntaxError(&ErrMsgModIntBol, "2 mod2 SI")
+  AssertErrorOp("2 mod2 '8'")
+  AssertErrorOp("2 mod2 'NaN'")
+  AssertErrorOp("2 mod2 ''")
+  AssertErrorOp("2 mod2 SI")
   
-  assertSyntaxError(&ErrMsgModStrInt, "'8' mod2 2")
-  assertSyntaxError(&ErrMsgModStrInt, "'NaN' mod2 2")
-  assertSyntaxError(&ErrMsgModStrInt, "'' mod2 2")
-  assertSyntaxError(&ErrMsgModBolInt, "SI mod2 2")
+  AssertErrorOp("'8' mod2 2")
+  AssertErrorOp("'NaN' mod2 2")
+  AssertErrorOp("'' mod2 2")
+  AssertErrorOp("SI mod2 2")
   
-  assertSyntaxError(&ErrMsgModIntStr, "NewPplObj(2) mod2 'foo'")
-  assertSyntaxError(&ErrMsgModIntStr, "NewPplObj(2) mod2 ''")
-  assertSyntaxError(&ErrMsgModIntStr, "NewPplObj(2) mod2 '1'")
+  AssertErrorOp("NewPplObj(2) mod2 'foo'")
+  AssertErrorOp("NewPplObj(2) mod2 ''")
+  AssertErrorOp("NewPplObj(2) mod2 '1'")
   
-  assertSyntaxError(&ErrMsgModStrInt, "'foo' mod2 NewPplObj(2)")
-  assertSyntaxError(&ErrMsgModStrInt, "'' mod2 NewPplObj(2)")
-  assertSyntaxError(&ErrMsgModStrInt, "'1' mod2 NewPplObj(2)")
+  AssertErrorOp("'foo' mod2 NewPplObj(2)")
+  AssertErrorOp("'' mod2 NewPplObj(2)")
+  AssertErrorOp("'1' mod2 NewPplObj(2)")
   
-  assertSyntaxError(&ErrMsgModDblStr, "Dbl(2.2) mod2 '1.1'")
-  assertSyntaxError(&ErrMsgModDblStr, "Dbl(1.1) mod2 'NaN'")
-  assertSyntaxError(&ErrMsgModDblStr, "Dbl(1.1) mod2 ''")
-  assertSyntaxError(&ErrMsgModDblBol, "Dbl(2.1) mod2 SI")
+  AssertErrorOp("Dbl(2.2) mod2 '1.1'")
+  AssertErrorOp("Dbl(1.1) mod2 'NaN'")
+  AssertErrorOp("Dbl(1.1) mod2 ''")
   
-  assertSyntaxError(&ErrMsgModStrInt, "'1' mod2 1")
-  assertSyntaxError(&ErrMsgModStrStr, "'2' mod2 '1'")
-  assertSyntaxError(&ErrMsgModStrDbl, "'2.2' mod2 1.1")
-  assertSyntaxError(&ErrMsgModStrBol, "'2' mod2 SI")
+  AssertErrorOp("SI mod2 Dbl(2.1)")
+  AssertErrorOp("Dbl(2.1) mod2 SI")
+  
+  AssertErrorOp("'1' mod2 1")
+  AssertErrorOp("'2' mod2 '1'")
+  AssertErrorOp("'2.2' mod2 1.1")
+  AssertErrorOp("'2' mod2 SI")
   
   assertEq(0, Val(Z:1) mod2 DbNull)
   assertEq(0, Val(Z:1) mod2 Nil)
