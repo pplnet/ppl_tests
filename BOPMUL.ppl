@@ -5,9 +5,13 @@
 
 ** Los tests con operador '^' por el momento no compilan en v7.
 
+** En V6 los assertSyntaxError en realidad dan error de ejecución
+
 &fechaPplObj := Fecha('03/01/2140')
 &numero := 10
 &datetime := Fecha('02/01/2020')
+
+&ErrMsgOp := 'No se puede realizar una operacion'
 
 &ErrMsgMulIntStr := 'No se puede realizar una multiplicacion entre System.Int32 y System.String'
 &ErrMsgMulIntBol := 'No se puede realizar una multiplicacion entre System.Int32 y System.Boolean'
@@ -60,26 +64,39 @@ test('producto', -> {
   assertEq(2.42, Round(Decimal(2.2) * Decimal(1.1), 2))
   assertEq(2.42, Round(Num('2.2') * Num('1.1'), 2))
   
-  assertError(&ErrMsgMulIntStr, -> 2 * '1')
-  assertError(&ErrMsgMulIntStr, -> 2 * 'NaN')
-  assertError(&ErrMsgMulIntStr, -> 2 * '')
+  assertSyntaxError(&ErrMsgMulIntStr, "2 * '1'")
+  assertSyntaxError(&ErrMsgMulIntStr, "2 * 'NaN'")
+  assertSyntaxError(&ErrMsgMulIntStr, "2 * ''")
+  
+  assertSyntaxError(&ErrMsgMulStrInt, "'1' * 2")
+  assertSyntaxError(&ErrMsgMulStrInt, "'NaN' * 2")
+  assertSyntaxError(&ErrMsgMulStrInt, "'' * 2")
+  
+  assertSyntaxError(&ErrMsgMulIntStr, "NewPplObj(1) * 'foo'")
+  assertSyntaxError(&ErrMsgMulIntStr, "NewPplObj(1) * ''")
+  assertSyntaxError(&ErrMsgMulIntStr, "NewPplObj(1) * '1'")
+  
+  assertSyntaxError(&ErrMsgMulStrInt, "'foo' * NewPplObj(1)")
+  assertSyntaxError(&ErrMsgMulStrInt, "'' * NewPplObj(1)")
+  assertSyntaxError(&ErrMsgMulStrInt, "'1' * NewPplObj(1)")
+  
   assertError(&ErrMsgMulIntBol, -> 2 * SI)
   
-  assertError(&ErrMsgMulDblStr, -> Dbl(2.2) * '1.1')
-  assertError(&ErrMsgMulDblStr, -> Dbl(1.1) * 'NaN')
-  assertError(&ErrMsgMulDblStr, -> Dbl(1.1) * '')
-  assertError(&ErrMsgMulDblBol, -> Dbl(2.1) * SI)
+  assertSyntaxError(&ErrMsgMulDblStr, "Dbl(2.2) * '1.1'")
+  assertSyntaxError(&ErrMsgMulDblStr, "Dbl(1.1) * 'NaN'")
+  assertSyntaxError(&ErrMsgMulDblStr, "Dbl(1.1) * ''")
+  assertSyntaxError(&ErrMsgMulDblBol, "Dbl(2.1) * SI")
   
-  assertError(&ErrMsgMulStrInt, -> '1' * 1)
-  assertError(&ErrMsgMulStrStr, -> '2' * '1')
-  assertError(&ErrMsgMulStrDbl, -> '2.2' * 1.1)
+  assertSyntaxError(&ErrMsgMulStrInt, "'1' * 1")
+  assertSyntaxError(&ErrMsgMulStrStr, "'2' * '1'")
+  assertSyntaxError(&ErrMsgMulStrDbl, "'2.2' * 1.1")
+  
   assertError(&ErrMsgMulStrBol, -> '2' * SI)
   
   assertEq(&fechaPplObj, Fecha('01/01/2020') * 2)
   assertEq(&fechaPplObj, 2 * Fecha('01/01/2020'))
   assertEq(87662, Fecha('01/01/2020') * 2)
   assertEq(87662, 2 * Fecha('01/01/2020'))
-
   
   &datetime2 := Fecha(&datetime * 1.5)
   **// TODO: Migrar cuando este fixture + implementacion de Fecha()
