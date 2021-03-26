@@ -9,22 +9,11 @@
 &numero := 10
 &datetime := Fecha(Fecha('01/01/2020') / 2)
 
-&ErrMsgDivIntStr := 'No se puede realizar una division entre System.Int32 y System.String'
-&ErrMsgDivIntBol := 'No se puede realizar una division entre System.Int32 y System.Boolean'
-&ErrMsgDivDblStr := 'No se puede realizar una division entre System.Double y System.String'
-&ErrMsgDivDblBol := 'No se puede realizar una division entre System.Double y System.Boolean'
-&ErrMsgDivStrInt := 'No se puede realizar una division entre System.String y System.Int32'
-&ErrMsgDivStrStr := 'No se puede realizar una division entre System.String y System.String'
-&ErrMsgDivStrDbl := 'No se puede realizar una division entre System.String y System.Double'
-&ErrMsgDivStrBol := 'No se puede realizar una division entre System.String y System.Boolean'
+&ErrMsgOp := 'No se puede realizar una operacion'
 
-&ErrMsgDivEnterosIntStr := 'No se puede obtener la division de enteros entre System.Int32 y System.String'
-&ErrMsgDivEnterosIntBol := 'No se puede obtener la division de enteros entre System.Int32 y System.Boolean'
-&ErrMsgDivEnterosDblStr := 'No se puede obtener la division de enteros entre System.Double y System.String'
-&ErrMsgDivEnterosDblBol := 'No se puede obtener la division de enteros entre System.Double y System.Boolean'
-&ErrMsgDivEnterosStrStr := 'No se puede obtener la division de enteros entre System.String y System.String'
-&ErrMsgDivEnterosStrDbl := 'No se puede obtener la division de enteros entre System.String y System.Double'
-&ErrMsgDivEnterosStrBol := 'No se puede obtener la division de enteros entre System.String y System.Boolean'
+def AssertErrorOp(expresion)
+  assertSyntaxError(&ErrMsgOp, expresion)
+end
 
 test('division', -> {
   assertEq(3  , 6   / 2)
@@ -67,33 +56,33 @@ test('division', -> {
   assertEq(1.5, Num('3')   / Decimal(2))
   assertEq(1.2, Dbl(3)     / Decimal(2.5))
   
-  assertSyntaxError(&ErrMsgDivIntStr, "2 / '1'")
-  assertSyntaxError(&ErrMsgDivIntStr, "2 / 'NaN'")
-  assertSyntaxError(&ErrMsgDivIntStr, "2 / ''")
+  AssertErrorOp("2 / '1'")
+  AssertErrorOp("2 / 'NaN'")
+  AssertErrorOp("2 / ''")
   
-  assertSyntaxError(&ErrMsgDivStrInt, "'1' / 2")
-  assertSyntaxError(&ErrMsgDivStrInt, "'NaN' / 2")
-  assertSyntaxError(&ErrMsgDivStrInt, "'' / 2")
+  AssertErrorOp("'1' / 2")
+  AssertErrorOp("'NaN' / 2")
+  AssertErrorOp("'' / 2")
   
-  assertSyntaxError(&ErrMsgOp, "NewPplObj(1) / 'foo'")
-  assertSyntaxError(&ErrMsgOp, "NewPplObj(1) / ''")
-  assertSyntaxError(&ErrMsgOp, "NewPplObj(1) / '1'")
+  AssertErrorOp("NewPplObj(1) / 'foo'")
+  AssertErrorOp("NewPplObj(1) / ''")
+  AssertErrorOp("NewPplObj(1) / '1'")
   
-  assertSyntaxError(&ErrMsgOp, "'foo' / NewPplObj(1)")
-  assertSyntaxError(&ErrMsgOp, "'' / NewPplObj(1)")
-  assertSyntaxError(&ErrMsgOp, "'1' / NewPplObj(1)")
+  AssertErrorOp("'foo' / NewPplObj(1)")
+  AssertErrorOp("'' / NewPplObj(1)")
+  AssertErrorOp("'1' / NewPplObj(1)")
   
-  assertSyntaxError(&ErrMsgDivIntBol, "2 / SI")
+  AssertErrorOp("2 / SI")
   
-  assertSyntaxError(&ErrMsgDivDblStr, "Dbl(2.2) / '1.1'")
-  assertSyntaxError(&ErrMsgDivDblStr, "Dbl(1.1) / 'NaN'")
-  assertSyntaxError(&ErrMsgDivDblStr, "Dbl(1.1) / ''")
-  assertSyntaxError(&ErrMsgDivDblBol, "Dbl(2.1) / SI")
+  AssertErrorOp("Dbl(2.2) / '1.1'")
+  AssertErrorOp("Dbl(1.1) / 'NaN'")
+  AssertErrorOp("Dbl(1.1) / ''")
+  AssertErrorOp("Dbl(2.1) / SI")
   
-  assertSyntaxError(&ErrMsgDivStrInt, "'1' / 1")
-  assertSyntaxError(&ErrMsgDivStrStr, "'2' / '1'")
-  assertSyntaxError(&ErrMsgDivStrDbl, "'2.2' / 1.1")
-  assertSyntaxError(&ErrMsgDivStrBol, "'2' / SI")
+  AssertErrorOp("'1' / 1")
+  AssertErrorOp("'2' / '1'")
+  AssertErrorOp("'2.2' / 1.1")
+  AssertErrorOp("'2' / SI")
   
   assertEq(21915.5, Fecha('01/01/2020') / 2)
   **// TODO: Migrar cuando este fixture + implementacion de Fecha()
@@ -149,19 +138,19 @@ test('division', -> {
   assertEq(2 , NewPplObj('4',SI,NO) div 2)
   assertEq(0 , NewValObj('2') div 3)
   
-  assertError(&ErrMsgDivEnterosIntStr, -> 8 div '2')
-  assertError(&ErrMsgDivEnterosIntStr, -> 1 div 'NaN')
-  assertError(&ErrMsgDivEnterosIntStr, -> 1 div '')
-  assertError(&ErrMsgDivEnterosIntBol, -> 8 div SI)
+  AssertErrorOp("8 div '2'")
+  AssertErrorOp("1 div 'NaN'")
+  AssertErrorOp("1 div ''")
+  AssertErrorOp("8 div SI")
   
-  assertError(&ErrMsgDivEnterosDblStr, -> Dbl(4.5) div '2.2')
-  assertError(&ErrMsgDivEnterosDblStr, -> Dbl(1.1) div 'NaN')
-  assertError(&ErrMsgDivEnterosDblStr, -> Dbl(1.1) div '')
-  assertError(&ErrMsgDivEnterosDblBol, -> Dbl(4.5) div SI)
+  AssertErrorOp("Dbl(4.5) div '2.2'")
+  AssertErrorOp("Dbl(1.1) div 'NaN'")
+  AssertErrorOp("Dbl(1.1) div ''")
+  AssertErrorOp("Dbl(4.5) div SI")
   
-  assertError(&ErrMsgDivEnterosStrDbl, -> '4.5' div 2.1)
-  assertError(&ErrMsgDivEnterosStrStr, -> '4.5' div '2.1')
-  assertError(&ErrMsgDivEnterosStrBol, -> '4.5' div SI)
+  AssertErrorOp("'4.5' div 2.1")
+  AssertErrorOp("'4.5' div '2.1'")
+  AssertErrorOp("'4.5' div SI")
   
   assertEq(0, Val(Z:1) div DbNull)
   assertEq(0, Val(Z:1) div Nil)
