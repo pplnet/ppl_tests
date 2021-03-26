@@ -87,14 +87,16 @@ test('suma', -> {
   assertSyntaxError(&ErrMsgOp, "'' + NewPplObj(1)")
   assertSyntaxError(&ErrMsgOp, "'1' + NewPplObj(1)")
   
-  assertError(&ErrMsgOp, -> 1 + SI)
+  assertSyntaxError(&ErrMsgOp, 'SI + 1')
+  assertSyntaxError(&ErrMsgOp, '1 + SI')
   
   assertSyntaxError(&ErrMsgOp, "Dbl(1) + '1'")
   assertSyntaxError(&ErrMsgOp, "Dbl(1) + 'foo'")
   assertSyntaxError(&ErrMsgOp, "Dbl(1) + 'NaN'")
   assertSyntaxError(&ErrMsgOp, "Dbl(1) + ''")
   
-  assertError(&ErrMsgOp, -> Dbl(1) + SI)
+  assertSyntaxError(&ErrMsgOp, 'SI + Dbl(1)')
+  assertSyntaxError(&ErrMsgOp, 'Dbl(1) + SI')
   
   assertSyntaxError(&ErrMsgOp, "'1' + 1")
   assertSyntaxError(&ErrMsgOp, "'1' + '1'")
@@ -137,7 +139,8 @@ test('suma', -> {
   
   assertSyntaxError(&ErrMsgOp, "Fecha('31/01/2015') + '1'")
   
-  assertError(&ErrMsgAddDatBol, -> fecha('31/01/2015') + SI)
+  assertSyntaxError(&ErrMsgOp, "SI + Fecha('31/01/2015')")
+  assertSyntaxError(&ErrMsgOp, "Fecha('31/01/2015') + SI")
   
   * En V6: No fue posible encontrar el metodo System.Double.get_hour()
   * En V7: No se encontraron candidatos para System.Double hour
