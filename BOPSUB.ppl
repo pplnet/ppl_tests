@@ -12,7 +12,10 @@
 &datetime := Fecha('04/01/2020')
 
 &ErrMsgOp := 'No se puede realizar una operacion'
-&ErrMsgSubDatBol := 'No se puede realizar una operacion de resta entre System.DateTime y System.Boolean'
+
+def AssertErrorOp(expresion)
+  assertSyntaxError(&ErrMsgOp, expresion)
+end
 
 test('resta', -> {
   assertEq(1,   2 - 1)
@@ -63,40 +66,40 @@ test('resta', -> {
   assertEq(1,   Num('3') - Decimal(2))
   assertEq(1.5, Dbl(3.5) - Decimal(2))
   
-  assertSyntaxError(&ErrMsgOp, '3 - "1"')
-  assertSyntaxError(&ErrMsgOp, '3 - "foo"')
-  assertSyntaxError(&ErrMsgOp, '3 - ""')
+  AssertErrorOp('3 - "1"')
+  AssertErrorOp('3 - "foo"')
+  AssertErrorOp('3 - ""')
   
-  assertSyntaxError(&ErrMsgOp, "'foo' - 3")
-  assertSyntaxError(&ErrMsgOp, "'' - 3")
-  assertSyntaxError(&ErrMsgOp, "'1' - 3")
+  AssertErrorOp("'foo' - 3")
+  AssertErrorOp("'' - 3")
+  AssertErrorOp("'1' - 3")
   
-  assertSyntaxError(&ErrMsgOp, "NewPplObj(1) - 'foo'")
-  assertSyntaxError(&ErrMsgOp, "NewPplObj(1) - ''")
-  assertSyntaxError(&ErrMsgOp, "NewPplObj(1) - '1'")
+  AssertErrorOp("NewPplObj(1) - 'foo'")
+  AssertErrorOp("NewPplObj(1) - ''")
+  AssertErrorOp("NewPplObj(1) - '1'")
   
-  assertSyntaxError(&ErrMsgOp, "'foo' - NewPplObj(1)")
-  assertSyntaxError(&ErrMsgOp, "'' - NewPplObj(1)")
-  assertSyntaxError(&ErrMsgOp, "'1' - NewPplObj(1)")
+  AssertErrorOp("'foo' - NewPplObj(1)")
+  AssertErrorOp("'' - NewPplObj(1)")
+  AssertErrorOp("'1' - NewPplObj(1)")
   
-  assertSyntaxError(&ErrMsgOp, 'SI - 1')
-  assertSyntaxError(&ErrMsgOp, '1 - SI')
+  AssertErrorOp('SI - 1')
+  AssertErrorOp('1 - SI')
   
-  assertSyntaxError(&ErrMsgOp, 'Dbl(3.5) - "1"')
-  assertSyntaxError(&ErrMsgOp, 'Dbl(3.5) - "foo"')
-  assertSyntaxError(&ErrMsgOp, 'Dbl(3.5) - "NaN"')
-  assertSyntaxError(&ErrMsgOp, 'Dbl(3.5) - ""')
-  assertSyntaxError(&ErrMsgOp, 'Dbl(3.5) - SI')
-  assertSyntaxError(&ErrMsgOp, "'NaN' - Dbl(3.5)")
-  assertSyntaxError(&ErrMsgOp, "'NaN' - 'NaN'")
+  AssertErrorOp('Dbl(3.5) - "1"')
+  AssertErrorOp('Dbl(3.5) - "foo"')
+  AssertErrorOp('Dbl(3.5) - "NaN"')
+  AssertErrorOp('Dbl(3.5) - ""')
+  AssertErrorOp('Dbl(3.5) - SI')
+  AssertErrorOp("'NaN' - Dbl(3.5)")
+  AssertErrorOp("'NaN' - 'NaN'")
   
-  assertSyntaxError(&ErrMsgOp, 'SI - Dbl(1)')
-  assertSyntaxError(&ErrMsgOp, 'Dbl(1) - SI')
+  AssertErrorOp('SI - Dbl(1)')
+  AssertErrorOp('Dbl(1) - SI')
   
-  assertSyntaxError(&ErrMsgOp, "'1' - 1")
-  assertSyntaxError(&ErrMsgOp, "'1' - '1'")
-  assertSyntaxError(&ErrMsgOp, "'1.1' - 1.1")
-  assertSyntaxError(&ErrMsgOp, "'1' - SI")
+  AssertErrorOp("'1' - 1")
+  AssertErrorOp("'1' - '1'")
+  AssertErrorOp("'1.1' - 1.1")
+  AssertErrorOp("'1' - SI")
   
   assertEq(&fechaPplObj, Fecha('03/01/2020') - 1)
   assertEq(Fecha('02/01/2020'), Fecha('03/01/2020') - 1)
@@ -125,14 +128,14 @@ test('resta', -> {
   *assertEq('12',Dat(&datetime3).get_Hour)
   
   #ifdef V7
-  assertSyntaxError(&ErrMsgOp, "&datetime - '1'")
-  assertSyntaxError(&ErrMsgOp, "'1' - &datetime")
+  AssertErrorOp("&datetime - '1'")
+  AssertErrorOp("'1' - &datetime")
   #endif
   
-  assertSyntaxError(&ErrMsgOp, "Fecha('31/01/2015') - '1'")
+  AssertErrorOp("Fecha('31/01/2015') - '1'")
   
-  assertSyntaxError(&ErrMsgOp, "SI - Fecha('31/01/2015')")
-  assertSyntaxError(&ErrMsgOp, "Fecha('31/01/2015') - SI")
+  AssertErrorOp("SI - Fecha('31/01/2015')")
+  AssertErrorOp("Fecha('31/01/2015') - SI")
   
   * En V6: No fue posible encontrar el metodo System.Double.get_hour()
   * En V7: No se encontraron candidatos para System.Double hour
