@@ -67,20 +67,33 @@ test('division', -> {
   assertEq(1.5, Num('3')   / Decimal(2))
   assertEq(1.2, Dbl(3)     / Decimal(2.5))
   
-  assertError(&ErrMsgDivIntStr, -> 2 / '1')
-  assertError(&ErrMsgDivIntStr, -> 2 / 'NaN')
-  assertError(&ErrMsgDivIntStr, -> 2 / '')
-  assertError(&ErrMsgDivIntBol, -> 2 / SI)
+  assertSyntaxError(&ErrMsgDivIntStr, "2 / '1'")
+  assertSyntaxError(&ErrMsgDivIntStr, "2 / 'NaN'")
+  assertSyntaxError(&ErrMsgDivIntStr, "2 / ''")
   
-  assertError(&ErrMsgDivDblStr, -> Dbl(2.2) / '1.1')
-  assertError(&ErrMsgDivDblStr, -> Dbl(1.1) / 'NaN')
-  assertError(&ErrMsgDivDblStr, -> Dbl(1.1) / '')
-  assertError(&ErrMsgDivDblBol, -> Dbl(2.1) / SI)
+  assertSyntaxError(&ErrMsgDivStrInt, "'1' / 2")
+  assertSyntaxError(&ErrMsgDivStrInt, "'NaN' / 2")
+  assertSyntaxError(&ErrMsgDivStrInt, "'' / 2")
   
-  assertError(&ErrMsgDivStrInt, -> '1' / 1)
-  assertError(&ErrMsgDivStrStr, -> '2' / '1')
-  assertError(&ErrMsgDivStrDbl, -> '2.2' / 1.1)
-  assertError(&ErrMsgDivStrBol, -> '2' / SI)
+  assertSyntaxError(&ErrMsgOp, "NewPplObj(1) / 'foo'")
+  assertSyntaxError(&ErrMsgOp, "NewPplObj(1) / ''")
+  assertSyntaxError(&ErrMsgOp, "NewPplObj(1) / '1'")
+  
+  assertSyntaxError(&ErrMsgOp, "'foo' / NewPplObj(1)")
+  assertSyntaxError(&ErrMsgOp, "'' / NewPplObj(1)")
+  assertSyntaxError(&ErrMsgOp, "'1' / NewPplObj(1)")
+  
+  assertSyntaxError(&ErrMsgDivIntBol, "2 / SI")
+  
+  assertSyntaxError(&ErrMsgDivDblStr, "Dbl(2.2) / '1.1'")
+  assertSyntaxError(&ErrMsgDivDblStr, "Dbl(1.1) / 'NaN'")
+  assertSyntaxError(&ErrMsgDivDblStr, "Dbl(1.1) / ''")
+  assertSyntaxError(&ErrMsgDivDblBol, "Dbl(2.1) / SI")
+  
+  assertSyntaxError(&ErrMsgDivStrInt, "'1' / 1")
+  assertSyntaxError(&ErrMsgDivStrStr, "'2' / '1'")
+  assertSyntaxError(&ErrMsgDivStrDbl, "'2.2' / 1.1")
+  assertSyntaxError(&ErrMsgDivStrBol, "'2' / SI")
   
   assertEq(21915.5, Fecha('01/01/2020') / 2)
   **// TODO: Migrar cuando este fixture + implementacion de Fecha()
