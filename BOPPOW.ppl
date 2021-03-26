@@ -9,15 +9,12 @@
 &datetime1 := Fecha('02/01/2020')
 &datetime2 := Fecha('05/01/2020')
 
-&ErrMsgPowIntStr := 'No se puede realizar una potencia entre System.Int32 y System.String'
-&ErrMsgPowIntBol := 'No se puede realizar una potencia entre System.Int32 y System.Boolean'
-&ErrMsgPowDblStr := 'No se puede realizar una potencia entre System.Double y System.String'
-&ErrMsgPowDblBol := 'No se puede realizar una potencia entre System.Double y System.Boolean'
-&ErrMsgPowStrInt := 'No se puede realizar una potencia entre System.String y System.Int32'
-&ErrMsgPowStrStr := 'No se puede realizar una potencia entre System.String y System.String'
-&ErrMsgPowStrDbl := 'No se puede realizar una potencia entre System.String y System.Double'
-&ErrMsgPowStrBol := 'No se puede realizar una potencia entre System.String y System.Boolean'
+&ErrMsgOp := 'No se puede realizar una operacion'
 &ErrMsgPowForCor := 'La cadena de entrada no tiene el formato correcto'
+
+def AssertErrorOp(expresion)
+  assertSyntaxError(&ErrMsgOp, expresion)
+end
 
 test('pow', -> {
   assertEq(1, pow(2,0))
@@ -65,32 +62,32 @@ test('pow', -> {
   
   assertEq(8, 2 ^ (&datetime2 - &datetime1))
   
-  assertSyntaxError(&ErrMsgPowIntStr, "2 ^ '8'")
-  assertSyntaxError(&ErrMsgPowIntStr, "1 ^ 'NaN'")
-  assertSyntaxError(&ErrMsgPowIntStr, "1 ^ ''")
-  assertSyntaxError(&ErrMsgPowIntBol, "2 ^ SI")
-  assertSyntaxError(&ErrMsgPowStrInt, "'8' ^ 2")
-  assertSyntaxError(&ErrMsgPowStrInt, "'NaN' ^ 1")
+  AssertErrorOp("2 ^ '8'")
+  AssertErrorOp("1 ^ 'NaN'")
+  AssertErrorOp("1 ^ ''")
+  AssertErrorOp("2 ^ SI")
+  AssertErrorOp("'8' ^ 2")
+  AssertErrorOp("'NaN' ^ 1")
   assertSyntaxError(&ErrMsgPowForCor, "'' ^ 1")
-  assertSyntaxError(&ErrMsgPowBolInt, "SI ^ 2")
+  AssertErrorOp("SI ^ 2")
   
-  assertSyntaxError(&ErrMsgPowIntStr, "NewPplObj(2) ^ 'foo'")
-  assertSyntaxError(&ErrMsgPowIntStr, "NewPplObj(2) ^ ''")
-  assertSyntaxError(&ErrMsgPowIntStr, "NewPplObj(2) ^ '1'")
+  AssertErrorOp("NewPplObj(2) ^ 'foo'")
+  AssertErrorOp("NewPplObj(2) ^ ''")
+  AssertErrorOp("NewPplObj(2) ^ '1'")
   
   assertSyntaxError(&ErrMsgPowForCor, "'foo' ^ NewPplObj(1)")
   assertSyntaxError(&ErrMsgPowForCor, "'' ^ NewPplObj(1)")
-  assertSyntaxError(&ErrMsgPowStrInt, "'2' ^ NewPplObj(1)")
+  AssertErrorOp("'2' ^ NewPplObj(1)")
   
-  assertSyntaxError(&ErrMsgPowDblStr, "round(Dbl(2.2) ^ '8.1', 2)")
-  assertSyntaxError(&ErrMsgPowDblStr, "Dbl(1.1) ^ 'NaN'")
-  assertSyntaxError(&ErrMsgPowDblStr, "Dbl(1.1) ^ ''")
-  assertSyntaxError(&ErrMsgPowDblBol, "Dbl(2.2) ^ SI")
+  AssertErrorOp("round(Dbl(2.2) ^ '8.1', 2)")
+  AssertErrorOp("Dbl(1.1) ^ 'NaN'")
+  AssertErrorOp("Dbl(1.1) ^ ''")
+  AssertErrorOp("Dbl(2.2) ^ SI")
   
-  assertSyntaxError(&ErrMsgPowStrInt, "'2' ^ 1")
-  assertSyntaxError(&ErrMsgPowStrStr, "round('2.2' ^ '8.1', 2)")
-  assertSyntaxError(&ErrMsgPowStrDbl, "round('2.2' ^  8.1 , 2)")
-  assertSyntaxError(&ErrMsgPowStrBol, "'2.2' ^ SI")
+  AssertErrorOp("'2' ^ 1")
+  AssertErrorOp("round('2.2' ^ '8.1', 2)")
+  AssertErrorOp("round('2.2' ^  8.1 , 2)")
+  AssertErrorOp("'2.2' ^ SI")
   
   assertEq(0, Val(Z:1) ^ DbNull)
   assertEq(0, Val(Z:1) ^ Nil)
