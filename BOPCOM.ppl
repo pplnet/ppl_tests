@@ -179,10 +179,10 @@ test('comparaciones', -> {
   assertEq(SI, NewFbnObj('') = NewPplObj(0))
   assertEq(SI, NewFbnObj('') = NewPplObj(DbNull))
   
-  assertError(&ErrMsgCompStr, -> 'foo' =  'foo')
-  assertError(&ErrMsgCompStr, -> 'foo' =  'bar')
-  assertError(&ErrMsgCompStr, -> 'foo' <> 'bar')
-  assertError(&ErrMsgCompStr, -> 'foo' <> 'foo')
+  assertSyntaxError(&ErrMsgCompStr, "'foo' =  'foo'")
+  assertSyntaxError(&ErrMsgCompStr, "'foo' =  'bar'")
+  assertSyntaxError(&ErrMsgCompStr, "'foo' <> 'bar'")
+  assertSyntaxError(&ErrMsgCompStr, "'foo' <> 'foo'")
   
   assertSyntaxError(&ErrMsgCompMayor, '1 > "foo"')
   assertSyntaxError(&ErrMsgCompMayor, '"foo" > 1')
