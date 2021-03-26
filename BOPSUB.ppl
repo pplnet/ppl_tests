@@ -79,7 +79,8 @@ test('resta', -> {
   assertSyntaxError(&ErrMsgOp, "'' - NewPplObj(1)")
   assertSyntaxError(&ErrMsgOp, "'1' - NewPplObj(1)")
   
-  assertError(&ErrMsgOp, -> 1 - SI)
+  assertSyntaxError(&ErrMsgOp, 'SI - 1')
+  assertSyntaxError(&ErrMsgOp, '1 - SI')
   
   assertSyntaxError(&ErrMsgOp, 'Dbl(3.5) - "1"')
   assertSyntaxError(&ErrMsgOp, 'Dbl(3.5) - "foo"')
@@ -89,7 +90,8 @@ test('resta', -> {
   assertSyntaxError(&ErrMsgOp, "'NaN' - Dbl(3.5)")
   assertSyntaxError(&ErrMsgOp, "'NaN' - 'NaN'")
   
-  assertError(&ErrMsgOp, -> Dbl(1) - SI)
+  assertSyntaxError(&ErrMsgOp, 'SI - Dbl(1)')
+  assertSyntaxError(&ErrMsgOp, 'Dbl(1) - SI')
   
   assertSyntaxError(&ErrMsgOp, "'1' - 1")
   assertSyntaxError(&ErrMsgOp, "'1' - '1'")
@@ -129,7 +131,8 @@ test('resta', -> {
   
   assertSyntaxError(&ErrMsgOp, "Fecha('31/01/2015') - '1'")
   
-  assertError(&ErrMsgSubDatBol, -> fecha('31/01/2015') - SI)
+  assertSyntaxError(&ErrMsgOp, "SI - Fecha('31/01/2015')")
+  assertSyntaxError(&ErrMsgOp, "Fecha('31/01/2015') - SI")
   
   * En V6: No fue posible encontrar el metodo System.Double.get_hour()
   * En V7: No se encontraron candidatos para System.Double hour
