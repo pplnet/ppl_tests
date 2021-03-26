@@ -5,20 +5,13 @@
 
 ** Los tests con operador '^' por el momento no compilan en v7.
 
+** En V6 los assertSyntaxError en realidad dan error de ejecución
+
 &fechaPplObj := Fecha('02/01/2020')
 &numero := 10
 &datetime := Fecha('02/01/2020')
 
-&ErrMsgAddIntStr := 'No se puede realizar una operacion de suma entre System.Int32 y System.String'
-&ErrMsgAddIntBol := 'No se puede realizar una operacion de suma entre System.Int32 y System.Boolean'
-&ErrMsgAddDblStr := 'No se puede realizar una operacion de suma entre System.Double y System.String'
-&ErrMsgAddDblBol := 'No se puede realizar una operacion de suma entre System.Double y System.Boolean'
-&ErrMsgAddStrInt := 'No se puede realizar una operacion de suma entre System.String y System.Int32'
-&ErrMsgAddStrStr := 'No se puede realizar una operacion de suma entre System.String y System.String'
-&ErrMsgAddStrDbl := 'No se puede realizar una operacion de suma entre System.String y System.Double'
-&ErrMsgAddStrBol := 'No se puede realizar una operacion de suma entre System.String y System.Boolean'
-&ErrMsgAddDatStr := 'No se puede realizar una operacion de suma entre System.DateTime y System.String'
-&ErrMsgAddDatBol := 'No se puede realizar una operacion de suma entre System.DateTime y System.Boolean'
+&ErrMsgOp := 'No se puede realizar una operacion'
 
 test('suma', -> {
   assertEq(2, 1 + 1)
@@ -78,35 +71,52 @@ test('suma', -> {
   assertEq(5,   Num('2') + Decimal(3))
   assertEq(5.5, Dbl(2)   + Decimal(3.5))
   
-  assertError(&ErrMsgAddIntStr, -> 1 + '1')
-  assertError(&ErrMsgAddIntStr, -> 1 + 'foo')
-  assertError(&ErrMsgAddIntStr, -> 1 + 'NaN')
-  assertError(&ErrMsgAddIntStr, -> 1 + '')
-  assertError(&ErrMsgAddIntBol, -> 1 + SI)
+  assertSyntaxError(&ErrMsgOp, "1 + 'foo'")
+  assertSyntaxError(&ErrMsgOp, "1 + ''")
+  assertSyntaxError(&ErrMsgOp, "1 + '1'")
   
-  assertError(&ErrMsgAddDblStr, -> Dbl(1) + '1')
-  assertError(&ErrMsgAddDblStr, -> Dbl(1) + 'foo')
-  assertError(&ErrMsgAddDblStr, -> Dbl(1) + 'NaN')
-  assertError(&ErrMsgAddDblStr, -> Dbl(1) + '')
-  assertError(&ErrMsgAddDblBol, -> Dbl(1) + SI)
+  assertSyntaxError(&ErrMsgOp, "'foo' + 1")
+  assertSyntaxError(&ErrMsgOp, "'' + 1")
+  assertSyntaxError(&ErrMsgOp, "'1' + 1")
   
-  assertError(&ErrMsgAddStrInt, -> '1' + 1)
-  assertError(&ErrMsgAddStrStr, -> '1' + '1')
-  assertError(&ErrMsgAddStrDbl, -> '1.1' + 1.1)
-  assertError(&ErrMsgAddStrBol, -> '1' + SI)
+  assertSyntaxError(&ErrMsgOp, "NewPplObj(1) + 'foo'")
+  assertSyntaxError(&ErrMsgOp, "NewPplObj(1) + ''")
+  assertSyntaxError(&ErrMsgOp, "NewPplObj(1) + '1'")
+  
+  assertSyntaxError(&ErrMsgOp, "'foo' + NewPplObj(1)")
+  assertSyntaxError(&ErrMsgOp, "'' + NewPplObj(1)")
+  assertSyntaxError(&ErrMsgOp, "'1' + NewPplObj(1)")
+  
+  assertError(&ErrMsgOp, -> 1 + SI)
+  
+  assertSyntaxError(&ErrMsgOp, "Dbl(1) + '1'")
+  assertSyntaxError(&ErrMsgOp, "Dbl(1) + 'foo'")
+  assertSyntaxError(&ErrMsgOp, "Dbl(1) + 'NaN'")
+  assertSyntaxError(&ErrMsgOp, "Dbl(1) + ''")
+  
+  assertError(&ErrMsgOp, -> Dbl(1) + SI)
+  
+  assertSyntaxError(&ErrMsgOp, "'1' + 1")
+  assertSyntaxError(&ErrMsgOp, "'1' + '1'")
+  assertSyntaxError(&ErrMsgOp, "'1.1' + 1.1")
+  assertSyntaxError(&ErrMsgOp, "'1' + SI")
+  
   
   assertEq(&fechaPplObj, Fecha('01/01/2020') + 1)
   assertEq(Fecha('02/01/2020'), Fecha('01/01/2020') + 1)
   
   assertEq(84040, Fecha('31/01/2015') + Fecha('01/01/2015'))
   
-  &datetime2 := &datetime + 1.5
-  assertEq(Fecha('03/01/2020'), Echo(&datetime2.get_Date))
   assertEq(0, Echo(&datetime.get_Hour))
-  assertEq(12, Echo(&datetime2.get_Hour))
   
+  &datetime2 := &datetime + 1.5
+  ** En V6 retorna el tipo de datos del termino izquierdo.
+  #ifdef V6
+  assertEq(Fecha('03/01/2020'), Echo(&datetime2.get_Date))
+  assertEq(12, Echo(&datetime2.get_Hour))
   &datetime2 := &datetime2 + 0.6
   assertEq(Fecha('04/01/2020'), Echo(&datetime2.get_Date))
+  #endif
   
   &datetime3 := 1.5 + &datetime
   assertEq(43833.5, &datetime3)
@@ -120,15 +130,18 @@ test('suma', -> {
   *assertEq('12',Fecha(&datetime3).get_Hour)
   *assertEq('12',Dat(&datetime3).get_Hour)
   
-  assertError(-> Echo(&datetime3.get_Hour))
-  assertError(-> &datetime + '1')
-  assertError(-> '1' + &datetime)
+  #ifdef V7
+  assertSyntaxError(&ErrMsgOp, "&datetime + '1'")
+  assertSyntaxError(&ErrMsgOp, "'1' + &datetime")
+  #endif
   
-  assertError(&ErrMsgAddDatStr, -> Fecha('31/01/2015') + '1')
+  assertSyntaxError(&ErrMsgOp, "Fecha('31/01/2015') + '1'")
+  
   assertError(&ErrMsgAddDatBol, -> fecha('31/01/2015') + SI)
   
-  * Si bien no falla el test, no estaría andando porque no sería ese el mensaje de error
-  assertError('Error', -> Echo(&datetime3.get_Hour))
+  * En V6: No fue posible encontrar el metodo System.Double.get_hour()
+  * En V7: No se encontraron candidatos para System.Double hour
+  assertError('System.Double', -> Echo(&datetime3.get_Hour))
   
   assertEq(0, Val(Z:1) + DbNull)
   assertEq(0, Val(Z:1) + Nil)
