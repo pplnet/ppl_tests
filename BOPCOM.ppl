@@ -281,7 +281,6 @@ test('comparaciones', -> {
   assertEq(SI, 0 <= NewFbnObj('10'))
   assertEq(NO, 0 = NewFbnObj('10'))
   assertEq(SI, 0 <> NewFbnObj('10'))
-  
   assertEq(NO, NewFbnObj(Decimal(8.0)) <> NewValObj(NewFbnObj(Decimal(8.0))))
   assertEq(SI, NewFbnObj(Decimal(0.1)) >= 0)
   ** assertEq(NO, NewFbnObj('8  ') <> NewValObj(NewFbnObj('8  ')))
