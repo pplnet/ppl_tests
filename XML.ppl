@@ -1,6 +1,9 @@
 ﻿*Ignore=V7
 
-&xml := "<c><Observaciones>Test</Observaciones></c>"
+&xml := @"
+    <c>
+        <Observaciones>Test</Observaciones>
+    </c>"
 
 test("xml cargar string xml", -> {
     XML.Iniciar()
