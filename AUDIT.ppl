@@ -1,1 +1,34 @@
-﻿
+﻿*Ignore=V7
+
+def getAuditChanges(src)
+    &campos := ${a = 1}
+    
+    XML.Iniciar()
+    XML.Cargar(src)
+    RecorrerXML("//c")
+        for &campo in XML.Nodos()
+            if not &campos.Contains(&campo)
+                &campos.Add(&campo, ${Old = XML.FBN(&campo)})
+            endif
+        end
+    Proximo
+    return &campos
+end
+
+
+**&xml := "<c><Observaciones></Observaciones></c><c><Mercado>OCT</Mercado><FechaOp>2021-03-25 00:00:00</FechaOp><MB1>0</MB1><Observaciones>sadasdasddas</Observaciones></c>"
+
+&xml := @"
+    <c>
+        <Observaciones></Observaciones>
+    </c>
+    <c>
+        <Mercado>OCT</Mercado>
+        <FechaOp>2021-03-25 00:00:00</FechaOp>
+        <MB1>0</MB1>
+        <Observaciones>sadasdasddas</Observaciones>
+    </c>"
+    
+test("funcion getAuditChanges", -> {
+    watch(getAuditChanges(&xml))
+})
