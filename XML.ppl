@@ -1,1 +1,38 @@
-﻿
+﻿*Ignore=V7
+
+&xml := "<c><Observaciones>Test</Observaciones></c>"
+
+test("xml cargar string xml", -> {
+    XML.Iniciar()
+    XML.Cargar(&xml)
+    RecorrerXML("//c")
+        assertEq("Test", XML.FBN('Observaciones'))
+        
+        assertIsTrue(XML.Contiene('Observaciones'))
+        assertIsTrue(XML.Contains('Observaciones'))
+        assertIsFalse(XML.Contiene('Mercado'))
+        assertIsFalse(XML.Contains('Mercado'))
+        
+        **// Devuelve lista de string: ['Observaciones']
+        &nodos := XML.Nodos() 
+        assertEq(1, &nodos.Count())
+        assertEq("observaciones", &nodos.itemAt(0))
+    Proximo
+})
+
+test("xml cargar string xml vacio", -> {
+    XML.Iniciar()
+    XML.Cargar("")
+    RecorrerXML("//c")
+        assertFail()
+    Proximo
+    assertPass()
+})
+
+test("xml cargar sql", -> {
+    XML.Iniciar()
+    XML.CargarSQL(@"Select '{&xml}'")
+    RecorrerXML("//c")
+        assertEq("Test", XML.FBN('Observaciones'))
+    Proximo
+})
