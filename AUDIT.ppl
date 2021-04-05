@@ -1,6 +1,7 @@
 ﻿*Ignore=V7
 
 def getAuditChanges(src)
+    **// &campos := ${}
     &campos := NewDictionary()
     &old := SI
     XML.Iniciar()
