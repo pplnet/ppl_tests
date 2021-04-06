@@ -11,6 +11,7 @@ test("op interop dialog", -> {
         DIALOG_SIZE:300;100
         CAMPOS:;;
             Cantidad: 'Total' ;;;;;;;;;1000
+            MB1: 'Radio|Opcion|OtraOpcion' ;;
     "
     &op := NewOpInterop()
     &op.Eval(&src)
@@ -35,10 +36,17 @@ test("op interop dialog", -> {
     assertEq(1000, &op.Value("CANTIDAD"))
     assertEq(1000, &op.Value("cantidad"))
     assertEq(0, &op.Value("Precio1"))
+    assertEq(-1, &op.Value("MB1"))
     ** Labels de campos
     assertEq("Total", &op.Label("CANTIDAD"))
     assertEq("Total", &op.Label("cantidad"))
     assert(Vacio(&op.Label("Precio1")))
+    assertEq("Radio|Opcion|OtraOpcion", &op.Label("MB1"))
+    ** Tipos de campos
+    assertEq("Number", &op.FieldType("Cantidad"))
+    assert(Vacio(&op.FieldType("Precio1")))
+    assertEq("Combo", &op.FieldType("MB1"))
+    assertEq("Text", &op.FieldType("Observaciones"))
     **** Campos implicitos
     assertEq("NrOperacion", &op.Label("NrOperacion"))
     assertEq("Tipo Op.", &op.Label("TipoOp"))
