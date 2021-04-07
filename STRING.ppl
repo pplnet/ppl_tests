@@ -38,3 +38,9 @@ test('quotes', -> {
     assertEq(chr(39), "'")
     assertEq(chr(34), '"')
 })
+
+test('interpolation kvm args', -> {
+    &tmp := ${select='Select', from='From'}
+    &str := @"{&tmp.select} * {&tmp.from} dbo.OPERACIONES"
+    assertEq("Select * From dbo.OPERACIONES", &str)
+})
