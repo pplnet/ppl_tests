@@ -6,4 +6,5 @@
 
 test('call func empty param', -> { 
     assert(Eqstr(,null))
+    assert(Eqstr(null,))
 })
