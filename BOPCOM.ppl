@@ -5,13 +5,19 @@
 
 #ifdef V6
 &ErrMsgCompStr := 'No se pueden comparar strings'
-#else
-&ErrMsgCompStr := 'No se puede realizar una operacion con un valor string.'
-#endif
+**// Esto es raro en V6... es operador es valido pero está mal usado
 &ErrMsgCompMayor := 'El operador > no es valido'
 &ErrMsgCompMenor := 'El operador < no es valido'
 &ErrMsgCompMayorIgual := 'El operador >= no es valido'
 &ErrMsgCompMenorIgual := 'El operador <= no es valido'
+#else
+&ErrMsgCompStr := 'No se puede realizar una operacion con un valor string.'
+&ErrMsgCompMayor := &ErrMsgCompStr
+&ErrMsgCompMenor := &ErrMsgCompStr
+&ErrMsgCompMayorIgual := &ErrMsgCompStr
+&ErrMsgCompMenorIgual := &ErrMsgCompStr
+#endif
+
 
 test('comparaciones', -> {
   assertEq(SI, 2 = 2)
