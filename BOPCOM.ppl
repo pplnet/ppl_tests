@@ -3,7 +3,11 @@
 
 ** Operaciones binarias: =, <>, >, <, >=, <=
 
+#ifdef V6
 &ErrMsgCompStr := 'No se pueden comparar strings'
+#else
+&ErrMsgCompStr := 'No se puede realizar una operacion con un valor string.'
+#endif
 &ErrMsgCompMayor := 'El operador > no es valido'
 &ErrMsgCompMenor := 'El operador < no es valido'
 &ErrMsgCompMayorIgual := 'El operador >= no es valido'
