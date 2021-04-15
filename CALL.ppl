@@ -1,2 +1,9 @@
-﻿ifa
+﻿test('call func base', -> { 
+    IFA
+    IFA()
+    assertPass()
+})
 
+test('call func empty param', -> { 
+    assert(Eqstr(,null))
+})
