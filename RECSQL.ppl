@@ -10,39 +10,23 @@
     #ifdef V6
     SQL.ADDROW(NUM=1)
     Recorrer SQL
-       ACN(FieldCount:1, 10)
+        assertEq(1, FieldCount)
     Proximo
-    assertEq(10, Val(A:1))
     
     SQL.ADDROW(NUM=1)
     Recorrer SQL
       Recorrer&i 1, fieldcount-1
-        AlinearCeldas(1:FAC..fieldcount:FAC, 'C')
+        assertEq(1, FieldCount)
       Proximo
     Proximo
     assertPass()
     
     SQL.ADDROW(NUM=123)
     Recorrer SQL
-      ACL(A:FBN['NUM'],'OP', Especie1='USD')
+        ACN(A:FBN['NUM'], 1)
+        assertEq(1, val(a:123))
     Proximo
-    assertPass()
     
-    SetFilaActual(0)
-    SQL.ADDROW(cantidad=1)
-    SQL.ADDROW(cantidad=2)
-    SQL.ADDROW(cantidad=3)
-    SQL.ADDROW(cantidad=4)
-    ACN(A:1,10)
-    Recorrer SQL
-      ACF(C:FAC, Fijar(Val(A:1)) + FAC)
-    Proximo
-    SetFilaActual(10)
-    ACN(A:1,20)
-    RecalcCells()
-    Recorrer&i,1,4
-      assertEq(10+&i, Val(C:&i))
-    Proximo
     
     SQL.ADDROW(Campo='1')
     Recorrer SQL
