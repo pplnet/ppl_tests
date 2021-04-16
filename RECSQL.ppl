@@ -37,7 +37,6 @@
     assertEq('HO HO HOLA', Val(A:1))
     
     
-    
     SQL.ADDROW(Cliente1='RIO', Precio1=1000)
     Recorrer SQL; ;SI
       ACT(A:1, FBN['Cliente1'])
