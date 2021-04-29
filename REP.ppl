@@ -1,17 +1,16 @@
-﻿*Ignore=V7
-
-** TODO: Evitar usar dialogo, no hace falta...
-
-test("repetir", -> {
-    ACN(A:1,0)
+﻿test("repetir base", -> {
+    &count := 1
     Repetir
-      If Val(A:1) = 2
+        If &count = 3
          Break
       EndIf
-      ACN(A:1, Val(A:1)+1)
+      &count := &count + 1
     Proximo
-    assertEq(2, Val(A:1))
-    
+    assertEq(3, &count)
+})
+
+#ifdef V6
+test("repetir cancelar", -> {
     try
        Repetir
          Cancelar
@@ -22,3 +21,4 @@ test("repetir", -> {
       assertEq(NULL, Val(Z:1))
     end
 })
+#endif
