@@ -38,3 +38,19 @@ test('dialog', -> {
        assertEq('Precio', DialogoMetaExec('Cantidad2', 0))
     #endif
 })
+
+#ifdef V6
+test("dialogo en repetir", ->{
+    DialogoVisible NO
+    Repetir
+      DialogoVisible NO
+      CrearDialogo
+        Vehiculo1: 'Vehiculo';;;;;;;;;;'USD'
+      FinDialogo
+      Break
+    proximo
+    ACT(A:1, Dialogo.Vehiculo1)
+    assertEq('USD', Dialogo.Vehiculo1)
+    assertEq('USD', Val(A:1))
+})
+#endif
