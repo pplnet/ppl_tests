@@ -1,4 +1,12 @@
-﻿test('try finally', -> {
+﻿test('try', -> {
+    assertSyntaxError('no tiene ni Catch ni Finally', @"
+        try
+           assertPass()
+        end
+    ")
+})
+
+test('try finally', -> {
     try
         assertPass()
     finally
