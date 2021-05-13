@@ -1,10 +1,28 @@
 ﻿test("repetir base", -> {
     &count := 1
     Repetir
-        If &count = 3
-            Break
-        EndIf
-        &count := &count + 1
+       If &count = 3
+          Break
+       EndIf
+       &count := &count + 1
+    Proximo
+    assertEq(3, &count)
+})
+
+test("repetir continue", -> {
+    &count := 1
+    &count2 := 2
+    Repetir
+       If &count < 3
+          If &count2 = 2
+             &count2 := &count2 + 1
+             Continue
+             &count := &count + 10
+          EndIf
+          &count := &count + 1
+       Else
+          Break
+       EndIf
     Proximo
     assertEq(3, &count)
 })
