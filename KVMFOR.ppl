@@ -61,3 +61,31 @@ test("kvm for in anidados", -> {
        end 
     end
 })
+
+test("kvm for in continue", -> {
+    &kvm := ${key1=1, key2=2, key3=3}
+    &prueba := ${clave1=1}
+    
+    for &val in &kvm
+       &prueba.add(${clave2 = &val.get_value})
+       continue
+       &prueba.add(${clave3 = &val.get_value})
+    end
+    assertEq(1, &prueba.clave1)
+    assertEq(3, &prueba.clave2)
+    assertEq(NULL, &prueba.clave3)
+})
+
+test("kvm for in break", -> {
+    &kvm := ${key1=1, key2=2, key3=3}
+    &prueba := ${clave1=1}
+    
+    for &val in &kvm
+       &prueba.add(${clave2 = &val.get_value})
+       break
+       &prueba.add(${clave3 = &val.get_value})
+    end
+    assertEq(1, &prueba.clave1)
+    assertEq(1, &prueba.clave2)
+    assertEq(NULL, &prueba.clave3)
+})
