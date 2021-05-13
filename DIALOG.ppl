@@ -1,13 +1,33 @@
-﻿*Ignore=V6
-
+﻿DialogoVisible(NO)
 CrearDialogo
-    Cantidad:   'Monto'  ;
-    Cantidad1:  'Monto1'  ;
-    Precio1:    'Precio' ;
-    Cliente1:   'Cliente';
-    Undefined1: 'No definido'
+    Cantidad1: 'Monto'    ;1;1;1;SI;SI;SI;'Valido';SI;1;2;;;'#0.000';
 FinDialogo
 
-test('dialog', -> {
-
+test("dialog", -> {
+    &dialog := GetDialog()
+    
+    assertEq(1, $dialog.Value('Cantidad1'))
+    assertEq(1, Dialogo.Cantidad1)
+    
+    $dialog.SetValue('Cantidad1', 3, NO)
+    assertEq(3, $dialog.Value('Cantidad1'))
+    assertEq(3, Dialogo.Cantidad1)
+    
+    assertEq(TipoCampo.Numeric, $dialog.Type('Cantidad1'))
+    
+    assertEq('Monto', $dialog.Eval('Cantidad1', DialogParam.Label))
+    assertEq(1, $dialog.Eval('Cantidad1', DialogParam.Fila))
+    assertEq(1, $dialog.Eval('Cantidad1', DialogParam.Columna))
+    assertEq(1, $dialog.Eval('Cantidad1', DialogParam.Solapa))
+    assertEq(SI, $dialog.Eval('Cantidad1', DialogParam.Editable))
+    assertEq(SI, $dialog.Eval('Cantidad1', DialogParam.Visible))
+    assertEq(SI, $dialog.Eval('Cantidad1', DialogParam.CondValidez))
+    assertEq('Valido', $dialog.Eval('Cantidad1', DialogParam.MensajeError))
+    assertEq(SI, $dialog.Eval('Cantidad1', DialogParam.SalteaValidacion))
+    assertEq(1, $dialog.Eval('Cantidad1', DialogParam.FDefault))
+    assertEq(2, $dialog.Eval('Cantidad1', DialogParam.FCalculo))
+    assertEq('', $dialog.Eval('Cantidad1', DialogParam.ListaOpciones))
+    assertEq(NO, $dialog.Eval('Cantidad1', DialogParam.PermiteF2))
+    assertEq('#0.000', $dialog.Eval('Cantidad1', DialogParam.Mascara))
+    assertEq('', $dialog.Eval('Cantidad1', DialogParam.Where))
 })
