@@ -1,7 +1,8 @@
 ﻿*Ignore=V6
 
 CrearDialogo
-    Cantidad1:  'Monto'  ;
+    Cantidad:   'Monto'  ;
+    Cantidad1:  'Monto1'  ;
     Precio1:    'Precio' ;
     Cliente1:   'Cliente';
     Undefined1: 'No definido'
