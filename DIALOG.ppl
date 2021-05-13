@@ -1,8 +1,10 @@
-﻿CrearDialogo
+﻿*Ignore=V6
+
+CrearDialogo
     Cantidad1:  'Monto'  ;
     Precio1:    'Precio' ;
-	Cliente1:   'Cliente';
-	Undefined1: 'No definido'
+    Cliente1:   'Cliente';
+    Undefined1: 'No definido'
 FinDialogo
 
 test('dialog', -> {
