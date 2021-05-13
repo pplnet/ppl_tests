@@ -48,6 +48,13 @@ test("list for in anidados", -> {
 
 test("list for in break", -> {
     &lista  := |1,2,3|
+    &res := 0
+    
+    for &val in &lista
+        break
+    end
+    
+    assertEq(0, &res)
     
     for &val in &lista
         &res := &val
@@ -60,6 +67,12 @@ test("list for in break", -> {
 test("list for in continue", -> {
     &lista  := |1,2,3|
     &res := 0
+    
+    for &val in &lista
+       continue
+       &res := &res + &val
+    end
+    assertEq(0, &res)
     
     for &val in &lista
        if &val=2
