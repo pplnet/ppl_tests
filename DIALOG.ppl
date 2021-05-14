@@ -30,4 +30,12 @@ test("dialog", -> {
     assertEq(NO, $dialog.Eval('Cantidad1', DialogParam.PermiteF2))
     assertEq('#0.000', $dialog.Eval('Cantidad1', DialogParam.Mascara))
     assertEq('', $dialog.Eval('Cantidad1', DialogParam.Where))
+    
+    ***assertParams('Cantidad1', |'Monto',1,1,1,SI,SI|)
 })
+
+def assertParams(fname, expected)
+    recorrer&k 1, 20
+        assertEq(expected.itemAt(&k), $dialog.Eval(fname, &k))
+    proximo
+end
