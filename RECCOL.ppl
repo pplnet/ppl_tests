@@ -1,1 +1,58 @@
-﻿
+﻿test("recorrer col", ->{
+    RecorrerColumnas 1,3
+      &val := &val + colciclo
+    Proximo
+    assertEq(6, &val)
+    
+    RecorrerCol 1,3
+      &val2 := &val2 + colciclo
+    Proximo
+    assertEq(6, &val2)
+    
+    &fin := 3
+    RecorrerCol 1, &fin
+      &val3 := &val3 + colciclo
+    Proximo
+    assertEq(6, &val3)
+    
+    RecorrerCol 1, &fin+1
+      &val4 := &val4 + colciclo
+    Proximo
+    assertEq(10, &val4)
+    
+    &fin := '3'
+    RecorrerCol 1, Num(&fin)
+      &val5 := &val5 + colciclo
+    Proximo
+    assertEq(6, &val5)
+})
+
+#ifdef V7
+test("recorrer col continue", ->{
+    RecorrerColumnas 1,3
+      continue
+      &val := &val + colciclo
+    Proximo
+    assertEq(6, &val)
+    
+    RecorrerCol 1,3
+      continue
+      &val2 := &val2 + colciclo
+    Proximo
+    assertEq(6, &val2)
+})
+#endif
+
+test("recorrer col break", ->{
+    RecorrerColumnas 1,3
+      &valor := &valor + colciclo
+      Break
+    Proximo
+    assertEq(1, &valor)
+    
+    RecorrerCol 1,3
+      &valor2 := &valor2 + colciclo
+      Break
+    Proximo
+    assertEq(1, &valor2)
+})
