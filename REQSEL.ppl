@@ -3,4 +3,5 @@ test("recorrer sel", ->{
     RecorrerSel
       ACN(A:filaciclo, filaciclo)
     Proximo
+    assertEq(NULL, Val(A:1))
 })
