@@ -1,1 +1,41 @@
-﻿
+﻿test("recorrer filas", ->{
+    RecorrerFilas 1,3
+      &val := &val + filaciclo
+    Proximo
+    assertEq(6, &val)
+    
+    &fin := 3
+    RecorrerFilas 1, &fin
+      &val3 := &val3 + filaciclo
+    Proximo
+    assertEq(6, &val3)
+    
+    RecorrerFilas 1, &fin+1
+      &val4 := &val4 + filaciclo
+    Proximo
+    assertEq(10, &val4)
+    
+    &fin := '3'
+    RecorrerFilas 1, Num(&fin)
+      &val5 := &val5 + filaciclo
+    Proximo
+    assertEq(6, &val5)
+})
+
+#ifdef V7
+test("recorrer filas continue", ->{
+    RecorrerFilas 1,3
+      continue
+      &val := &val + filaciclo
+    Proximo
+    assertEq(6, &val)
+})
+#endif
+
+test("recorrer filas break", ->{
+    RecorrerFilas 1,3
+      &valor := &valor + filaciclo
+      Break
+    Proximo
+    assertEq(1, &valor)
+})
