@@ -2,10 +2,21 @@
   return 1
 end
 
+def two()
+  return 2
+  5
+end
+
+def three()
+  return 3
+  return 5
+end
+
 test("def func one", -> {
   assertEq(1, one())
+  assertEq(2, two())
+  assertEq(3, three())
 })
-
 
 def nothing()
   echo(0)
@@ -23,9 +34,8 @@ def saludo
   'Hello World!'
 end
 
-test("def func saludo", -> {
+test("def func - no parens", -> {
     assertEq('Hello World!', saludo())
 })
 
 #endif
-
