@@ -1,19 +1,4 @@
-﻿def concat(arg1, arg2)
-  return arg1~arg2
-end
-
-test("def func args", -> {
-    assertEq('HolaMundo', concat('Hola', 'Mundo'))
-})
-
-def ppl_echo(msg)
-  return msg
-end
-
-def ppl_echo2(msg)
-  return msg
-  123
-end
+﻿*Ignore=V7
 
 def sumar(a, b)
   a + b
@@ -72,15 +57,9 @@ end
 *&sum := lambda(a, b) -> a + b
 *&sum1 := `(a, b) -> a + b
 
-def sum_two_args(arg1, arg2)
-  arg1 + arg2
-end
 &ErrorArgs := 'ERR. Se esperaban 2 argumentos pero especificaron 3.'
 
-test("def func args", -> {
-    assertEq('HolaMundo', concat('Hola', 'Mundo'))
-    assertEq('Hello pipex!', ppl_echo('Hello pipex!'))
-    assertEq('Hello pipex!', ppl_echo2('Hello pipex!'))
+test("def func - casos complejos", -> {
     assertEq(5, sumar(2,3))
     assertEq(5, sumar1(2,3))
     assertEq(SI, even(2))
@@ -92,8 +71,12 @@ test("def func args", -> {
     *assertEq(5, &sum(2,3))
     *assertEq(5, &sum1(2,3))
     
+    #ifdef V6
     assertEq('ExtendedPPL', GetType(core))
+    #endif
     
+    **// TODO: Revisar esto, si se repite el nombre de una funcion deberia dar error (agregar test)
+    **// Porque esta en un tryu/catch?
     try
        def eqstrtest str1, str2
          * Le pasa la pelota a la funcion del core.
@@ -125,7 +108,6 @@ test("def func args", -> {
        assertEq(SI, eqstrtest('hello','world'))
     end
     
-    assertEq(1, sum_two_args(1))
-    assertSyntaxError(&ErrorArgs, 'sum_two_args(1,2,3)')
+    assertSyntaxError(&ErrorArgs, 'sumar(1,2,3)')
 })
 
