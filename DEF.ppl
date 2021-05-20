@@ -2,18 +2,20 @@
   return 1
 end
 
-test("def func one", ->{
+test("def func one", -> {
   assertEq(1, one())
 })
+
 
 def nothing()
   echo(0)
 end
 
-test("def func nothing", ->{
+test("def func nothing", -> {
   nothing()
   assertPass()
 })
+
 
 #ifdef V6
 
@@ -21,8 +23,9 @@ def saludo
   'Hello World!'
 end
 
-test("def func saludo", ->{
+test("def func saludo", -> {
     assertEq('Hello World!', saludo())
 })
 
 #endif
+
