@@ -6,13 +6,11 @@ test("def func args", -> {
     assertEq('HolaMundo', concat('Hola', 'Mundo'))
 })
 
-#ifdef V6
-
-def echo(msg)
+def ppl_echo(msg)
   return msg
 end
 
-def mensaje(msg)
+def ppl_echo2(msg)
   return msg
   123
 end
@@ -81,8 +79,8 @@ end
 
 test("def func args", -> {
     assertEq('HolaMundo', concat('Hola', 'Mundo'))
-    assertEq('Hello pipex!', echo('Hello pipex!'))
-    assertEq('Hello pipex!', mensaje('Hello pipex!'))
+    assertEq('Hello pipex!', ppl_echo('Hello pipex!'))
+    assertEq('Hello pipex!', ppl_echo2('Hello pipex!'))
     assertEq(5, sumar(2,3))
     assertEq(5, sumar1(2,3))
     assertEq(SI, even(2))
@@ -131,4 +129,3 @@ test("def func args", -> {
     assertSyntaxError(&ErrorArgs, 'sum_two_args(1,2,3)')
 })
 
-#endif
