@@ -13,7 +13,9 @@ test("dialog", -> {
     assertEq(3, &dialog.Value('Cantidad1'))
     assertEq(3, Dialogo.Cantidad1)
     
+    #ifdef V6
     assertEq(TipoCampo.Numeric, &dialog.Type('Cantidad1'))
+    #endif
     
     assertEq('Monto', &dialog.Eval('Cantidad1', DialogoParam.Label))
     assertEq(1, &dialog.Eval('Cantidad1', DialogoParam.Fila))
