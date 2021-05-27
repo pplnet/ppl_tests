@@ -60,7 +60,7 @@ test("recorrer con continue", ->{
       endif
       &val := &i + 1
     Proximo
-    assertEq(2, &val)
+    assertEq(4, &val)
 })
 #endif
 
