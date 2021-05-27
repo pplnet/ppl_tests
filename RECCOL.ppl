@@ -1,4 +1,5 @@
-﻿test("recorrer col", ->{
+﻿*Ignore=V7
+test("recorrer col", ->{
     &lista := ||
     RecorrerColumnas 1,3
       &lista.Add(colciclo)

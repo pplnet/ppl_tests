@@ -53,11 +53,12 @@ test("recorrer con continue", ->{
     Proximo
     assertEq(0, &val)
     
+    &val := 0
     Recorrer&i 1,3
       if &i = 2
          continue
       endif
-      &val := &i + 1
+      &val := &val + 1
     Proximo
     assertEq(2, &val)
 })
