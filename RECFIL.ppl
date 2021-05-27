@@ -1,4 +1,5 @@
-﻿test("recorrer filas", ->{
+﻿*Ignore=V7
+test("recorrer filas", ->{
     &lista := ||
     RecorrerFilas 1,3
       &lista.Add(filaciclo)
@@ -35,7 +36,6 @@
     assertEq(3, &lista4.ItemAt(2))
 })
 
-#ifdef V7
 test("recorrer filas continue", ->{
     &lista5 := ||
     RecorrerFilas 1,3
@@ -48,7 +48,6 @@ test("recorrer filas continue", ->{
     assertEq(NULL, &lista5.ItemAt(1))
     assertEq(3, &lista5.ItemAt(2))
 })
-#endif
 
 test("recorrer filas break", ->{
     &lista6 := ||
