@@ -14,9 +14,11 @@ test("dialog", -> {
     &dialog := GetDialog()
     
     ** Este caso es el mismo que hay en DIALOG
+    #ifdef V6
     assertEq(TipoCampo.Numeric, &dialog.Type('Cantidad1'))
-    assertParams('Cantidad1', |'Monto',Missing(),Missing(),1,SI,SI,SI,NULL,SI,Missing(),Missing(),NULL,NULL,NULL,''|)
     assertEq(TipoCampo.Numeric, &dialog.Type('Cantidad2'))
+    #endif
+    assertParams('Cantidad1', |'Monto',Missing(),Missing(),1,SI,SI,SI,NULL,SI,Missing(),Missing(),NULL,NULL,NULL,''|)
     assertParams('Cantidad2', |'Monto2',1,1,1,SI,SI,SI,'Valido',SI,1,2,Missing(),Missing(),'#0.000',''|)
     *********
     
