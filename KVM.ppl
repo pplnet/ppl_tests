@@ -4,7 +4,15 @@ ACN(A:3,12.2)
 &ErrMsgKeyNull := 'La Clave del KVM no puede ser NULL o vacia'
 
 test("kvm", ->{
-    &prueba := ${STRING1='string', CANTIDAD1=1, PRECIO1=12.2}
+    #ifdef V6
+        &prueba := ${STRING1='string', CANTIDAD1=1, PRECIO1=12.2}
+    #else
+        &prueba := ${
+            STRING1='string', 
+            CANTIDAD1=1, 
+            PRECIO1=12.2
+        }
+    #endif
     &prueba2 := ${STRING1=Val(A:1), CANTIDAD1=Val(A:2), PRECIO1=Val(A:3)}
     &prueba3 := ${STRING1='string', CANTIDAD1=NewPplObj('1',SI,SI), PRECIO1=NewPplObj('12.2',SI,SI)}
     &prueba4 := ${STRING1='string', CANTIDAD1=Num('1'), PRECIO1=Dbl(12.2)}
