@@ -93,7 +93,8 @@ test("def func - casos complejos", -> {
          * Le pasa la pelota a la funcion del core.
          * En este caso, los parametros pasan directamente a 
          * la funcionc core. (No tenemos forma de modificarlos).
-         return super
+         ** TODO: da error "La instruccion *super* solo es valida en el body de una funcion."
+         **return super
        end
     catch
        assertEq(NO, eqstrtest('hello','world'))
