@@ -10,7 +10,7 @@
 &datetime2 := Fecha('05/01/2020')
 
 &ErrMsgOp := 'No se puede realizar una operacion'
-&ErrMsgPowForCor := 'La cadena de entrada no tiene el formato correcto'
+&ErrMsgPowForCor := 'No se pudo convertir el valor'
 
 def AssertErrorOp(expresion)
   assertSyntaxError(&ErrMsgOp, expresion)
