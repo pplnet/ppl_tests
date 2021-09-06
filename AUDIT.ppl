@@ -55,7 +55,6 @@ end
 **     }
 ** }
 
-    
 test("funcion getAuditChanges", -> {
     &cambios := getAuditChanges(&xml)
     
