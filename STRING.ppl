@@ -27,7 +27,7 @@ test('interpolation multiline', -> {
 })
 
 #ifdef V6
-&no_cierra_comilla := "Índice fuera de los límites de la matriz."
+&no_cierra_comilla := "Comilla(s) de string no cierra correctamente."
 #else
 &no_cierra_comilla := "Literal string incorrecto. Se esperaba:"
 #endif
