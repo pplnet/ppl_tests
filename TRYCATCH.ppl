@@ -28,7 +28,8 @@ test('try catch throw', -> {
     try
         throw('foo')
     catch
-        assertEq('foo', GetError())
+        &err := GetError()
+        assert(Posicion('foo', &err) > 0)
     end
 })
 
@@ -58,7 +59,8 @@ test('try catch anidado', -> {
         end
         &foo := 2
     catch
-        assertEq('foo', GetError())
+        &err := GetError()
+        assert(Posicion('foo', &err) > 0)
     end
     assertEq(1, &foo)
 })
