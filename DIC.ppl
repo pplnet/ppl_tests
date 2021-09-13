@@ -51,7 +51,9 @@ test("PPLDic props case insensitive", ->{
 })
 
 test("PPLDic add kvmprop", ->{
-    &persona := ${nombre = 'Pepe'}
+    ** Inicializacion vacia de PPLDic
+    &persona := ${}
+    
     &persona.add(${apellido = 'Argento', dni = 12345678})
     **&persona.apellido := 'Argento'
     **&persona.dni := 12345678
