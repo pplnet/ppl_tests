@@ -1,9 +1,9 @@
 ﻿ACT(A:1,'string')
 ACN(A:2,1)
 ACN(A:3,12.2)
-&ErrMsgKeyNull := 'La Clave del KVM no puede ser NULL o vacia'
+&ErrMsgKeyNull := 'La Clave del elemento del PPLDic no puede ser NULL o vacia'
 
-test("kvm", ->{
+test("PPLDic", ->{
     #ifdef V6
         &prueba := ${STRING1='string', CANTIDAD1=1, PRECIO1=12.2}
     #else
@@ -33,7 +33,7 @@ test("kvm", ->{
     assertEq(NULL, &prueba.STRING2)
 })
 
-test("kvm set kvmprop", ->{
+test("PPLDic set prop", ->{
     &suscripcion := ${codigo='FCS', nombre='Suscripcion de fondos', tipo='FCI'}
     &rescate := ${codigo='FCR', nombre='Rescate de fondos', tipo = &suscripcion.tipo}
     
@@ -41,7 +41,7 @@ test("kvm set kvmprop", ->{
     assertEq('FCI', &rescate.tipo)
 })
 
-test("kvm props case insensitive", ->{
+test("PPLDic props case insensitive", ->{
     &op := ${codigo = 'MMPF', NOMBRE='Plazo Fijo'}
     
     assertEq('MMPF', &op.codigo)
@@ -50,7 +50,7 @@ test("kvm props case insensitive", ->{
     assertEq('Plazo Fijo', &op.NOMBRE)
 })
 
-test("kvm add kvmprop", ->{
+test("PPLDic add kvmprop", ->{
     &persona := ${nombre = 'Pepe'}
     &persona.add(${apellido = 'Argento', dni = 12345678})
     **&persona.apellido := 'Argento'
@@ -76,7 +76,7 @@ test("kvm add kvmprop", ->{
     assertEq('Pepito', &persona.nombre)
 })
 
-test("kvm remove kvmprop", ->{
+test("PPLDic remove prop", ->{
     &persona := ${nombre = 'Pepe', apellido = 'Argento', dni = 12345678, tel = NewPplObj('5555555',SI,SI), FechaNac = Fecha('02/01/2020')}
     &persona.remove('apellido')
     &persona.remove('dni')
@@ -92,7 +92,7 @@ test("kvm remove kvmprop", ->{
     assertEq(NULL, &persona.FechaNac)
 })
 
-test("kvm contains kvmprop", ->{
+test("PPLDic contains prop", ->{
     &persona := ${nombre = 'Pepe', apellido = 'Argento', dni = 12345678, tel = NewPplObj('5555555',SI,SI), FechaNac = Fecha('02/01/2020')}
     &persona.remove('dni')
     assertEq(SI, &persona.contains('nombre'))
@@ -109,46 +109,46 @@ test("kvm contains kvmprop", ->{
     assertEq(SI, &persona.contains('FECHANAC'))
 })
 
-test("kvm anidado", -> {
-    &prueba := ${STRING1='string',SUBKVM=${ENTERO1=10}}
+test("PPLDic anidado", -> {
+    &prueba := ${STRING1='string',SUBDIC=${ENTERO1=10}}
     assertEq('string', &prueba.STRING1)
     *Este caso por el momento no lo vamos a soportar
-    *assertEq(10, &prueba.SUBKVM.ENTERO1)
+    *assertEq(10, &prueba.SUBDIC.ENTERO1)
     *El workarround es setearlo en una variable temporal
-    &tmp := &prueba.SUBKVM
+    &tmp := &prueba.SUBDIC
     assertEq(10, &tmp.ENTERO1)
 })
 
-test("kvm count", ->{
+test("PPLDic count", ->{
     &op := ${codigo='MMPF', nombre='Plazo Fijo', count=30}
     &op.remove('nombre')
     assertEq(30, &op.count)
     assertEq(2, &op.count())
 })
 
-test("kvm recorrer&i", -> {
-    &kvm := ${key1=1, key2=2, key3=3}
+test("PPLDic recorrer&i", -> {
+    &dic := ${key1=1, key2=2, key3=3}
     recorrer&k 1, 3
-      assertEq(&k, &kvm.get('key'~FSTR(&k,0,0)))
+      assertEq(&k, &dic.get('key'~FSTR(&k,0,0)))
     proximo
 })
 
-test("kvm errors", ->{
-    &kvm := ${STRING1='string'}
+test("PPLDic errors", ->{
+    &dic := ${STRING1='string'}
     
     assertError(&ErrMsgKeyNull, -> {
-        &kvm.Add(NULL, NULL)
+        &dic.Add(NULL, NULL)
     })
     assertError(&ErrMsgKeyNull, -> {
-        &kvm.Add('', NULL)
+        &dic.Add('', NULL)
     })
-    assertError('No se pudo agregar los valores al KVM', -> {
-        &kvm.Add(1)
-    })
-    assertError(&ErrMsgKeyNull, -> {
-        &kvm.Remove(NULL)
+    assertError('No se pudo agregar los valores al PPLDic', -> {
+        &dic.Add(1)
     })
     assertError(&ErrMsgKeyNull, -> {
-        &kvm.Remove('')
+        &dic.Remove(NULL)
+    })
+    assertError(&ErrMsgKeyNull, -> {
+        &dic.Remove('')
     })
 })
