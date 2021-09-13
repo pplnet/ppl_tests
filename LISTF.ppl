@@ -3,9 +3,9 @@
 &dos := NewPPLObj(2)
 
 test("list for in", -> {
-    &lista1  := |1,2,3|
-    &lista2 := |'HOLA','QUE','TAL'|
-    &lista3 := |&cero,&uno,&dos|
+    &lista1  := $[1,2,3]
+    &lista2 := $['HOLA','QUE','TAL']
+    &lista3 := $[&cero,&uno,&dos]
     
     &counter := 0
     for &val1 in &lista1
@@ -30,8 +30,8 @@ test("list for in", -> {
 })
 
 test("list for in anidados", -> {
-    &lista1  := |1,2,3|
-    &lista2  := |4,5,6|
+    &lista1  := $[1,2,3]
+    &lista2  := $[4,5,6]
     &counter := 0
     
     for &val1 in &lista1
@@ -47,7 +47,7 @@ test("list for in anidados", -> {
 })
 
 test("list for in break", -> {
-    &lista  := |1,2,3|
+    &lista  := $[1,2,3]
     &res := 0
     
     for &val in &lista
@@ -65,7 +65,7 @@ test("list for in break", -> {
 })
 
 test("list for in continue", -> {
-    &lista  := |1,2,3|
+    &lista  := $[1,2,3]
     &res := 0
     
     for &val in &lista
