@@ -13,7 +13,7 @@ ACN(A:5,4)
 &ErrMsgAddRange := 'AddRange debe recibir una lista.'
 
 test("list add", -> {
-    &lista := ||
+    &lista := $[]
     &lista.add('HOLA')
     &lista.add(1)
     &lista.add(&dos)
@@ -27,7 +27,7 @@ test("list add", -> {
 
 test("list itemAt", -> {
     #ifdef V6
-        &lista1 := |'HOLA',2,3|
+    &lista1 := $['HOLA',2,3]
     #else
         &lista1 := |
             'HOLA',
@@ -51,7 +51,7 @@ test("list itemAt", -> {
 })
 
 test("list indexOf", -> {
-    &lista1 := |1,2,3,'HOLA'|
+    &lista1 := $[1,2,3,'HOLA']
     &lista2 := list(2,3,5,7)
     
     assertEq(2, &lista1.indexOf(3))
@@ -75,9 +75,9 @@ test("list indexOf", -> {
 })
 
 test("list InsertAt", -> {
-    &lista1 := |1,2,3|
+    &lista1 := $[1,2,3]
     &lista2 := list(2,3,5,7)
-    &lista3 := |'HOLA'|
+    &lista3 := $['HOLA']
     
     &lista1.insertAt(3,4)
     &lista2.insertAt(4,6)
@@ -104,7 +104,7 @@ test("list InsertAt", -> {
 })
 
 test("list RemoveAt", -> {
-    &lista1 := |1,2,3|
+    &lista1 := $[1,2,3]
     &lista2 := list(2,3,5,7)
     
     &lista1.removeAt(1)
@@ -124,9 +124,9 @@ test("list RemoveAt", -> {
 })
 
 test("list ReplaceAt", -> {
-    &lista1 := |1,2,3|
+    &lista1 := $[1,2,3]
     &lista2 := list(2,3,5,7)
-    &lista3 := |'','CHAU'|
+    &lista3 := $['','CHAU']
     
     &lista1.replaceAt(1,4)
     &lista2.replaceAt(2,6)
@@ -148,7 +148,7 @@ test("list ReplaceAt", -> {
 })
 
 test("list count", -> {
-    &lista := ||
+    &lista := $[]
     
     assertEq(0, &lista.count)
     assertEq(0, &lista.count())
@@ -167,15 +167,15 @@ test("list count", -> {
 })
 
 test("list recorrer&i", -> {
-    &lista := |1,2,3|
+    &lista := $[1,2,3]
     recorrer&i 0, 2
         assertEq(&i+1, &lista.itemAt(&i))
     proximo
 })
 
 test("list addRange", -> {
-    &lista1 := |1,2,3|
-    &lista2 := |4,5,6|
+    &lista1 := $[1,2,3]
+    &lista2 := $[4,5,6]
     
     &lista1.AddRange(&lista2)
 
@@ -183,7 +183,7 @@ test("list addRange", -> {
       assertEq(&i+1, &lista1.itemAt(&i))
     proximo
     
-    &lista3 := ||
+    &lista3 := $[]
     
     &lista3.AddRange(&lista1)
     &lista3.AddRange(&lista2)
@@ -194,9 +194,9 @@ test("list addRange", -> {
 })
 
 test("list matriz", -> {
-    &lista1 := |1,2,3|
-    &lista2 := |4,5,6,7|
-    &matriz := ||
+    &lista1 := $[1,2,3]
+    &lista2 := $[4,5,6,7]
+    &matriz := $[]
     
     &matriz.Add(&lista1)
     &matriz.Add(&lista2)
@@ -209,7 +209,7 @@ test("list matriz", -> {
 })
 
 test("list errors", ->{
-    &lista := |1,2,3|
+    &lista := $[1,2,3]
     
     assertError('El item a agregar no puede ser NULL o vacio.', -> {
         &lista.Add(NULL)
