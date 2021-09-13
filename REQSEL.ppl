@@ -4,10 +4,10 @@ test("recorrer sel", ->{
       assertFail()
     Proximo
     
-    &valoresListBox := |2,5,8|
+    &valoresListBox := $[2,5,8]
     SetearListBox(&valoresListBox)
     
-    &lista := ||
+    &lista := $[]
     RecorrerSel
       &lista.Add(filaciclo)
     Proximo
@@ -18,7 +18,7 @@ test("recorrer sel", ->{
 
 #ifdef V7
 test("recorrer sel continue", ->{
-    &valoresListBox := |7,9,10|
+    &valoresListBox := $[7,9,10]
     SetearListBox(&valoresListBox)
     
     &lista3 := ||
@@ -35,10 +35,10 @@ test("recorrer sel continue", ->{
 #endif
 
 test("recorrer sel break", ->{
-    &valoresListBox := |7,9,10|
+    &valoresListBox := $[7,9,10]
     SetearListBox(&valoresListBox)
     
-    &lista2 := ||
+    &lista2 := $[]
     RecorrerSel
       &lista2.Add(filaciclo)
       break
