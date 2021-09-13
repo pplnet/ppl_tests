@@ -12,7 +12,7 @@ test('serialize PPLDic', -> {
 })
 
 test('serialize PPLList', -> {
-    &data := |1,2,'3'|
+    &data := $[1,2,'3']
     &json := JSON(&data)
     assertEq('[1,2,"3"]', &json)
 })
@@ -20,13 +20,13 @@ test('serialize PPLList', -> {
 test('serialize PPLList of PPLDic', -> {
     &dic1 := ${String1='foo', Number1=100}
     &dic2 := ${String1='bar', Number1=200}
-    &data := |&dic1, &dic2|
+    &data := $[&dic1, &dic2]
     &json := JSON(&data)
     assertEq('[{"string1":"foo","number1":100},{"string1":"bar","number1":200}]', &json)
 })
 
 test('serialize PPLDic of PPLList', -> {
-    &list := |1,2,3|
+    &list := $[1,2,3]
     &data := ${data=&list}
     &json := JSON(&data)
     assertEq('{"data":[1,2,3]}', &json)
