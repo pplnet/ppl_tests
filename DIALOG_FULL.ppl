@@ -23,13 +23,13 @@ test("dialog", -> {
     
     ** En V7 esta pendiente resolver los defaults
     #ifdef V6
-    &expParams := |'Monto',Missing(),Missing(),1,SI,SI,SI,NULL,SI,Missing(),Missing(),NULL,NULL,NULL,''|
+    &expParams := $['Monto',Missing(),Missing(),1,SI,SI,SI,NULL,SI,Missing(),Missing(),NULL,NULL,NULL,'']
     #else
     &expParams := |'Monto',Missing(),Missing()|
     #endif
     
     assertParams('Cantidad1', &expParams)
-    assertParams('Cantidad2', |'Monto2',1,1,1,SI,SI,SI,'Valido',SI,1,2,Missing(),Missing(),'#0.000',''|)
+    assertParams('Cantidad2', $['Monto2',1,1,1,SI,SI,SI,'Valido',SI,1,2,Missing(),Missing(),'#0.000',''])
     *********
     
     ** TODO: Resto de tipos de campos...
