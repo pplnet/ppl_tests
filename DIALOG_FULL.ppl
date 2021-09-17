@@ -25,7 +25,7 @@ test("dialog", -> {
     #ifdef V6
     &expParams := $['Monto',Missing(),Missing(),1,SI,SI,SI,NULL,SI,Missing(),Missing(),NULL,NULL,NULL,'']
     #else
-    &expParams := |'Monto',Missing(),Missing()|
+    &expParams := $['Monto',Missing(),Missing()]
     #endif
     
     assertParams('Cantidad1', &expParams)
