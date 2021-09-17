@@ -29,11 +29,11 @@ test("list itemAt", -> {
     #ifdef V6
     &lista1 := $['HOLA',2,3]
     #else
-        &lista1 := |
+        &lista1 := $[
             'HOLA',
             2,
             3
-        |
+        ]
     #endif
     &lista2 := list(2,3,5,7)
     
