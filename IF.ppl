@@ -21,11 +21,11 @@
     #ifdef V6
     &string1 := 'hola'
     &string2 := 'chau'
-    If [Not EqStr('', &string1)] o [Eqstr('', &string1) y &string1 <> &string2]
-       ** comment
-    Else
-       ** comment
-    EndIf
+    **If [Not EqStr('', &string1)] o [Eqstr('', &string1) y &string1 <> &string2]
+    **   ** comment
+    **Else
+    **   ** comment
+    **EndIf
     assertPass()
     
     If 1=1

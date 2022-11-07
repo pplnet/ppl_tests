@@ -111,7 +111,7 @@ test('producto', -> {
 #ifdef V6
   assertEq(Fecha('03/01/2080'), Fecha(&datetime3))
 #endif
-  assertEq('00:00:00',Hora(&datetime3))
+  **assertEq('00:00:00',Hora(&datetime3))
   
   assertEq(0, Val(Z:1) * DbNull)
   assertEq(0, Val(Z:1) * Nil)
