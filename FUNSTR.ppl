@@ -3,9 +3,11 @@
 **********************
 test('Comillas', ->{
    assertEq("Probando 'comillas simples'", "Probando '" ~ "comillas simples'")
-   &sql := "A%"
-   assertEq("SELECT * FROM CLIENTES WHERE NOMBRE LIKE 'A%'", "SELECT * FROM CLIENTES WHERE NOMBRE LIKE '" ~ &sql ~  "'")
+   assertEq('Probando "comillas dobles"', 'Probando "' ~ 'comillas dobles"')
+   assertEq("Probando 'concatenacion'", "Probando '" ~ "concatenacion" ~  "'")
+   assertEq('Probando escape de ''comillas''', "Probando escape de 'comillas'")
 })
+
 
 **********************
 *ITEM LISTA
