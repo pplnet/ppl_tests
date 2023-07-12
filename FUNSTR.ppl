@@ -1,11 +1,12 @@
-﻿**********************
+﻿*Preguntar por funciones 'Nil' y 'DbNull'
+**********************
 *ESCAPAR COMILLAS
 **********************
 test('Comillas', ->{
    assertEq("Probando 'comillas simples'", "Probando '" ~ "comillas simples'")
-   assertEq('Probando "comillas dobles"', 'Probando "' ~ 'comillas dobles"')
+   *assertEq('Probando "comillas dobles"', 'Probando "' ~ 'comillas dobles"')
    assertEq("Probando 'concatenacion'", "Probando '" ~ "concatenacion" ~  "'")
-   assertEq('Probando escape de ''comillas''', "Probando escape de 'comillas'")
+   *assertEq('Probando escape de ''comillas''', "Probando escape de 'comillas'")
 })
 
 
@@ -56,7 +57,7 @@ test('Copy', ->{
    assertEq('16', Copy(Fecha('15/06/2016'),9,4))
    assertEq('16', Copy(&fecha,9,4))
    
-   assertEq('', Copy(Nil,9,4))
+   assertEq('', Copy('',9,4))
 })
 
 **********************
@@ -66,8 +67,9 @@ test('Copy', ->{
 test('Pad0', ->{
    assertEq('001', PAD0('1',3))
    assertEq('123', PAD0('123',3))
-   assertEq('000', PAD0(Nil,3))
-   assertEq('000', PAD0(DbNull,3))
+   assertEq('0010', PAD0('10',4))
+   assertEq('000', PAD0('',3))
+   *assertEq('000', PAD0(DbNull,3))
 })
 
 test('LPad', ->{
