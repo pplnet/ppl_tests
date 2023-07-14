@@ -199,27 +199,24 @@ test('EqStrli', ->{
 *BUSCAR
 **************
 
-*No entiendo por qué esta incluída esta función.
-*Por lo que entiendo de los tests, funciona igual que la función "Incluido"
-
-*test('Buscar', ->{
-*   assertEq(NO, Buscar('',''))
-*   assertEq(NO, Buscar('a',''))
-*   assertEq(NO, Buscar('','a'))
-*   assertEq(SI, Buscar('a','aa'))
-*   assertEq(NO, Buscar('aa','a'))
-*   assertEq(NO, Buscar('a','b'))
-*   assertEq(NO, Buscar('b','a'))
-*   assertEq(NO, Buscar('0','1'))
-*   assertEq(NO, Buscar('0','a'))
-*   assertEq(NO, Buscar('1','00'))
-*   assertEq(NO, Buscar('12','0102'))
-*   assertEq(SI, Buscar('12','0120'))
-*   assertEq(NO, Buscar('hola','chau'))
-*   assertEq(SI, Buscar('hola','holachau'))
-*   assertEq(NO, Buscar('hola ','holachau'))
-*   assertEq(SI, Buscar('hola ','hola chau'))
-*})
+test('Buscar', ->{
+   assertEq(NO, Buscar('',''))
+   assertEq(NO, Buscar('a',''))
+   assertEq(NO, Buscar('','a'))
+   assertEq(SI, Buscar('a','aa'))
+   assertEq(NO, Buscar('aa','a'))
+   assertEq(NO, Buscar('a','b'))
+   assertEq(NO, Buscar('b','a'))
+   assertEq(NO, Buscar('0','1'))
+   assertEq(NO, Buscar('0','a'))
+   assertEq(NO, Buscar('1','00'))
+   assertEq(NO, Buscar('12','0102'))
+   assertEq(SI, Buscar('12','0120'))
+   assertEq(NO, Buscar('hola','chau'))
+   assertEq(SI, Buscar('hola','holachau'))
+   assertEq(NO, Buscar('hola ','holachau'))
+   assertEq(SI, Buscar('hola ','hola chau'))
+})
 
 
 **********************
