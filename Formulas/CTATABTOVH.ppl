@@ -1,0 +1,6 @@
+﻿RelacionCuenta('','','','',
+                #TIPOOP,
+                '','','',
+                Modelo.Alias1,
+                0,'','','','','','','',
+                #VEHICULO)

@@ -1,0 +1,66 @@
+﻿CrearDialogo
+    Fecha1    : 'Fecha Desde';;;;;;Dialogo.Fecha1 <= Dialogo.Fecha2;"Fecha Desde debe ser menor o igual a Fecha Hasta";NO;FSYS;;;;
+    Fecha2    : 'Fecha Hasta';;;;;;Dialogo.Fecha2 >= Dialogo.Fecha1;"Fecha Hasta debe ser mayor o igual a Fecha Desde";NO;FinDeMes(Fsys,SI);;;;
+    Cuenta1   : 'Cuenta'     ;;;;;;NoVacio(Dialogo.Cuenta1);"Debe ingresar una cuenta";NO;;;;;
+FinDialogo
+
+If Not Ok
+    Cancelar
+Endif
+
+*IMPORTANTE: este evento corrige los saldos tomando como referencia saldos anteriores.
+*Es decir, si yo en Fecha1 ingreso 15/06/2023, el evento toma referencia los saldos desde 14/06/2016.
+*Cualquier error que haya en el 14/06/2023 se replicará el 15 si no está correcto.
+
+*Si arranco el primer dia del mes, no tengo que validar la existencia de un saldo anterior
+*Si arranco un día que no sea el primero del mes, necesito que haya un registro anterior a la fecha ingresada
+let &fechaInicio IIF(Dialogo.Fecha1 = PriDeMes(Dialogo.Fecha1,SI),Dialogo.Fecha1,Dialogo.Fecha1-1)
+
+*Primero debo validar que en el rango de fechas no haya ningun saldo procesado
+IF Query("SELECT 1 FROM "~DBO~".SALDOSBANCARIOS WHERE FechaSaldo >= '"~IdxDate(&Dialogo.Fecha1)~"' AND FechaSaldo <= '"~IdxDate(Dialogo.Fecha2)~"' AND NrCuenta = '"~BuscarCampo('CUENTAS','Numero','Codigo',Dialogo.Cuenta1)~"' AND Estado in ('PRO') ") = 1
+    Cancelar("Hay saldos procesados en el rango de fecha especificado por parametro. Debe anularlos antes de ejecutar este evento.")
+ENDIF
+
+let &validoPrimerRegistro 1
+
+SQL.ADD(" SELECT FechaSaldo, NrCuenta, SaldoContable, Ajuste, DiasAcu, SaldoAcuCon ")
+SQL.ADD(" FROM "~DBO~".SALDOSBANCARIOS ")
+SQL.ADD(" WHERE FechaSaldo >= '"~IdxDate(&fechaInicio)~"' ")
+SQL.ADD(" AND FechaSaldo <= '"~IdxDate(Dialogo.Fecha2)~"' ")
+SQL.ADD(" AND NrCuenta = '"~BuscarCampo('CUENTAS','Numero','Codigo',Dialogo.Cuenta1)~"' ")
+SQL.ADD(" AND Estado in ('REC') ")
+SQL.ADD(" ORDER BY FechaSaldo ")
+Recorrer SQL
+    IF &validoPrimerRegistro = 1 Y &fechaInicio <> fbn('FechaSaldo')  
+        Cancelar('Debe haber un saldo para la fecha '~Fecha(&fechaInicio)~' para corregir saldos desde '~Fecha(Dialogo.Fecha1))
+    ENDIF
+    let &validoPrimerRegistro 0
+    IF fbn('FechaSaldo') < Dialogo.Fecha1
+        let &acumuladoDiaAnterior fbn('SaldoAcuCon')
+    ELSE
+        IF fbn('FechaSaldo') > PriDeMes(fbn('FechaSaldo'),SI)
+            let &acumuladoHoy &acumuladoDiaAnterior+fbn('SaldoContable')+fbn('Ajuste')
+        ELSE
+            let &acumuladoHoy fbn('SaldoContable')+fbn('Ajuste')
+        ENDIF
+        SQL.ADD(" UPDATE "~DBO~".SALDOSBANCARIOS ")
+        SQL.ADD(" SET  ")
+        SQL.ADD(" SaldoAcuIni = "~Fstr(&acumuladoHoy,0,2)~", ")
+        SQL.ADD(" SaldoAcuCon = "~Fstr(&acumuladoHoy,0,2)~", ")
+        SQL.ADD(" SaldoAcuOpe = "~Fstr(&acumuladoHoy,0,2)~", ")
+        SQL.ADD(" SaldoIniPromedio = "~Fstr(&acumuladoHoy/fbn('DiasAcu'),0,2)~", ")
+        SQL.ADD(" SaldoConPromedio = "~Fstr(&acumuladoHoy/fbn('DiasAcu'),0,2)~", ")
+        SQL.ADD(" SaldoOpePromedio = "~Fstr(&acumuladoHoy/fbn('DiasAcu'),0,2)~" ")
+        SQL.ADD(" WHERE FechaSaldo = '"~IdxDate(fbn('FechaSaldo'))~"' ")
+        SQL.ADD(" AND NrCuenta = '"~BuscarCampo('CUENTAS','Numero','Codigo',Dialogo.Cuenta1)~"' ")
+        SQL.ADD(" AND Estado in ('REC') ")
+        SQL.NEW
+        SQL.EXEC
+        let &acumuladoDiaAnterior &acumuladoHoy
+        let &ultimaFechaProcesada fbn('FechaSaldo')
+    ENDIF
+Proximo
+
+IF NoVacio(&ultimaFechaProcesada)
+    MessageBox("Se han corregido los saldos hasta el "~Fecha(&ultimaFechaProcesada))
+ENDIF

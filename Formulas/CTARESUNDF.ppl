@@ -1,0 +1,7 @@
+﻿* CREO QUE ESTA NO SE USA, ALCANZA CON LA FORMULA CTARESULT
+RelacionCuenta('','','','',
+                fbn('TipoOp'),
+                Modelo.Alias2,
+                '',
+                '',
+                Modelo.Alias1)

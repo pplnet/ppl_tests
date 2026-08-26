@@ -1,0 +1,2 @@
+﻿ReemplazarSTR(Copy(fbn('CUIT'),1,Longitud(fbn('CUIT'))-1),'-','',SI)
+

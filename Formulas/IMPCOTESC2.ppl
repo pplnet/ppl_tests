@@ -1,0 +1,13 @@
+﻿IIF(Eqstr(#MONEDA, #COTIZA),
+   #IMPORTE,
+   IIF(Eqstr(#MONELOCAVH, #COTIZA),
+      #IMPORTE*#COTMONLOCC,
+      IIF(Eqstr(#MONEFUERTE, #COTIZA),
+         #IMPORTE*#COTMONFUEC,   
+         IIF(Eqstr(#MONEGRUPO, #COTIZA),
+            #IMPORTE*#COTMONGRUC,   
+            #IMPORTE*COTIZACIONC(#MONEDA,,,,Val(FV:2),1,SI,#COTIZA)
+         )
+      )
+   )
+)

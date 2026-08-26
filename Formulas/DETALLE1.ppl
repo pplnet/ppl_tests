@@ -1,0 +1,4 @@
+﻿***---Copy(fbn('TipoOp')~'|'~fbn('Cliente1')~'|'~Fstr(fbn('Precio1'), 0, 8)~'|'~fbn('Plazo'), 1, 200)
+***---fbn('Observaciones')
+Copy(fbn('CodAsi')~'-'~BuscarCampo('MODELOSASIENTO','Descripcion','Codigo', fbn('CodAsi'))~'-'~fbn('Cliente1')~'-'~fbn('NrOperacion'), 1, 100)
+

@@ -1,0 +1,1 @@
+﻿SQL(" Select Importe2 From "~DBO~".COMISIONES2 Where NrOperacion = '"~fbn('NrOperacion')~"' AND NrComision = "~FBN('NrGrupo2')~" ")

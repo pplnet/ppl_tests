@@ -1,0 +1,20 @@
+﻿CAMPOS:1;;BuscarCampo('VEHICULOS','Alias3','Codigo',Vehiculo1)
+Fecha1        : 'Fecha Comis'  ;;;;;;FECHA1>0;'Fecha invalida';NO;Fsys;
+Vehiculo1     : 'Vehiculo'     ;;;;;;NoVacio(VEHICULO1);'Vehiculo invalido';NO;;IF(NoVacio(CUENTA1),BuscarCampo('CUENTAS','Cliente','Codigo',CUENTA1),VEHICULO1);;;;;;IF (Vacio(CUENTA1) y Vacio(CLIENTE1),"Codigo IN (Select DISTINCT Cliente From "~DBO~".CUENTAS)","Codigo IN (Select DISTINCT Cliente From "~DBO~".CUENTAS Where Comitente = '"~CLIENTE1~"')")
+Cliente1      : 'Entidad'      ;;;;;;NoVacio(CLIENTE1);'Entidad invalida';NO;;IF (NoVacio(CUENTA1),BuscarCampo('CUENTAS','Comitente','Codigo',CUENTA1),CLIENTE1);;;;;;IF(Vacio(VEHICULO1),"dbo.DesciendeDeCliente(Codigo,'BANCOS')=1 and Status = 'HAB' and Codigo IN (Select DISTINCT Comitente From "~DBO~".CUENTAS)","dbo.DesciendeDeCliente(Codigo,'BANCOS')=1 and Status = 'HAB' and Codigo IN (Select DISTINCT Comitente From "~DBO~".CUENTAS Where Cliente = '"~VEHICULO1~"')");;;
+Cuenta1       : 'Cuenta'       ;;;;;;[[ClienteCuenta(VEHICULO1,CUENTA1) y EspecieCuenta(ESPECIE,CUENTA1) y EqSTr(BuscarCampo('CUENTAS','Estado','Codigo',CUENTA1),'HAB')] y NoVacio(CUENTA1)];"La Cuenta no es valida";NO;;;;;;;;IF(NoVacio(VEHICULO1) Y NoVacio(CLIENTE1),"Cliente='"~VEHICULO1~"' and Comitente='"~CLIENTE1~"' AND Estado = 'HAB' and (Especies Like '%"~Especie~"%')",)
+Especie       : 'Moneda'       ;;;;;;NoVacio(ESPECIE) y DesciendeDeEspecie(ESPECIE,'MONEDA') Y EsTerminal(ESPECIE,ESPECIE) Y [Incluido(ESPECIE, BuscarCampo('CUENTAS','Especies','Codigo', CUENTA1)) O Incluido('MONEDA', BuscarCampo('CUENTAS','Especies','Codigo', CUENTA1))];'Moneda Invalida';NO;;;;;;;;"dbo.DESCIENDEDEESPECIE(Codigo,'MONEDA') = 1";
+Cantidad1     : 'Gastos'       ;;;;;;CANTIDAD1>=0;'Los Gastos no pueden ser negativos'   ;NO;0;
+Precio1       : 'Tasa IVA'     ;;;;;;PRECIO1>=0  ;'La Tasa de Iva no puede ser negativa';NO;0;
+Cantidad2     : 'IVA'          ;;;;;;CANTIDAD2>=0;'El monto de Iva no puede ser negativo';NO; ;CANTIDAD1*PRECIO1/100
+
+MOVIMIENTOS
+Fecha1;Vehiculo1;Especie;;;;;Vehiculo1;50;-Cantidad1;;'Gastos';;SI;;Eqstr(BuscarCampo('CUENTAS','TipoCuenta','Codigo', Cuenta1), 'CUS');;Cuenta1;;10;;;;;;;;;;;;;;
+Fecha1;Vehiculo1;Especie;;;;;Vehiculo1;50;-Cantidad2;;'IVA'   ;;SI;;Eqstr(BuscarCampo('CUENTAS','TipoCuenta','Codigo', Cuenta1), 'CUS');;Cuenta1;;10;;;;;;;;;;;;;;
+
+
+POSTEDICION
+Eqstr(ABM,'D');'BINGAS';NrTrans1=NRTRANS
+
+BITS
+20;1

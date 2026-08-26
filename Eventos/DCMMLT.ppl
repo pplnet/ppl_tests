@@ -1,0 +1,85 @@
+﻿IF Vacio(UsrVehiculos(UsuarioActivo))
+    ACT(LS:1, SQLSet(" Select Codigo from "~DBO~".VEHICULOS where Status = 'HAB' "))
+ELSE
+    ACT(LS:1, UsrVehiculos(UsuarioActivo))
+ENDIF
+
+CrearDialogo
+  Radio1        : 'Calculo|Por Fecha|Por Operacion'    ;;;;;;;;;0
+  NrOperacion1  : 'Operacion: '        ;;;;SI;Radio1=1;(Incluido(BuscarCampo('OPERACIONES','TipoOp','NrOperacion',Dialogo.NrOperacion1),Var('TIPOOPDCMM')) Y BuscarCampo('OPERACIONES','Especie','NrOperacion',Dialogo.NrOperacion1)<>VAR('MONELOCA')) o Dialogo.Radio1=0;'La operación ingresada es inválida';NO;;;;;;"TipoOp IN ("~Pipe2Comillas(Var('TIPOOPDCMM'))~") and Especie<>'"~VAR('MONELOCA')~"' "
+  
+  Check1        : 'Filtrar Fechas'     ;;;;;NO;;;;0;
+  
+  Fecha1        : 'Fecha Desde'        ;;;;SI;Radio1=0;(NoVacio(Dialogo.Fecha1) Y Dialogo.Fecha1<=Dialogo.Fecha2) o Dialogo.Radio1=1;'Debe Ingresar una Fecha Válida';NO;FSys-1
+  Fecha2        : 'Fecha Hasta'        ;;;;SI;Radio1=0;(NoVacio(Dialogo.Fecha2) Y Dialogo.Fecha1<=Dialogo.Fecha2 y Dialogo.Fecha2<Fsys) o Dialogo.Radio1=1;'Debe Ingresar una Fecha Válida';NO;FSys-1
+  Lista1        : 'TiposOp: '          ;;;;SI;Radio1=0;;;;;;SQLSet("SELECT Codigo FROM TIPOSOPERACION WHERE Codigo IN ("~Pipe2Comillas(Var('TIPOOPDCMM'))~")  ")
+
+  Radio2: 'Filtra Book|SI|NO'          ;;;;;Dialogo.Radio1=0;;;;1;
+  Lista2: 'Vehiculos'                  ;;;;;Dialogo.Radio2=1 y Dialogo.Radio1=0;;;;;;IIF(Vacio(UsrVehiculos(UsuarioActivo)), Val(LS:1), SQLSet(" Select U.Vehiculo From "~DBO~".USRVEHICULO U, "~DBO~".VEHICULOS V Where V.Codigo = U.Vehiculo AND U.Codigo = '"~UsuarioActivo~"' AND V.Status = 'HAB' "));;
+  Vehiculo1: 'Vehiculo'                ;;;;;Dialogo.Radio2=0 y Dialogo.Radio1=0;Dialogo.Radio2=1 O NoVacio(Dialogo.Vehiculo1) ;'Vehiculo Invalido';NO;;;;;;;
+  Lista3: 'Books'                      ;;;;;Dialogo.Radio2=0 y Dialogo.Radio1=0;NoVacio(Dialogo.Lista3) o Dialogo.Radio2=1;'Debe indicar book/s';NO;;;SQLSet(" Select Codigo From "~DBO~".BOOKS Where Vehiculo = '"~Dialogo.Vehiculo1~"' ");;
+  Check2: 'Solo Saldos Bancarios'      ;1;2;;;Dialogo.Radio1=0;;;;0;
+FinDialogo
+
+If Not Ok
+   Cancelar
+Endif
+
+
+**Variables
+If Dialogo.Radio1=0
+    **Cálculo para Rango de Fechas
+    let &nrOperacion ''
+    let &fechaIni Dialogo.Fecha1
+    let &fechaFin Dialogo.Fecha2
+    let &tiposOp  Dialogo.Lista1
+    let &filtraBook 1
+    
+    If Dialogo.Radio2 =1
+        *No filtra Book
+        If Vacio(Dialogo.Vehiculo1)
+            *No ingresa vh
+            If Vacio(Dialogo.Lista2)
+                let &vehiculos Val(LS:1)
+            Else
+                let &vehiculos Dialogo.Lista2
+            Endif
+        Else
+            *Ingresa vehiculo
+            let &vehiculo Dialogo.Vehiculo1
+            let &vehiculos ''
+            let &books ''
+        Endif
+    Else
+        *Filtra book
+        let &filtraBook 0
+        let &vehiculo Dialogo.Vehiculo1
+        let &vehiculos ''
+        let &books Dialogo.Lista3
+    Endif
+    
+Else
+    **Cálculo para una operacion
+    let &nrOperacion Dialogo.NrOperacion1
+    **Cintia 270724 Se agrega que se pueda filtrar fecha cuando se ingresa por operacion (oculto para el cliente) por precancelacion ON
+    If Dialogo.Check1 =1
+        let &fechaIni Dialogo.Fecha1
+        let &fechaFin Dialogo.Fecha2
+    Else
+        let &fechaIni SQL("Select Min(Fecha) from "~DBO~".MOVDEVENGADOS Where NrOperacion='"~&NrOperacion~"' ")
+        let &hoy Fecha(FSYS)
+        let &fechaFin SQL("Select Max(Fecha) from "~DBO~".MOVDEVENGADOS Where NrOperacion='"~&NrOperacion~"' and Fecha< '"~IdxDate(&hoy)~"' ")
+    Endif
+    let &tiposOp  ''
+    let &vehiculo ''
+    let &vehiculos ''
+    let &books ''
+    let &filtraBook 1
+Endif 
+
+
+Recorrer&k &fechaIni, &fechaFin
+        EjecutarEvento('DCMM', Fecha1=&k, Lista1=&tiposOp, NrOperacion1=&nrOperacion,Vehiculo1=&vehiculo, Lista2=&vehiculos, Lista3=&books,Radio1=&filtraBook,Check1=Dialogo.Check2)
+Proximo
+
+   

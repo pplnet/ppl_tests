@@ -1,0 +1,96 @@
+﻿*HOJAVISIBLE(SI)
+* Cancelacion de Calculo de commitment Fee
+CrearDialogo
+  Fecha1       : "Fecha"                    ;;;;;;;;;Fsys
+  NrOperacion1 : "NrOperacion"              ;;;;;;;;;;;SqlSet("Select O.NrOperacion from "~DBO~".OPERACIONES O Where TipoOp IN ('MMP','MMPV','MMFRN','MMFCMV','MMPSC','MMSCMV') ");
+FinDialogo
+
+if Not Ok
+  Cancelar
+endif
+
+*- Control de vehiculo habilitado para el usuario
+*- vh1: vehiculo de la operacion o transaccion
+*- Cancela si el vehiculo no esta habilitado para el usuario activo
+
+ACT(vh1, BuscarCampo('OPERACIONES', 'Vehiculo1', 'NrOperacion', Dialogo.NrOperacion1))
+
+(.'CONTROLVH'.)
+
+SQL.ADD(" Select O.FechaOp, O.Cantidad, O.TotalComisiones, O.TotalAux3, O.TotalNetoCli3,O.TipoOp, ")
+SQL.ADD(" C.* from "~DBO~".OPERACIONES O, "~DBO~".COMISIONES2 C ")
+SQL.ADD(" WHERE O.NrOperacion=C.NrOperacion AND C.Fecha1='"~IdxDate(Dialogo.Fecha1)~"' ")
+SQL.ADD(" AND Importe1<>0 AND O.TipoOp IN ('MMP','MMPV','MMFRN','MMFCMV','MMPSC','MMSCMV') AND Tipo IN ('4') ")
+If NoVacio(Dialogo.NrOperacion1)
+   SQL.ADD(" and O.NrOperacion='"~Dialogo.NrOperacion1~"' ")
+EndIf
+SQL.ADD(" ORDER BY C.NrOperacion,C.Tipo ")
+
+ACN(x3,0)
+
+Recorrer SQL   
+   ACN(x3,1)
+   *-- Verifico que sea el ultimo Commitment Fee Liquidado 
+   SQL.ADD(" Select * FROM "~DBO~".COMISIONES2  ")
+   SQL.ADD(" WHERE NrOperacion='"~FBN['NrOperacion']~"' AND Tipo='"~FBN['Tipo']~"' ")
+   SQL.ADD(" AND Importe1<>0 AND Fecha1>'"~IdxDate(Dialogo.Fecha1)~"' ")
+   SQL.ADD(" ORDER BY Fecha1")
+   
+   * X1=1 -> Se pago con anterioridad la comision tipo 6 
+   ACN(x1,0)        
+   Recorrer SQL   
+      DFA
+      ACN(x1,1)    
+      ACN(B:fac,FBN['Importe1'])
+      ACD(C:fac,FBN['Fecha1'])
+      Break
+   Proximo
+ 
+   If val(x1)=1
+      Cancelar("Debe anular Previamente la Comision de Fecha "~IdxDate(val(c:fac))~" de la Operacion '"~FBN['NrOperacion']~"' !!!!" )
+   EndIf
+
+   * Verifico que el movimiento por el commitment fee no haya sido ejecutado
+   ACN(x2,1)
+
+*   ACN(X2,SQL("Select COUNT(*) From "~DBO~".MOVPENDIENTES WHERE NrOperacion='"~FBN['NrOperacion']~"' and Concepto='COMISI' and FechaMov='"~IdxDate(Dialogo.Fecha1)~"' "))
+
+   IF VAL(X2)=0
+      MessageBox("El Commitment Fee Operacion '"~FBN['NrOperacion']~"' Ya Fue Liquidado !!!.")
+   Else 
+      *-- Verifico que la Op. Partida se encuentre en Back Office o Terminal
+      ACN(X1,SQL("Select NrBit FROM "~DBO~".OPERACIONESBITS  Where NrOperacion='"~FBN['NrOperacion']~"' AND Valor='1'"))
+
+      If VAL(X1)<>20 y VAL(X1)<>50
+         *-- Busco la instancia actual
+         MessageBox("'La Operacion "~FBN['NrOperacion']~" Debe estar en BackOffice o Terminal !!!. Instancia Actual="~SQL("Select Nombre FROM "~DBO~".INSTANCIAS  Where NrInstancia="~Fstr(VAL(X1),0,0)~" AND Tabla='OPERACIONES'") )
+      Else 
+         Message('Actualizar Comisiones ...')
+
+         *-- Actualizo la Comision
+         SQL.ADD(" UPDATE "~DBO~".COMISIONES2 ")
+         SQL.ADD(" SET Importe1="~Fstr(0,0,2)~", ")
+         SQL.ADD("     Importe2="~Fstr(0,0,2)~", ")
+         SQL.ADD("     Importe3="~Fstr(0,0,2)~", ")
+         SQL.ADD("     Precio2 ="~Fstr(0,0,2)~", ")
+         SQL.ADD("     Importe4="~Fstr(0,0,2)~", ")
+         SQL.ADD("     Importe5="~Fstr(0,0,2)~" ")
+         SQL.ADD(" WHERE NrOperacion='"~FBN['NrOperacion']~"' and ")
+         SQL.ADD(" NrComision="~Fstr(FBN['NrComision'],0,0)~" ")
+         SQL.NEW
+         SQL.EXEC
+
+         * Actualizo la Instancia de la Operacion a Supervision
+         ACT(i3,fbn['NrOperacion'])
+         (.'MODIINSTAN'.)      
+
+         *** Actualiza movimientos y limites ****
+         SQL.ActualizarMovimientos(FBN['NrOperacion'],SI)
+         SQL.EXEC
+      EndIf
+   ENDIF
+Proximo
+
+If val(x3)=0
+   MessageBox('No se encontro ninguna Comision para Cancelar ')
+EndIf

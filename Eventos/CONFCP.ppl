@@ -1,0 +1,172 @@
+﻿*HojaVisible(SI)
+CrearDialogo
+  Vehiculo1: "Vehiculo"   ;;;;;;NoVacio(Dialogo.Vehiculo1);'Debe Ingresar un Vehiculo';NO;;;iif(Vacio(UsrVehiculos(UsuarioActivo)),SQLSET("Select Codigo from "~DBO~".VEHICULOS"),SQLSET("Select Vehiculo From "~DBO~".USRVEHICULO Where Codigo = '"~UsuarioActivo~"' "));NO
+  Fecha1   : 'Fecha Liq.' ;;;;;;Dialogo.Fecha1>0 y Dialogo.Fecha1<=FSys;'Fecha incorrecta';NO;FSYS;
+  Especie1 : 'Especie'    ;
+  Cliente1 : 'Cliente'    ;
+  NrTrans1 : 'Nro.Voucher';;;;;;Vacio(Dialogo.NrTrans1) o Incluido(BuscarCampo('TRANSACCIONES2','TipoTr2','NrTrans',Dialogo.NrTrans1),'DEP|RET');'Tipo de Comprobante incorrecto';NO;
+  Check1   : 'Display'    ;;;;;;;;;1
+FinDialogo
+If Not OK
+   Cancelar
+Endif
+
+ACN(zz6,0)
+
+If NoVacio(UsrVehiculos(UsuarioActivo))
+   ACN(zz6,SQL("Select 1 from "~DBO~".USRVEHICULO U,"~DBO~".VEHICULOS V where U.Codigo='"~UsuarioActivo~"' and U.Vehiculo='"~Dialogo.Vehiculo1~"' and U.Vehiculo=V.Codigo and (Status='HAB' or Status Is Null or Status='') "))
+Else
+   ACN(zz6,1)
+EndIf
+If val(zz6)=0
+   Cancelar('El Usuario no esta habilitado para operar con este Vehiculo  !!!!')
+EndIf
+
+* Confirmacion de C/P - Recupera aquellas op. para desafectar limites de  de Terminal 
+*- MMCDIA|MMCDP|MMCP|MMCPM|MMD|MMDCA|MMO
+*- FXAT|FXATV|FXCT|FXCTV|FXREPO|FXREPV|FXVT|FXVTV|SECT|SERA|SERP|SEVT
+
+SQL.ADD("Select T.TipoTr2, T.Cliente1, T.CB5, T.NrOperacionRef1, T.NrTrans, ")
+SQL.ADD("       T.Especie, T.Cantidad1, T.Fecha2, T.Cuenta1, T.Cuenta2, ")
+SQL.ADD("       T.Especie1, T.Cantidad2, T.Cupon1 ")
+SQL.ADD("from   "~DBO~".TRANSACCIONES2 T, "~DBO~".OPERACIONESBITS B ")
+SQL.ADD("where  T.NrTrans = B.NrOperacion")
+If NoVacio(Dialogo.NrTrans1)
+   SQL.ADD("       and T.NrTrans = '"~Dialogo.NrTrans1~"' ")
+EndIf
+SQL.ADD("       and T.Vehiculo1 = '"~Dialogo.Vehiculo1~"' and TipoTr2 In ('DEP','RET')")
+SQL.ADD("       and (T.CB9 = '0' or T.CB9 is NULL) ")
+SQL.ADD("       and ")
+  SQL.ADD("(")
+    SQL.ADD("(")
+      SQL.ADD("T.Fecha2 = '"~IdxDate(Dialogo.Fecha1)~"' ")
+      SQL.ADD("and (T.CB3 = '0' or T.CB3 is NULL)")
+    SQL.ADD(") ")
+    SQL.ADD("or ")
+    SQL.ADD("(")
+      SQL.ADD("T.Fecha2 < '"~IdxDate(Dialogo.Fecha1)~"' ")
+*      SQL.ADD("and T.CB3 = '1' OR T.CB3 <> '1' ")
+      SQL.ADD("and T.CB3 = '1'  ")
+    SQL.ADD(") ")
+  SQL.ADD(")")
+if NoVacio(Dialogo.Especie1)
+  SQL.ADD("and (T.Especie = '"~Dialogo.Especie1~"' or "~DBO~".DesciendeDeEspecie(T.Especie,'"~Dialogo.Especie1~"') = 1) ")
+endif
+if NoVacio(Dialogo.Cliente1)
+  SQL.ADD("and T.Cliente1 = '"~Dialogo.Cliente1~"' ")
+endif
+SQL.ADD("and (B.NrBit In (20,17,18) or B.NrBit < 11) ")
+SQL.ADD("and B.Valor = '1' ")
+SQL.ADD("Order By 6, 2 ")
+
+Recorrer SQL
+
+   ACT(ck1, BuscarCampo('TRANSACCIONES2','NrOperacionRef1','NrTrans',FBN['NrTrans']))
+   ACT(cl1, BuscarCampo('OPERACIONES','TipoOp','NrOperacion', val(ck1)) )
+   ACN(co1, BuscarCampo('OPERACIONES','Cotizacion1','NrOperacion', val(ck1)) )
+   ACT(co2, BuscarCampo('CLIENTES','Alias10','Codigo', FBN['Cliente1']) )
+
+   If [Incluido(val(cl1),'MMCCR|MMCDIA|MMCDP|MMCP|MMCPM|MMD|MMDCA|MMO|') y SQL("Select 1 from "~DBO~".MOVEJECUTADOS where NrTrans2='"~FBN['NrTrans']~"' and Cliente='"~FBN['Cliente1']~"' and (Leyenda Like '%Vto%' or Leyenda Like '%Int%')")=1] o [Incluido(val(cl1),'FCS|FCR|FXAT|FXATV|FXCT|FXCTV|FXREPO|FXREPV|FXVT|FXVTV|SECT|SERA|SERP|SEVT|SECS|SEVS|DFXO|FXAS|FXCS|FXREPO|FXVS|') y [[EqStr(FBN['TipoTr2'],'DEP') y Not Incluido(val(cl1),'SERA|SERP|')]  o [ [[EqStr(val(cl1),'SERA') y EqStr(FBN['TipoTr2'],'RET')] o [EqStr(val(cl1),'SERP') y EqStr(FBN['TipoTr2'],'DEP')]] y Incluido('Repo Imp. Liq. Te',Copy(SQL("Select Leyenda From "~dbo~".MOVEJECUTADOS where NrTrans2='"~FBN['NrTrans']~"' and Cliente='"~FBN['Cliente1']~"' ") ,1,17)) ]]]
+      If Not EqStr(val(cl1),'MMCCR') y SQL("Select 1 from "~DBO~".MOVEJECUTADOS where NrTrans2='"~FBN['NrTrans']~"' and Cliente='"~FBN['Cliente1']~"' and Leyenda Like '%Vto.Imp%' ")=1
+         ACN(zz1,1)
+      else
+         ACN(zz1,0)         
+      endif
+      IF [Not Incluido(val(cl1), 'MMCDIA|MMCDP|MMD|MMDCA|') y EqStr(Val(co2),'LIMITELIQ') y Val(zz1)=0] o [Incluido(val(cl1),'MMCDIA|MMCDP|MMD|MMDCA|')]
+
+        ACT(aa:FAC, FBN['NrTrans'])
+        ACT(ab:FAC, FBN['TipoTr2'])
+        ACT(ad:FAC, FBN['Cliente1'])
+        ACT(ae:FAC, FBN['Especie'])
+        ACN(af:FAC, FBN['Cantidad1'])
+        IF EqStr(Val(ab:FAC),'RET')
+            ACN(af:FAC, Val(af:FAC)*(-1))
+        Endif
+        
+        ACT(ag:FAC, FBN['Cuenta1'])
+        ACT(ah:FAC, FBN['Cuenta2'])
+        ACT(ai:FAC, FBN['Especie1'])
+        ACN(aj:FAC, FBN['Cantidad2'])
+        ACT(al:FAC, FBN['Cupon1'])
+
+        ACT(a:FAC, FBN['Cliente1'])
+        ACT(f:FAC, ' ')
+        If Incluido(FBN['TipoTr2'],'DEP|RET')
+           ACT(c:FAC, FBN['Especie'])
+           If EqStr(FBN['TipoTr2'],'DEP')
+              ACT(b:FAC, 'Cobro')
+              If DesciendeDeEspecie(FBN['Especie'],'TITULO')
+                 ACN(d:FAC, FBN['Cantidad1'])
+                 ACN(e:FAC, 0)
+              Else
+                 ACN(d:FAC, 0)
+                 ACN(e:FAC, FBN['Cantidad1'])
+              Endif
+           Else
+              ACT(b:FAC, 'Pago')
+              If DesciendeDeEspecie(FBN['Especie'],'TITULO')
+                 ACN(d:FAC, -FBN['Cantidad1'])
+                 ACN(e:FAC, 0)
+              Else
+                 ACN(d:FAC, 0)
+                 ACN(e:FAC, -FBN['Cantidad1'])
+              Endif
+           Endif
+        Else
+           ACT(d:FAC, 'Error')
+        Endif
+        ACT(g:FAC, FBN['NrTrans'])
+        ACT(h:FAC, FBN['Fecha2'])
+        ACT(i:FAC, FBN['TipoTr2'])
+
+        *- Convierto el monto a usd utilizando cotizacion1 de la operacion
+        ACN(af:fac,IIf(EqStr(val(c:fac),VAR('MONEEXTR')),val(af:fac),val(af:fac)*IIf(EqStr(Modo(val(c:fac),VAR('MONEEXTR')),'DIR'),val(co1),1/IIF(val(co1)<=0,1,val(co1)))) )
+ 
+        If Dialogo.Check1=0
+           *- Sin Display 
+           ACT(cg1, val(g:fac))
+           ACT(ca1, val(a:fac))
+           ACN(cf1, val(af:fac))
+           ACT(ci1, Val(i:fac))
+           
+           (.'CONFPAGCOB'.)
+        EndIf
+     Else
+        dfa
+     Endif
+  Else
+     dfa
+  EndIf
+Proximo
+
+ACO(1,9)
+ACO(2,7)
+ACO(3,9)
+ACO(4,12)
+ACO(5,12)
+ACO(6,4)
+ACO(7,7)
+ACO(8,9)
+FormatoCeldas(d:1..e:FAC,Exe('F2'))
+
+If Dialogo.Check1=1
+   *- Display de Seleccion -> Confirmacion de cobros y pagos manual
+   If FAC>0
+      ListBox(a1..h:FAC,'Cliente             Especie              Titulos          Moneda        Voucher  Fecha')
+
+      If Ok
+         RecorrerSel
+            ACT(ck1, BuscarCampo('TRANSACCIONES2','NrOperacionRef1','NrTrans',Val(g:FilaCiclo)) )
+            ACT(cl1, BuscarCampo('OPERACIONES','TipoOp','NrOperacion', val(ck1)) )
+            ACT(cg1, Val(g:FilaCiclo))
+            ACT(ca1, Val(a:FilaCiclo))
+            ACN(cf1, Val(af:FilaCiclo))
+            ACT(ci1, Val(i:FilaCiclo))
+
+            (.'CONFPAGCOB'.)
+         Proximo
+      Endif
+   Else
+      Cancelar('No hay Pagos/Cobros para Confirmar.')
+   Endif
+EndIF

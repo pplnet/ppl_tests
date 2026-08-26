@@ -1,0 +1,193 @@
+﻿CrearDialogo
+  Especie1   : "Especie"      ;1;1;;;;NoVacio(Dialogo.Especie1);'Debe ingresar una especie';NO;;;;;;
+  Vehiculo1  : "Vehiculo";;;;;;NoVacio(Dialogo.Vehiculo1);'Debe ingresar un vehiculo';NO;;;;;;
+FinDialogo
+
+If Not Ok
+    Cancelar
+ENDIF
+
+let &especie Dialogo.Especie1
+let &enteCustodia Dialogo.Vehiculo1
+
+SQL.ADD(" SELECT NrOperacion,FechaMov, Especie, CallPut, FechaEj,PrecioEj,Mercado,EnteCustodia,Cantidad, ")
+SQL.ADD(" Formula,Leyenda,Bits,NrGrupo,Concepto,FechaEje,UsuarioEje,Cuenta,NrGrupo2, ")
+SQL.ADD(" Transaccion,NrMov,NrLiq,Status,NrComprob,NrInstan,NrTrans2,Book,Vehiculo ")
+SQL.ADD(" FROM "~DBO~".MOVEJECUTADOS ")
+SQL.ADD(" Where Especie = '"~&especie~"' ")
+SQL.ADD(" AND EnteCustodia = '"~&enteCustodia~"' ")
+SQL.ADD(" AND NrSaldo = 1 ")
+SQL.ADD(" AND EnteCustodia <> Cliente ")
+Recorrer SQL
+    let &nrOperacion fbn('NrOperacion')
+    let &fechaMov fbn('FechaMov')
+    let &cliente &enteCustodia
+    let &callPut fbn('CallPut')
+    let &fechaEj fbn('FechaEj')
+    let &precioEj fbn('PrecioEj')
+    let &mercado fbn('Mercado')
+    let &enteCustodia fbn('EnteCustodia')
+    let &cantidad fbn('Cantidad')
+    let &formula fbn('Formula')
+    let &leyenda fbn('Leyenda')
+    let &bits fbn('Bits')
+    let &nrGrupo fbn('NrGrupo')
+    let &concepto fbn('Concepto')
+    let &fechaEje fbn('FechaEje')
+    let &usuarioEje fbn('UsuarioEje')
+    let &cuenta fbn('Cuenta')
+    let &nrGrupo2 fbn('NrGrupo2')
+    let &transaccion fbn('Transaccion')
+    let &nrMov fbn('NrMov')
+    let &nrLiq fbn('NrLiq')
+    let &status fbn('Status')
+    let &nrComprob fbn('NrComprob')
+    let &nrInstan fbn('NrInstan')
+    let &nrTrans2 fbn('NrTrans2')
+    let &book fbn('Book')
+    let &vehiculo fbn('Vehiculo')
+    
+    SQL.ADD(" INSERT INTO "~DBO~".MOVEJECUTADOS ")
+    SQL.ADD(" (NrOperacion,FechaMov,Cliente,Especie, ")
+    SQL.ADD(" CallPut,FechaEj, PrecioEj, Mercado, EnteCustodia, Cantidad, ")
+    SQL.ADD(" Formula, Leyenda, Bits, NrSaldo, NrGrupo,Concepto, ")
+    SQL.ADD(" FechaEje, UsuarioEje, Cuenta, NrGrupo2,Transaccion, NrMov, ")
+    SQL.ADD(" NrLiq, Status, NrComprob,NrInstan, Cupon, NrTrans2, ")
+    SQL.ADD(" Book, Vehiculo) ")
+    SQL.ADD(" VALUES ")
+    *Los siguientes datos son not null en la tabla MOVEJECUTADOS
+    SQL.ADD(" ('"~&nrOperacion~"','"~IdxDate(&fechaMov)~"','"~&cliente~"','"~&especie~"', ")
+    *Sacando los datos NrSaldo y Cupon, los demás datos pueden venir en null
+    IF NoVacio(&callPut)
+        SQL.ADD(" '"~&callPut~"', ")
+    ELSE
+        SQL.ADD(" NULL, ")
+    ENDIF
+    IF NoVacio(&fechaEj)
+        SQL.ADD(" '"~IdxDate(&fechaEj)~"', ")
+    ELSE
+        SQL.ADD(" NULL, ")
+    ENDIF
+    IF NoVacio(&precioEj)
+        SQL.ADD(" "~Fstr(&precioEj,0,8)~", ")
+    ELSE
+        SQL.ADD(" NULL, ")
+    ENDIF
+    IF NoVacio(&mercado)
+        SQL.ADD(" '"~&mercado~"', ")
+    ELSE
+        SQL.ADD(" NULL, ")
+    ENDIF
+    IF NoVacio(&enteCustodia)
+        SQL.ADD(" '"~&enteCustodia~"', ")
+    ELSE
+        SQL.ADD(" NULL, ")
+    ENDIF
+    IF NoVacio(&cantidad)
+        SQL.ADD(" "~Fstr(&cantidad,0,9)~", ")
+    ELSE
+        SQL.ADD(" NULL, ")
+    ENDIF
+    IF NoVacio(&formula)
+        SQL.ADD(" '"~&formula~"', ")
+    ELSE
+        SQL.ADD(" NULL, ")
+    ENDIF
+    IF NoVacio(&leyenda)
+        SQL.ADD(" '"~&leyenda~"', ")
+    ELSE
+        SQL.ADD(" NULL, ")
+    ENDIF
+    IF NoVacio(&bits)
+        SQL.ADD(" '"~&bits~"', ")
+    ELSE
+        SQL.ADD(" NULL, ")
+    ENDIF
+    SQL.ADD(" 1, ")
+    IF NoVacio(&nrGrupo)
+        SQL.ADD(" "~Fstr(&nrGrupo,0,0)~", ")
+    ELSE
+        SQL.ADD(" NULL, ")
+    ENDIF
+    IF NoVacio(&concepto)
+        SQL.ADD(" '"~&concepto~"', ")
+    ELSE
+        SQL.ADD(" NULL, ")
+    ENDIF
+    IF NoVacio(&fechaEje)
+        SQL.ADD(" '"~IdxDate(&fechaEje)~"', ")
+    ELSE
+        SQL.ADD(" NULL, ")
+    ENDIF
+    IF NoVacio(&usuarioEje)
+        SQL.ADD(" '"~&usuarioEje~"', ")
+    ELSE
+        SQL.ADD(" NULL, ")
+    ENDIF
+    IF NoVacio(&cuenta)
+        SQL.ADD(" '"~&cuenta~"', ")
+    ELSE
+        SQL.ADD(" NULL, ")
+    ENDIF
+    IF NoVacio(&nrGrupo2)
+        SQL.ADD(" "~Fstr(&nrGrupo2,0,0)~", ")
+    ELSE
+        SQL.ADD(" NULL, ")
+    ENDIF
+    IF NoVacio(&transaccion)
+        SQL.ADD(" '"~&transaccion~"', ")
+    ELSE
+        SQL.ADD(" NULL, ")
+    ENDIF
+    IF NoVacio(&nrMov)
+        SQL.ADD(" "~Fstr(&nrMov,0,0)~", ")
+    ELSE
+        SQL.ADD(" NULL, ")
+    ENDIF
+    IF NoVacio(&nrLiq)
+        SQL.ADD(" "~Fstr(&nrLiq,0,0)~", ")
+    ELSE
+        SQL.ADD(" NULL, ")
+    ENDIF
+    IF NoVacio(&status)
+        SQL.ADD(" '"~&status~"', ")
+    ELSE
+        SQL.ADD(" NULL, ")
+    ENDIF
+    IF NoVacio(&nrComprob)
+        SQL.ADD(" "~Fstr(&nrComprob,0,8)~", ")
+    ELSE
+        SQL.ADD(" NULL, ")
+    ENDIF
+    IF NoVacio(&nrInstan)
+        SQL.ADD(" "~Fstr(&nrInstan)~", ")
+    ELSE
+        SQL.ADD(" NULL, ")
+    ENDIF
+    SQL.ADD(" '0', ")
+    IF NoVacio(&nrTrans2)
+        SQL.ADD(" '"~&nrTrans2~"', ")
+    ELSE
+        SQL.ADD(" NULL, ")
+    ENDIF
+    IF NoVacio(&book)
+        SQL.ADD(" '"~&book~"', ")
+    ELSE
+        SQL.ADD(" NULL, ")
+    ENDIF
+    IF NoVacio(&vehiculo)
+        SQL.ADD(" '"~&vehiculo~"') ")
+    ELSE
+        SQL.ADD(" NULL) ")
+    ENDIF
+    SQL.NEW
+    SQL.EXEC
+Proximo
+
+SQL.ADD(" DELETE FROM "~DBO~".MOVEJECUTADOS ")
+SQL.ADD(" WHERE Especie = '"~&especie~"' ")
+SQL.ADD(" AND EnteCustodia = '"~&enteCustodia~"' ")
+SQL.ADD(" AND NrSaldo = 1 ")
+SQL.ADD(" AND EnteCustodia <> Cliente ")
+SQL.NEW
+SQL.EXEC

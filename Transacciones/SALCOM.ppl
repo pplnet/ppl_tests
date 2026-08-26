@@ -1,0 +1,29 @@
+﻿CAMPOS:1;;BuscarCampo('VEHICULOS','Alias3','Codigo',Vehiculo1)
+Fecha1        : 'Fecha'        ;;;;;;FECHA1>0;'Fecha invalida';NO;Fsys;
+Vehiculo1     : 'Vehiculo'     ;;;;;;NoVacio(VEHICULO1);'Vehiculo invalido';NO;;IF(NoVacio(CUENTA1),BuscarCampo('CUENTAS','Cliente','Codigo',CUENTA1),VEHICULO1);;;;;;IF (Vacio(CUENTA1) y Vacio(CLIENTE1),"Codigo IN (Select DISTINCT Cliente From "~DBO~".CUENTAS)","Codigo IN (Select DISTINCT Cliente From "~DBO~".CUENTAS Where Comitente = '"~CLIENTE1~"')")
+Cliente1      : 'Entidad'      ;;;;;;NoVacio(CLIENTE1);'Entidad invalida';NO;;IF (NoVacio(CUENTA1),BuscarCampo('CUENTAS','Comitente','Codigo',CUENTA1),CLIENTE1);;;;;;IF(Vacio(VEHICULO1),"dbo.DesciendeDeCliente(Codigo,'BANCOS')=1 and Status = 'HAB' and Codigo IN (Select DISTINCT Comitente From "~DBO~".CUENTAS)","dbo.DesciendeDeCliente(Codigo,'BANCOS')=1 and Status = 'HAB' and Codigo IN (Select DISTINCT Comitente From "~DBO~".CUENTAS Where Cliente = '"~VEHICULO1~"')");;;
+Cuenta1       : 'Cuenta'       ;;;;;;[[ClienteCuenta(VEHICULO1,CUENTA1) y EspecieCuenta(ESPECIE,CUENTA1) y EqSTr(BuscarCampo('CUENTAS','Estado','Codigo',CUENTA1),'HAB')] y NoVacio(CUENTA1)];"La Cuenta no es valida";NO;;;;;;;;IF(NoVacio(VEHICULO1) Y NoVacio(CLIENTE1),"Cliente='"~VEHICULO1~"' and Comitente='"~CLIENTE1~"' AND Estado = 'HAB' and (Especies Like '%"~Especie~"%')",)
+Especie       : 'Moneda'       ;;;;;;NoVacio(ESPECIE) y DesciendeDeEspecie(ESPECIE,'MONEDA') Y EsTerminal(ESPECIE,ESPECIE) Y [Incluido(ESPECIE, BuscarCampo('CUENTAS','Especies','Codigo', CUENTA1)) O Incluido('MONEDA', BuscarCampo('CUENTAS','Especies','Codigo', CUENTA1))];'Moneda Invalida';NO;;;;;;;;"dbo.DESCIENDEDEESPECIE(Codigo,'MONEDA') = 1";
+Cantidad1     : 'Saldo'        ;;;;;;Cantidad1<>0;'El Saldo no puede ser 0'   ;NO;0;
+Book1         : 'Book'         ;;;;NO;;;;;;BuscarCampo('CUENTAS','Alias1','Codigo', CUENTA1);;
+Ley1          : 'Observaciones';;;;NO;NoVacio(Observac2);;;;;
+
+MOVIMIENTOS
+Fecha1;Vehiculo1;Especie;;;;;Vehiculo1;50;Cantidad1;;'Saldo Cta Comitente';;SI;;;;Cuenta1;;10;
+
+POSTEDICION
+Eqstr(ABM,'B');'BINGAS';NrTrans1=NRTRANS
+
+BITS
+1;1
+20;0
+
+INSTANCIA1
+BITS
+1;0;FW=1
+20;1;FW=1
+
+INSTANCIA20
+BITS
+1;1;FW=2
+20;0;FW=2

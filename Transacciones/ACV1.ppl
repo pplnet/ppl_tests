@@ -1,0 +1,25 @@
+﻿CAMPOS:1; ;50
+Cliente2       : 'Empresa'        ;1;1; ;  ;  ;NoVacio(CLIENTE2) y DesciendeDeCliente(CLIENTE2,'VINCULADOS') y EsTerminal(CLIENTE2,CLIENTE) y [QUERY(" Select Count(*) from "~DBO~".VEHICULOS where Codigo = '"~CLIENTE2~"' ")=0 o EqStr(BuscarCampo('VEHICULOS','TipoVehiculo','Codigo',CLIENTE2),'NOC')];'Debe ingresar una Empresa Vinculada no Controlada';NO;
+Cliente1       : 'Banco'          ; ; ; ;  ;  ;NoVacio(CLIENTE1) y DesciendeDeCliente(CLIENTE1,'BANCOS') y EsTerminal(CLIENTE1,CLIENTE);'Debe ingresar un Banco';NO;
+Especie        : 'Especie'        ; ; ; ;  ;  ;NoVacio(ESPECIE);'Debe Ingresar una Especie Valida';NO;
+Cantidad1      : 'Cantidad'       ; ; ; ;  ;  ;CANTIDAD1>0;'La Cantidad debe ser Positiva';NO;
+Fecha1         : 'Fecha Desde'    ; ; ; ;VerificaAcceso('OPFVALOR');  ;FECHA1 <= FSYS y EsHabil(FECHA1,'ARG');'Fecha Incorrecta';NO;FSYS;
+Fecha2         : 'Fecha Hasta'    ; ; ; ;  ;  ;FECHA2>FECHA1;'Fecha incorecta';NO;FSys+1;
+RB1            : 'Tipo|Local|Off-Shore';;;;;  ;;;;0;
+RB2            : 'Grupo|Gar.|C.Cred.|Prest.|F.Imp.|P.Exp.';;;;;;;;;2;
+
+CONDICIONES
+DesciendeDeEspecie(ESPECIE,'MONEDA');'Deben ser una Moneda';NO
+Fecha1 > Fecha(Var('FECHAVALOR'));'La Fecha Valor No Debe Superar el '~Var('FECHAVALOR');NO
+DifDias(Fecha1,Fsys,'ARG',SI)<=1;'Fecha Valor Mayor a un Dia: '~Fecha(Fecha1);SI;SI;FSYS;'FECHAVAL'
+
+BITS
+1;0
+2;0
+3;0
+4;0
+5;0
+6;0
+7;0
+50;1
+

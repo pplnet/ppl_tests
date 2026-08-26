@@ -1,0 +1,15 @@
+﻿def abm 'CUENTACONTABLEAUX'
+    def grid
+        Codigo:, Nombre:
+    end
+    def key
+        Codigo:
+    end
+    def dialog
+    #*************************************************************************
+        tab 'General'
+            column
+               Codigo:,,      small_text
+               Nombre:,, large_text
+    end
+end

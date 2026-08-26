@@ -1,0 +1,17 @@
+﻿CAMPOS:1;;5
+FechaOp        : 'Fecha Ajuste'               ;1;1;;VERIFICAACCESO('OPFVALOR');;;;;FSYS;
+NrOperacion2   : 'Operacion'                  ;;;;;;NOVACIO(NROPERACION2);'El Nro.Opercion es Incorrecto';NO;;;;SqlSet("Select NrOperacion from "~DBO~".OPERACIONES Where TipoOp like 'DT%' ");NO
+Especie        : 'Moneda'                     ;;;;;;NOVACIO(ESPECIE) y DESCIENDEDEESPECIE(ESPECIE,'MONEDA') y ESTERMINAL(ESPECIE,ESPECIE);'Debe Ingresar una Moneda ';NO;;;;;
+Cantidad       : 'Importe'                    ;;;;;;CANTIDAD<>0;'El Importe DEBE SER DISTINTO DE Cero';NO;
+Operador       :                              ;;;;;;NOVACIO(OPERADOR);'El Operador es Invalido';NO;USUARIOACTIVO;
+RB3            : 'MOF'                        ; ;2;;NO;NO;;;;;IF(INSTANCIA=2,0,1)
+
+EDICION
+EqStr(Operador, UsuarioActivo) o Incluido(UsuarioActivo, Var('ULMODI'));'No se puede modificar, Operador: '~Operador
+
+BAJA
+EqStr(Operador, UsuarioActivo) o Incluido(UsuarioActivo, Var('ULBAJA'));'No se puede dar de baja, Operador: '~Operador
+
+@INSTOPE
+@INST19GENE
+@INST19BITS

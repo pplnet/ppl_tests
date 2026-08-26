@@ -1,0 +1,1 @@
+﻿[[fbn('NrMov') = 3] O [fbn('NrMov') > 5000 Y fbn('NrMov') < 6000]]

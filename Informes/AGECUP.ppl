@@ -1,0 +1,203 @@
+﻿ModoReproceso(SINDIALOGO)
+CrearDialogo
+   Lista1 : 'Especie' ;;;;;;;;;;;SQLSET("SELECT DISTINCT Especie FROM "~DBO~".AGENDACUPONES ORDER BY Especie ")
+FinDialogo
+
+IF Not Ok
+   Cancelar
+ENDIF
+
+CrearFont(1, 'Arial,8,')
+CrearFont(2, 'Arial,8,B')
+CrearFont(3, 'Arial,10,B')
+
+ACT(d1, "INFORME DE AGENDA CUPONES")
+SetFont(d1,3)
+
+ACT(m2, "Fecha: ")
+ACD(o2, FSys)
+SetFont(m2..o2,2)
+ACT(a:5, "Esquema 0")
+SetFont(a:5,3)
+AgregarMarco(A:5..D:5,2,0,Exe('COLOR7'))
+ACT(a:6, "NrCupon")
+ACT(b:6, "Tipo Cupon")
+ACT(c:6, "Estado")
+ACT(d:6, "Fecha Corte")
+ACT(e:6, "Fecha Pago")
+ACT(f:6, "% Renta")
+ACT(g:6, "% Amort.")
+ACT(h:6, "% Am.Int.Capital")
+ACT(i:6, "Tasa Cap.Int.")
+ACT(j:6, "% Renta Ant.")
+ACT(k:6, "F.Cambio Tasa")
+ACT(l:6, "Int.Capitaliz.")
+ACT(m:6, "Fecha Proceso")
+ACT(n:6, "V.Teor.Ant.")
+ACT(o:6, "Pcio. Cupon")
+ACN(ha1, 6)
+ACN(MM:1,1)
+SetFilaActual(Val(ha1))
+
+AlinearCeldas(a:6..o:6,'C')
+SetFont(A:6..O:6,2)
+AgregarMarco(A:6..O:6,2,0,Exe('COLOR'))
+
+SQL.ADD("SELECT A.Especie, CAST(A.NrCupon as int) NrCupon, A.FechaCorte, A.FechaPago, ")
+SQL.ADD("       A.PorRenta, A.PorAmCapital, A.TipoCupon, A.Estado, A.VTeoricoAnt, A.PorAmIntCap, ")
+SQL.ADD("       A.TasaCapInt, A.PorRentaAnterior, A.FechaCambioTasa, A.IntsCapitalizados,A.Esquema,A.PorPIK,A.PIKsAcumulados, ")
+SQL.ADD("       A.FechaProceso, A.PrecioCupon, E.Nombre ")
+SQL.ADD("FROM "~DBO~".AGENDACUPONES A, "~DBO~".ESPECIES E ")
+SQL.ADD("WHERE A.Especie = E.Codigo ")
+IF NoVacio(Dialogo.Lista1)
+   SQL.ADD("  AND E.Codigo IN ("~Pipe2Comillas(Dialogo.Lista1)~") ")
+ENDIF
+SQL.ADD("ORDER BY A.Esquema,1, 2 ")
+ACN(jj:1,0)
+ACT(z1, '')
+Recorrer SQL
+   IF FBN['Esquema'] = 1 
+      IF val(jj:1) = 0
+         ACT(a:fac+1, "Esquema 1")
+         SetFont(a:fac+1,3)
+         AgregarMarco(A:fac+1..D:fac+1,2,0,Exe('COLOR7'))
+         SetFilaActual(FAC+2)
+         ACT(a:fac, "NrCupon")          
+         ACT(b:fac, "Tipo Cupon")         
+         ACT(c:fac, "Estado")         
+         ACT(d:fac, "Fecha Corte")         
+         ACT(e:fac, "Fecha Pago")         
+         ACT(f:fac, "% Renta")         
+         ACT(g:fac, "% Amort.")         
+         ACT(h:fac, "% Am.Int.Capital")         
+         ACT(i:fac, "Tasa Cap.Int.")         
+         ACT(j:fac, "% Renta Ant.")         
+         ACT(k:fac, "F.Cambio Tasa")         
+         ACT(l:fac, "Int.Capitaliz.")         
+         ACT(m:fac, "Fecha Proceso")         
+         ACT(n:fac, "V.Teor.Ant.")         
+         ACT(o:fac, "Pcio. Cupon")
+         ACT(p:fac, "Tasa de Piqueo")
+         ACT(q:fac, "PIKS Acumulados")
+         ACN(JJ:1,1)
+         AlinearCeldas(a:fac..q:fac,'C')
+         SetFont(A:fac..q:fac,2)
+         AgregarMarco(A:fac..q:fac,2,0,Exe('COLOR'))
+         SetFilaActual(FAC+1) 
+         ACT(z1, FBN['Especie'])
+         ACT(a:fac, FBN['Especie'])
+         ACT(b:fac, FBN['Nombre'])
+         SetFont(a:fac..b:fac,2)
+         AgregarMarco(a:fac..d:fac,2,0,Exe('COLOR6'))
+         ifa           
+      endif
+   endif
+   Message('Especie: '~FBN['Especie'])
+      
+   IF Not EqStr(FBN['Especie'], Val(z1))
+      ACT(z1, FBN['Especie'])
+         IF Val(MM:1)=0
+         ifa 
+         endif
+      ACN(MM:1,0)
+      ACT(a:fac, FBN['Especie'])
+      ACT(b:fac, FBN['Nombre'])
+      SetFont(a:fac..b:fac,2)
+      AgregarMarco(a:fac..d:fac,2,0,Exe('COLOR6'))
+      ifa      
+   ENDIF
+
+   ACN(a:fac, FBN['NrCupon'])
+   IF EqStr(FBN['TipoCupon'],'REN')
+      ACT(b:fac, 'Renta')
+   ELSE
+      IF EqStr(FBN['TipoCupon'],'AMO')
+         ACT(b:fac, 'Amortiz.')
+      ELSE
+         IF EqStr(FBN['TipoCupon'],'RYA')
+            ACT(b:fac, 'Renta y Amort.')
+         ELSE
+            IF EqStr(FBN['TipoCupon'], 'CAP')
+               ACT(b:fac, 'Capitalización')
+            ENDIF
+         ENDIF
+      ENDIF
+   ENDIF
+   IF EqStr(FBN['Estado'],'PEN')
+      ACT(c:fac, 'Pendiente')
+      ColorCeldas(c:fac, clRED)
+   ELSE
+      ACT(c:fac, 'Procesado')
+      ColorCeldas(c:fac, clGREEN)
+   ENDIF
+   ACD(d:fac, FBN['FechaCorte'])
+   ACD(e:fac, FBN['FechaPago'])
+   IF FBN['PorRenta'] <> 0
+      ACN(f:fac, FBN['PorRenta'])
+   ENDIF
+   IF FBN['PorAmCapital'] <> 0
+      ACN(g:fac, FBN['PorAmCapital'])
+   ENDIF
+   IF FBN['PorAmIntCap'] <> 0
+      ACN(h:fac, FBN['PorAmIntCap'])
+   ENDIF
+   IF FBN['TasaCapInt'] <> 0
+      ACN(i:fac, FBN['TasaCapInt'])
+   ENDIF
+   IF FBN['PorRentaAnterior'] <> 0
+      ACN(j:fac, FBN['PorRentaAnterior'])
+   ENDIF
+   IF FBN['FechaCambioTasa'] <> 0
+      ACD(k:fac, FBN['FechaCambioTasa'])
+   ENDIF
+   IF FBN['IntsCapitalizados'] <> 0
+      ACN(l:fac, FBN['IntsCapitalizados'])
+   ENDIF
+   IF FBN['FechaProceso'] <> 0
+      ACD(m:fac, FBN['FechaProceso'])
+   ENDIF
+   IF FBN['VTeoricoAnt'] <> 0
+      ACN(n:fac, FBN['VTeoricoAnt'])
+   ENDIF
+   IF FBN['PrecioCupon'] <> 0
+      ACN(o:fac, FBN['PrecioCupon'])
+   ENDIF
+   IF FBN['Esquema'] <> 0
+      ACN(p:fac, FBN['PorPIK'])
+      ACN(q:fac, FBN['PIKsAcumulados'])
+   ENDIF
+   SetFont(a:fac..q:fac,1)
+   FormatoCeldas(a:fac,Exe('F0'))
+   FormatoCeldas(f:fac..j:fac,Exe('F7'))
+   FormatoCeldas(l:fac,Exe('F7'))
+   FormatoCeldas(n:fac..o:fac,Exe('F7'))
+   FormatoCeldas(p:fac..q:fac,Exe('F7'))
+Proximo
+
+ACO(1, 5)
+ACO(2, 10)
+ACO(3, 10)
+ACO(4, 8)
+ACO(5, 8)
+ACO(6, 8)
+ACO(8, 8)
+ACO(9, 8)
+ACO(10, 8)
+ACO(11, 8)
+ACO(12, 8)
+ACO(13, 8)
+ACO(14, 8)
+ACO(15, 8)
+ACO(16, 8)
+ACO(17, 10)
+ACO(18, 10)
+
+SetFilaActual(fac+2)
+ACT(a:fac, "FIN DEL LISTADO")
+SetFont(a:fac,2)
+
+LimitesVision(q:fac)
+Impresion(1,2)
+SetPrintFit(3,80)
+FijarFila(4)
+RangoTitulo(a:1..q:fac, Val(ha1))

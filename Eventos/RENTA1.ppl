@@ -1,0 +1,20 @@
+﻿IF Vacio(UsrVehiculos(UsuarioActivo))
+    ACT(LS:1, SQLSet(" Select Codigo from "~DBO~".VEHICULOS where Status = 'HAB' "))
+ELSE
+    ACT(LS:1, UsrVehiculos(UsuarioActivo))
+ENDIF
+
+CrearDialogo
+  Fecha1: 'Fecha'                ;;;;;;;;;FSys
+  Lista1: 'Vehiculo'             ;;;;;;;;;;;IIF(Vacio(UsrVehiculos(UsuarioActivo)), Val(LS:1), SQLSet(" Select U.Vehiculo From "~DBO~".USRVEHICULO U, "~DBO~".VEHICULOS V Where V.Codigo = U.Vehiculo AND U.Codigo = '"~UsuarioActivo~"' AND V.Status = 'HAB' "));;
+FinDialogo
+
+If Not OK
+    Cancelar
+Endif
+
+
+*Expresado en ARP
+LinkearHoja('POSICI',1,Fecha1=Dialogo.Fecha1,Lista1=Dialogo.Lista1,Radio1=1,Radio2=0,Radio3=1,Check1=1,Radio4=0)
+*Expresado en USD
+LinkearHoja('POSICI',1,Fecha1=Dialogo.Fecha1,Lista1=Dialogo.Lista1,Radio1=1,Radio2=1,Radio3=1,Check1=1,Radio4=0)

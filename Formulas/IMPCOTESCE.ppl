@@ -1,0 +1,2 @@
+﻿***/// Para el campo en Moneda de Op.
+IIF(#ESMONELOCA Y Not #ESMONEFUE, Round(#IMPCOTESPC,2), 0)

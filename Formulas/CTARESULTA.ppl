@@ -1,0 +1,1 @@
+﻿SQL(" SELECT Codigo FROM "~DBO~".CONTABILIDAD WHERE Especie = '"~Modelo.Alias2~"' AND Tipo='RES' ")

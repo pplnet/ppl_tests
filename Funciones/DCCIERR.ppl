@@ -1,0 +1,30 @@
+﻿**Min FechaOp de Op FV cargadas a Fecha1 y Op eliminadas en Fecha1
+SQL.ADD("SELECT Min(FechaOp) FechaMinOp,Vehiculo1,Book1 from ")
+SQL.ADD(" (SELECT  FechaOp,Vehiculo1,Book1 FROM BOPERACIONES ")
+SQL.ADD(" WHERE FechaDel> '"~IdxDate(Habiles(Dialogo.Fecha1,-1,,NO))~"' and FechaDel<'"~IdxDate(Habiles(Dialogo.Fecha1,1,,NO))~"' ")
+SQL.ADD("AND TipoOp in ("~Pipe2Comillas(VAR('TIPOOPDCMM'))~") ")
+SQL.ADD("AND Especie<>'ARP' ")
+SQL.ADD(" UNION ALL ")
+SQL.ADD(" SELECT  FechaOp,Vehiculo1,Book1 FROM OPERACIONES ")
+SQL.ADD(" WHERE FechaCargaSys= '"~IdxDate(Dialogo.Fecha1)~"' AND FechaOp < FechaCargaSys ")
+SQL.ADD("AND TipoOp in ("~Pipe2Comillas(VAR('TIPOOPDCMM'))~") ")
+SQL.ADD("AND Especie<>'ARP')AS Todas ")
+SQL.ADD("Group By Vehiculo1, Book1 ")
+Recorrer SQL
+    let &opFechaValor 1
+    If NoVacio(&FechaCotizFV)
+        If fbn('FechaMinOp') < &FechaCotizFV
+            **//21-11-23 Eliana - CASO2
+            let &vehiculo fbn('vehiculo1')
+            **Siempre será uno solo
+            let &listaBooks fbn('book1')~ '|'
+            EjecutarEvento('DCMMLT', Radio1=0, Fecha1=Habiles(Fecha(fbn('FechaMinOp')),1,'ARG',NO),Fecha2=Habiles(&FechaCotizFV,-1,'ARG'),Radio2=0, Lista2= '', Vehiculo1=&vehiculo, Lista3=&listaBooks, Lista1=Var('TIPOOPDCMM'))
+        EndIf
+    Else
+        **//21-11-23 Eliana - CASO3
+        let &vehiculo fbn('vehiculo1')
+        **Siempre será uno solo
+        let &listaBooks fbn('book1')~ '|'
+        EjecutarEvento('DCMMLT', Radio1=0, Fecha1=Habiles(Fecha(fbn('FechaMinOp')),1,'ARG',NO),Fecha2=Habiles(Dialogo.Fecha1,-1,'ARG'),Radio2=0, Lista2= '', Vehiculo1=&vehiculo, Lista3=&listaBooks,Lista1=Var('TIPOOPDCMM'))
+    EndIf
+Proximo

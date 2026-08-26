@@ -1,0 +1,14 @@
+﻿CrearDialogo
+  Fecha1        : 'Fecha Desde'        ;1;1;1;SI;SI;NoVacio(Dialogo.Fecha1) Y Dialogo.Fecha1<=Dialogo.Fecha2;'Debe Ingresar una Fecha Válida';NO;FSys
+  Fecha2        : 'Fecha Hasta'        ;2;1;1;SI;SI;NoVacio(Dialogo.Fecha2) Y Dialogo.Fecha1<=Dialogo.Fecha2;'Debe Ingresar una Fecha Válida';NO;FSys
+  Lista1        : 'TiposOp: '          ;3;1;1;SI;SI;;;;;;SQLSet("SELECT Codigo FROM TIPOSOPERACION WHERE Codigo IN ("~Pipe2Comillas(Var('TIPOOPDCMM'))~")  ")
+  NrOperacion1  : 'Operacion: '        ;4;1;1;SI;SI;;'Tipo de Operacion incorrecto';NO;;;SQLSet("SELECT NrOperacion FROM OPERACIONES WHERE FechaVto>='"~IdxDate(Dialogo.Fecha1)~"'AND FechaOp<'"~IdxDate(Dialogo.Fecha1)~"' AND NOT Especie = '"~Var('MONELOCA')~"' AND TipoOp IN ("~Pipe2Comillas(Var('TIPOOPDCMM'))~") ");;;"TipoOp IN ("~Pipe2Comillas(Var('TIPOOPDCMM'))~")"
+  FinDialogo
+
+If Not Ok
+   Cancelar
+Endif
+
+Recorrer&k Dialogo.Fecha1, Dialogo.Fecha2
+    EjecutarEvento('DCMM', Fecha1=&k, Lista1=Dialogo.Lista1, NrOperacion1=Dialogo.NrOperacion1)
+Proximo

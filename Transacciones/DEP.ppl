@@ -1,0 +1,54 @@
+﻿CAMPOS:8;;BuscarCampo('VEHICULOS','Alias3','Codigo',Vehiculo1)
+Especie        : 'Especie'        ;1;1; ;NO; 
+Cupon1         : 'Cupon'          ;1;2; ;NO;DesciendeDeEspecie(Especie,'TITULO');
+Cliente1       : 'Cliente'        ;2;1; ;NO;
+Fecha1         : 'Fecha Carga'    ; ; ; ;NO;
+Fecha2         : 'Fecha Liquid.'  ; ; ; ;NO;
+Cantidad1      : 'Cantidad'       ; ; ; ;NO;
+Vehiculo1      : 'Vehiculo '      ; ; ; ;NO;
+Cuenta1        : 'De Cta. Cliente'; ; ; ;
+Cuenta2        : 'A Cta. Propia'  ; ; ; ;
+
+CB2            : 'Inf.Datanet'  ;3;2;1;
+CB3            : 'Conc.Datanet' ;4;2;1;
+CB4            : 'Cheque'       ;5;2;1;
+
+NrOperacionRef1: 'Operacion'      ;1;1;2;NO;
+Cuenta5        : 'De Cta. Cliente'; ; ;2;NO;
+Cuenta6        : 'A Cta. Propia'  ; ; ;2;NO;
+Ley1           : 'Transaccion  '  ; ; ;2;NO;
+NrTransRef1    : 'Tr.Cheque'      ; ; ;2;NO
+
+CB9            : 'Confirmado'     ; ; ;2;NO
+Cantidad8      : 'NrLiq'          ; ; ;2;NO;;;;;;;;;;;'###';;
+Precio7        : 'T.C'            ; ; ;2;NO;Precio7>0;;;;;
+
+
+CONDICIONES
+EqStr(Vehiculo1,BuscarCampo('CUENTAS','Cliente','Codigo',Cuenta2));'La cuenta no corresponde al Vehiculo';NO
+Incluido(Ascendientes('ESPECIES', ESPECIE),BuscarCampo('CUENTAS','Especies','Codigo',Cuenta2),1);'La especie no esta habilitada para la cuenta del Vehiculo';NO
+EqStr(Cliente1,BuscarCampo('CUENTAS','Cliente','Codigo',Cuenta1)) o EqStr(Cuenta1, Cuenta5);'La cuenta no corresponde al Cliente';NO
+Incluido(Ascendientes('ESPECIES', ESPECIE),BuscarCampo('CUENTAS','Especies','Codigo',Cuenta1),1) o EqStr(Cuenta1, Cuenta5);'La especie no esta habilitada para la cuenta del Cliente';NO
+EqStr(BuscarCampo('CUENTAS','Estado','Codigo',Cuenta1), 'HAB') o Vacio(Cuenta1);'La cuenta del Cliente no esta Habilitada';NO
+EqStr(BuscarCampo('CUENTAS','Estado','Codigo',Cuenta2), 'HAB');'La cuenta del Vehiculo no esta Habilitada';NO
+
+MOVIMIENTOS
+Fecha2   ;Cliente1;Especie ;;;;;Vehiculo1;1; Cantidad1;;'Cobro ';SI;SI;1;;1;Cuenta2;Ley1;0; ;;Cupon1;;;NrTrans
+
+BITS
+1;1
+2;0
+3;0
+20;0
+
+INSTANCIA1
+BITS
+1;0;FW=1
+2;1;FW=1
+
+
+INSTANCIA3
+BITS
+1;1;FW=2 y NoVacio(CUENTA2)
+3;0;FW=1 o [FW=2 y NoVacio(CUENTA2)]
+20;1;FW=1

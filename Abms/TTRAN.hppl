@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ScriptHeader xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <CodFpa>TTRAN</CodFpa>
+  <Type>ABM</Type>
+  <Nombre>TiposTransaccion</Nombre>
+  <Habilitado xsi:nil="true" />
+  <Tipo>CLIENT</Tipo>
+  <Orden>125</Orden>
+  <Menu>125</Menu>
+  <Acceso>TT</Acceso>
+</ScriptHeader>

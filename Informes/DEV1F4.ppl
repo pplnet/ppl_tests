@@ -1,0 +1,290 @@
+﻿CrearDialogo
+    String1     : 'Cod.Ch.CVSA'                        ;1;1;;;;;;;
+    Vehiculo1   : 'Vehiculo'                           ;1;2;;;VACIO(Dialogo.String1);NoVacio(Dialogo.Vehiculo1);'Debe Ingresar un Vehiculo';NO;Var('DDVEHDEF')
+    Book1       : 'Book'                               ;2;2;;;VACIO(Dialogo.String1);EqStr(Dialogo.Vehiculo1,BuscarCampo('BOOKS','Vehiculo','Codigo',Dialogo.Book1));'El book ingresado no corresponde al Vehiculo';NO;Var('BOOKDDCHE');BuscarCampo('VEHICULOS','Alias5','Codigo',Dialogo.Vehiculo1);;;;" Vehiculo = '"~Dialogo.Vehiculo1~"'"  
+    Fecha1      : 'Fecha de Emision'                   ;2;1;;;VACIO(Dialogo.String1);;;;Fsys
+    Cliente1    : 'Comitente'                          ;3;1;;;VACIO(Dialogo.String1);;;;Var('DDCOMIDEF');;;;; "Codigo in (Select DISTINCT Cliente1 from OPERACIONES where TipoOp ='DDC')"   
+    Radio1      : 'Segmento|Avalado|No Avalado|Ambos'  ;;;;;VACIO(Dialogo.String1);;;;2
+    Instrumento1: 'Instrumento'                        ;;;;;VACIO(Dialogo.String1);;;; 
+FinDialogo
+
+if Not Ok
+  Cancelar 
+endif
+********
+*Fuentes
+********
+CrearFont(1, 'Arial,8,')
+CrearFont(2, 'Arial,8,B')
+CrearFont(3, 'Arial,16,B')
+
+**************
+*Logo y Título
+**************
+let &filaLogo 1
+@LOGO
+
+ACT(F:1, 'Devengados a una fecha')
+SetFont(F:1, 3)
+SetFilaActual(fac+5)
+*******
+*Header
+*******
+**Variables
+let &fi1 FAC
+IF NoVacio(Dialogo.String1) 
+    ACT(A:fac, 'Cod.Ch.CVSA: '~Dialogo.String1)
+    ifa
+Else
+    ACT(A:fac, 'Cod.Ch.CVSA: Todos')
+    ifa
+    **********
+    ACT(A:fac, 'Fecha: ' ~Dialogo.Fecha1)
+    ifa
+    **********
+    ACT(A:fac, 'Vehiculo: '~Dialogo.Vehiculo1)
+    ifa
+    **********
+    ACT(A:fac, 'Book: '~Dialogo.Book1)
+    ifa
+    **********
+    If NoVacio(Dialogo.Cliente1)
+        ACT(A:fac, 'Entidad: '~Dialogo.Cliente1)
+        ifa
+    Endif
+    **********
+    If NoVacio(Dialogo.Instrumento1)
+       ACT(A:fac, 'Instrumento:'~Dialogo.Instrumento1)
+       ifa
+    Else
+       ACT(A:fac, 'Instrumento: Todos')
+       ifa
+    Endif
+    **********
+    IF Dialogo.Radio1 = 0
+        ACT(A:fac, 'Segmento: Avalado')
+        ifa
+    ELSE
+        If Dialogo.Radio1 = 1
+        ACT(A:fac, 'Segmento: No Avalado')
+            ifa
+        Else
+            ACT(A:fac, 'Segmento: Ambos')
+            ifa
+        Endif
+    ENDIF
+Endif
+**********
+SetFont(A:&fi1..A:fac, 2)
+SetFont(B:&fi1..B:fac, 2)
+ifa
+******************************
+*Títulos de Columnas y Formato
+******************************
+ ACT(A:FAC, 'Nr Operación')
+ ACT(B:fac, 'Subasta')
+ ACT(C:FAC, 'Segmento')
+ ACT(D:FAC, 'Moneda')
+ ACT(E:FAC, 'Tasa')
+ ACT(F:FAC, 'Concertación')
+ ACT(G:FAC, 'Liquidación')
+ ACT(h:FAC, 'Reg.Oper.')
+ ACT(I:FAC, 'Id. Cheque')
+ ACT(J:FAC, 'Banco')
+ ACT(K:FAC, 'Nro.Cheque')
+ ACT(L:FAC, 'Acreditación')
+ ACT(M:FAC, 'Monto')
+ ACT(N:FAC, 'Capital')
+ ACT(O:FAC, 'Descuento')
+ ACT(P:FAC, 'Der.Mer.')
+ ACT(Q:FAC, 'Der.Bol.')
+ ACT(R:FAC, 'Comitente')
+ ACT(S:FAC, 'Cod.Ch.CVSA')
+ ACT(T:FAC, 'Vto.')
+ ACT(U:FAC, 'Nombre Banco')
+ ACT(V:FAC, 'Boleto')
+ ACT(W:FAC, 'Cobrado')
+ ACT(X:FAC, 'Devengados')
+ 
+AlinearCeldas(A:fac..X:fac,'C')
+SetFont(A:fac..X:fac, 2)
+AgregarMarco(A:fac..X:fac, 0, 0, Exe('COLOR'))
+Let &filaInicial fac+1
+
+**************
+*SENTENCIA SQL
+**************
+SQL.ADD("SELECT O.NrOperacion, O.NrOperacion2, O.CB1, O.Especie, O.Precio1, O.FechaOp, O.FechaPago, ")
+SQL.ADD("O.NrOperacion3, O.NrOperacion4, O.Cliente3, O.OperacionRef, O.FechaVto2, O.TotalBrutoCli1,")
+SQL.ADD("O.Cantidad, O.TotalIntereses, O.ImpGastos1, O.ImpComMer1, O.CodComitente, O.ObservacDoc,")
+SQL.ADD("O.FechaVto, O.Cliente1, O.NrBoleto, O.RB1,")
+SQL.ADD("ISNULL((SELECT SUM(M.Monto) FROM MOVDEVENGADOS M ")
+SQL.ADD("WHERE M.NrOperacion = O.NrOperacion AND Fecha <= '"~IdxDate(Dialogo.Fecha1)~"' ), 0) AS Monto")
+SQL.ADD("FROM "~DBO~".OPERACIONES O")
+SQL.ADD("INNER JOIN")
+SQL.ADD(" "~DBO~".OPERACIONESBITS OB ")
+SQL.ADD("ON O.NrOperacion=OB.NrOperacion")
+SQL.ADD("WHERE O.TipoOp = 'DDC'")  
+SQL.ADD("AND OB.NrBit=50 AND OB.Valor=1")  
+If NoVacio(Dialogo.String1)
+    SQL.ADD("AND  O.ObservacDoc = '"~Dialogo.String1~"' ")
+Else
+    SQL.ADD("AND ((O.FechaVto > '"~IdxDate(Dialogo.Fecha1)~"' AND O.FechaOp <= '"~IdxDate(Dialogo.Fecha1)~"')")
+    SQL.ADD("OR ")
+    SQL.ADD("(O.FechaVto <= '"~IdxDate(Dialogo.Fecha1)~"' AND O.RB1=0))")
+    SQL.ADD("AND O.Vehiculo1 = '"~Dialogo.Vehiculo1~"' AND O.Book1 = '"~Dialogo.Book1~"' ")
+    If NoVacio(Dialogo.Cliente1)
+        SQL.ADD("AND O.Cliente1 = '"~Dialogo.Cliente1~"' ")
+    Endif
+    IF Dialogo.Radio1 = 2
+        SQL.ADD("AND (O.CB1 = 0 OR O.CB1 = 1 )")
+    ELSE
+        IF Dialogo.Radio1 = 0
+            SQL.ADD("AND O.CB1 = 1")
+        Else
+            SQL.ADD("AND O.CB1 = 0")
+        Endif
+    ENDIF 
+    If NoVacio(Dialogo.Instrumento1)
+            SQL.ADD("AND O.TipoDoc = '"~Dialogo.Instrumento1~"' ") 
+    Endif
+Endif
+SQL.ADD("AND O.RB1=0")
+
+SQL.ADD("GROUP BY O.NrOperacion, O.NrOperacion2, O.CB1, O.Especie, O.Precio1, O.FechaOp, O.FechaPago, ")
+SQL.ADD("O.NrOperacion3, O.NrOperacion4, O.Cliente3, O.OperacionRef, O.FechaVto2, O.TotalBrutoCli1,")
+SQL.ADD("O.Cantidad, O.TotalIntereses, O.ImpGastos1, O.ImpComMer1, O.CodComitente, O.ObservacDoc,")
+SQL.ADD("O.FechaVto, O.Cliente1, O.NrBoleto, O.RB1 ")
+
+WATCH(SQL.BATCH)
+
+*************
+Recorrer SQL
+*************
+    *Col A - NrOperacion = NrOperacion
+    ACT(A:fac, fbn('NrOperacion'))
+    ACLO(A:fac, fbn('NrOperacion'))
+    *Col B - Subasta = NrOperacion2
+    ACT(B:fac, fbn('NrOperacion2'))
+    *Col C - Segmento = CB1
+    IF fbn('CB1') = 1
+    ACT(C:fac, 'Avalado')
+    ELSE
+        IF fbn('CB1') = 0
+            ACT(C:fac, 'No Avalado')
+        Endif
+    ENDIF
+    *Col D - Moneda = Especie
+    ACT(D:fac, fbn('Especie'))
+    *Col E - Tasa = Precio1
+    ACN(E:fac, fbn('Precio1'))
+    *Col F - Concertación = FechaOp
+    ACD(F:fac, fbn('FechaOp'))
+    *Columna G - Liquidación  = FechaPago
+    ACD(G:fac, fbn('FechaPago'))
+    *Col H - Reg.Oper.= NrOperacion3
+    ACT(H:fac, fbn('NrOperacion3'))
+    *Col I - Id.Cheque = NrOperacion4
+    ACT(I:fac, fbn('NrOperacion4'))
+    *Col J - Banco = Cliente3
+    ACT(J:fac, fbn('Cliente3'))
+    *Col K - Nro.Cheque = OperacionRef
+    ACT(K:fac, fbn('OperacionRef'))
+    *Col L - Acreditación = FechaVto2
+    ACD(L:fac, fbn('FechaVto2'))
+    *Col M - Monto = TotalBrutoCli1
+    ACN(M:fac, fbn('TotalBrutoCli1'))
+    let &totalMonto &totalMonto+Val(M:fac)
+    *Col N - Capital = Cantidad
+    ACN(N:fac, fbn('Cantidad'))
+    let &totalCapital &totalCapital+Val(N:fac)
+    *Col O - Descuento = TotalIntereses
+    ACN(O:fac, fbn('TotalIntereses'))
+    let &totalDescuento &totalDescuento+Val(O:fac)
+    *Col P - Der.Mer. = ImpGastos1
+    ACN(P:fac, fbn('ImpGastos1'))
+    let &totalDerMer &totalDerMer+Val(P:fac)
+    *Col Q - Der.Bol. = ImpComMer1
+    ACN(Q:fac, fbn('ImpComMer1'))
+    let &totalDerBol &totalDerBol+Val(Q:fac)
+    *Col R - Comitente = CodComitente
+    ACT(R:fac, fbn('CodComitente')) 
+    *Col S - Cod.Ch.CVSA  = ObservacDoc
+    ACT(S:fac, fbn('ObservacDoc'))
+    *Col T - Vto. = FechaVto
+    ACD(T:fac, fbn('FechaVto'))
+    *Col U - Nombre Banco = RazonSocial de 'CLIENTES'
+    ACT(U:fac, BuscarCampo('CLIENTES','RazonSocial','Codigo',fbn('Cliente3')))
+    *Col V - Boleto = NrBoleto
+    ACT(V:fac, fbn('NrBoleto'))
+    *Col W - Cobrado = RB1 *Conciliada|NO|Auto|Manual
+    IF fbn('RB1') = 1 O fbn('RB1') = 2
+        ACT(W:fac, 'SI')
+    ELSE
+        IF fbn('RB1') = 0
+            ACT(W:fac, 'NO')
+        Endif
+    ENDIF
+    *Col X - Devengados  =
+    ACN(X:fac, FBN['Monto'] )
+    let &totalDevengados &totalDevengados+Val(X:fac)
+    
+Proximo
+***************
+*Totales
+***************
+let &finDatos fac
+setFilaActual(FAC+1)
+let &totales fac
+
+SetFont(A:fac,1)
+ACN(M:FAC, &totalMonto)
+ACN(N:FAC, &totalCapital)
+ACN(O:FAC, &totalDescuento)
+ACN(P:FAC, &totalDerMer)
+ACN(Q:FAC, &totalDerBol)
+ACN(X:FAC, &totalDevengados)
+**********************
+*Marco y Ancho Columna
+**********************
+****Registros
+AgregarMarco(A:&filaInicial..X:&finDatos, 0, 0,  Exe('COLOR7'))
+FormatoCeldas(E:&filaInicial..E:&finDatos, Exe('F8'))
+AlinearCeldas(A:&filaInicial..X:&finDatos,'C')
+****Totales
+AgregarMarco(M:&totales..Q:&totales, 0, 0,  Exe('COLOR7'))
+AgregarMarco(X:&totales..X:&totales, 0, 0,  Exe('COLOR7'))
+*AgregarMarco(M:&totales..Q:&totales, 0, 0, Exe('COLOR'))
+*AgregarMarco(X:&totales..X:&totales, 0, 0, Exe('COLOR'))
+FormatoCeldas(M:&totales..X:&totales, Exe('F2'))
+AlinearCeldas(M:&totales..X:&totales,'C')
+SetFont(M:&totales..X:&totales, 2)
+
+ACO(1,15)
+ACO(2,8)
+ACO(3,8)
+ACO(4,8)
+ACO(5,8)
+ACO(6,8)
+ACO(7,8)
+ACO(8,8)
+ACO(9,8)
+ACO(12,8)
+ACO(13,8)
+ACO(14,8)
+ACO(15,8)
+ACO(16,8)
+ACO(17,8)
+ACO(18,8)
+ACO(19,10)
+ACO(20,8)
+ACO(21,25)
+ACO(22,5)
+ACO(23,5)
+ACO(24,8)
+
+******************************
+setfilaactual(fac+2)
+ACT(a:FAC, 'FIN DEL INFORME')
+SetFont(a:FAC, 2)
+LimitesVision(Y:fac)      

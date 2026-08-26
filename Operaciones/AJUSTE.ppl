@@ -1,0 +1,13 @@
+﻿CAMPOS:1;;2
+@VEHITO
+FechaOp        : 'Fecha Ajuste' ;1;1;;VERIFICAACCESO('OPFVALOR');;ESHABIL(FECHAOP,'ARG');'FECHA DE ORIGEN INCORRECTA';NO;FSYS;
+Operador       : 'Operador'     ;;1;;INCLUIDO(USUARIOACTIVO,VAR('USRDISOPE'));;NOVACIO(OPERADOR);'El Operador es Invalido';NO;USUARIOACTIVO;
+RB6            : 'Tipo|Financiero|Cashflow' ;;1;;;;RB6>=0;'Indique el Tipo de ajuste';NO;
+Especie        : 'Moneda'       ;;1;;;;NOVACIO(ESPECIE) y DESCIENDEDEESPECIE(ESPECIE,'MONEDA') y ESTERMINAL(ESPECIE,ESPECIE);'Debe Ingresar una Moneda ';NO;;;;;;;;" Codigo IN ("~Pipe2Comillas(Descendientes('ESPECIES','MONEDA'))~") and Status = 'HAB'"
+Cantidad       : 'Importe'      ;;1;;;;;;;
+Observac2      : 'Concepto'     ;;1;;;;;;0;
+OperacionRef   : 'OperacionRef:';;;;NO;NO;
+
+@INSTOPE
+@INST19GENE
+@INST19BITS

@@ -1,0 +1,22 @@
+﻿def abm 'Paises'      
+    def grid
+        Codigo:, Nombre:, Alias:
+    end
+    def key
+        Codigo:
+    end
+    def dialog
+        #**************************************************************************
+        tab 'General'       
+            column          
+                Codigo:,, small_text
+                Nombre:,, large_text
+                Alias:,, small_text
+    end
+    upper_case_fields: Codigo:
+    validates_max_length_of:
+       Codigo:,10,true; 
+       Nombre:,50,true;
+       Alias:,12,true;
+    validates_uniqueness_of: Codigo:
+end

@@ -1,0 +1,1 @@
+﻿SQL(" Select CuentaContable1 From "~DBO~".CUENTAS Where Comitente = '"~fbn('Cliente1')~"' AND Cliente = '"~fbn('Vehiculo1')~"' AND TipoCuenta = 'FCI' AND (Especies Like '%"~fbn('Moneda')~"%' OR Especies Like '%MONEDA%') ")

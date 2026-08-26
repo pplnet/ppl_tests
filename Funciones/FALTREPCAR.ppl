@@ -1,0 +1,279 @@
+﻿**En esta función se levanta el P&L (DC incluida) de activos que no hayan sido levantados en el qry ppal. Como no existe el cuadro del producto directamente,
+**hay que armarlo completo. Ej: el qry ppal no levantó PF por no estar vigentes, pero debe mostrarse el P&L ganado en el período del reporte.
+let &PyLTotalEspecie 0
+let &PyLTotalActivo 0
+**Productos que componen su P&L en DC
+If Incluido(&ordenA,'0|2|')
+    let &especieA 'USD'
+    If EqStr(&ordenA,'0')
+        let &ActivoA 'Ctas. A la vista'
+        let &productDC 'SALBAN'
+    Else
+        let &ActivoA 'Cta. Comitente'
+        let &productDC 'SALCOM'
+    Endif
+    
+    If EqStr(&monedaInforme,&monedaExtr)
+        let &tcDC 1/&tc
+    else
+        let &tcDC 1
+    endif
+    SQL.ADD("Select Cuenta,Sum(DC)/"~Fstr(&unidad, 0, 0)~" AS 'DC' from "~DBO~".DCMM Where Fecha>='"~IdxDate(Dialogo.Fecha1)~"' ")
+    SQL.ADD(" and Fecha<='"~IdxDate(Dialogo.Fecha2)~"' and Producto='"~&productDC~"' AND Vehiculo='"~Dialogo.Vehiculo1~"'")
+    SQL.ADD(" and Book='"~&Book~"' Group By Cuenta")
+    let &sinRegistros 1
+    SetFilaActual(fac-1)
+    let &filaInicio fac
+    Recorrer SQL
+        IF &sinRegistros=1
+            ACT(A:FAC,&ActivoA)
+            SetFont(A:FAC..H:fac, 2)
+            AgregarMarco(A:FAC..H:fac, 0, 0, Exe('COLOR8'))
+            IFA
+            ACT(A:FAC,&especieA)
+            AgregarMarco(A:FAC..H:fac, -1, 0,Exe('COLOR7'))
+            SetFont(A:FAC..H:fac, 2)
+            IFA
+            let &sinRegistros 0
+        Endif
+        ACT(A:FAC,fbn('Cuenta'))
+        ACN(E:FAC,fbn('DC')*&tcDC)
+        let &PyLTotalEspecie &PyLTotalEspecie+Val(E:FAC)
+        let &PyLTotalActivo &PyLTotalActivo+Val(E:FAC)
+        let &PyLTotalBook &PyLTotalBook+Val(E:FAC)
+    Proximo
+    if &sinRegistros=0
+        ACT(A:FAC,'Total '~&ActivoA~' en '~&EspecieA)
+        AgregarMarco(A:FAC..H:fac, 0, 0,)
+        ACN(E:FAC,&PyLTotalEspecie)
+        SetFont(A:FAC..H:fac, 2)
+        let &PyLTotalEspecie 0
+        ifa
+        ACT(A:FAC,'Total '~&ActivoA)
+        AgregarMarco(A:FAC..H:fac, 0, 0, Exe('COLOR8'))        
+        ACN(E:FAC,&PyLTotalActivo)
+        SetFont(A:FAC..H:fac, 2)
+        let &PyLTotalActivo 0
+        IFA
+    else
+        BorrarCeldas(a:fac..a:fac)
+        AgregarMarco(A:FAC..H:fac, 0, 0, )
+    endif
+Endif
+**Productos que componen su P&L en MOVDEVENGADOS y DC
+If Incluido(&ordenA,'1|5|4|')
+    If EqStr(&ordenA,'1')
+        *Para remuneradas se usa MMCCR en vez de MMRPAC porque de ahi hay que sacar los devengados
+        let &tipoOp 'MMCCR|'
+        let &dato 'O.Cuenta1'
+        let &ActivoA 'Remuneradas'
+    Else
+        If EqStr(&ordenA,'4')
+            let &tipoOp 'MMCPM|'
+            let &ActivoA 'Plazo Fijo'
+        Else
+            let &tipoOp 'SECAC|SECAT|'
+            let &ActivoA 'Caucion'
+        Endif
+        let &dato 'O.Cliente1'
+    Endif
+    let &especieA 'ARP'
+    ACT(A:FAC,&ActivoA)
+    SetFont(A:FAC..H:fac, 2)
+    AgregarMarco(A:FAC..H:fac, 0, 0, Exe('COLOR8'))
+    let &filaInicio fac
+    Recorrer&e 1,2
+        let &sinRegistros 1
+        If &e=2
+            let &especieA 'USD'
+        Endif
+        SQL.ADD(" Select "~&dato~" as 'Registro',Sum(M.Monto)/"~Fstr(&unidad, 0, 0)~" as 'P&L' ")
+        SQL.ADD(" from "~DBO~".MOVDEVENGADOS M,OPERACIONES O Where O.NrOperacion=M.NrOperacion")
+        SQL.ADD(" AND O.Vehiculo1='"~Dialogo.Vehiculo1~"' and O.TipoOp IN ("~Pipe2Comillas(&tipoOp)~") AND ")
+        SQL.ADD(" M.Fecha>='"~IdxDate(Dialogo.Fecha1)~"' AND M.Fecha<='"~IdxDate(Dialogo.Fecha2)~"' ")
+        SQL.ADD(" AND M.Especie = '"~&especieA~"' and Book='"~&Book~"' and O.FechaVto>='"~IdxDate(Dialogo.Fecha1)~"' ")
+        SQL.ADD(" AND O.FechaVto<='"~IdxDate(Dialogo.Fecha2)~"' Group By "~&dato~"")
+        Recorrer SQL
+            if &sinRegistros=1
+                ACT(A:FAC,&especieA)
+                AgregarMarco(A:FAC..H:fac, 0, 0,)
+                SetFont(A:FAC..H:fac, 2)
+                let &sinRegistros 0
+                IFA
+            Endif
+            ACT(A:FAC,fbn('Registro'))
+            If EqStr(&monedaInforme,&monedaExtr)
+                let &tcDC 1/&tc
+            else
+                let &tcDC 1
+            endif
+            SQL.ADD("Select Sum(DC)/"~Fstr(&unidad, 0, 0)~" as 'DC' FROM "~DBO~".DCMM D,"~DBO~".OPERACIONES O ")
+            SQL.ADD("  Where O.NrOperacion=D.NrOperacion AND O.ContraEspecie = '"~&especieA~"' and "~&dato~"='"~fbn('Registro')~"' ")
+            SQL.ADD(" AND Fecha>='"~IdxDate(Dialogo.Fecha1)~"' and Fecha<='"~IdxDate(Dialogo.Fecha2)~"' and O.TipoOp IN ("~Pipe2Comillas(&tipoOp)~") ")
+            SQL.ADD(" and O.FechaVto>='"~IdxDate(Dialogo.Fecha1)~"' AND O.FechaVto<='"~IdxDate(Dialogo.Fecha2)~"' ")
+            Recorrer SQL
+                dfa
+                let &DC fbn('DC')
+            Proximo
+            let &DC &DC*&tcDC
+            let &savetc &tc
+            If EqStr(&especieA,&monedaInforme)
+                let &tc 1
+            else
+                let &monedaTC2 &especieA
+                (.'TIPOCAMBIO'.)
+            endif
+            ACN(E:FAC,(fbn('P&L')*&tc)+&DC)
+            let &tc &saveTc
+            let &PyLTotalEspecie &PyLTotalEspecie+Val(E:FAC)
+            let &PyLTotalActivo &PyLTotalActivo+Val(E:FAC)
+            let &PyLTotalBook &PyLTotalBook+Val(E:FAC)
+        Proximo
+        if &sinRegistros=0
+            ifa
+            ACT(A:FAC,'Total '~&ActivoA~' en '~&EspecieA)
+            AgregarMarco(A:FAC..H:fac, 0, 0,)
+            ACN(E:FAC,&PyLTotalEspecie)
+            SetFont(A:FAC..H:fac, 2)
+            let &PyLTotalEspecie 0
+            ifa
+        endif
+    Proximo
+    if &filaInicio=fac
+        BorrarCeldas(a:fac..a:fac)
+        AgregarMarco(A:FAC..H:fac, -1, 0,Exe('COLOR7') )
+    else
+        ACT(A:FAC,'Total '~&ActivoA)
+        AgregarMarco(A:FAC..H:fac, 0, 0, Exe('COLOR8'))        
+        ACN(E:FAC,&PyLTotalActivo)
+        SetFont(A:FAC..H:fac, 2)
+        let &PyLTotalActivo 0
+        IFA
+    endif
+Endif
+**Productos que componen su P&L en RESULTADOS2 y DC
+If Incluido(&ordenA,'6|7|8|9|3|')
+    **Fondos,Letras,Bonos,Acciones y ONs
+    let &BonXIndA 0
+    If EqStr(&ordenA,'6')
+        *Letras
+        let &tipoActivoA "dbo.DESCIENDEDEESPECIE(Especie,'LETRA') = 1"
+        let &ActivoA 'Letras'
+        let &BonXIndA 1
+    Else
+        If EqStr(&ordenA,'7')
+            *bonos
+            let &tipoActivoA "dbo.DESCIENDEDEESPECIE(Especie,'PUBLIC') = 1  AND dbo.DESCIENDEDEESPECIE(Especie,'LETRA') <> 1 "
+            let &ActivoA 'Bonos'
+            let &BonXIndA 1
+        Else
+            If EqStr(&ordenA,'8')
+                *Acciones    
+                let &tipoActivoA  "dbo.DESCIENDEDEESPECIE(Especie,'ACCION') = 1"
+                let &ActivoA 'Acciones'
+            else
+                If EqStr(&ordenA,'9')
+                    **ONs
+                    let &tipoActivoA "dbo.DESCIENDEDEESPECIE(Especie,'CORP B') = 1"
+                    let &ActivoA 'ONs'
+                else
+                    *fondos
+                    let &tipoActivoA "dbo.DESCIENDEDEESPECIE(Especie,'FONDOS') = 1"
+                    let &ActivoA 'Fondos'
+                endif
+            endif
+        Endif
+    Endif
+    let &especieA 'ARP'
+    ACT(A:FAC,&ActivoA)
+    SetFont(A:FAC..H:fac, 2)
+    AgregarMarco(A:FAC..H:fac, 0, 0, Exe('COLOR8'))
+    let &filaInicio fac
+    Recorrer&e 1,2
+        let &sinRegistros 1
+        If &e=2
+            let &especieA 'USD'
+        Endif
+        SQL.ADD(" Select Especie,Sum(ICMEDAY) as ICMEDAY,Sum(VRMEDAY) as VRMEDAY,Sum(RRMEDAY) as RRMEDAY, ")
+        SQL.ADD(" Sum(CRMEDAY) AS CRMEDAY,Sum(INMEDAY) AS INMEDAY ")
+        SQL.ADD(" FROM "~DBO~".RESULTADOS2 R,ESPECIES E Where R.Especie=E.Codigo and ")
+        If EqStr(&OrdenA,'3')
+            SQL.ADD(" E.Cotiza= '"~&especieA~"' and ")
+        Else
+            SQL.ADD(" E.MonedaEmision= '"~&especieA~"' and ")
+        Endif
+        SQL.ADD(" Vehiculo='"~Dialogo.Vehiculo1~"' and Book='"~&book~"' and ")
+        SQL.ADD(" R.Fecha>= '"~IdxDate(Dialogo.Fecha1)~"' and R.Fecha<='"~IdxDate(Dialogo.Fecha2)~"' ")
+        SQL.ADD(" And  "~&tipoActivoA~" And NrSaldo=1 ")
+        SQL.ADD(" Group by Especie ")
+        SQL.ADD(" HAVING Round(ABS(Sum(ICMEDAY+VRMEDAY+RRMEDAY+CRMEDAY+INMEDAY+DKMLDAY))/"~Fstr(&unidad, 0, 0)~",0)>0")
+        Recorrer SQL
+            if &sinRegistros=1
+                ACT(A:FAC,&especieA)
+                AgregarMarco(A:FAC..H:fac, 0, 0,)
+                SetFont(A:FAC..H:fac, 2)
+                let &sinRegistros 0
+                IFA
+            Endif
+            ACT(A:FAC,fbn('Especie'))
+            **bonos ajustados por indice
+            let &monto 0
+            #ifdef BFSA
+                If &BonXIndA=1
+                    let &espBonInd fbn('Especie')
+                    (.'BONAJUIND'.)
+                Endif
+            #endif
+            **
+            *Verifico la cotización segun la especie
+            let &saveTc &tc
+            let &monedaTC2 &especieA
+            If Incluido(&OrdenA, '9|7|6|')
+                let &monedaTC2 BuscarCampo('ESPECIES','Cotiza','Codigo',fbn('Especie'))
+            endif
+            (.'TIPOCAMBIO'.)
+            If EqStr(&OrdenA,'3')
+                let &PyL fbn('VRMEDAY')+fbn('RRMEDAY')+fbn('CRMEDAY')
+            Else
+                let &tipoIndice BuscarCampo('ESPECIES','TipoIndice','Codigo',BuscarCampo('ESPECIES','Indice','Codigo',fbn('Especie')))
+                If Incluido(&tipoIndice,'ULK|CAP|')
+                    let &PyL fbn('VRMEDAY')+fbn('RRMEDAY')+fbn('CRMEDAY')+fbn('INMEDAY')
+                Else
+                    let &PyL fbn('VRMEDAY')+fbn('RRMEDAY')+fbn('CRMEDAY')+fbn('INMEDAY')+fbn('ICMEDAY')
+                Endif
+            Endif
+            ACN(E:FAC,((&PyL/&unidad)*&tc)+&monto)
+            **Seteo la moneda para la conversion con la ML del VH
+            let &monedaTC2 Buscarcampo('VEHICULOS','Alias4','Codigo',Dialogo.Vehiculo1)
+            (.'TIPOCAMBIO'.)
+            **Cintia 231023 Se agrega DKMLDAY
+            let &DKMLDAY (SQL("Select Sum(DKMLDAY)/"~Fstr(&unidad, 0, 0)~" FROM "~DBO~".RESULTADOS2 Where Especie='"~fbn('Especie')~"' and Vehiculo='"~Dialogo.Vehiculo1~"' and Book='"~&book~"' and Fecha>= '"~IdxDate(Dialogo.Fecha1)~"' and Fecha<='"~IdxDate(Dialogo.Fecha2)~"' and NrSaldo=1 HAVING  Round(ABS(Sum(DKMLDAY))/"~Fstr(&unidad, 0, 0)~",0)>0")*&tc)
+            ACN(E:FAC,Val(E:FAC)+&DKMLDAY)
+            let &tc &saveTc
+            ACT(A:FAC,fbn('Especie'))
+            let &PyLTotalEspecie &PyLTotalEspecie+Val(E:FAC)
+            let &PyLTotalActivo &PyLTotalActivo+Val(E:FAC)
+            let &PyLTotalBook &PyLTotalBook+Val(E:FAC)
+        Proximo
+        if &sinRegistros=0
+            ifa
+            ACT(A:FAC,'Total '~&ActivoA~' en '~&EspecieA)
+            AgregarMarco(A:FAC..H:fac, 0, 0,)
+            ACN(E:FAC,&PyLTotalEspecie)
+            SetFont(A:FAC..H:fac, 2)
+            let &PyLTotalEspecie 0
+            ifa
+        endif
+    Proximo
+    if &filaInicio=fac
+        BorrarCeldas(a:fac..a:fac)
+        AgregarMarco(A:FAC..H:fac, -1, 0,Exe('COLOR7') )
+    else
+        ACT(A:FAC,'Total '~&ActivoA)
+        AgregarMarco(A:FAC..H:fac, 0, 0, Exe('COLOR8'))        
+        ACN(E:FAC,&PyLTotalActivo)
+        SetFont(A:FAC..H:fac, 2)
+        let &PyLTotalActivo 0
+        IFA
+    endif
+Endif

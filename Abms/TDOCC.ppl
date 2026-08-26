@@ -1,0 +1,15 @@
+﻿def abm 'TIPODOCCONTABLE'
+    def grid
+        Codigo:, Descripcion:
+    end
+    def key
+        Codigo:
+    end
+    def dialog
+    #*************************************************************************
+        tab 'General'
+            column
+               Codigo:,,      small_text
+               Descripcion:,, large_text
+    end
+end

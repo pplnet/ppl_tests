@@ -1,0 +1,136 @@
+﻿MostrarCuadroDeMensajes
+CrearDialogo
+  Fecha1           :  'Fecha'              ;1;;;;;;;;FSYS
+  Vehiculo1        :  'Vehiculo'           ;2;;;;;NoVacio(Dialogo.Vehiculo1);'Debe Ingresar un Vehiculo';NO;Var('DDVEHDEF')
+  Book1            :  'Book'               ;3;;;;;EqStr(Dialogo.Vehiculo1,BuscarCampo('BOOKS','Vehiculo','Codigo',Dialogo.Book1));'El book ingresado no corresponde al Vehiculo';NO;Var('BOOKDDCHE');BuscarCampo('VEHICULOS','Alias5','Codigo',Dialogo.Vehiculo1);;;;" Vehiculo = '"~Dialogo.Vehiculo1~"'"  
+  Especie1         :  'Moneda'             ;4;;;NO;;NoVacio(Dialogo.Especie1);'Debe Ingresar una Moneda';NO;VAR('MONELOCA')  
+FinDialogo
+
+If Not Ok 
+   Cancelar
+Endif
+
+CrearFont(1, 'Arial,8,')
+CrearFont(2, 'Arial,8,B')
+CrearFont(3, 'Arial,12,B')
+CrearFont(4, 'Arial,8,BI')
+
+let &filaLogo 1
+(.'LOGO'.)
+
+
+SetFilaActual(fac+3)
+
+ACT(C:2, 'Operaciones con Exceso NO Garantizado')
+SetFont(C:2, 3)
+SetFilaActual(fac+3)
+
+***---HEADER---***
+ACT(A:fac,'Fecha:')
+ACT(B:fac,Dialogo.Fecha1)
+ifa
+If NoVacio(Dialogo.Vehiculo1)
+    ACT(A:fac,'Vehiculo:')
+    ACT(B:fac,Dialogo.Vehiculo1)
+    ifa
+EndIf
+If NoVacio(Dialogo.Book1)
+    ACT(A:fac,'Book:')
+    ACT(B:fac,Dialogo.Book1)
+    ifa
+EndIf
+SetFont(A:&fi1..A:fac, 2)
+SetFont(BS:&fi1..B:fac, 2)
+ifa
+
+let &tipolimite 'DDNOA'
+
+***---COLUMNAS---***
+ACT(A:fac, 'C.U.I.T.')
+ACT(B:fac, 'Nombre Empresa')
+ACT(C:fac, 'Monto CPD')
+ACT(D:fac, 'Monto FCE')
+ACT(E:fac, 'Libre CPD') 
+ACT(F:fac, 'Libre FCE')
+ACT(G:fac, 'Maximo a Operar/Exceso')
+ACT(H:fac, 'Max CPD')
+ACT(I:fac, 'Max FCE')
+ACT(J:fac, 'Cupo Total')
+ACT(K:fac, 'CUMPLE')
+  
+AlinearCeldas(A:fac..K:fac,'C')
+SetFont(A:fac..K:fac, 2)
+AgregarMarco(A:fac..K:fac, 0, 0, Exe('COLOR'))
+
+Let &filaInicial fac+1
+
+***---QRY---***
+SQL.ADD("Select FechaVigencia,CUITEmisor, EmisorNombre, CupoFCE, CupoCPD, CupoTotal from "~DBO~".DDCUPOSNOAVALADOS DD1 ")
+SQL.ADD("WHERE DD1.Vehiculo = '"~Dialogo.Vehiculo1~"' ")
+SQL.ADD("AND DD1.Book = '"~Dialogo.Book1~"' ")
+SQL.ADD("AND DD1.Moneda = '"~Dialogo.Especie1~"' ")
+SQL.ADD("AND DD1.FechaVigencia IN (SELECT MAX(DD2.FechaVigencia) FROM "~DBO~".DDCUPOSNOAVALADOS DD2 ") 
+SQL.ADD("                   WHERE DD2.Book = DD1.Book  ")
+SQL.ADD("                   AND DD2.Moneda = DD1.Moneda ")
+SQL.ADD("                   AND DD2.Vehiculo = DD1.Vehiculo ")
+SQL.ADD("                   AND DD2.CUITEmisor = DD1.CUITEmisor ")
+SQL.ADD("                   AND DD2.FechaVigencia  <= '"~IdxDate(Dialogo.Fecha1)~"') ")
+SQL.ADD("ORDER BY CUITEmisor ")
+
+Recorrer SQL
+    *** CUIT
+    ACT(A:fac,fbn('CUITEmisor'))
+    *** Nombre Empresa
+    ACT(B:fac,Copy(fbn('EmisorNombre'),1,65))
+    
+    *** Monto CPD
+    ACN(C:fac,LimConsumido(val(A:fac),&tipolimite,,0,Dialogo.Vehiculo1,,Dialogo.Book1,,Dialogo.Fecha1,,,,'CPD'))
+    *** Monto FCE
+    ACN(D:fac,LimConsumido(val(A:fac),&tipolimite,,0,Dialogo.Vehiculo1,,Dialogo.Book1,,Dialogo.Fecha1,,,,'FCE'))
+    
+    *** Max CPD
+    ACN(H:fac,fbn('CupoCPD'))
+    *** Max FCE
+    ACN(I:fac,fbn('CupoFCE'))
+    
+    *** Cupo Total
+    *ANTERIOR: ACN(J:fac,val(H:fac)+val(I:fac))
+    *UPDATE 06/2024: Tomarlo del campo CupoTotal de la tabla DDCUPOSNOAVALADOS
+    ACN(J:fac,FBN['CupoTotal'])
+    *** Libre CPD
+    ACN(E:fac,val(H:fac)-val(C:fac))
+    *** Libre FCE
+    ACN(F:fac,val(I:fac)-val(D:fac))
+    *** Maximo a Operar/Exceso
+    *ANTERIOR ACN(G:fac,val(J:fac)-(val(C:fac)+val(D:fac)))
+    *UPDATE 06/2024: El Máximo a Operar/Exceso es el Cupo Total - (Monto CPD+Monto FCE)
+    ACN(G:fac,Val(J:fac)-(Val(C:fac)+Val(D:fac)))
+    If (val(C:fac) > val(E:fac)) OR (val(D:fac) > val(F:fac))
+        *** CUMPLE
+        ACT(K:fac,'HAY EXCESO')
+        ColorCeldas(K:fac..K:fac, Exe('COLOR5'))
+    Else
+        *** CUMPLE
+        ACT(K:fac,'OK')
+    EndIf
+Proximo
+
+FormatoCeldas(C:&filaInicial..J:fac, Exe('F0R'))
+
+ACO(1,10)
+ACO(2,46)
+ACO(3,10)
+ACO(4,10)
+ACO(5,10)
+ACO(6,10)
+ACO(7,15)
+ACO(8,10)
+ACO(9,10)
+ACO(10,10)
+ACO(11,8)
+
+
+SetFilaActual(FAC+2)
+ACT(a:FAC, 'FIN DEL INFORME')
+SetFont(a:FAC, 2)
+LimitesVision(K:fac) 

@@ -1,0 +1,21 @@
+﻿HojaVisible(SI)
+Creardialogo
+
+  Especie1
+  Fecha1
+
+Findialogo
+
+* Message('Control de Flujo') 
+
+* Message3('Control de Flujo') 
+
+* ImportarXLS(A1..B6, A1, 'C:\ww.xls')
+
+* ACD(A1, ProxCupon2(Dialogo.Especie1, Dialogo.Fecha1))
+* SeleccionarPMI("C:\NEW.PMI")
+* ExportarPMI('EVENTOS', 'Codigo','000000')
+
+  EjecutarEvento('000002')
+  EjecutarEvento('000002')
+

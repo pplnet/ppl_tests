@@ -1,0 +1,26 @@
+﻿CAMPOS:1;;5
+FechaOp        : 'Fecha Ajuste'               ;1;1;;VERIFICAACCESO('OPFVALOR');;;;;FSYS;
+@VEHITO
+NrOperacion2   : 'Operacion'                  ;4;1;;;;NOVACIO(NROPERACION2);'El Nro.Opercion es Incorrecto';NO;;;;SqlSet("Select NrOperacion from "~DBO~".OPERACIONES Where TipoOp like 'DT%' ");NO
+Especie        : 'Moneda'                     ;;;;;;NOVACIO(ESPECIE) y DESCIENDEDEESPECIE(ESPECIE,'MONEDA') y ESTERMINAL(ESPECIE,ESPECIE);'Debe Ingresar una Moneda ';NO;;;;;
+Cantidad       : 'Importe'                    ;;;;;;CANTIDAD<>0;'El Importe DEBE SER DISTINTO DE Cero';NO;
+CB3            : 'Renovacion'                 ;;1;;     ;;;;;0 
+
+NrOperacion4   : 'Op.Renovacion'              ;; ;;CB3=1;CB3=1; CB3=0 O [NOVACIO(NROPERACION4) y Incluido(NrOperacion4 , SqlSet("Select NrOperacion from "~DBO~".OPERACIONES Where TipoOp like 'MMPCCV%' and Vehiculo1= '"~VTXT1~"' and Especie= '"~VTXT2~"' ") )] ; '**** Operacion incorrecta ';NO;;;;
+
+                                                                                          
+
+
+
+Operador       :                              ;;;;;;NOVACIO(OPERADOR);'El Operador es Invalido';NO;USUARIOACTIVO;
+VTXT1          : 'T1'                         ;1;;;NO;NO;;;;;VEHICULO1
+VTXT2          : 'T2'                         ;1;;;NO;NO;;;;;ESPECIE
+      
+
+
+
+
+BAJA
+EqStr(Operador, UsuarioActivo) o Incluido(UsuarioActivo, Var('ULBAJA'));'No se puede dar de baja, Operador: '~Operador
+
+@INSTOPE

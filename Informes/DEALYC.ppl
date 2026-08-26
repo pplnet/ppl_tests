@@ -1,0 +1,127 @@
+﻿CrearDialogo
+    Fecha1:     'Fecha: ' ;1;1;;;;;;NO;FSYS;;
+    Cliente1:   'ALyC: '        ;3;1;;;;NoVacio(Dialogo.Cliente1) Y NoVacio(BuscarCampo('CLIENTES','CodigoMAV','Codigo',Dialogo.Cliente1));'ALyC inválida';NO;;;;;;"CodigoMAV IS NOT NULL"
+    Vehiculo1:  'Vehiculo: '    ;4;1;;;;NoVacio(Dialogo.Vehiculo1);'Debe ingresar un Vehiculo';NO;;;
+    Book1:      'Book: '        ;5;1;;;;EqStr(Dialogo.Vehiculo1,BuscarCampo('BOOKS','Vehiculo','Codigo',Dialogo.Book1)) Y NoVacio(Dialogo.Book1);'El book ingresado no corresponde al Vehiculo';NO;;BuscarCampo('VEHICULOS','Alias5','Codigo',Dialogo.Vehiculo1);;;;" Vehiculo = '"~Dialogo.Vehiculo1~"'"
+FinDialogo
+
+If not ok
+    Cancelar
+Endif
+
+********
+*Fuentes
+********
+CrearFont(1, 'Arial,8,')
+CrearFont(2, 'Arial,8,B')
+CrearFont(3, 'Arial,16,B')
+**************
+*Logo y Título
+**************
+let &filaLogo 1
+(.'LOGO'.)
+
+ACT(D:1, 'Detalle de lo operado por ALyC')
+SetFont(D:1, 3)
+AlinearCeldas(D:1..D:1,'C')
+
+SetFilaActual(fac+6)
+*******
+*Header
+*******
+**Variables
+let &fi1 FAC
+
+ACT(A:fac,'Fecha: '~Dialogo.Fecha1)
+ifa
+let &cliente Dialogo.Cliente1
+ACT(A:fac,'ALyC: '~&cliente)
+ifa
+ACT(A:fac,'Vehiculo: '~Dialogo.Vehiculo1)
+ifa
+ACT(A:fac,'Book: '~Dialogo.Book1)
+
+*
+ifa
+    
+**********
+SetFont(A:&fi1..A:fac, 2)
+SetFont(B:&fi1..B:fac, 2)
+ifa
+******************************
+*Títulos de Columnas y Formato
+******************************
+ ACT(A:FAC, 'FechaOp')
+ ACT(B:FAC, 'NrOperacion')
+ ACT(C:FAC, 'Cantidad')
+ ACT(D:FAC, 'Especie')
+ ACT(E:FAC, 'TipoOp')
+
+ 
+ AlinearCeldas(A:fac..E:fac,'C')
+ SetFont(A:fac..E:fac, 2)
+ AgregarMarco(A:fac..E:fac, 0, 0, Exe('COLOR'))
+Let &filaInicial fac+1
+**************
+*SENTENCIA SQL
+**************
+SQL.ADD("Select FechaOp, NrOperacion, Cantidad, Especie, TipoOp FROM "~dbo~".OPERACIONES")
+SQL.ADD("WHERE FechaOp='"~idxDate(Dialogo.Fecha1)~"' ")
+SQL.ADD("AND Cliente1 = '"~&cliente~"'")
+SQL.ADD("AND Vehiculo1 = '"~Dialogo.Vehiculo1~"'")
+SQL.ADD("AND Book1 = '"~Dialogo.Book1~"'")
+SQL.ADD("Order By FechaOp")
+
+WATCH(SQL.BATCH)
+
+let &fechaAnterior Dialogo.Fecha1+1000
+*************
+Recorrer SQL
+*************
+    IF FBN['FechaOp'] = &fechaAnterior
+    *   Si la fecha es igual a la anterior.
+        dfa
+    ENDIF
+    IF (EsHabil(FBN['FechaOp'],'ARG'))
+    ACT(A:FAC, FBN['FechaOp'])
+    ACT(B:FAC, FBN['NrOperacion'])
+    ACLO(B:FAC, FBN['NrOperacion'])
+    ACN(C:FAC, FBN['Cantidad'])
+    let &totalCantidad &totalCantidad+Val(C:FAC)
+    ACT(D:FAC, FBN['Especie'])
+    ACT(E:FAC, FBN['TipoOp'])
+    ELSE
+        dfa
+    ENDIF
+        
+    
+Proximo   
+**********************
+*Marco y Ancho Columna
+**********************
+AgregarMarco(A:&filaInicial..E:fac, 0, 0,  Exe('COLOR7'))
+*AlinearCeldas(E:&filaInicial..E:fac,'C')
+FormatoCeldas(C:&filaInicial..D:fac, Exe('F2'))
+*FormatoCeldas(E:&filaInicial..E:fac, Exe('F2%'))
+
+*************
+****TOTAL****
+*************
+ifa
+AgregarMarco(A:FAC..C:fac, 0, 0,  Exe('COLOR'))
+ACT(A:fac, 'TOTAL')
+ACN(C:fac,&totalCantidad)
+***********************
+
+SetFilaActual(fac+2)
+
+ACO(1,10)
+ACO(2,10)
+ACO(3,15)
+ACO(4,15)
+ACO(5,10)
+******************************
+SetFilaActual(FAC+1)
+ACT(a:FAC, 'FIN DEL INFORME')
+SetFont(a:FAC, 2)
+LimitesVision(F:fac)      

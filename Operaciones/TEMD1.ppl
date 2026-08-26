@@ -1,0 +1,49 @@
+﻿CAMPOS:1;;BuscarCampo('VEHICULOS','Alias1','Codigo',Vehiculo1)
+FechaOp        : 'Fecha Movimiento'       ;1;1;;NO;;EsHabil(FECHAOP,'ARG');'Fecha incorrecta';NO;FSYS;
+@VEHITO
+Cliente1       : 'Entidad '               ;2;1;;;;NOVACIO(CLIENTE1) y Not DESCIENDEDECLIENTE(CLIENTE1,'VINCULADOS');'El Cliente no es valido';NO;;;;
+Especie        : 'Moneda'                 ;;;;NOT EV;;NOVACIO(ESPECIE) y DESCIENDEDEESPECIE(ESPECIE,'MONEDA') y ESTERMINAL(ESPECIE, ESPECIE);'Debe Ingresar una Especie';NO;;;;;;;;"Codigo IN ("~Pipe2Comillas(Descendientes('ESPECIES','MONEDA'))~") and Status = 'HAB'" ;;
+Cantidad       : 'V_Nominal'              ;;;;NOT EV;;CANTIDAD>0;'El Valor Nominal DEBE SER POSITIVO';NO;
+Operador       :                          ;;;;INSTANCIA<>4;;NOVACIO(OPERADOR);'El Operador es Invalido';NO;USUARIOACTIVO;
+TablaFeriados1 : 'Feriados Esp.'          ;;;;NO;;NOVACIO(TABLAFERIADOS1);'Se debe indicar feriados a utilizar';NO;'ARG';
+CB7            : 'Desembolso'             ;;;;RB3=1;RB3=1;;;;
+NrOperacion3   : 'Op.Asoc'                ;;;;NO;NOVACIO(NROPERACION3);;;;;
+MB3            : 'Vehiculo|Coloca|Toma'   ;;;;;;MB3>=0;'Indique Colocacion o Toma';NO;0;
+ContraEspecie2 : 'Moneda_Liq'             ;4;2;;CB7=1 y Not Eqstr(ESPECIE,VAR('MONELOCA'));CB7=1 y Not Eqstr(ESPECIE,VAR('MONELOCA'));[Not [CB7=1 y Not Eqstr(ESPECIE,VAR('MONELOCA'))]] O [NOVACIO(CONTRAESPECIE2) y DESCIENDEDEESPECIE(CONTRAESPECIE2,'MONEDA') y ESTERMINAL(CONTRAESPECIE2, ESPECIE)];'Moneda de Liquidacion Invalida';NO;;IF(Not [CB7=1 y Not Eqstr(ESPECIE,VAR('MONELOCA'))],ESPECIE,CONTRAESPECIE2);;;;;;"Codigo IN ("~Pipe2Comillas(Descendientes('ESPECIES','MONEDA'))~")and Status = 'HAB' ";;
+TCComCor1      : 'T.Cambio'               ;;;;CB7=1 y Not Eqstr(ESPECIE,VAR('MONELOCA'));CB7=1 y Not Eqstr(ESPECIE,VAR('MONELOCA'));TCCOMCOR1>=0;'Tipo de Cambio Liquidacion Invalido';NO;1;IF(Not [CB7=1 y Not Eqstr(ESPECIE,VAR('MONELOCA'))],1,TCCOMCOR1)
+ImpComCor1     : 'Imp.Liquidar'           ;;;;NO;CB7=1 y Not Eqstr(ESPECIE,VAR('MONELOCA'));;;;;CANTIDAD*IF(eqstr(QUERY(" Select Modo from "~DBO~".MODOESPECIES where Especie1='"~ESPECIE~"' and Especie2='"~CONTRAESPECIE2~"' "),'DIR'),TCCOMCOR1,IF(TCCOMCOR1<>0,1/TCCOMCOR1,0))
+Precio4        : 'Cot.Especie/ARP'        ;;;;NO;NO;;;;;IF(CB9=1,COTIZACIONC(ESPECIE,,,,FECHAOP,1,SI,'ARP')/COTIZACIONC(CONTRAESPECIE2,,,,FECHAOP,1,SI,'ARP'),COTIZACIONC(CONTRAESPECIE2,,,,FECHAOP,1,SI,'ARP')/COTIZACIONC(ESPECIE,,,,FECHAOP,1,SI,'ARP')))
+CB9            : 'DirectaEsp/Cont?'       ;;;;NO;NO;;;;;IF(EqStr(QUERY("Select Modo from "~DBO~".MODOESPECIES where Especie1='"~ESPECIE~"' and Especie2='"~CONTRAESPECIE2~"' "),'INV'),0,1); 
+
+VCAN1          : 'Existe TEMINM'          ;1;1;;NO;NO;VCAN1=0;'Existe una Minuta Mensual Fecha Valor para el Vehiculo/Cliente';NO;;IF(FECHAOP<FSYS,QUERY("SELECT COUNT(*) From "~DBO~".OPERACIONES where TipoOp='TEMINM' and FechaOp>='"~IdxDate(FECHAOP)~"' and FechaOp <='"~IdxDate(FinDeMes(FECHAOP,NO,'ARG'))~"' and Especie='"~ESPECIE~"' and Vehiculo1='"~VEHICULO1~"' and Cliente1='"~CLIENTE1~"' "),0)
+VCAN2          : 'Existe TEMIND'          ;;1;;NO;NO;VCAN2=0;'Existe una Minuta Diaria el Par Vehiculo/Cliente';NO;;IF(FECHAOP<=FSYS,QUERY("SELECT COUNT(*) from "~DBO~".OPERACIONES where TipoOp='TEMIND' and FechaOp='"~IdxDate(FECHAOP)~"' and Especie='"~ESPECIE~"' and Vehiculo1='"~VEHICULO1~"' and Cliente1='"~CLIENTE1~"' "),0)
+CB8            : 'Genero FV'              ;;1;;NO;NO;;;;0
+Impresa        : 'Modificado'             ;10;3;;NO;NO;;;;0
+RB3            : 'MOF Para TEMD Solamente';10;2;;NO;NO;;;;;IF(INSTANCIA=4,0,1)
+VTXT1          : 'Pares Vehiculos HAB'    ;10;2;;NO;NO;;;;;QUERY(" Select DISTINCT Estado from "~DBO~".IMPTERCEROS where Vehiculo='"~VEHICULO1~"' and Cliente='"~CLIENTE1~"' and Estado='HAB' ")
+VTXT2          : 'Especies HAB'           ;10;2;;NO;NO;;;;;QUERY(" Select DISTINCT ListaEspecies from "~DBO~".IMPTERCEROS where Vehiculo='"~VEHICULO1~"' and Cliente='"~CLIENTE1~"' and Estado='HAB' ")
+OperacionRef   : ''                           ;;;;NO;NO;
+
+CONDICIONES
+Not [CB7=1 y Not Eqstr(Especie,VAR('MONELOCA'))] o [TCComCor1<=Precio4*(1+VAR('RPRECIO2')/100) Y TCComCor1>=Precio4*(1-VAR('RPRECIO2')/100)];'Tipo de Cambio a Liquidar Invalido: '~FSTR(Precio4*(1-VAR('RPRECIO2')/100),1,7)~' y '~FSTR(Precio4*(1+VAR('RPRECIO2')/100),1,7);NO
+ESTERMINAL(VEHICULO1,VEHICULO);'El Vehiculo debe ser Terminal';NO
+ESTERMINAL(CLIENTE1,CLIENTE);'El Cliente debe ser Terminal';NO
+FECHAOP =Fsys;'La Fecha de Origen no coincide con la de Sistema';SI;SI;FSYS;'ORIGFVALOR'
+VACIO(BuscarCampo('USUARIOS','Perfil','Codigo',OPERADOR)) O  VERIFICAPERFIL(BuscarCampo('USUARIOS','Perfil','Codigo',OPERADOR),'TO'~TIPOOP);'Operador no habilitado para ingresar Operaciones del Tipo '~TIPOOP;NO
+EqStr('HAB',VTXT1);'El Par Vehiculos/Cliente no estan Habilitados para ingresar Minutas Diarias !!!';NO
+Not EqStr('HAB',VTXT1) o Incluido(ESPECIE,VTXT2);'La Especie no esta Habilitada !!!';NO
+VCAN2=0;'No se Puede Ingresar el Movimiento Diario, Ya existe una minuta Diarias!!!';NO
+[INSTANCIA=1];'Instancia de Carga Incorrecta !!!';NO
+
+EDICION
+EqStr(Operador, UsuarioActivo) o Incluido(UsuarioActivo, Var('ULMODI'));'No se puede modificar, Operador: '~Operador
+
+BAJA
+EqStr(Operador, UsuarioActivo) o Incluido(UsuarioActivo, Var('ULBAJA'));'No se puede dar de baja, Operador: '~Operador
+
+MOVIMIENTOS
+FechaOp  ;Cliente1;ContraEspecie2 ;;;;;Vehiculo1;1;IF(MB3=0,ImpComCor1,-ImpComCor1);;'Terceros Mov. Diario';SI;Not [CB7=1 y Incluido(Vehiculo1,Var('VLIQUIDA')~Var('VLIQUIDA2'))];;CB7=1;;;;1;
+
+@INSTOPE
+@INST19GENE
+@INST19BITS

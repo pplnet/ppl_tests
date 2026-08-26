@@ -1,0 +1,57 @@
+﻿**Este evento se ejecuta desde el IMPSAB para que actualice el Valor Cartera en la tabla RENTABILIDAD . 
+**Ya que la importación de saldos de un dia se realiza el día siguiente por la mañana.
+
+IF Vacio(UsrVehiculos(UsuarioActivo))
+    ACT(LS:1, SQLSet(" Select Codigo from "~DBO~".VEHICULOS where Status = 'HAB' "))
+ELSE
+    ACT(LS:1, UsrVehiculos(UsuarioActivo))
+ENDIF
+
+CrearDialogo
+    Fecha1: 'Fecha Actualizacion' ;;;;;;;;;;;;;;;;;
+FinDialogo
+
+
+If Not Ok
+    Cancelar
+Endif
+
+let &lista1 Val(LS:1)
+
+message(' Calculando Valor Cartera en ARP')
+*Expresado en ARP
+LinkearHoja('POSICI',1,Fecha1=Dialogo.Fecha1,Lista1=&lista1,Radio1=1,Radio2=0,Radio3=1,Check1=1,Radio4=0)
+
+let &radio2 0
+message(' Actualizando Valor Cartera en ARP')
+Recorrer&i LinkH(1, ZZ:1),LinkH(1, ZZ:2)
+    IF NoVacio(LinkH(1,D:&i))
+            let &book LinkH(1,D:&i)
+            message(' Book '~&book)
+            let &tCartera LinkH(1,X:&i)
+            (.'CALCVCART'.)
+    ELSE
+            let &vehiculo LinkH(1,A:&i)
+            message(' Vehiculo '~&vehiculo)
+    ENDIF    
+Proximo
+
+message(' Calculando Valor Cartera en USD')
+*Expresado en USD
+LinkearHoja('POSICI',2,Fecha1=Dialogo.Fecha1,Lista1=&lista1,Radio1=1,Radio2=1,Radio3=1,Check1=1,Radio4=0)
+
+let &radio2 1
+message(' Actualizando Valor Cartera en USD')
+Recorrer&i LinkH(2, ZZ:1),LinkH(2, ZZ:2)
+    IF NoVacio(LinkH(2,D:&i))
+            let &book LinkH(2,D:&i)
+            message(' Book '~&book)            
+            let &tCartera LinkH(2,X:&i)
+            (.'CALCVCART'.)
+    ELSE
+            let &vehiculo LinkH(2,A:&i)
+            message(' Vehiculo '~&vehiculo)            
+    ENDIF    
+Proximo
+        
+

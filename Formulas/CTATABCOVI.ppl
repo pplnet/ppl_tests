@@ -1,0 +1,6 @@
+﻿RelacionCuenta('',#BONOVINCUL,'','',
+                '',
+                fbn('Cotiza'),
+                '',
+                '',
+                Modelo.Alias1)

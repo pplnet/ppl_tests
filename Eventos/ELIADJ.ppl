@@ -1,0 +1,85 @@
+﻿HojaVisible(NO)
+MostrarCuadroDeMensajes
+CrearDialogo
+   NrOperacion: "Operacion" ;;;;;;NoVacio(Dialogo.NrOperacion);'Debe ingresar una Operacion';NO;;SQL("select O.NrOperacion from "~DBO~".MENSAJES_FILES MF, "~DBO~".MENSAJES_OP MO, "~DBO~".OPERACIONES O, "~DBO~".MENSAJES M where MF.IdMensaje=MO.IdMensaje and MO.Nr=O.NrOperacion and MF.IdMensaje=M.IdMensaje and M.DeletedAt is NULL group by O.NrOperacion");;;;"NrOperacion in (select MO.Nr from "~DBO~".MENSAJES_FILES MF, "~DBO~".MENSAJES_OP MO, "~DBO~".MENSAJES M where MF.IdMensaje=MO.IdMensaje and MF.IdMensaje=M.IdMensaje and M.DeletedAt is NULL group by MO.Nr)";
+FinDialogo
+If Not OK
+   Cancelar
+Endif
+CrearFont(1,"Arial,8,B")
+
+Recorrer&i 1,5
+    let &cantidad 0
+    SQL.ADD("select Fecha,SUBSTRING(Comentario,CHARINDEX('</op>',Comentario)+5,len(Comentario)) Comentario,Usuario, ")
+    SQL.ADD("FileName Adjunto,Nr NrOp,CodigoScript TipoOp, M.IdMensaje")
+    SQL.ADD("from "~DBO~".MENSAJES M, "~DBO~".MENSAJES_FILES MF, "~DBO~".MENSAJES_OP MO ")
+    SQL.ADD("where MF.IdMensaje=MO.IdMensaje and M.IdMensaje=MF.IdMensaje and M.DeletedAt is NULL")
+    SQL.ADD("AND MO.Nr = '"~Dialogo.NrOperacion~"' ")
+    SQL.ADD("Order By Fecha")
+
+    Recorrer SQL
+        let &cantidad &cantidad+1
+        ACN(A:&cantidad,0)
+        ACT(b:&cantidad,fbn('NrOp'))
+        ACT(c:&cantidad,fbn('TipoOp'))
+        ACD(d:&cantidad,fbn('Fecha'))
+        ACT(e:&cantidad,fbn('Comentario'))
+        ACT(f:&cantidad,fbn('Adjunto'))
+        ACT(g:&cantidad,fbn('Usuario'))
+        ACN(h:&cantidad,fbn('IdMensaje'))
+    Proximo
+
+    If &cantidad>0  
+        **Muestro todos los menesajes/adjuntos de la op
+        CrearListBox;'Arial,8,B';'Mensajes de la operacion'
+            'Elimina?'                 ; a1..a:&cantidad; SI; SI;;60; Check; 
+            '# Operacion'              ; b1..b:&cantidad; NO; SI;;80; STRING
+            'Tipo Op'                  ; c1..c:&cantidad; NO; SI;;80; STRING
+            'Fecha'                    ; d1..d:&cantidad; NO; SI;;70; FECHA
+            'Mensaje'                  ; e1..e:&cantidad; NO; SI;;200; STRING
+            'Adjunto'                  ; f1..f:&cantidad; NO; SI;;300; STRING
+            'Usuario'                  ; g1..g:&cantidad; NO; SI;;70; STRING
+            'Id Mensaje'               ; h1..h:&cantidad; NO;;;50; NUMERO; '###'
+        FinListBox
+    EndIf
+    If OK
+        let &FilaCarga 0
+        let &FilaHasta FAC
+        Recorrer&i 1,&FilaHasta
+            If Val(A:&i)=1
+                let &FilaCarga &FilaCarga+1
+                ACN(a:&FilaCarga,val(a:&i))
+                ACT(b:&FilaCarga,val(b:&i))
+                ACT(c:&FilaCarga,val(c:&i))
+                ACD(d:&FilaCarga,val(d:&i))
+                ACT(e:&FilaCarga,val(e:&i))
+                ACT(f:&FilaCarga,val(f:&i))
+                ACT(g:&FilaCarga,val(g:&i))
+                ACN(h:&FilaCarga,val(h:&i))
+            EndIf
+        Proximo
+        
+        **Muestro solo los mensajes seleccionados a eliminar para confirmar
+        CrearListBox;'Arial,8,B';'Confirmar estos mensajes a eliminar'
+            'Confirma?'                ; a1..a:&FilaCarga; NO; SI;;60; Check; 
+            '# Operacion'              ; b1..b:&FilaCarga; NO; SI;;80; STRING
+            'Tipo Op'                  ; c1..c:&FilaCarga; NO; SI;;80; STRING
+            'Fecha'                    ; d1..d:&FilaCarga; NO; SI;;70; FECHA
+            'Mensaje'                  ; e1..e:&FilaCarga; NO; SI;;200; STRING
+            'Adjunto'                  ; f1..f:&FilaCarga; NO; SI;;300; STRING
+            'Usuario'                  ; g1..g:&FilaCarga; NO; SI;;70; STRING
+            'Id Mensaje'               ; h1..h:&FilaCarga; NO;;;50; NUMERO; '###'
+        FinListBox
+        If Ok
+            Recorrer&z 1,&FilaCarga
+            SQL.ADD("UPDATE "~DBO~".MENSAJES set DeletedAt = "~SQLAHORA~" ")
+                SQL.ADD("where IdMensaje = CAST("~val(h:&z)~" as int) ")
+                SQL.NEW
+                SQL.EXEC
+            Proximo
+            Break
+        EndIf
+    Else
+        Cancelar
+    EndIf
+Proximo

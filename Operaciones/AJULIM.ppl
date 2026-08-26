@@ -1,0 +1,13 @@
+﻿CAMPOS:1;;2
+FechaOp        : 'Fecha Ajuste' ;1;1;;VERIFICAACCESO('OPFVALOR');;ESHABIL(FECHAOP,'ARG');'FECHA DE ORIGEN INCORRECTA';NO;FSYS;
+Cliente1       : 'Cliente'      ;;;;;;NOVACIO(CLIENTE1);'El Cliente es Invalido';NO;
+Operador       : 'Operador'     ;;;;NO;;;;;USUARIOACTIVO;
+Especie        : 'Moneda'       ;;;;NO;;;;;;'USD';
+Cantidad       : 'Importe'      ;;;;;;;;;
+
+LIMITES
+FechaOp ;Cliente1;'COTOR';'USD';;CANTIDAD;TipoOp~' '~Especie;NoVacio(Cliente1);
+
+@INSTOPE
+@INST19GENE
+@INST19BITS

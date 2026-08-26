@@ -1,0 +1,51 @@
+﻿#*********************************************************************************
+#combos data sources.
+set ds_Habilitado            = "SI:SI|NO:NO"
+#*********************************************************************************
+def abm 'MODELOSASIENTO'
+    def grid
+    %%ifdef STDCORP
+        Codigo:, Descripcion:, Entorno:, TipoAsiento:, Vehiculo:, Libro:, Book: 
+    %%else
+        Codigo:, Descripcion:, TipoAsiento:, Vehiculo:, Libro:, Book:
+    %%endif 
+    end
+    def key
+        Codigo:
+    end
+    def dialog
+        tab 'General'
+            column
+                Codigo: , 'Codigo', small_text
+                Descripcion: , 'Nombre', large_text
+                #Vehiculo: ,          , autocomplete, 'VEHICULOS', 'Codigo,Descripcion'
+                Libro: ,          , autocomplete, 'LIBROS', 'Codigo,Descripcion'
+                Book: ,          , autocomplete, 'BOOKS', 'Codigo,Descripcion'
+                UDN: ,          , autocomplete, 'UDNS', 'Codigo,Descripcion'
+                Centro: ,          , autocomplete, 'CENTROSCOSTO', 'Codigo,Descripcion'
+                Sector: ,          , autocomplete, 'SECTORES', 'Codigo,Descripcion'
+                TipoOp: ,          , autocomplete, 'TIPOSOPERACION', 'Codigo,Nombre'
+                TipoAsiento: ,          , autocomplete, 'TIPOSASIENTO', 'Codigo,Descripcion'
+                #ClaseDocumento: ,          , autocomplete, 'CLASESDOCUMENTO', 'Codigo,Descripcion'
+             column
+                Habilitado:  ,'Habilitado', combo, ds_Habilitado
+                %%ifdef STD_CORP
+                Entorno: ,     , autocomplete_ar_list, 'ENTORNOSSTDCORP', 'Codigo,Nombre'
+                %%endif
+                Vehiculo: ,    , autocomplete_ar_list, 'Vehiculos', 'Codigo,Descripcion'
+                
+        tab 'Items'
+            column
+                Items:, 'Items' ,embeded_abm_large,"__MAS1"
+    end
+
+    do_not_map: 
+        Items:
+        
+    validates_max_length_of:
+        Codigo:, 15,true;
+        Descripcion:, 40,true;
+
+    validates_uniqueness_of: Codigo:
+    upper_case_fields: Codigo:
+end

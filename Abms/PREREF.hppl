@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ScriptHeader xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <CodFpa>PREREF</CodFpa>
+  <Type>ABM</Type>
+  <Nombre>Fuente de Referencia</Nombre>
+  <Habilitado xsi:nil="true" />
+  <Tipo>COTIZ</Tipo>
+  <Orden>142</Orden>
+  <Menu>142</Menu>
+  <Acceso>PR</Acceso>
+</ScriptHeader>

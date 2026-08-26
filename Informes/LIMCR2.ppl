@@ -1,0 +1,133 @@
+﻿CrearFont(1,'Arial,8,B')
+CrearFont(2,'Arial,8,')
+
+SetFilaActual(1)
+ACT(a:1,'Operaciones Financieras CONFIDENCIAL')
+SetFont(a:1,1)
+
+ACT(a4, 'Lineas de Credito Asignadas')
+
+ACT(a7, 'Entidad')
+ACT(b7, 'Credito')
+ACT(f7, 'Contratos')
+ACT(j7, 'Pre-Settlement')
+ACT(n7, 'Custody')
+ACT(s7, 'Settlement')
+
+ACT(b8, 'Moneda')
+ACT(c8, 'Monto')
+ACT(d8, 'F.Revision')
+ACT(e8, 'F.Vto.')
+
+ACT(f8, 'Moneda')
+ACT(g8, 'Monto')
+ACT(h8, 'F.Revision')
+ACT(i8, 'F.Vto.')
+
+ACT(j8, 'Moneda')
+ACT(k8, 'Monto')
+ACT(l8, 'F.Revision')
+ACT(m8, 'F.Vto.')
+
+ACT(n8, 'Moneda')
+ACT(o8, 'Monto')
+ACT(p8, 'F.Revision')
+ACT(q8, 'F.Vto.')
+
+ACT(r8, 'Moneda')
+ACT(s8, 'Monto')
+ACT(t8, 'F.Revision')
+ACT(u8, 'F.Vto.')
+
+AgregarMarco(a7..u8,1,0,Exe('COLOR'))
+AgregarMarco(b7..e8,1)
+AgregarMarco(f7..i8,1)
+AgregarMarco(j7..m8,1)
+AgregarMarco(n7..q8,1)
+AgregarMarco(r7..u8,1)
+
+AgregarMarco(b8..e8,1)
+AgregarMarco(f8..i8,1)
+AgregarMarco(j8..m8,1)
+AgregarMarco(n8..q8,1)
+AgregarMarco(r8..u8,1)
+
+SetFilaActual(8)
+SQL.ADD("Select C.Codigo, L.* from "~DBO~".CLIENTES C, "~DBO~".LIMASIGNADOS L")
+SQL.ADD("where C.Codigo=L.Cliente and L.Limite in ('COTOR', 'CONTRACT','PRESETTLEM','SETTLEMENT','CUSTODY') order by C.Codigo")
+
+Recorrer SQL
+  dfa
+  if Not EqStr(Val(z1), fbn('Codigo'))
+    ACT(z1, fbn('Codigo'))
+    ifa
+    ACT(a:fac, fbn('Codigo'))
+  endif
+  if EqStr(fbn('Limite'),'COTOR')
+    ACN(z2, 0)
+  endif
+  if EqStr(fbn('Limite'),'CONTRACT')
+    ACN(z2, 1)
+  endif
+  if EqStr(fbn('Limite'),'PRESETTLEM')
+    ACN(z2, 2)
+  endif
+  if EqStr(fbn('Limite'),'CUSTODY')
+    ACN(z2, 3)
+  endif
+
+  if EqStr(fbn('Limite'),'SETTLEMENT')
+    ACN(z2, 4)
+  endif
+
+  ACT(2+4*Val(z2):fac, fbn('Especie'))
+  ACN(3+4*Val(z2):fac, fbn('Monto') )
+  FormatoCeldas(3+4*Val(z2):fac, Exe('F2'))
+  ACT(4+4*Val(z2):fac, fbn('FRevision'))
+  ACT(5+4*Val(z2):fac, fbn('FVencimiento'))
+Proximo
+
+AgregarMarco(a9..a:fac,1)
+AgregarMarco(b9..e:fac,1)
+AgregarMarco(f9..i:fac,1)
+AgregarMarco(j9..m:fac,1)
+AgregarMarco(n9..q:fac,1)
+AgregarMarco(r9..u:fac,1)
+* AlinearCeldas(b9..b:fac,'I')
+
+SetFont(a1..az:8, 1)
+SetFont(a9..az:fac, 2)
+* FormatoCeldas(b9..q:fac, Exe('F2'))
+Impresion(1,2)
+SetFilaActual(FAC+2)
+ACT(a:FAC, 'FIN DEL LISTADO')
+SetFont(a:FAC,1)
+LimitesVision(u:fac+1)
+
+*
+*    Esto es lo que agrega Silvia
+*
+RangoTitulo(a:1..v:fac+1, 8)
+
+ACO(1,8)
+ACO(2,10)
+ACO(3,10)
+ACO(4,10)
+ACO(5,10)
+ACO(6,10)
+ACO(7,10)
+ACO(8,10)
+ACO(9,10)
+ACO(10,10)
+ACO(11,10)
+ACO(12,10)
+ACO(13,10)
+ACO(14,10)
+ACO(15,10)
+ACO(16,10)
+ACO(17,10)
+ACO(18,10)
+ACO(19,10)
+ACO(20,10)
+ACO(21,10)
+SetPrintFit(3, 60)

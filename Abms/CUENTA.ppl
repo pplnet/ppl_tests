@@ -1,0 +1,193 @@
+﻿#*********************************************************************************
+#combos data sources.
+set ds_TipoCuenta = "CA:CA|CUS:Custodia|VIS:Vista|CCO:C.Propias|CAJ:Caja|INV:Inversor|FCI:F.Comun|CC:Cta.Cte.|CCE:Cta.Cte. Especial|CCD:Cta.Cte.Dep.Efect|INT:Intermedia|REC:Recaudadora|PUE:Puente|OTR:Otros|"
+set ds_Estado     = "HAB:Habilitada|SUS:Suspendida|CER:Cerrada|"
+set ds_Interfase  = "DAT:Datanet|RIO:Rio|OTR:Otros|"
+set xppl = $.NewExtendedPPL()
+ 
+#*********************************************************************************
+def abm 'Cuentas'
+   def grid
+        Codigo:, Nombre:, Cliente:
+   end
+   def key
+       Codigo: 
+   end
+   def dialog_size
+       1200,700
+   end  
+   def dialog
+       #**************************************************************************
+       tab 'General'
+          column
+             Codigo: , 'Codigo', small_text, 'XXXXXXXXXX'
+             Nombre: ,          , large_text
+             Numero: , 'Numero', large_text
+             Cliente: , 'Vehiculo'        , autocomplete, 'VEHICULOS', 'Codigo,Descripcion'
+             Comitente: , 'Bco./Contrap.', autocomplete, 'CLIENTES', 'Codigo,RazonSocial'
+             Mercado: , 'Merc./Cle.House'   , autocomplete, 'MERCADOS', 'Codigo,Descripcion'
+             Fedwire: , , small_text
+             Repetitivo:, 'Repetitivo MW', numeric,'#########0'
+          column
+             TiposOperacion: ,    , autocomplete_ar_list, 'TIPOSOPERACION', 'Codigo,Nombre'
+             Especies: ,          , autocomplete_ar_list, 'ESPECIES', 'Codigo,Nombre'
+             Transacciones: ,     , autocomplete_ar_list, 'TIPOSTRANSACCION', 'Codigo,Descripcion'
+       #**************************************************************************
+       tab 'Adicional'
+          column
+             Alias1: ,'Book' , autocomplete, 'BOOKS', 'Codigo,Descripcion'
+             Alias2: , , large_text
+             Alias3: , , large_text
+             Alias4: , , large_text
+             ABA: ,    'ABA'    , large_text
+             CHIPS: ,  'CHIPS'  , large_text
+             NrDepositante: , 'Comitente', small_text
+             CBU: , , large_text
+             Alias5: ,'ID BcoSistCont', large_text
+             Alias6: ,'ID Sist. Contable', large_text
+             Alias7: , , large_text
+             Alias8: , , large_text
+             Alias9: ,'NrCuotap.FCI' , large_text
+             CtaPrincipal: , , autocomplete, 'CUENTAS', 'Codigo,Nombre'
+             %%ifdef PCR
+                CuentaContableAux: , 'CtaContaAux' , autocomplete,'CUENTACONTABLEAUX', 'Codigo,Nombre'
+             %%else
+                #Cintia 16-12
+                 CB1: ,'Multimoneda' ,check
+                 CuentaCon1: , 'Cta. Contable', autocomplete, 'CONTABILIDAD', 'Codigo,Nombre'
+                
+                 #CuentaCon2: , 'Cta. Cont. ARP', autocomplete, 'CONTABILIDAD', 'Codigo,Nombre',,"Moneda = '"+ppl.Var('MONELOCA')+"' AND Entorno = '"+ppl.sigla+"' "
+                 
+                 #CuentaContable2: , 'Cta. Cont. USD', autocomplete, 'CONTABILIDAD', 'Codigo,Nombre',,"Moneda = '"+ppl.Var('MONEEXTR')+"' AND Entorno = '"+ppl.sigla+"' "
+                 
+                 CuentaCon2: , 'Cta. Cont. ARP', autocomplete, 'CONTABILIDAD', 'Codigo,Nombre',,"Moneda = '"+ppl.Var('MONELOCA')+"' AND Entorno = '"+xppl.Sigla()+"' "
+                 
+                 CuentaContable2: , 'Cta. Cont. USD', autocomplete, 'CONTABILIDAD', 'Codigo,Nombre',,"Moneda = '"+ppl.Var('MONEEXTR')+"' AND Entorno = '"+xppl.Sigla()+"' "
+             %%endif
+             #
+             #CuentaContable2: , 'CtaProvTit', autocomplete, 'CONTABILIDAD', 'Codigo,Nombre'
+             #CuentaContable3: , 'CtaProvRes', autocomplete, 'CONTABILIDAD', 'Codigo,Nombre'
+             CuentaContable1: , 'Cta. Contable', autocomplete, 'CONTABILIDAD', 'Codigo,Nombre'
+          column
+             Permanente: , , check
+             Pagadora: , , check
+             Estado: ,          , combo, ds_Estado
+             TipoCuenta: , 'Tipo', combo, ds_TipoCuenta
+             Interfase: ,  , combo, ds_Interfase
+             
+       #**************************************************************************
+       tab 'Integrantes'
+          column
+          Integrantes: , , embeded_abm, "INTECT"
+             
+   end
+   upper_case_fields: Codigo:;
+   
+   when_change: TipoCuenta:, Cliente: do
+      set cliente = $.val Cliente:
+      set isCP = db.GetScalar("Select 1 from "+dbo+".CLIENTES where Codigo='"+ cliente +"' and Alias1='CP' ")
+   end
+   do_not_map: CuentaCon1:, CuentaCon2: 
+   #-----------------------------Cintia 16-12-21
+   %%ifndef PCR
+       before_show_create_dialog: do
+            $.set_field CB1:, 'NO'
+       end
+       
+       before_show_dialog: do
+       
+           $.hide(CuentaContable1:)
+           If $.val(CB1:) == 'SI'
+               $.hide(CuentaCon1:)
+               $.show(CuentaCon2:)
+               $.show(CuentaContable2:)
+           else
+               $.show(CuentaCon1:)
+               $.hide(CuentaCon2:)
+               $.hide(CuentaContable2:)       
+           endif
+           If $.val(CB1:) == 'SI'
+               $.set_field CuentaCon2:, $.val(CuentaContable1:)
+           else
+               $.set_field CuentaCon1:, $.val(CuentaContable1:)
+           endif
+       end
+       
+       when_change: CB1: do
+           If $.val(CB1:) == 'SI'
+               $.hide(CuentaCon1:)
+               $.show(CuentaCon2:)
+               $.show(CuentaContable2:)
+               $.set_field CuentaContable1:, null
+               $.set_field CuentaCon1:, null
+               $.set_field CuentaCon2:, null
+               $.set_field CuentaContable2:, null
+           else
+               $.show(CuentaCon1:)
+               $.hide(CuentaCon2:)
+               $.hide(CuentaContable2:) 
+               $.set_field CuentaContable1:, null
+               $.set_field CuentaCon1:, null
+               $.set_field CuentaCon2:, null  
+            $.set_field CuentaContable2:, null   
+           endif
+       end
+       
+       before_save: do
+           If $.val(CB1:) == 'SI'
+               $.set_field CuentaContable1:, $.val(CuentaCon2:)
+           else
+               $.set_field CuentaContable1:, $.val(CuentaCon1:)
+               $.set_field CuentaContable2:, null
+           endif
+       
+       end
+       
+       before_save: do
+           If $.val(CB1:) == 'SI'
+               If $.val(CuentaCon2:) == null OR $.val(CuentaContable2:) == null
+                   $.Alert('Si indica multimoneda debe cargar ambas ctas. contables')
+                   false
+               else
+                    if  xppl.BuscarCampo('CONTABILIDAD','Moneda','Codigo',$.val(CuentaCon2:)) <> 'ARP'
+                        $.Alert('La cuenta indicada para ARP no admite ARP')
+                        false
+                    else
+                        true
+                    endif
+                    if  xppl.BuscarCampo('CONTABILIDAD','Moneda','Codigo',$.val(CuentaContable2:)) <> 'USD'
+                        $.Alert('La cuenta indicada para USD no admite USD')
+                        false
+                    else
+                        true
+                    endif
+               endif
+           else
+              true
+           endif
+       
+       end
+   %%endif
+   #---------------------------------------------------------
+   
+   validates_max_length_of:
+       Codigo:,14,true; 
+       Nombre:,50,true;
+       Numero:,40,true;
+       Fedwire:,12,true;
+       Alias1:,40,true;
+       Alias2:,40,true;
+       Alias3:,40,true;
+       Alias4:,40,true;
+       Alias5:,40,true;
+       Alias6:,40,true;
+       Alias7:,40,true;
+       Alias8:,40,true;
+       Alias9:,40,true;
+       ABA:,40,true;
+       CHIPS:,40,true;
+       NrDepositante:,10,true;
+       CBU:,25,true;
+       
+       validates_uniqueness_of_set: Codigo:, Nombre:
+end

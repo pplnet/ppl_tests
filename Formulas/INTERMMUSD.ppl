@@ -1,0 +1,3 @@
+﻿IIF(Eqstr(fbn('Moneda'), 'USD'), #INTERESMM, 
+#INTERESMM * 
+COTIZACIONC(fbn('Moneda'),,,,Val(FV:2),1,SI,'USD'))

@@ -1,0 +1,35 @@
+﻿CAMPOS:1;;BuscarCampo('VEHICULOS','Alias1','Codigo',Vehiculo1)
+%%ifdef BFSA
+    Especie       : 'Fondo'                          ;1;1; ;NOT EV;;NOVACIO(ESPECIE)  Y DESCIENDEDEESPECIE(ESPECIE,'FONDOS');'Debe ingresar un fondo';NO;;;;;;;;IF(RB4=0 Y NoVacio(NRORDEN)," Codigo IN ("~Pipe2Comillas(Descendientes('ESPECIES','FONDOS'))~") and Status = 'HAB' AND Cotiza = '"~CONTRAESPECIE~"' "," Codigo IN ("~Pipe2Comillas(Descendientes('ESPECIES','FONDOS'))~") and Status = 'HAB'")
+    ContraEspecie : 'Moneda'                         ; ; ; ;NO;;NOVACIO(CONTRAESPECIE) y DESCIENDEDEESPECIE(CONTRAESPECIE,'MONEDA') y ESTERMINAL(CONTRAESPECIE,ESPECIE);'Debe ingresar una ContraEspecie';NO;VTXT40;IF(RB4=0 Y NoVacio(NRORDEN),BuscarCampo('ORDENES','Especie','NrOrden',NRORDEN),CotizaEn(ESPECIE))
+%%else
+    Especie       : 'Fondo'                          ;1;1; ;NOT EV;;NOVACIO(ESPECIE)  Y DESCIENDEDEESPECIE(ESPECIE,'FONDOS');'Debe ingresar un fondo';NO;;;;;;;;" Codigo IN ("~Pipe2Comillas(Descendientes('ESPECIES','FONDOS'))~") and Status = 'HAB'"
+    ContraEspecie : 'Moneda'                         ; ; ; ;NO;;NOVACIO(CONTRAESPECIE) y DESCIENDEDEESPECIE(CONTRAESPECIE,'MONEDA') y ESTERMINAL(CONTRAESPECIE,ESPECIE);'Debe ingresar una ContraEspecie';NO;VTXT40;CotizaEn(ESPECIE)
+%%endif
+Cliente1      : 'Entidad '                       ; ; ; ;NO;;NoVacio(CLIENTE1);'La Especie debe tener Issuer';NO;;BuscarCampo('ESPECIES','Issuer','Codigo',ESPECIE);;;;;;"Status = 'HAB'";;;;;
+RB7           : 'Opera en|CuotasParte|Efectivo'     ;5;1; ;;;;;NO;1;
+RB6           : 'Tipo|Money Markets|Securities'  ;11;2; ;NO;;;;;0;BuscarCampo('ESPECIES','Alias2','Codigo',ESPECIE)
+
+Precio1       : 'Valor CuotaParte'               ;7;1;;     ;;;;;0;COTIZACIONC(ESPECIE,,,,FECHAOP,1,SI,CONTRAESPECIE);;;;;'###,###.##########';;
+Cantidad      : 'CuotasParte'                    ;8;1;;RB7=0 o EV;;RB7=1 o CANTIDAD>0;'La Cantidad de CuotasParte debe ser Positiva';NO; ;IF(PRECIO1>0,TOTALNETOCLI1/PRECIO1,CANTIDAD)  ;;;;;'###,###,###,###.########';;
+TotalNetoCli1 : 'Efectivo'                       ;9; ;;RB7=1 o EV;;RB7=0 o TOTALNETOCLI1>0;'La Cantidad en Efectivo debe ser Positiva';NO;;IF(PRECIO1>0,CANTIDAD*PRECIO1,TOTALNETOCLI1);;;;;'###,###,###,###.##';;
+Operador      :                                  ;11;1;;NO;;NOVACIO(OPERADOR);'El Operador es Invalido';NO;USUARIOACTIVO;
+Observac2     : 'Op.Contraparte'                 ; ; ;;;;NOVACIO(OBSERVAC2);'El Operador Contraparte no es valido';SI;;;;;;;'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'
+CB7           : 'Int.CtaParte'                   ;13;1;;NO;NO;CB7=0;'Es un Interes Pagado en Cuotas Partes';SI;0;
+@VEHITO
+%%ifdef BFSA
+    @ORIOPE
+%%endif
+FechaOp       : 'Fecha Conc.'                    ;4;2;;VERIFICAACCESO('OPFVALOR');;ESHABIL(FECHAOP,TABLAFERIADOS1);'Fecha incorrecta';NO;FSYS;
+FechaOp2      : 'F.Origen'                       ; ; ;;;;ESHABIL(FECHAOP2,TABLAFERIADOS1);'Fecha de Inicio Invalida';NO;FSYS;
+FechaVto      : 'Fecha Vto.'                     ; ; ; ;NO;;ESHABIL(FECHAVTO,TABLAFERIADOS1);'La Fecha de Vto. no es Habil en la Tabla de Feriados Seleccionada';NO;FECHAOP2+PLAZO;FECHAOP2+PLAZO;
+Plazo         : 'Plazo'                          ;;;;;;PLAZO>=0;'El PLAZO debe ser Positivo';NO;0;IF(MODI,PLAZO,0)
+TablaFeriados1: 'Feriados'                       ;9; ;;;;NOVACIO(TABLAFERIADOS1);'Se debe indicar feriados a utilizar';NO;;BuscarCampo('ESPECIES','PaisOrigen','Codigo', ESPECIE)
+Cotizacion1   : 'TC_Concert.'                    ;;;2;;Not Eqstr(CONTRAESPECIE,VAR('MONEEXTR'));;;;;IF(Eqstr(CONTRAESPECIE,VAR('MONEEXTR')),1,COTIZACIONC(ESPECIE,,,,FECHAOP,1,SI,VAR('MONEEXTR')))
+VPRE1         : 'Cot.TC/USD'                     ;10;2;2;NO;NO;;;;;COTIZACIONC(CONTRAESPECIE,,,,FECHAOP,1,SI,VAR('MONEEXTR'))^If(EqStr(Modo(CONTRAESPECIE,VAR('MONEEXTR')),'DIR'),1,-1)
+Cotizacion2   : 'TC_Vencim.'                     ;;;2;COTIZACION2<>0;COTIZACION2<>0;;;;
+VPRE6         : 'Cot.CONTESP/USD'                ;10;3;;NO;NO;;;;;COTIZACIONC(CONTRAESPECIE,,,,Fsys,1,SI,VAR('MONEEXTR'))
+RB3           : 'MOF'                            ;10;2;;NO;NO;;;;;IF(INSTANCIA=2,0,1)
+Impresa       : 'Modificado'                     ;10;3;;NO;NO;;;;0
+CB6           : 'Cot.Esp/ContDirecta'            ;4;2;2;NO;NO;;;;;IF(eqstr(QUERY(" Select Modo from "~DBO~".MODOESPECIES where Especie1='"~ESPECIE~"' and Especie2='"~CONTRAESPECIE~"' "),'INV'),0,1)
+Precio4       : 'Cotizacion'                     ;12;2;2;NO;NO;;;;;COTIZACIONC(ESPECIE,,,,FECHAOP,1,SI,CONTRAESPECIE)

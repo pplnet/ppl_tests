@@ -1,0 +1,123 @@
+﻿#*********************************************************************************
+#combos data sources.
+set ds_TipoEntidadGarante              = "SGR:SGR|FPG:FPG|"
+set fsys = db.get_scalar("SELECT convert(datetime, Valor, 103) from "+Dbo+".VARIABLES where Codigo='FECHASYS' ") 
+# Instancio ExtendedPPL
+set xppl = $.NewExtendedPPL()
+#*********************************************************************************
+def abm 'DDCuposAvalados'
+   def grid
+   EntidadGarante: as 'Entidad Garante', CUITGarante: as 'CUIT Garante',
+   TipoEntidadGarante: as 'Tipo Entidad Garante', Vehiculo:,Book:,Disponible:,
+   PorcentajeMora: as '% Mora', PorcentajeAutorizado: as '% Autorizado',
+   MontoAutorizado: as 'Monto Autorizado',FechaVigencia: as 'Fecha Vigencia'
+   end
+   def key
+   FechaVigencia:,EntidadGarante:, CUITGarante:, Vehiculo:, Book:
+   end
+   def dialog
+       #**************************************************************************
+       tab 'General'
+          column
+            EntidadGarante:     ,'Entidad Garante'      , small_text
+            CUITGarante:        ,'CUIT Garante'         , text
+            FechaVigencia:      ,'FechaVigencia'        , date
+            UltimaFecha:        ,'Ultima fecha: '       , date
+            TipoEntidadGarante: ,'Tipo Entidad Garante' , combo         , ds_TipoEntidadGarante
+            Vehiculo:           ,'Vehiculo'             , autocomplete  , 'VEHICULOS','Codigo,Descripcion'
+            Book:               ,'Book'                 , autocomplete  , 'BOOKS'    ,'Codigo,Descripcion'
+            Moneda:             ,'Moneda'               , autocomplete  ,'ESPECIES'  ,'Codigo,Nombre',," Tipo='MON'"
+       #**************************************************************************
+       tab 'Datos'
+            column
+            Disponible:          ,             ,numeric ,  '####,###0.00'
+            PorcentajeMora:      ,             ,numeric ,  '#######0.00'      
+            PorcentajeAutorizado:,'Porcentaje' ,numeric ,  '#######0.00'          
+            MontoAutorizado:     ,'Monto'      ,numeric ,  '####,###0.00'
+            FechaCargaSys:       ,             ,datetime
+            Operador:            ,             ,small_text
+   end
+   
+   #-------------------------------------------------------------------------
+   before_show_create_dialog: do 
+      $.set_field(FechaCargaSys:, ppl.Ahora)
+      $.set_field(FechaVigencia:, ppl.Hoy)
+      $.set_field(Operador:, ppl.UsuarioActivo)
+      $.disable MontoAutorizado:
+      $.disable UltimaFecha:
+   end
+   
+   #hide: Moneda:
+   hide: Operador:
+   hide: FechaCargaSys:
+   
+    when_change:
+        Disponible:,PorcentajeAutorizado:,
+        $.set_field(MontoAutorizado:, $.val(Disponible:) * $.val(PorcentajeAutorizado:)/100)
+    #------------------------------------------------------------------------
+    #Validaciones
+    validates_max_length_of:
+    CUITGarante:, 20,true
+    
+    before_save: do
+    #Verifica que el CUIT ingresado sea valido
+        If Not $.val CUITGarante: = null
+            if Not xppl.ValidaCuit($.val(CUITGarante:))
+                $.Alert('CUIT invalido ')
+                false
+            else
+                true
+            endif
+        else
+            true
+        endif        
+    end
+    
+    validates_uniqueness_of_set: FechaVigencia:,EntidadGarante:, CUITGarante:, Vehiculo:, Book:
+    
+    #------------------------------------------------------------------------
+    #Cálculo de FechaVigencia
+    
+    do_not_map: UltimaFecha:
+    
+    when_change: EntidadGarante:, 
+    set ultimafecha = db.get_scalar("Select MAX(FechaVigencia) From "+Dbo+".DDCUPOSAVALADOS WHERE EntidadGarante =  '"+$.val(EntidadGarante:)+"'AND CUITGarante =  '"+$.val(CUITGarante:)+"'AND Vehiculo =  '"+$.val(Vehiculo:)+"'AND Book =  '"+$.val(Book:)+"'")   
+    when_change: EntidadGarante:, 
+    $.set_field UltimaFecha:, $.val(ultimafecha)
+    
+    when_change: CUITGarante:, 
+    set ultimafecha = db.get_scalar("Select MAX(FechaVigencia) From "+Dbo+".DDCUPOSAVALADOS WHERE EntidadGarante =  '"+$.val(EntidadGarante:)+"'AND CUITGarante =  '"+$.val(CUITGarante:)+"'AND Vehiculo =  '"+$.val(Vehiculo:)+"'AND Book =  '"+$.val(Book:)+"'")   
+    when_change: CUITGarante:, 
+    $.set_field UltimaFecha:, $.val(ultimafecha)
+    
+    when_change: Vehiculo:, 
+    set ultimafecha = db.get_scalar("Select MAX(FechaVigencia) From "+Dbo+".DDCUPOSAVALADOS WHERE EntidadGarante =  '"+$.val(EntidadGarante:)+"'AND CUITGarante =  '"+$.val(CUITGarante:)+"'AND Vehiculo =  '"+$.val(Vehiculo:)+"'AND Book =  '"+$.val(Book:)+"'")   
+    when_change: Vehiculo:, 
+    $.set_field UltimaFecha:, $.val(ultimafecha)
+    
+    when_change: Book:, 
+    set ultimafecha = db.get_scalar("Select MAX(FechaVigencia) From "+Dbo+".DDCUPOSAVALADOS WHERE EntidadGarante =  '"+$.val(EntidadGarante:)+"'AND CUITGarante =  '"+$.val(CUITGarante:)+"'AND Vehiculo =  '"+$.val(Vehiculo:)+"'AND Book =  '"+$.val(Book:)+"'")
+    when_change: Book:, 
+    $.set_field UltimaFecha:, $.val(ultimafecha)
+    
+   #validación FechaVigencia deba ser mayor que ultima fecha
+   validations:
+   FechaVigencia:,$.val(ultimafecha) < $.val(FechaVigencia:),'La Fecha Vigencia debe ser mayor a la última fecha registrada para el CUIT, Entidad, Vehiculo y Book seleccionados','messagebox';
+   
+   #-------------------------------------------------------------------------
+   #Bloquea la modificación de registros
+    before_show_dialog: do 
+        if $.Modificacion()
+            ppl.MessageBox('No se pueden realizar modificaciones')
+               $.disable 
+                  EntidadGarante:,CUITGarante:,FechaVigencia:,TipoEntidadGarante:,Vehiculo:,
+                  Book:,Moneda:,Disponible:,PorcentajeMora:,PorcentajeAutorizado:,
+                  MontoAutorizado:,FechaCargaSys:,Operador:,UltimaFecha:
+        else
+            $.enable
+                EntidadGarante:,CUITGarante:,FechaVigencia:,TipoEntidadGarante:,Vehiculo:,
+                Book:,Moneda:,Disponible:,PorcentajeMora:,PorcentajeAutorizado:,
+                MontoAutorizado:,FechaCargaSys:,Operador:,UltimaFecha:
+        Endif
+    end
+end            

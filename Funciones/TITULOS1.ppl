@@ -1,0 +1,221 @@
+﻿*-- Titulos a Termino
+SQL.ADD("SELECT O.TipoOp, O.Especie, O.ContraEspecie, O.Precio1, Sum(O.Cantidad) Cant ")
+SQL.ADD("FROM   "~DBO~".OPERACIONES  O ")
+SQL.ADD("WHERE  O.FechaOp  <= '"~IdxDate(Dialogo.Fecha1)~"' ")
+SQL.ADD("       and  O.FechaVto > '"~IdxDate(Dialogo.Fecha1)~"' ")
+SQL.ADD("       and  O.TipoOp In ('SECT','SEVT','SECTV','SEVTV') ")
+SQL.ADD("       and  O.Vehiculo1 In ("~Pipe2Comillas(Dialogo.Lista1)~") ")
+If Dialogo.Radio2 = 0
+   SQL.ADD("   and O.FechaVto <= '"~IdxDate(Dialogo.Fecha1+365)~"' ")
+Endif
+If Dialogo.Radio2 = 1
+   SQL.ADD("   and O.FechaVto > '"~IdxDate(Dialogo.Fecha1+365)~"' ")
+Endif
+SQL.ADD("GROUP BY O.TipoOp, O.Especie, O.ContraEspecie, O.Precio1 ")
+SQL.ADD("ORDER BY 3, 2")
+
+Recorrer SQL
+   If Not Incluido(FBN['ContraEspecie'], Var('MONEEXTR')~'|'~Var('MONELOCA')~'|')
+       ACN(ea5, CotizacionC(FBN['ContraEspecie'],,,,Dialogo.Fecha1,1,SI,VAR('MONEEXTR')))
+   Else
+      ACN(ea5, 1)
+   Endif
+
+   *- Capital
+   ACN(aa1, FBN['Cant']*FBN['Precio1'])
+   *- Intereses Devengados
+   ACN(aa2, InteresEspecie(FBN['Especie'],Dialogo.Fecha1, FBN['Cant'])*Val(ea5))
+   *- Total
+   ACN(aa3, Val(aa1)+Val(aa2))
+   
+   IF Incluido(FBN['TipoOp'],'SEVT|SEVTV')
+      *- Titulos Vendidos a Termino
+      ACN(fa1, Val(fi6)+6)
+      ACN(fa2, Val(fi8))
+   Else
+      *- Titulos Comprados a Termino
+      ACN(fa1, Val(fi2)+8)
+      ACN(fa2, Val(fi4))
+   Endif
+   
+   IF Incluido(FBN['ContraEspecie'], Var('MONELOCA'))
+      *- En Pesos
+      SCN(b:Val(fa1), Val(aa1))
+      SCN(c:Val(fa1), Val(aa2))
+      SCN(d:Val(fa1), Val(aa3))
+         
+      *- Total en Pesos
+      SCN(l:Val(fa1), Val(aa1))
+      SCN(m:Val(fa1), Val(aa2))
+      SCN(n:Val(fa1), Val(aa3))
+	 
+      *- Total en Dolares
+      SCN(o:Val(fa1), Val(aa1)/Dialogo.Precio1)
+      SCN(p:Val(fa1), Val(aa2)/Dialogo.Precio1)
+      SCN(q:Val(fa1), Val(aa3)/Dialogo.Precio1)
+      
+      *- Total
+      SCN(b:Val(fa2), Val(aa1))
+      SCN(c:Val(fa2), Val(aa2))
+      SCN(d:Val(fa2), Val(aa3))
+      SCN(l:Val(fa2), Val(aa1))
+      SCN(m:Val(fa2), Val(aa2))
+      SCN(n:Val(fa2), Val(aa3))
+      SCN(o:Val(fa2), Val(aa1)/Dialogo.Precio1)
+      SCN(p:Val(fa2), Val(aa2)/Dialogo.Precio1)
+      SCN(q:Val(fa2), Val(aa3)/Dialogo.Precio1)
+   Else
+      *- En Moneda Extranjera Expresado en Dolares
+      SCN(g:Val(fa1), Val(aa1))
+      SCN(h:Val(fa1), Val(aa2))
+      SCN(i:Val(fa1), Val(aa3))
+	 	 
+      *- Total en Pesos
+      SCN(l:Val(fa1), Val(aa1)*Dialogo.Precio1)
+      SCN(m:Val(fa1), Val(aa2)*Dialogo.Precio1)
+      SCN(n:Val(fa1), Val(aa3)*Dialogo.Precio1)
+	 	 
+      *- Total en Dolares
+      SCN(o:Val(fa1), Val(aa1))
+      SCN(p:Val(fa1), Val(aa2))
+      SCN(q:Val(fa1), Val(aa3))
+	       
+      *- Total 
+      SCN(g:Val(fa2), Val(aa1))
+      SCN(h:Val(fa2), Val(aa2))
+      SCN(i:Val(fa2), Val(aa3))
+      SCN(l:Val(fa2), Val(aa1)*Dialogo.Precio1)
+      SCN(m:Val(fa2), Val(aa2)*Dialogo.Precio1)
+      SCN(n:Val(fa2), Val(aa3)*Dialogo.Precio1)
+      SCN(o:Val(fa2), Val(aa1))
+      SCN(p:Val(fa2), Val(aa2))
+      SCN(q:Val(fa2), Val(aa3))
+   Endif
+   
+   SetFont(b:Val(fa1)..q:Val(fa1), 1)
+   FormatoCeldas(b:Val(fa1)..d:Val(fa1), Exe('F2'))
+   FormatoCeldas(g:Val(fa1)..i:Val(fa1), Exe('F2'))
+   FormatoCeldas(l:Val(fa1)..q:Val(fa1), Exe('F2'))
+Proximo
+
+
+IF NO
+SQL.ADD("SELECT O.ContraEspecie Especie, O.TipoOp, O.FechaPago Fecha,E.VTeorico,E.InteresesC, Sum(O.TotalNetoCli1) Monto,E.Cotiza ")
+SQL.ADD("       FROM "~DBO~".OPERACIONES  O, "~DBO~".ESPECIES E  ")
+SQL.ADD("WHERE  O.Especie = E.Codigo and O.FechaOp  <= '"~IdxDate(Dialogo.Fecha1)~"' ")
+SQL.ADD("       and  O.FechaPago > '"~IdxDate(Dialogo.Fecha1)~"' ")
+SQL.ADD("       and  O.TipoOp In ('SECS','SECT','SEVS','SEVT') ")
+SQL.ADD("       and  O.Vehiculo1 In ("~Pipe2Comillas(Dialogo.Lista1)~") ")
+If Dialogo.Radio2 = 0
+   SQL.ADD("   and O.FechaVto <= '"~IdxDate(Dialogo.Fecha1+365)~"' ")
+Endif
+If Dialogo.Radio2 = 1
+   SQL.ADD("   and O.FechaVto > '"~IdxDate(Dialogo.Fecha1+365)~"' ")
+Endif
+SQL.ADD("GROUP BY O.ContraEspecie, O.TipoOp, O.FechaPago,E.VTeorico,E.InteresesC,E.Cotiza  ")
+SQL.ADD("UNION ALL")
+SQL.ADD("SELECT O.ContraEspecie Especie, O.TipoOp, O.FechaPago Fecha,E.VTeorico,E.InteresesC, Sum(O.TotalNetoCli1) Monto,E.Cotiza ")
+SQL.ADD("FROM   "~DBO~".OPERACIONES  O,"~DBO~".ESPECIES  E  ")
+SQL.ADD("WHERE  O.Especie = E.Codigo and O.FechaOp  <= '"~IdxDate(Dialogo.Fecha1)~"' ")
+SQL.ADD("       and  O.FechaPago > '"~IdxDate(Dialogo.Fecha1)~"' ")
+SQL.ADD("       and  O.TipoOp In ('SECSV','SECTV','SEVSV','SEVTV') ")
+SQL.ADD("       and  O.Vehiculo1 In ("~Pipe2Comillas(Dialogo.Lista1)~") ")
+If Dialogo.Radio2 = 0
+   SQL.ADD("   and O.FechaVto <= '"~IdxDate(Dialogo.Fecha1+365)~"' ")
+Endif
+If Dialogo.Radio2 = 1
+   SQL.ADD("   and O.FechaVto > '"~IdxDate(Dialogo.Fecha1+365)~"' ")
+Endif
+SQL.ADD("GROUP BY O.ContraEspecie, O.TipoOp, O.FechaPago, E.VTeorico,E.InteresesC,E.Cotiza  ")
+SQL.ADD("ORDER BY 1, 2 ")
+
+Recorrer SQL
+   If Not EqStr(Val(ea2),FBN['Cotiza'])
+      *- Cotizacion 
+      ACN(ea5, CotizacionC(FBN['Cotiza'],,,,Dialogo.Fecha1,1,SI,VAR('MONEEXTR')))
+      ACT(ea2, FBN['Cotiza']) 
+   EndIf
+     
+   *- cs1: Obtengo el precio sucio 
+   ACT(x96,FBN['Especie'])
+   ACD(x97,Dialogo.Fecha1)
+   ACN(x94,FBN['VTeorico'])
+   ACN(x93,FBN['Monto'])
+   ACT(x92,FBN['InteresesC'])
+   If Incluido(FBN['Cotiza'], Var('MONELOCA'))
+      ACT(me1, Var('MONELOCA'))
+   Else   
+      ACT(me1, Var('MONEEXTR'))
+   Endif
+   
+   (.'SUCIOPOSF2'.)
+   
+   *- Total
+   ACN(aa3, FBN['Monto']*Val(cs1))
+   *- Intereses Devengados
+   ACN(aa2, Val(y98))
+   *- Capital
+   ACN(aa1, Val(aa3)-Val(aa2))
+   
+   If Incluido(FBN['TipoOp'],'SECS|SECT|SECSVS|SECTV')
+      *- Deuda por Liquidacion de Titulos Valores
+      ACN(fa1, Val(fi6)+7)
+      ACN(fa2, Val(fi8))
+   Else
+      *- Creditos por Liquidacion de Titulos Valores
+      ACN(fa1, Val(fi2)+9)
+      ACN(fa2, Val(fi4))
+   Endif
+      
+ IF Incluido(FBN['Cotiza'], Var('MONELOCA'))
+      *- En Pesos
+      SCN(b:Val(fa1), Val(aa1))
+      SCN(c:Val(fa1), Val(aa2))
+      SCN(d:Val(fa1), Val(aa3))
+         
+      *- Total
+      SCN(b:Val(fa2), Val(aa1))
+      SCN(c:Val(fa2), Val(aa2))
+      SCN(d:Val(fa2), Val(aa3))
+	 
+      *- Total en Pesos
+      SCN(l:Val(fa1), Val(aa1))
+      SCN(m:Val(fa1), Val(aa2))
+      SCN(n:Val(fa1), Val(aa3))
+	 
+      *- Total en Dolares
+      SCN(o:Val(fa1), Val(aa1)/Dialogo.Precio1)
+      SCN(p:Val(fa1), Val(aa2)/Dialogo.Precio1)
+      SCN(q:Val(fa1), Val(aa3)/Dialogo.Precio1)
+   Else
+      *- En Moneda Extranjera Expresado en Dolares
+      SCN(b:Val(fa1), Val(aa1))
+      SCN(c:Val(fa1), Val(aa2))
+      SCN(d:Val(fa1), Val(aa3))
+	       
+      *- Total 
+      SCN(b:Val(fa2), Val(aa1))
+      SCN(c:Val(fa2), Val(aa2))
+      SCN(d:Val(fa2), Val(aa3))
+	 	 
+      *- Total en Pesos
+      SCN(l:Val(fa1), Val(aa1)*Dialogo.Precio1)
+      SCN(m:Val(fa1), Val(aa2)*Dialogo.Precio1)
+      SCN(n:Val(fa1), Val(aa3)*Dialogo.Precio1)
+	 	 
+      *- Total en Dolares
+      SCN(o:Val(fa1), Val(aa1))
+      SCN(p:Val(fa1), Val(aa2))
+      SCN(q:Val(fa1), Val(aa3))
+   Endif
+   
+   SetFont(b:Val(fa1)..q:Val(fa1), 1)
+   SetFont(b:Val(fa2)..q:Val(fa2), 1)
+
+Proximo
+ENDIF
+
+FormatoCeldas(e:Val(fa1), Exe('F5'))
+FormatoCeldas(j:Val(fa1), Exe('F5'))
+FormatoCeldas(e:Val(fa2), Exe('F5'))
+FormatoCeldas(j:Val(fa2), Exe('F5'))

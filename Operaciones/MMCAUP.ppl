@@ -1,0 +1,128 @@
+﻿CAMPOS:1;;BuscarCampo('VEHICULOS','Alias1','Codigo',Vehiculo1)
+FechaOp2        : 'Fecha Conc.'                ;1;1;1;VERIFICAACCESO('OPFVALOR');;FECHAOP2<=FECHAOP;'LA FECHA DE CONCERTACION DEBE SER <= A LA FECHA DE ORIGEN';NO;FSYS;
+FechaOp         : 'Fecha_Origen'               ;2;1;1;NOT EV y VERIFICAACCESO('OPFVALOR');;ESHABIL(FECHAOP,TABLAFERIADOS1);'La Fecha de Origen no es Habil en la Tabla de Feriados Seleccionada';NO;FSYS;
+@VEHITO
+
+Cliente1        : 'Ent_Contr.'                 ;4;1;1;NOT EV;;NOVACIO(CLIENTE1); 'Debe ingresar una Entidad Contr.';NO;;
+Especie         : 'Especie'                    ;4;2;;NOT EV;;NOVACIO(ESPECIE) y DESCIENDEDEESPECIE(ESPECIE,'TITULO');'Debe Ingresar una Especie v lida';NO;;;;LeerObjeto('Titulos')
+
+TotalBrutoCli2  : 'Cant.VN'                    ;6;2;1;;;TOTALBRUTOCLI2>=0;'Cant.VN no puede ser un importe negativo';NO;0;
+Precio3         : 'Precio'                     ;7;2;1;;;PRECIO3>0;'El Precio debe ser positivo';NO;;;;;;;'###.########';
+TotalBrutoCli3  : 'Importe Bruto'              ;8;2;1;NO;;;;;;ROUND(TOTALBRUTOCLI2*PRECIO3,0);;
+PorAforo        : 'Aforo'                      ;9;2;1;;;PORAFORO>=0 y PORAFORO<=100;'Aforo debe estar entre 0 y 100';NO;;;;;;;'###.##';
+Cantidad        : 'Capital'                    ;6;1;1;NOT EV;;CANTIDAD>0;'El Capital debe ser positivo';NO;;IF(PORAFORO=0,TOTALBRUTOCLI3,ROUND((TOTALBRUTOCLI3*PORAFORO)/100,0));;;;;'###,###,###,###,###.##'
+Plazo           : 'Plazo'                      ;7;1;1;;;PLAZO>0;'Debe ingresar el Plazo';NO;0;FECHAVTO-FECHAOP
+FechaVto        : 'Vto_Monto'                  ;8;1;1;;;ESHABIL(FECHAVTO,TABLAFERIADOS1);'La Fecha de Vencimiento del Monto no es dia habil';NO;FECHAOP+PLAZO;IF(INCLUIDO(CAMPOMODIFICADO,'PLAZO|FECHAOP'),FECHAOP+PLAZO,FECHAVTO)
+Precio1         : 'Tasa (%)'                   ;12;1;1;;;PRECIO1>0;'La Tasa debe ser positiva';NO;;
+Precio4         : 'Tasa Total Neta'            ;13;1;1;NO;;;;;0;((((TOTALNETOCLI1-TOTALIVA)/CANTIDAD)-1)/PLAZO*365)*100;;;;;'###.#####'
+Observac2       : 'Op.Contraparte'             ;12;2;1;;;NOVACIO(OBSERVAC2);'El Operador Contraparte no es valido';SI;;;;;;;'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'
+TablaFeriados1  : 'Feriados'                   ;13;2;1;;;NOVACIO(TABLAFERIADOS1);'Se debe indicar feriados a utilizar';NO;;IF(MODI,TABLAFERIADOS1,BuscarCampo('Feriados','Codigo','Codigo',BuscarCampo('Especies','PaisOrigen','Codigo',ESPECIE)))
+Operador        :                              ;14;2;1;;;NOVACIO(OPERADOR);'El Operador no es v lido';NO;USUARIOACTIVO;
+ContraEspecie   : 'Cotiza en'                  ;5;2;1;NOT EV;;NOVACIO(CONTRAESPECIE) y DESCIENDEDEESPECIE(CONTRAESPECIE,'MONEDA') y ESTERMINAL(CONTRAESPECIE,ESPECIE);'Debe ingresar una ContraEspecie para <Cotiza en>';NO;;COTIZAEN(ESPECIE)
+RB10            : 'Precancelable|SI|NO'        ;3;2;1;NO;NO;RB10>=0;'Precancelable Si/No';NO;1; 
+RB8             : 'U.Tiempo|360|365'           ;9;1;1;;;RB8>=0;'Unidad de Tiempo Tasa Interes INVALIDA';NO;IF(EQSTR('ARG',BuscarCampo('Clientes','PaisDir','Codigo',CLIENTE1)),1,0);IF(EQSTR('ARG',BuscarCampo('Clientes','PaisDir','Codigo',CLIENTE1)),1,0)
+TotalIntereses  : 'Interes'                    ;14;1;1;EV;;NOT EV o [TotalIntereses <= ROUND(VCAN7*(1+Var('PORVAR')/100),2) y TotalIntereses >= ROUND(VCAN7*(1-Var('PORVAR')/100),2)];'Interes fuera de rango: '~FSTR(ROUND(VCAN7*(1-Var('PORVAR')/100),2),0,2)~' y '~FSTR(ROUND(VCAN7*(1+Var('PORVAR')/100),2),0,2);NO;IF(Incluido(CLIENTE1,Var('CLIRED')) Y EQSTR (ESPECIE,'USD'),ROUND(CANTIDAD*(PRECIO1+SPREAD)*PLAZO/IF(RB8=1,36500,36000),0),CANTIDAD*(PRECIO1+SPREAD)*PLAZO/IF(RB8=1,36500,36000));IF(Incluido(CLIENTE1,Var('CLIRED')) Y EQSTR (ESPECIE,'USD'),ROUND(CANTIDAD*(PRECIO1+SPREAD)*PLAZO/IF(RB8=1,36500,36000),0),CANTIDAD*(PRECIO1+SPREAD)*PLAZO/IF(RB8=1,36500,36000));;;;;'###,###,###,###,###.##'
+TotalBrutoCli1  : 'Monto'                      ;15;1;1;NO;;;;;;CANTIDAD+TOTALINTERESES;;;;;'###,###,###,###,###.##'
+TotalNetoCli1   : 'Monto Total'                ;16;1;1;NO;;;;;;TOTALBRUTOCLI1+IMPCOMCOR2+INTDEVENGADOS1+TOTALIVA+INTERESESCORR;;;;;'###,###,###,###,###.##'
+
+ImpComCor2      : 'Comision'                   ;1;1;2;NO;NO;si o IMPCOMCOR2>=0;'La Comision no puede ser negativa';NO;;(TOTALBRUTOCLI1*SPREAD)/100;;;;;'###,###,###,###,###.##'
+
+ImpGastos1      : '%_IVA_Comision'             ;3;1;2;NO;NO;si o IMPGASTOS1>=0 Y IMPGASTOS1<=100;'% IVA Comision debe estar entre 0 y 100';NO;21;;;;;;'###.#####'
+TotalGanancias  : 'IVA_Comision'               ;4;1;2;NO;NO;;;;;(IMPCOMCOR2*IMPGASTOS1)/100;;;;;'###,###,###,###,###.##'
+
+IntDevengados1  : 'DerMer(D.M.)'               ;7;1;2;NO;NO;si o INTDEVENGADOS1>=0;'Derechos Mercado no puede ser negativo';NO;;(IMPCOMCOR2*TOTALGASTOS)/100;;;;;'###,###,###,###,###.##'
+
+ImporteImp      : 'IVA D.M.'                   ;10;1;2;NO;NO;;;;;(INTDEVENGADOS1*IMPCOMCOR1)/100;;;;;'###,###,###,###,###.##'
+
+InteresesCorr   : 'DerBol(D.B.)'               ;7;2;2;NO;NO;si o INTERESESCORR>=0;'Derechos Bolsa no puede ser negativo';NO;;(IMPCOMCOR2*IMPGASTOS2)/100;;;;;'###,###,###,###,###.##'
+ImpGastos2      : '% D.B.'                     ;8;2;2;NO;NO;si o IMPGASTOS2>=0 y IMPGASTOS2<=100;'% Derechos Bolsa debe estar entre 0 y 100';NO;;(INTERESESCORR/IMPCOMCOR2)*100;;;;;'###.#####'
+
+PrecioMer       : 'Total_Der'                  ;12;1;2;NO;NO;;;;;INTERESESCORR+INTDEVENGADOS1;;
+
+VPRE1           : 'Cot.TC/USD'                 ;10;2; ;NO;NO;;;;;COTIZACIONC(CONTRAESPECIE,,,,FECHAOP,1,SI,VAR('MONEEXTR'))^If(EqStr(Modo(CONTRAESPECIE,VAR('MONEEXTR')),'DIR'),1,-1)
+VPRE2           : 'Cot.TTC/USD'                ;11;2; ;NO;NO;;;;;COTIZACION('USD',,,,FECHAOP,1,SI,NO)
+Cotizacion1     : 'TC_Concert.'                ;14;1;2;NO;Not Eqstr(CONTRAESPECIE,VAR('MONEEXTR'));si o Eqstr(CONTRAESPECIE,VAR('MONEEXTR')) O [COTIZACION1<=VPRE1*(1+VAR('RPRECIO2')/100) Y COTIZACION1>=VPRE1*(1-VAR('RPRECIO2')/100)];'Tipo de Cambio Concertacion Fuera de Rango: '~FSTR(VPRE1*(1-VAR('RPRECIO2')/100),1,7)~' y '~FSTR(VPRE1*(1+VAR('RPRECIO2')/100),1,7);NO;;IF(Eqstr(CONTRAESPECIE,VAR('MONEEXTR')),1)
+ImpComMer2      : 'TCC USD'                    ;14;1;2;NO;EQSTR('USD',CONTRAESPECIE);si o NOT EQSTR('USD',CONTRAESPECIE) O IMPCOMMER2=0 O [IMPCOMMER2<=VPRE2*(1+VAR('RPRECIO2')/100) Y IMPCOMMER2>=VPRE2*(1-VAR('RPRECIO2')/100)];'TCC USD DEBE SER CERO O ESTAR EN EL RANGO: '~FSTR(VPRE2*(1-VAR('RPRECIO2')/100),1,7)~' y '~FSTR(VPRE2*(1+VAR('RPRECIO2')/100),1,7);NO;;;;;;;'###.##########';
+RB3             : 'MOF'                        ;10;2;;NO;NO;;;;;IF(INSTANCIA=2,0,1)
+Impresa         : 'Modificado'                 ;10;3;;NO;NO;;;;0
+                                 
+VCAN6           : 'Stock'                      ;13;2;2;NO;NO;;;;;SALDO(VEHICULO1,ESPECIE,,,,,,3,FECHAOP);;;;;'###,###,###,###,###.##';
+VTXT2           : 'Especie para calculo'       ;13;2;2;;NO;;;;ESPECIE;ESPECIE;
+VTXT1           : 'Vehicu para calculo'        ;13;2;2;;NO;;;;VEHICULO1;VEHICULO1;
+VFEC2           : 'FechaOp para calculo'       ;13;2;2;;NO;;;;FECHAOP;FECHAOP;
+VPRE3           : 'En_Garantia'                ;14;2;2;NO;NO;;;;QUERY("Select sum(TotalBrutoCli2) from "~DBO~".OPERACIONES where TipoOp='MMCAUC' and FechaVto > '"~IdxDate(VFEC2)~"'  and Vehiculo1 = '"~VTXT1~"'  and Especie = '"~VTXT2~"' ")-IF(NOT EQSTR(ABM,'A'),BuscarCampo('Operaciones','TotalBrutoCli2','NrOperacion',NROPERACION),0);QUERY("Select sum(TotalBrutoCli2) from "~DBO~".OPERACIONES where TipoOp='MMCAUC' and FechaVto > '"~IdxDate(VFEC2)~"'  and Vehiculo1 = '"~VTXT1~"'  and Especie = '"~VTXT2~"' ")-IF(NOT EQSTR(ABM,'A'),BuscarCampo('Operaciones','TotalBrutoCli2','NrOperacion',NROPERACION),0);;;;;'###,###,###,###,###.##';
+VPRE5           : 'Pre_Ingreso'                ;15;2;2;NO;NO;;;;;VCAN6-VPRE3;;;;;'###,###,###,###,###.##';
+VPRE4           : 'Esta_Minuta'                ;16;2;2;NO;NO;;;;TOTALBRUTOCLI2;TOTALBRUTOCLI2;;;;;'###,###,###,###,###.##';
+VPRE6           : 'Pos_Ingreso'                ;17;2;2;NO;NO;;;;;VCAN6-VPRE3-VPRE4;;;;;'###,###,###,###,###.##';
+
+Spread          : '%_Comision'                 ;2;1;2;NO;NO;SPREAD>=0 y SPREAD<=100;'% Comision debe estar entre 0 y 100';NO;;(IMPCOMCOR2/TOTALBRUTOCLI1)*100;;;;;'###.#####'
+VCAN7           : 'INTERES MOD'                ;11;3;1;NO;NO;;;;; CANTIDAD*(PRECIO1/100)*FACTORDIAS(FECHAOP,FECHAVTO,RB8+1)
+
+Mercado         : 'Mercado Liq.'               ; 1;1;2;  ;  ;NOVACIO(MERCADO) O SI;'Debe indicar mercado';NO;'CV'
+PorComMer1      : '% Comision'                 ; 2;1;2;NOT INCLUIDO(MERCADO,'OTC');NOT INCLUIDO(MERCADO,'OTC');INCLUIDO(MERCADO,'OTC') O PORCOMMER1>=0 O VACIO(MERCADO);'Debe INGRESAR  un % de COMISION DEL MERCADO';NO;;IF(Vacio(MERCADO),0);;;;;'#####.########'
+PrecioEj        : '% Merc IVA'                 ; 2;2;2;NO;NO;SI O INCLUIDO(Fstr(PRECIOEJ,2,2),VAR('IVA'));"El Valor de TASA IVA de Mercado es Erroneo: "~VAR('IVA');NO;VAR('TASAIVA');IF(Incluido(VEHICULO1,VAR('VEHIEXTRAN')),0,VAR('TASAIVA'));;;;'#####.#####'
+ImpComMer1      : 'Imp.Comision'               ; 3;1;2;NO;NOT INCLUIDO(MERCADO,'OTC');;;;;(TOTALBRUTOCLI1)*(PORCOMMER1/100)
+TotalGastos     : 'Importe IVA'                ; 3;2;2;NO;NO;;;;;(IMPCOMMER1)*(PRECIOEJ/100);;;;;;SI
+
+TasaPrecan      : '% Com Aranc'                ; 5;1;2;NO;NO;;;;;;;;;;'#####.########'
+TotalComisiones : 'Imp.Comision'               ; 6;1;2;NO;NO;;;;;(TOTALBRUTOCLI1)*(TASAPRECAN/100)
+
+Corredor        : 'Corredor'                   ;5;1;2;;;;;;
+PorComCor1      : '% Comision'                 ;6;1;2;;;;;;;IF(Vacio(CORREDOR),0,IF(MODI,PORCOMCOR1,BuscarCampo('CORREDORES','ComisionDefault1','Codigo',CORREDOR)));;;;;'#####.########'
+ImpComCor1      : 'Imp.Comision'               ;7;1;2;NO;  ;;;;;(TOTALDERECHOS)*(PORCOMCOR1/100)
+
+RB12            : 'U.Tiempo|360|365'           ;5;2;2;;;RB12>=0;'Unidad de Tiempo Tasa Interes INVALIDA';NO;IF(EQSTR('ARG',BuscarCampo('Clientes','PaisDir','Codigo',CLIENTE1)),1,0);IF(EQSTR('ARG',BuscarCampo('Clientes','PaisDir','Codigo',CLIENTE1)),1,0)
+TotalDerechos   :  'Int x Comision'            ;6;2;2;NO;;NOT EV o [TOTALINTERESES <= ROUND(VCAN7*(1+Var('PORVAR')/100),2) y TotalIntereses >= ROUND(VCAN7*(1-Var('PORVAR')/100),2)];'Interes Fuera de Rango: '~FSTR(ROUND(VCAN7*(1-Var('PORVAR')/100),2),0,2)~' y '~FSTR(ROUND(VCAN7*(1+Var('PORVAR')/100),2),0,2);NO;IF(Incluido(CLIENTE1,Var('CLIRED')) Y EQSTR (ESPECIE,'USD'),ROUND(TOTALBRUTOCLI1*(PRECIO1+SPREAD)*PLAZO/IF(RB12=1,36500,36000),0),TOTALBRUTOCLI1*(PRECIO1+SPREAD)*PLAZO/IF(RB12=1,36500,36000));IF(Incluido(CLIENTE1,Var('CLIRED')) Y EQSTR (ESPECIE,'USD'),ROUND(TOTALBRUTOCLI1*(PRECIO1+SPREAD)*PLAZO/IF(RB12=1,36500,36000),0),TOTALBRUTOCLI1*(PRECIO1+SPREAD)*PLAZO/IF(RB12=1,36500,36000));;;;;'###,###,###,###,###.##'
+TasaImp1        : '%IVA '                      ;7;2;2;;;INCLUIDO(Fstr(TASAIMP1,2,2),VAR('IVA'));"El Valor de TASA IVA de Arancel es Erroneo: "~VAR('IVA');NO;VAR('TASAIVA') ;IF(Incluido(VEHICULO1,VAR('VEHIEXTRAN')),0,VAR('TASAIVA'));;;;'#####.#####'
+TotalIVA        : 'Importe IVA'                ;8;2;2;NO;;;;;;(IMPCOMCOR1)*(TASAIMP1/100);;;;'#########.##';;SI
+
+OperacionRef    : 'Op_Referencia'              ;;;;NO;NO;;;;;
+MB3            : 'Tipo|Pasiva|Activo'         ;15;1;1;NO;NO;;;;IF(Incluido(TIPOOP,VAR('OPEACT')),1,0);IF(Incluido(TIPOOP,VAR('OPEACT')),1,0)
+
+@CUENTAS
+@RANGOTASA
+
+
+CONDICIONES
+VPRE5>=CANTIDAD;'ESTA USANDO VN SOBRE EL STOCK DE'~VPRE5;SI;SI;FSYS;'VNGARANTIA'
+PRECIO4<=VAR('RTTN2') Y PRECIO4>=VAR('RTTN1');'Tasa Total Neta Fuera de Rango:'~VAR('RTTN1')~" Y "~VAR('RTTN2');SI
+SI O [PRECIO1<=VPRE12 Y PRECIO1>=VPRE11];'Tasa Fuera de Rango: '~VPRE11~" Y "~VPRE12;SI;SI;FSYS;'RTASA'
+PRECIO1<=VAR('RTASA2') Y PRECIO1>=VAR('RTASA1');'Tasa Fuera de Rango: '~VAR('RTASA1')~" Y "~VAR('RTASA2');SI;SI;FSYS;'RTASA'
+ESHABIL(FECHAOP,'ARG');'La Fecha de Origen no es Dia Habil en Argentina';SI;SI;FSYS;'ORIGINH'
+ESHABIL(FECHAVTO,'ARG');'La Fecha de Vencimiento NO ES DIA HABIL en Argentina';SI;SI;FSYS;'VTOINH'
+Not EqStr('DES',BuscarCampo('Clientes','Status','Codigo',CLIENTE1));'La Entidad Contratante esta Deshabilitada';NO
+Not EqStr('CLIOBS',BuscarCampo('Clientes','Alias7','Codigo',CLIENTE1));'La Entidad Contratante est  Observada';SI;SI;FSYS;'CLIOBS'
+FECHAOP2=Fsys;'La Fecha de Concertacion no coincide con la de Sistema';SI;SI;FSYS;'CONCFVALOR'
+FECHAOP =Fsys;'La Fecha de Origen no coincide con la de Sistema';SI;SI;FSYS;'ORIGFVALOR'
+@CONDIOP
+
+EDICION
+EqStr(Operador, UsuarioActivo) o Incluido(UsuarioActivo, Var('ULMODI'));'No se puede modificar, Operador: '~Operador
+
+BAJA
+EqStr(Operador, UsuarioActivo) o Incluido(UsuarioActivo, Var('ULBAJA'));'No se puede dar de baja, Operador: '~Operador
+
+
+MOVIMIENTOS
+FechaOp;Cliente1;Especie       ;;;;;Vehiculo1;1; TotalBrutoCli2 ;;'Alta Caucion Pasiva '~ESPECIE;SI;Incluido(Vehiculo1,Var('VLIQUIDAA'));;;;Cuenta1;;10;
+FechaOp;Cliente1;ContraEspecie ;;;;;Vehiculo1;1; -Cantidad      ;;'Alta Caucion Pasiva '~CONTRAESPECIE;SI;Incluido(Vehiculo1,Var('VLIQUIDAA'));;;;Cuenta1;;1;
+FechaVto;Cliente1;Especie      ;;;;;Vehiculo1;1; -TotalBrutoCli2;;'Vto. Cap Caucion Pasiva '~ESPECIE;SI;Incluido(Vehiculo1,Var('VLIQUIDAA'));;;;Cuenta1;;20;
+FechaVto;Cliente1;ContraEspecie;;;;;Vehiculo1;1; Cantidad       ;;'Vto. Cap Caucion Pasiva '~CONTRAESPECIE;SI;Incluido(Vehiculo1,Var('VLIQUIDAA'));;;;Cuenta1;;2;
+FechaVto;Cliente1;ContraEspecie;;;;;Vehiculo1;1; TotalIntereses ;;'Vto. Int. Caucion Pasiva ';SI;Incluido(Vehiculo1,Var('VLIQUIDAA'));;;;Cuenta1;;3;
+FechaVto;Cliente1;ContraEspecie;;;;;Vehiculo1;1;ImpComMer1;;'Comision Derecho Mercado';SI;Incluido(Vehiculo1,Var('VLIQUIDAA'));;;;Cuenta1;;30;
+FechaVto;Cliente1;ContraEspecie;;;;;Vehiculo1;1;TotalGastos;;'IVA Comision Mercado';SI;Incluido(Vehiculo1,Var('VLIQUIDAA'));;NO;;Cuenta1;;25;
+FechaVto;IF(VACIO(Corredor), Cliente1, Corredor);ContraEspecie;;;;;Vehiculo1;1;ImpComCor1;;'Comision Corredor:'~Corredor;SI;Incluido(Vehiculo1,Var('VLIQUIDAA'));;;;Cuenta1;;40;
+FechaVto;IF(VACIO(Corredor), Cliente1, Corredor);ContraEspecie;;;;;Vehiculo1;1;TotalIVA;;'IVA Comision Corredor';SI;Incluido(Vehiculo1,Var('VLIQUIDAA'));;;;Cuenta1;;50;
+
+FechaVto;Cliente1;ContraEspecie  ;;;;;Vehiculo1;1; TotalIVA         ;;'IVA MM Pmo. Local '~ESPECIE   ;SI;Incluido(Vehiculo1,Var('VLIQUIDAA'));;NO Y TotalIVA<>0;;;;6;
+FechaVto;Cliente1;ContraEspecie  ;;;;;Vehiculo1;1; ImpComCor2       ;;'Com. MM Pmo. Local '~ESPECIE  ;SI;Incluido(Vehiculo1,Var('VLIQUIDAA'));;NO Y ImpComCor2<>0 ;;;;7;
+FechaVto;Cliente1;ContraEspecie  ;;;;;Vehiculo1;1; PrecioMer        ;;'Derechos MM Pmo. Local '~ESPECIE  ;SI;Incluido(Vehiculo1,Var('VLIQUIDAA'));;NO Y PrecioMer<>0;;;;8;
+
+
+DEVENGADOS
+FechaOp+1;FechaVto;SI;SI;NO;'ARG';SI;SI;'INTLEN';-TotalIntereses;140;Vehiculo1;Vehiculo1;;;;;;TipoOp;;ContraEspecie;;;;;;Book1;Operador;'MM';;;ContraEspecie;
+
+
+@INSTOPE
+@INST19MM
+@INST19BITS

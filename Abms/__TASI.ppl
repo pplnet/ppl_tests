@@ -1,0 +1,22 @@
+﻿def abm 'TiposAsiento'      
+    def grid
+    Codigo:, Descripcion:, TipoDoc:
+    end
+    def key
+        Codigo:
+    end
+    def dialog_size
+        450,250
+    end
+    def dialog
+        tab 'General'     
+            column          
+                Codigo: ,, small_text
+                Descripcion: ,,large_text
+                TipoDoc:,, autocomplete,'TIPODOCCONTABLE'     ,'Codigo,Descripcion'
+    end
+    validates_uniqueness_of: Codigo: 
+    upper_case_fields: Codigo:
+    required_fields:
+    Codigo:; 
+end

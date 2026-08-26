@@ -1,0 +1,27 @@
+﻿def abm 'Numeradores'       
+    def grid
+    Codigo:, Tipo: as 'Prefijo', Numero: 
+    end
+    def key
+        Codigo:
+    end
+    def dialog_size
+        450,230
+    end
+    def dialog
+        #**************************************************************************
+        tab 'General'     
+            column          
+                Codigo: ,,  numeric, '########0'   
+                Tipo: ,'Prefijo',large_text
+                Numero: ,, numeric, '################0'                   
+    end
+    
+    before_save: do
+        If __action__ = "A"
+            $.set_field Numero:, 0
+        else
+            true
+        end
+    end
+end

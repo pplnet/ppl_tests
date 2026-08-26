@@ -1,0 +1,113 @@
+﻿CrearDialogo
+    Fecha1      : 'Fecha'        ;1;1;1;SI;SI;;;;FSYS
+    Directorio1 : 'Path '        ;2;1;1;SI;SI;;;;VAR('PATHDDCHE')
+    String1     : 'Archivo '     ;3;1;1;SI;SI;;;;VAR('FILEDDCOB')
+    Vehiculo1   : 'Vehiculo '    ;4;1;1;SI;SI;;;;VAR('DDVEHDEF')
+    Book1       : 'Book '        ;5;1;1;SI;SI;EqStr(Dialogo.Vehiculo1,BuscarCampo('BOOKS','Vehiculo','Codigo',Dialogo.Book1));'El book ingresado no corresponde al Vehiculo';NO;Var('BOOKDDCHE');BuscarCampo('VEHICULOS','Alias5','Codigo',Dialogo.Vehiculo1);;;;" Vehiculo = '"~Dialogo.Vehiculo1~"'"
+FinDialogo
+
+If Not Ok
+   Cancelar
+Endif
+***Revisar si existe directorio/archivo
+If ExisteDirectorio(Dialogo.Directorio1)
+    If EqStr(Copy(Dialogo.Directorio1,Longitud(Dialogo.Directorio1),1),'\')
+        If Not ExisteArchivo(Dialogo.Directorio1~Dialogo.String1)
+            Cancelar('1.El Archivo '~Dialogo.String1~' no existe en el directorio: '~Dialogo.Directorio1)
+        EndIf
+    Else
+        If Not ExisteArchivo(Dialogo.Directorio1~'\'~Dialogo.String1)
+            Cancelar('2.El Archivo '~Dialogo.String1~' no existe en el directorio: '~Dialogo.Directorio1)
+        EndIf
+    Endif
+Else
+    Cancelar('El directorio '~Dialogo.Directorio1~' no existe')
+EndIf
+
+*** Corregir path
+let &pf ''
+If EqStr(Copy(Dialogo.Directorio1,Longitud(Dialogo.Directorio1),1),'\')
+    let &pf Dialogo.Directorio1~Dialogo.String1
+Else
+    let &pf Dialogo.Directorio1~'\'~Dialogo.String1
+Endif
+
+***Importar
+ImportarXLS(B:1..G:10000, B:1..G:10000, &pf)
+If Not Ok
+    Cancelar('Error al cargar el archivo '~&pf)
+Endif
+
+*B = Fecha
+*C = Movimiento
+*D = Comprobante
+*E = Ingreso
+*F = Debe (no se usa)
+*G = Haber
+
+*contador
+let &contadorRegistrosImportados 0
+let &controlExec 0
+
+Recorrer &i 2, 1000000
+    *Guardo Fecha 
+    ACD(FE:&i,Fecha(Val(B:&i)))
+    *Guardo Fecha de Ingreso
+    ACD(FI:&i,Fecha(Val(E:&i)))
+    If Vacio(Val(B:&i))
+        break   
+    Else
+        *En caso de existir un registro para mismo comprobante y FIngreso, debe hacer update
+        IF Query("SELECT 1 FROM "~DBO~".DDCOBRANZAS WHERE Comprobante='"~Val(D:&i)~"' AND FIngreso='"~IdxDate(Val(FI:&i))~"' AND Vehiculo='"~Dialogo.Vehiculo1~"' AND Book='"~Dialogo.Book1~"' AND Moneda='"~Var('MONELOCA')~"'") = 1 
+            SQL.ADD(" UPDATE "~DBO~".DDCOBRANZAS ")
+            SQL.ADD(" SET Fecha='"~IdxDate(Val(B:&i))~"', Movimiento='"~Val(C:&i)~"', ")
+            SQL.ADD(" Comprobante='"~Val(D:&i)~"', FIngreso='"~IdxDate(Val(FI:&i))~"', ")
+            SQL.ADD(" Haber="~Fstr(Val(G:&i),0,2)~", FechaCarga="~SQLAhora~", ")
+            SQL.ADD(" FechaCargaSys='"~IdxDate(Fsys)~"' ")
+            SQL.ADD(" WHERE Comprobante='"~IdxDate(Val(D:&i))~"' AND FIngreso='"~IdxDate(Val(FI:&i))~"'")
+            SQL.NEW()
+            SQL.EXEC()
+            let &contadorRegistrosImportados &contadorRegistrosImportados+1
+            
+        Else
+            *Se importarán las columnas B, C, D, E y G, de los registros cuya Fecha (columna B)
+            *coincidan con la fecha del diálogo y cuando el valor de la columna G sea > 0
+            If (Val(FE:&i)=Dialogo.Fecha1) Y (Val(G:&i)>0) 
+                SQL.ADD(" INSERT INTO "~DBO~".DDCOBRANZAS ")
+                SQL.ADD(" (Fecha, Movimiento, Comprobante, ")
+                SQL.ADD(" Vehiculo, Book, Moneda,")
+                SQL.ADD(" FIngreso, Haber, FechaCarga, FechaCargaSys) ")
+                SQL.ADD(" VALUES")
+                SQL.ADD(" ('"~IdxDate(Val(B:&i))~"', '"~Val(C:&i)~"', '"~Val(D:&i)~"',")
+                SQL.ADD(" '"~Dialogo.Vehiculo1~"', '"~Dialogo.Book1~"', '"~VAR('MONELOCA')~"',")
+                SQL.ADD(" '"~IdxDate(Val(FI:&i))~"', "~Fstr(Val(G:&i),0,2)~", "~SQLAhora~", '"~IdxDate(Fsys)~"')")
+                SQL.NEW()
+                SQL.EXEC()
+                let &contadorRegistrosImportados &contadorRegistrosImportados+1
+            Endif
+        Endif
+    EndIf
+Proximo
+
+
+
+*guardo ruta de donde se importó el excel + nombre base de log
+let &ruta Dialogo.Directorio1~Var('FILELOGCOB')
+ACT(AR:1,&ruta~'_'~idxDate(FSYS)~'.txt')
+
+*hago un recorrer para asegurarme que el archivo no existe previamente
+IF ExisteArchivo(Val(AR:1))
+**Si el nombre del archivo del comprobante es el mismo, le agrega una enumeración al final del nombre del archivo.
+    Recorrer&k 1,9999
+        ACT(AR:1, &ruta~'_'~idxDate(FSYS)~'_'~Fstr(&k,10,0)~'.txt')
+        IF Not ExisteArchivo(Val(AR:1))
+            Break
+        Endif
+    Proximo 
+ENDIF
+    
+*Mensajes del Log
+AbrirASCII(Val(AR:1), 0, NO, 1)
+EscribirASCII('Cantidad de Registros importados con éxito: '~FStr(&contadorRegistrosImportados, 0, 0))
+CerrarASCII
+*HojaVisible(SI)

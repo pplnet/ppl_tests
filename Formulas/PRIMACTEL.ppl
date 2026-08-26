@@ -1,0 +1,1 @@
+﻿ABS(SQL(" Select Sum(Cantidad9) From "~DBO~".CUOTAS Where NrOperacion = '"~fbn('NrOperacion')~"' AND Fecha2 <= '"~IdxDate(Val(FV:2)+VAR('PLCAPCORR'))~"' "))

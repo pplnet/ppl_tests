@@ -1,0 +1,1 @@
+﻿SQL("SELECT CuentaContableAux FROM "~DBO~".CTACONTAUXVHBKEMI WHERE Vehiculo='"~&vehiculo~"' AND Book='"~&book~"' AND Emisor='"~&emisor~"'  ")

@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ScriptHeader xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <CodFpa>TATERC</CodFpa>
+  <Type>ABM</Type>
+  <Nombre>TasasTerceros</Nombre>
+  <Habilitado xsi:nil="true" />
+  <Tipo />
+  <Orden>186</Orden>
+  <Menu>186</Menu>
+  <Acceso>T3</Acceso>
+</ScriptHeader>

@@ -1,0 +1,3 @@
+﻿IIF(EQSTR(BuscarCampo('CUENTAS','CB1','Codigo', &ctaPuente),'SI') Y NOT EQSTR(&Moneda,#MONELOCAL), 
+    BuscarCampo('CUENTAS','CuentaContable2','Codigo', &ctaPuente),
+    BuscarCampo('CUENTAS','CuentaContable1','Codigo', &ctaPuente))

@@ -1,0 +1,108 @@
+﻿CAMPOS:1;;BuscarCampo('VEHICULOS','Alias1','Codigo',Vehiculo1)
+@VEHITO
+Especie:                             ;01;1;1;NO;;;;NO;Var('MONEEXTR');;;;;;;;
+ContraEspecie:                       ;02;1;1;NO;;;;NO;Var('MONELOCA');;;;;;;;
+Cliente1         : 'Cliente '        ;3;1;;;;[NoVacio(CLIENTE1)] Y [Eqstr(BuscarCampo('CLIENTES','Status','Codigo',CLIENTE1), 'HAB')];'Cliente invalido';NO;;;;;;;;" Status='HAB' ";
+Cliente2         : 'Exportadora'     ;03;2;1;;;DesciendeDeCliente(CLIENTE2,'VINCULADOS');'La Exportadora Debe ser un Vehiculo';NO;;;;;;;;" DesciendeDeCliente(CLIENTE2, VINCULADOS) = 1 ";
+FechaOp2:        'Origen LC'         ;04;1;1;;;EsHabil(FECHAOP2,'ARG');'El Origen de la LC No es un dia habil';NO;FSys;
+Plazo2:          'Plazo LC'          ;04;2;1;;;PLAZO2>0;'El Plazo de la LC debe ser positivo';NO;0;FECHAVTO2-FECHAOP2;
+FechaVto2:       'Vto. LC'           ;05;1;1;;;;;;;;
+FechaOp:         'Fecha Op.'         ;06;1;1;;;;;;FSys;;
+Plazo:           'Dias a Desc.'      ;06;2;1;NO;;;;;;FECHAVTO2-FECHAOP;
+Precio2:         'Tasa'              ;07;1;1;;;PRECIO2>0;'La TNA debe ser positiva';NO;
+Precio3:         'Tasa Adelantada'   ;07;2;1;NO;;;;;;(PRECIO2*PLAZO/IF(DIASANIO<1,36000,36500))/(1+(PRECIO2*PLAZO/IF(DIASANIO<1,36000,36500)))*IF(DIASANIO<1,36000,36500)/PLAZO;
+MB1:'Ints. sobre|TNA|Tasa Adelantada';08;1;1;;;;;;;1;
+PrecioMer:       'Precio Merc.'      ;08;2;1;;;;;;;
+Precio1:         'TC'                ;9;1;1;;;PRECIO1>0;'El TC debe ser positivo';NO;TIPOCAMBIO;
+DiasAnio:                            ;9;2;1;;;;;;;IF(EQSTR(CLIENTE1,'BPBA'),1,0);
+TotalBrutoCli1:  'Cantidad u$s'      ;10;1;1;;;TOTALBRUTOCLI1>0;'El Monto de la LC debe ser Positivo';NO;;
+Cantidad:        'Cantidad $'        ;10;2;1;NO;;;;;;TOTALBRUTOCLI1*IF(EQSTR(CONTRAESPECIE,'PESOS'),PRECIO1,1);
+TotalBrutoCli2:  'Intereses u$s'     ;11;1;1;NO;;;;;;TOTALBRUTOCLI1*IF(MB1=0,PRECIO2,PRECIO3)*PLAZO/IF(DIASANIO<1,36000,36500);
+TotalIntereses:  'Intereses $'       ;11;2;1;NO;;;;;;TOTALBRUTOCLI2*IF(EQSTR(CONTRAESPECIE,'PESOS'),PRECIO1,1);
+TotalDerechos:   'IVA Ints. u$s'     ;12;1;1;NO;;;;;;IF(EQSTR(CLIENTE1,'BPBA'),0,TOTALBRUTOCLI2*VAR('IVA_INT'));
+TotalNetoCli3:   'IVA Ints. $'       ;12;2;1;NO;;;;;;IF(EQSTR(CLIENTE1,'BPBA'),0,TOTALINTERESES*VAR('IVA_INT'));
+TotalBrutoCli3:  'Gastos u$s'        ;13;1;1;;;;;;;IF(EQSTR(CLIENTE1,'BPBA'),60,0);
+TotalGastos:     'Gastos $'          ;13;2;1;NO;;;;;;TOTALBRUTOCLI3*IF(EQSTR(CONTRAESPECIE,'PESOS'),PRECIO1,1);
+TotalRetenciones:'IVA Gastos u$s'    ;14;1;1;NO;;;;;;IF(EQSTR(CLIENTE1,'BPBA'),0,TOTALBRUTOCLI3*VAR('IVA'));
+TotalImpuestos:  'IVA Gastos $'      ;14;2;1;NO;;;;;;IF(EQSTR(CLIENTE1,'BPBA'),0,TOTALGASTOS*VAR('IVA'));
+TotalNetoCli2:   'Monto u$s'         ;15;1;1;NO;;;;;;TOTALBRUTOCLI1-TOTALBRUTOCLI2-TOTALBRUTOCLI3-TOTALRETENCIONES;
+TotalNetoCli1:   'Monto $'           ;15;2;1;NO;;;;;;CANTIDAD-TOTALINTERESES-TOTALGASTOS-TOTALIMPUESTOS;
+ContraEspecie2:  'TNA InterDiv.'     ;16;1;1;;;NoVacio(CONTRAESPECIE2);'Debe Ingresar una TNA Interdivisional';NO;'LIB180'
+Precio4:         'Spread InterDiv.'  ;16;2;1;;;PRECIO4>0;'El Spread InterDiv. debe ser positivo';NO;0.375
+Operador:                            ;18;1;1;NO;;;;;USUARIOACTIVO;
+
+TipoCambio:                          ;01;1;2;NO;;;;;Cotizacion('DOL',,,,FECHAOP,1);
+
+MOVIMIENTOS
+
+***---FechaOp;FechaVto;Especie;Cantidad;Precio1;'I';OPERADOREST;ESTRATEGIA;'PESOS';[DESCIENDEDECLIENTE(CLIENTE2,'INVESTMENT') O Incluido(CLIENTE2,'TSF-SACI|DPL-SACI|VIG-SACI|TREBU')]
+
+CONDICIONES
+
+
+BITS
+1;0
+2;1
+3;0
+4;0
+5;0
+6;0
+7;0
+8;0
+9;0
+10;0
+12;0
+
+INSTANCIA2
+BITS
+2;1;FW=2
+2;0;FW=1
+5;1;FW=1 Y FECHAOP>=(FSYS-Dia(FSys))
+12;1;FW=1 Y FECHAOP<(FSYS-Dia(FSys))
+
+MOVIMIENTOS
+*FechaOp;Cliente2;ContraEspecie;;;;;;1;       Cantidad;;'Cant. LETCRE '~CONTRAESPECIE   ;SI;NO;;[FW=1] Y [[FECHAOP>(FSYS-DIA(FSYS))] O [INSTANCIA=0]] Y [Cantidad>0]      ;1;;'CREDIT';1;;'EJEC'
+*FechaOp;Cliente2;ContraEspecie;;;;;;1;-TotalIntereses;;'Ints. LETCRE '~CONTRAESPECIE   ;SI;NO;;[FW=1] Y [[FECHAOP>(FSYS-DIA(FSYS))] O [INSTANCIA=0]] Y [TotalIntereses>0];2;;'DEBITO';2;;'EJEC'
+*FechaOp;Cliente2;ContraEspecie;;;;;;1;   -TotalGastos;;'Gtos. LETCRE '~CONTRAESPECIE   ;SI;NO;;[FW=1] Y [[FECHAOP>(FSYS-DIA(FSYS))] O [INSTANCIA=0]] Y [TotalGastos>0]   ;3;;'DEBITO';3;;'EJEC'
+*FechaOp;Cliente2;ContraEspecie;;;;;;1;-TotalImpuestos;;'IVA Gtos.LETCRE '~CONTRAESPECIE;SI;NO;;[FW=1] Y [[FECHAOP>(FSYS-DIA(FSYS))] O [INSTANCIA=0]] Y [TotalImpuestos>0];4;;'DEBITO';4;;'EJEC'
+*FechaOp;Cliente2;ContraEspecie;;;;;;1; -TotalNetoCli3;;'IVA Ints.LETCRE '~CONTRAESPECIE;SI;NO;;[FW=1] Y [[FECHAOP>(FSYS-DIA(FSYS))] O [INSTANCIA=0]] Y [TotalNetoCli3>0] ;5;;'DEBITO';5;;'EJEC'
+*
+*FechaOp;Cliente1;ContraEspecie;;;;;;1;      -Cantidad;;'LETCRE '~CONTRAESPECIE         ;SI;NO;;[FW=1] Y [[FECHAOP>(FSYS-DIA(FSYS))] O [INSTANCIA=0]] Y [Cantidad>0]      ;1;;;6;;'EJEC'
+*FechaOp;Cliente1;ContraEspecie;;;;;;1; TotalIntereses;;'LETCRE '~CONTRAESPECIE         ;SI;NO;;[FW=1] Y [[FECHAOP>(FSYS-DIA(FSYS))] O [INSTANCIA=0]] Y [TotalIntereses>0];2;;;7;;'EJEC'
+*FechaOp;Cliente1;ContraEspecie;;;;;;1;    TotalGastos;;'LETCRE '~CONTRAESPECIE         ;SI;NO;;[FW=1] Y [[FECHAOP>(FSYS-DIA(FSYS))] O [INSTANCIA=0]] Y [TotalIntereses>0];3;;;8;;'EJEC'
+*FechaOp;Cliente1;ContraEspecie;;;;;;1; TotalImpuestos;;'LETCRE '~CONTRAESPECIE         ;SI;NO;;[FW=1] Y [[FECHAOP>(FSYS-DIA(FSYS))] O [INSTANCIA=0]] Y [TotalImpuestos>0];4;;;9;;'EJEC'
+*FechaOp;Cliente1;ContraEspecie;;;;;;1;  TotalNetoCli3;;'LETCRE '~CONTRAESPECIE         ;SI;NO;;[FW=1] Y [[FECHAOP>(FSYS-DIA(FSYS))] O [INSTANCIA=0]] Y [TotalNetoCli3>0] ;5;;;10;;'EJEC'
+
+POSTEDICION
+FW=1 Y INSTANCIA=5;"AEPMO2";NROPERACION1=NROPERACION
+
+INSTANCIA5
+BITS
+2;1;FW=2
+5;0
+6;1;FW=1
+
+INSTANCIA6
+BITS
+5;1;FW=2
+6;0;FW=2
+
+INSTANCIA8
+BITS
+5;1;FW=2
+8;0
+9;1;FW=1
+
+INSTANCIA9
+BITS
+8;1;FW=2
+9;0
+
+INSTANCIA12
+BITS
+2;1;FW=2
+5;1;FW=1
+12;0
+
+POSTEDICION
+FW=1;"AEPMO2";NROPERACION1=NROPERACION

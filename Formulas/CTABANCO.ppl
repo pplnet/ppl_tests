@@ -1,0 +1,11 @@
+﻿***---BuscarCampo('CUENTAS','CuentaContable1','Codigo', fbn('CuentaLiq'))
+***---BuscarCampo('CUENTAS','CuentaContable1','Codigo', fbn('Cuenta2'))
+***///IIF(Eqstr(fbn('Libro'),'AP'),BuscarCampo('CUENTAS','CuentaContable2','Codigo', fbn('Cuenta2')),BuscarCampo('CUENTAS','CuentaContable1','Codigo', fbn('Cuenta2')))
+
+*BuscarCampo('CUENTAS','CuentaContable1','Codigo', fbn('Cuenta2'))
+
+
+
+IIF(EQSTR(BuscarCampo('CUENTAS','CB1','Codigo', fbn('Cuenta2')),'SI') Y NOT EQSTR(&Moneda,#MONELOCAL), 
+    BuscarCampo('CUENTAS','CuentaContable2','Codigo', fbn('Cuenta2')),
+    BuscarCampo('CUENTAS','CuentaContable1','Codigo', fbn('Cuenta2')))

@@ -1,0 +1,1 @@
+﻿iif (Desatendido,Raise('Evento Cancelado'),Cancelar('Prueba'))

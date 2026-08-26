@@ -1,0 +1,37 @@
+﻿CAMPOS:1;;BuscarCampo('VEHICULOS','Alias3','Codigo',Vehiculo1)
+Vehiculo1  : 'Vehiculo '                         ;;;;;;NoVacio(VEHICULO1);'Vehiculo invalido';NO;;IF(NoVacio(CUENTA1),BuscarCampo('CUENTAS','Cliente','Codigo',CUENTA1),);;;;;;IF (Vacio(CUENTA1) y Vacio(CLIENTE1),"Codigo IN (Select DISTINCT Cliente From "~DBO~".CUENTAS)","Codigo IN (Select DISTINCT Cliente From "~DBO~".CUENTAS Where Comitente = '"~CLIENTE1~"')")
+Cliente1   : 'Entidad'                           ;;;;;;NoVacio(CLIENTE1);'Entidad invalida';NO;;IF (NoVacio(CUENTA1),BuscarCampo('CUENTAS','Comitente','Codigo',CUENTA1),);;;;;;IF(Vacio(VEHICULO1),"dbo.DesciendeDeCliente(Codigo,'BANCOS')=1 and Status = 'HAB' and Codigo IN (Select DISTINCT Comitente From "~DBO~".CUENTAS)","dbo.DesciendeDeCliente(Codigo,'BANCOS')=1 and Status = 'HAB' and Codigo IN (Select DISTINCT Comitente From "~DBO~".CUENTAS Where Cliente = '"~VEHICULO1~"')");;;
+Cuenta1    : 'Cuenta'                            ;;;;;;[NOVACIO(CUENTA1) y [[[CLIENTECUENTA(VEHICULO1,CUENTA1)] y ESPECIECUENTA(ESPECIE,CUENTA1) y EqSTr(BuscarCampo('CUENTAS','Estado','Codigo',CUENTA1),'HAB')]]];'Error en Cuenta';NO;;;;;;;;IF (NoVacio(CLIENTE1) y NoVacio(Vehiculo1),"Cliente='"~VEHICULO1~"' and Comitente='"~CLIENTE1~"' and Estado = 'HAB'",IF(NoVacio(CLIENTE1),"Comitente='"~CLIENTE1~"' and Estado = 'HAB'",IF(NoVacio(VEHICULO1),"Cliente='"~VEHICULO1~"' and Estado = 'HAB'",)))
+Fecha1     : 'FechaSaldo'                        ;;;;;;FECHA1>0;'Fecha invalida';NO;Habiles(FSYS, -1, 'ARG', SI);;;;;;;
+Especie    : 'Moneda'                            ;;;;NO;;DESCIENDEDEESPECIE(ESPECIE,'MONEDA') y ESTERMINAL(ESPECIE,ESPECIES);;;;Copy(BuscarCampo('CUENTAS','Especies','Codigo',CUENTA1),1,Longitud(BuscarCampo('CUENTAS','Especies','Codigo',CUENTA1))-1);;;;;;"Status = 'HAB' and Jerarquia Like '"~Jerarquia('ESPECIES','MONEDA')~"%'"
+Cantidad1  : 'Saldo a la fecha'                  ;;;;NO;;;;;;SQLSET("Select SaldoContable FROM SALDOSBANCARIOS Where FechaSaldo = '"~IdxDate(FECHA1)~"' and Banco = '"~BuscarCampo('CLIENTES','Alias3','Codigo',CLIENTE1)~"' and NrCuenta = '"~BuscarCampo('CUENTAS','Numero','Codigo',CUENTA1)~"'");;;;;;
+Cantidad2  : 'Saldo Real'                        ;;;;;;;;;CANTIDAD1;CANTIDAD1+CANTIDAD3;;;;;;
+Cantidad3  : 'Ajuste'                            ;;;;;;CANTIDAD3<>0;'El saldo no sufrio ningun ajuste';NO;0;CANTIDAD2-CANTIDAD1;;;;;;
+Fecha2     : 'MaxFechaPro'                       ;;;;NO;NO;;;;;Query(" Select Max(FechaSaldo) FechaSaldo from "~DBO~".SALDOSBANCARIOS Where FechaSaldo >= '"~IdxDate(FECHA1)~"' and FechaSaldo <= '"~IdxDate(FinDeMes(FECHA1,SI))~"' AND Banco = '"~BuscarCampo('CLIENTES','Alias3','Codigo',CLIENTE1)~"' AND NrCuenta = '"~BuscarCampo('CUENTAS','Numero','Codigo',CUENTA1)~"' AND Estado = 'PRO' ");;;;;
+
+CONDICIONES
+Query("Select 1 from "~DBO~".MOVEJECUTADOS M JOIN "~DBO~".OPERACIONES O ON M.NrOperacion=O.NrOperacion Where O.TipoOp = 'MMRPAC' and O.FechaOp >= '"~IdxDate(FECHA1)~"' and O.FechaVto <= '"~IdxDate(FinDeMes(FECHA1,SI))~"' and O.Cuenta1 = '"~CUENTA1~"' and M.NrSaldo=1") <>1;'La cuenta tiene una operacion MMRPAC liquidada';NO;
+Incluido(VEHICULO1, UsrVehiculos(USUARIOACTIVO)) o VACIO(UsrVehiculos(USUARIOACTIVO)); 'El usuario activo no esta habilitado para operar con el vehiculo '~VEHICULO1;NO
+DesciendeDeCliente(CLIENTE1,'BANCOS');"El Cliente debe ser una Entidad Bancaria";NO
+***---Query("SELECT 1 from "~DBO~".SALDOSBANCARIOS SB JOIN CUENTAS C ON SB.NrCuenta = C.Numero Where C.Codigo ='"~CUENTA1~"' and SB.FechaSaldo ='"~IdxDate(FECHA1)~"'  and NrTransAjuste is not Null and Ajuste is not Null") <> 1;'Ya existe un ajuste para el saldo seleccionado. Debe eliminar el mismo para volver a ajustar';NO;
+Query(" SELECT 1 from "~DBO~".TRANSACCIONES2 Where Cuenta1 ='"~CUENTA1~"' AND Fecha1 ='"~IdxDate(FECHA1)~"' AND Cliente1 ='"~CLIENTE1~"' AND Vehiculo1 ='"~VEHICULO1~"' AND TipoTr2 = 'AJSABA' ") <> 1;'Ya existe un ajuste para el saldo seleccionado. Debe eliminar el mismo para volver a ajustar';NO;
+
+POSTEDICION
+SI;'ANUREM';Fecha1=FECHA1;Cuenta1=CUENTA1
+Not Eqstr(ABM,'D');'AJSABA';Fecha1=FECHA1;Cuenta1=CUENTA1;Cantidad1=CANTIDAD3;NrTrans1=NrTrans;Radio1=0
+Eqstr(ABM,'D');'AJSABA';Fecha1=FECHA1;Cuenta1=CUENTA1;Cantidad1=CANTIDAD3;NrTrans1=null;Radio1=1
+SI;'REMUD';Fecha1=FECHA1;Cuenta1=CUENTA1;Fecha2=FECHA2
+
+
+BAJA
+Query("Select 1 from "~DBO~".MOVEJECUTADOS M JOIN "~DBO~".OPERACIONES O ON M.NrOperacion=O.NrOperacion Where O.TipoOp = 'MMRPAC' and O.FechaOp >= '"~IdxDate(FECHA1)~"' and O.FechaVto <= '"~IdxDate(FinDeMes(FECHA1,SI))~"' and O.Cuenta1 = '"~CUENTA1~"' and M.NrSaldo=1") <>1;'No se puede dar de baja.La cuenta tiene una operacion MMRPAC liquidada';NO;
+
+EDICION
+NO; 'La transaccion no puede ser editada' 
+
+BITS
+20;1
+
+INSTANCIA20
+POSTEDICION
+Eqstr(ABM,'D');'AJSABA';Fecha1=FECHA1;Cuenta1=CUENTA1;Cantidad1=CANTIDAD3;NrTrans1=null;Radio1=1

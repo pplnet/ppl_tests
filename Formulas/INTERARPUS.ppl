@@ -1,0 +1,5 @@
+﻿IIF(Eqstr(fbn('ContraEspecie'), Var('MONELOCA')), fbn('TotalIntereses'),
+    IIF(Incluido(fbn('ContraEspecie'), Val(US:1)),
+        fbn('TotalIntereses')*COTIZACIONC('USD',,,,Val(FV:2),1,SI,VAR('MONELOCA')),
+        fbn('TotalIntereses')*COTIZACIONC(fbn('ContraEspecie'),,,,Val(FV:2),1,SI,VAR('MONELOCA'))
+     ))

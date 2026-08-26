@@ -1,0 +1,57 @@
+﻿CrearDialogo
+  Fecha1 : 'Fecha'            ;1;1;;;;Dialogo.Fecha1<>0;'Fecha invalida';NO;Fsys
+  Radio1 : 'Automatico|NO|SI' ;2;1;;NO;NO;;;;0;
+FinDialogo
+
+If NOT OK
+  Cancelar
+Endif
+
+***---Contabilidad NO Procesada
+***---SQL.ADD(" Update "~DBO~".VARIABLES ")
+***---SQL.ADD(" Set Valor = 'NO' ")
+***---SQL.ADD(" Where Codigo = 'CONTAPROCE' ")
+***---SQL.NEW
+
+***/// Si es automatico, actualizo la fecha del sistema al dia siguiente de lunes a viernes aunque sea feriado
+If Dialogo.Radio1 = 1
+   ACD(FC:1, Dialogo.Fecha1)
+   If DiaSem(Val(FC:1))=6
+      ACD(FC:1, Val(FC:1)+3)
+   Else
+      ACD(FC:1, Val(FC:1)+1)
+   Endif
+   ***---Abre dia Siguiente
+   ***---acaAbrirDia(Val(FC:1),SI,NO)
+   ***---Corregir con linea de arriba cuando este desarrollada la funcion con el 2do y tercer parámetro
+   AbrirDia(Val(FC:1), SI, NO)
+ELSE
+   ACD(FC:1, Dialogo.Fecha1)
+Endif
+
+***---Ajuste Indices por Capitalizacion
+***---EjecutarEvento('AJUCER', Fecha1 = Val(FC:1), NrOperacion1 = '')
+EjecutarEvento('AJUIND', Fecha1 = Val(FC:1), Check1=1)
+
+
+***---Asigna Valor de Cuotaparte a Op.Fondos
+***---EjecutarEvento('CUOTAP',Fecha1=Dialogo.Fecha1, Fecha2=Dialogo.Fecha1,lista1='')
+
+
+***Reseteo la variable NRLOTE para la interface contable con SAP***
+SQL.ADD(" Update "~DBO~".VARIABLES ")
+SQL.ADD(" Set Valor = '0' ")
+SQL.ADD(" where Codigo = 'NRLOTE' ")
+SQL.NEW
+SQL.EXEC
+
+***---Vencimiento de Cupones
+LinkearHoja('VTOCUP', 1, Fecha1=Val(FC:1), Radio1=2)
+
+***--- Vencimientos del Dia
+LinkearHoja('VTODI3', 1, Fecha1=Val(FC:1), Fecha2=Val(FC:1), Radio1=6, Cliente1='', Lista1='', Lista2='')
+
+EnviarMensaje('Apertura del dia '~Dialogo.Fecha1~' Realizada' , 2)
+
+
+***---HojaVisible(NO)

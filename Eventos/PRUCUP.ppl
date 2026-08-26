@@ -1,0 +1,9 @@
+﻿CrearDialogo
+  Especie3 : 'Especie'      ;1;1;;  ;;NoVacio(Dialogo.Especie3) y DesciendeDeEspecie(Dialogo.Especie3,'TITULO');'Debe Ingresar un Especie Valida';NO;;;;;;"Status = 'HAB' AND Codigo ='BOD08'"
+  Especie1 : 'Cupon'        ; ; ;; ;;;;;;BuscarCampo('ESPECIES','Alias3', 'Codigo', Dialogo.Especie3);;;;"Status = 'HAB' "
+  Entero1  : 'Nr.Cupon'     ; ; ;;;;Dialogo.Entero1>0;'Debe Ingresar el Numero de Cupon';NO;0;BuscarCampo('ESPECIES','Cupon','Codigo',Dialogo.Especie1)
+FinDialogo
+
+If Not OK 
+ Cancelar
+EndIf

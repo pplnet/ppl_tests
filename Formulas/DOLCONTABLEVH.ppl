@@ -1,0 +1,1 @@
+﻿IIF( Incluido(#VEHICULO, Var('VEHDOLBI')), Var('DOLBILLETE'), Var('MONEEXTR'))

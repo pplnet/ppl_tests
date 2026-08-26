@@ -1,0 +1,39 @@
+﻿Hojavisible(NO)
+CrearDialogo
+  Perfil1:'Perfil' ;;;;;;NoVacio(Dialogo.Perfil1);'Perfil Invalido';NO;
+  Radio1 :'Tipo|Menu|Tablas|Op/Tr/Or|Especial|Variables|Instancias|Todo';;;;;;Dialogo.Radio1 >= 0;'Tipo Invalido';NO;-1
+  Radio2 : 'Op/Tr/Or|Operacion|Transaccion|Ordenes';;;;;Dialogo.Radio1=2;;;NO;0
+  Lista1 : 'Items Menu' ;;;;;Dialogo.Radio1 = 0;;;;;;'Archivo|Operaciones|Transacciones|Informes|Eventos|Utilitarios|Especial|Parametrizaciones';
+FinDialogo
+
+if Not OK
+  Cancelar
+endif
+
+let &perfil Dialogo.Perfil1
+
+ACN(ZZ:1,0)
+
+If Dialogo.Radio1 < 6
+    **Llamo a DETPER con los parametros
+    LinkearHoja('DETPER', 1, Perfil1 = &perfil, Radio1 = Dialogo.Radio1, Radio2 = &Radio2, Lista1 = Dialogo.Lista1 )
+Else
+    **Llamo a DETPER para imprimir con todos los parametros
+    Recorrer &i 0,5
+        SCN(ZZ:1,1)
+        If &i = 0
+            **Opcion MENU
+            LinkearHoja('DETPER',val(ZZ:1), Perfil1 = &perfil, Radio1 = &i, Radio2 = 0, Lista1 = '' )
+        Else
+            If &i = 2
+                **Opcion Op/Tr/Or
+                Recorrer&j 0,2 
+                    LinkearHoja('DETPER',val(ZZ:1), Perfil1 = &perfil, Radio1 = &i, Radio2 = &j, Lista1 = '' )
+                Proximo                
+            Else
+                **Resto Opciones
+                LinkearHoja('DETPER',val(ZZ:1), Perfil1 = &perfil, Radio1 = &i, Radio2 = 0, Lista1 = '' )
+            EndIf
+        EndIf
+    Proximo
+EndIf

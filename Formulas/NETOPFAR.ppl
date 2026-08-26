@@ -1,0 +1,3 @@
+﻿IIF(Eqstr(fbn('Moneda'), Var('MONELOCA')),
+   #NETOPF,
+   #NETOPF*COTIZACIONBNA(fbn('Moneda'),Val(FV:2),1,NO,NO))

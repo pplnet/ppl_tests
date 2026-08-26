@@ -1,0 +1,37 @@
+﻿ifa
+Let &filaInicio FAC
+ACT(A:FAC, 'Valor1')
+ACN(B:FAC, 10)
+ifa
+ACT(A:FAC, 'Valor2')
+ACN(B:FAC, 25)
+ifa
+ACT(A:FAC, 'Valor1')
+ACN(B:FAC, 90)
+ifa
+ACT(A:FAC, 'Valor3')
+ACN(B:FAC, 50)
+let &filaFinal FAC
+ifa
+
+Let &nombre ''
+let &inicioResultado fac
+Recorrer&i &filaInicio, &filaFinal
+If Not Incluido(Val(A:&i), &nombre)
+    ACT(A:fac, Val(A:&i))
+    ACN(B:fac, -Val(B:&i))
+    let &nombre &nombre ~ '|'~Val(a:&i)
+   ifa 
+ELSE
+    Recorrer&k &inicioResultado, fac
+    IF EqStr(Val(A:&i),Val(A:&k))
+        ACN(B:&k, Val(B:&k)+Val(A:&i))
+    EndIf
+    Proximo
+ENDIF
+Proximo
+AgregarMarco(A:&inicioResultado..B:fac-1, 0, 0)
+FormatoCeldas(A:&inicioResultado..B:fac-1, Exe('F2'))
+
+
+

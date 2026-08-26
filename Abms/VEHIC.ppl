@@ -1,0 +1,164 @@
+﻿#*********************************************************************************
+#combos data sources.
+set ds_TipoVehiculo        = "DIV:Division|VIN:Vinculada|NOC:No Controlada|OTR:Otros|GRU:Grupo"
+set ds_Status              = "HAB:Habilitado|DES:Deshabilitado|"
+set ds_Valor2              = "0:SI|1:NO|"
+ 
+set moneda = ''
+
+# Instancio ExtendedPPL
+set xppl = $.NewExtendedPPL()
+
+
+#*********************************************************************************
+def abm 'Vehiculos'
+   def grid
+      Jerarquia:, Codigo:, Descripcion: 
+   end
+   def key
+      Jerarquia:, Codigo:
+   end
+   def dialog
+       #**************************************************************************
+       tab 'General'
+          column
+             Jerarquia: , 'Jerarquía',  
+             Codigo: , 'Codigo', small_text
+             Descripcion: , 'Nombre', extra_large_text
+             CUIT: , , 
+             Cliente: ,          , autocomplete, 'CLIENTES', 'Codigo,RazonSocial'
+             TipoVehiculo: ,  , combo, ds_TipoVehiculo
+          column
+             Bcuelga: , 'Depende del anterior' , check
+             Status: ,  , combo, ds_Status
+       #**************************************************************************
+       tab 'Valores'
+          column
+             Alias1: , 'NumOpe', autocomplete, 'NUMERADORES', 'Codigo,Tipo,Numero'
+             Alias2: , 'NumOrd', autocomplete, 'NUMERADORES', 'Codigo,Tipo,Numero'
+             Alias3: , 'NumTr', autocomplete, 'NUMERADORES', 'Codigo,Tipo,Numero'
+             Alias4: , 'MonLoc', autocomplete, 'ESPECIES', 'Codigo,Nombre',''," "+dbo+".DESCIENDEDEESPECIE(Codigo,'MONEDA') = 1 "
+             Alias5: , 'Book Default', autocomplete, 'BOOKS','Codigo,Descripcion'
+             CiaSistCont:, 'Cia Sist Cont', small_text
+             
+          column
+             Valor1: , 'Mes Ini. Per. Fisc.', numeric
+             Valor2: , 'Solo Cta. Gener.', combo, ds_Valor2
+             Valor3: , 'Valor 3', numeric
+             Valor4: , 'Valor 4', numeric
+             Valor5: , 'Valor 5', numeric
+          column          
+             Fecha1: , 'Fecha 1', 
+             Fecha2: , 'Fecha 2', 
+             Fecha3: , 'Fecha 3', 
+             Fecha4: , 'Fecha 4', 
+             Fecha5: , 'Fecha 5', 
+   end
+   upper_case_fields: Codigo:
+   disable: Jerarquia:
+   
+   # Esto hace que no el campo no se grabe.
+   do_not_map: Bcuelga:;
+   
+   when_change: Codigo: do
+    #$.Alert('Recalculando el padre de ' + $.val(Jerarquia:))
+     if($.val(Codigo:) <> null)
+        $.set_field(Alias5:, 
+        ppl.BuscarCampo('BOOKS', 'Codigo', 'Vehiculo', $.val(Codigo:) ))
+     endif
+   end
+   
+   when_change: Codigo: do
+    #$.Alert('Recalculando el padre de ' + $.val(Jerarquia:))
+     if($.val(Codigo:) <> null)
+     $.SetWhere(Alias5:, "Vehiculo = '" + $.val(Codigo:) + "'")
+     endif
+   end
+   
+   when_change: Bcuelga: do
+        if $.Alta()
+            set jerRef = $.val(sender.JERARQUIA)
+            $.set_field Jerarquia:, ppl.GenerarJerarquiaByRef('VEHICULOS', jerRef, $.val Bcuelga: = 'SI')
+        endif
+   end
+   
+
+   
+   before_show_create_dialog: do 
+      
+        if $.Alta()
+            # Se muestra solo en el alta
+            $.show(Bcuelga:)
+            set jerRef = $.val(sender.JERARQUIA)
+            $.set_field Jerarquia:, ppl.GenerarJerarquiaByRef('VEHICULOS', jerRef, $.val Bcuelga: = 'SI')
+            $.set_field Valor2:, 0
+        endif
+   end
+   
+  before_show_dialog: do
+        if $.val(Valor2:) <> 1 
+            $.set_field Valor2:, 0
+        endif
+   end    
+   
+   hide_fields: Bcuelga:;
+   
+   validates_max_length_of:
+   Codigo:, 10,true;
+   Descripcion:, 40,true;
+   Alias1:, 15,true; 
+   Alias2:, 15,true; 
+   Alias3:, 15,true; 
+   Alias4:, 15,true; 
+   Alias5:, 15,true;
+   validates_uniqueness_of: Jerarquia:, Codigo:
+   
+   #Verifica que el CUIT ingresado sea valido
+   before_save: do  
+       set Codigo = $.val(Codigo:); 
+       set RazonSocial = $.val(Descripcion:); 
+       If Not $.val CUIT: = null
+          if Not xppl.ValidaCuit($.val(CUIT:))
+             $.Alert('CUIT invalido ')
+             false
+          else
+             $.EjecutarEvento('INCLVI' , {Vehiculo1:Codigo, String1:RazonSocial} ) 
+             true 
+          endif
+       else
+           $.EjecutarEvento('INCLVI' , {Vehiculo1:Codigo, String1:RazonSocial} ) 
+           true 
+       endif 
+   end
+   
+    #Antes de borrar, hay que ver que no tenga descendientes
+    before_delete: do
+        if xppl.Eqstr(xppl.Copy($.val(Jerarquia:),4,3),'000')
+            set limiteJerarquia = 3
+        else
+            if xppl.Eqstr(xppl.Copy($.val(Jerarquia:),7,3),'000')
+                set limiteJerarquia = 6
+            else
+                if xppl.Eqstr(xppl.Copy($.val(Jerarquia:),10,3),'000')
+                    set limiteJerarquia = 9
+                else
+                    if xppl.Eqstr(xppl.Copy($.val(Jerarquia:),13,3),'000')
+                        set limiteJerarquia = 12
+                    else
+                        set limiteJerarquia = 15
+                    endif
+                endif
+            endif
+        endif
+        
+        set raizBuscar = xppl.Copy($.val(Jerarquia:),1,limiteJerarquia)
+        
+        if ppl.NoVacio(ppl.SQL(" SELECT 1 FROM "+dbo+".VEHICULOS WHERE Jerarquia like '"+raizBuscar+"%' and Jerarquia <> '"+$.val(Jerarquia:)+"' ")) AND limiteJerarquia <> 15
+            $.Alert('El vehiculo no puede eliminarse porque tiene descendientes')
+            false
+        else
+            true
+        endif
+    end
+   
+end

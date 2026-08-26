@@ -1,0 +1,151 @@
+﻿CrearDialogo
+    Vehiculo1: 'Vehiculo'   ;;;;;;NoVacio(Vehiculo1);'Debe ingresar un vehículo';NO;VAR('DDVEHDEF');;;
+    Book1    : 'Book'       ;;;;;;EqStr(Dialogo.Book1,BuscarCampo('VEHICULOS','Alias5','Codigo',Dialogo.Vehiculo1));'El book ingresado no corresponde al Vehiculo';NO;Var('BOOKDDCHE');BuscarCampo('VEHICULOS','Alias5','Codigo',Dialogo.Vehiculo1);;;;" Codigo = '"~BuscarCampo('VEHICULOS','Alias5','Codigo',Dialogo.Vehiculo1)~"'"
+    Fecha1   : 'Fecha'      ;;;;;;NoVacio(Dialogo.Fecha1);'Debe ingresar una fecha';NO;FSys;;;
+FinDialogo
+
+If Not Ok
+    Cancelar
+Endif
+
+
+**Levanto cheques y cobranzas asociadas del dia
+SQL.ADD(" Select C.NrOperacion,C.NrOperacion4 'IdCheque',C.FechaVto2 'FechaAcr', ") 
+SQL.ADD(" C.TotalBrutoCli1 'Monto', C.ObservacDoc ,D.Fecha,D.Haber,D.Comprobante ")
+SQL.ADD(" FROM "~DBO~".DDCOBRANZAS D  JOIN "~DBO~".OPERACIONES C ")
+SQL.ADD(" ON SubString(D.Comprobante,1,13)=C.ObservacDoc ")
+SQL.ADD(" Where C.TipoOp='DDC' and D.Haber=C.TotalBrutoCli1  ")
+SQL.ADD(" and (C.RB1 IS NULL OR C.RB1=0 or C.RB1=' ' or C.RB1='') ")
+SQL.ADD(" and (D.Conciliada is null or D.Conciliada='' or D.Conciliada=' ')  ")
+SQL.ADD(" AND D.Fecha='"~IdxDate(Dialogo.Fecha1)~"' ")
+SQL.ADD(" AND C.Vehiculo1= '"~Dialogo.Vehiculo1~"' AND D.Vehiculo= '"~Dialogo.Vehiculo1~"'")
+SQL.ADD(" AND D.Book= '"~Dialogo.Book1~"' AND C.Book1= '"~Dialogo.Book1~"'")
+
+
+
+let &totalCheques 0
+let &totalCobranzas 0
+SetFilaActual(4)
+let &fila FAC
+let &sinDatos 1
+Recorrer SQL
+    let &sinDatos 0
+    let &matcheados 1
+    **Datos cheques
+    ACT(A:FAC,FBN['NrOperacion'])
+    ACT(B:FAC,FBN['IDCheque'])
+    ACT(C:FAC,Fecha(FBN['FechaAcr'],'dd/mm/yyyy'))
+    ACT(D:FAC,FBN['ObservacDoc'])
+    ACN(E:FAC,FBN['Monto'])
+    let &totalCheques &totalCheques+FBN['Monto']
+
+    **Datos cobranzas
+    ACT(F:FAC,FBN['Comprobante'])
+    
+    let &cobConciliadas &cobConciliadas~FBN['Comprobante']~'|'
+    
+    ACT(G:FAC,FBN['Fecha'])
+    ACN(H:FAC,FBN['Haber'])
+    let &totalCobranzas &totalCobranzas+FBN['Haber']
+
+    ACT(K:FAC,'SI')
+    let &ultConcilia FAC
+    let &fila &fila+1
+Proximo
+
+let &fila &fila+1
+**Levanto cobranzas que no matchean con cheques
+SQL.ADD(" Select D.Fecha,D.Haber,D.Comprobante  ")
+SQL.ADD(" FROM "~DBO~".DDCOBRANZAS D  ")
+SQL.ADD(" Where (D.Conciliada is null or D.Conciliada='' or D.Conciliada=' ')  ") 
+SQL.ADD(" AND D.Fecha='"~IdxDate(Dialogo.Fecha1)~"' ")
+SQL.ADD(" AND D.Vehiculo= '"~Dialogo.Vehiculo1~"'")
+SQL.ADD(" AND D.Book= '"~Dialogo.Book1~"'")
+SQL.ADD(" AND Comprobante NOT IN ("~Pipe2Comillas(&cobConciliadas)~") ")
+
+Recorrer SQL
+    let &sinDatos 0
+    ACT(F:FAC,FBN['Comprobante'])
+    ACT(G:FAC,FBN['Fecha'])
+    ACN(H:FAC,FBN['Haber'])
+    let &totalCobranzas &totalCobranzas+FBN['Haber']
+    
+    ACT(K:FAC,'NO')
+    let &fila &fila+1
+Proximo
+
+let &fila &fila+1
+
+if &sinDatos=0
+    ACT(A:1,'TOTAL CHEQUES CONCILIADOS')
+    ACN(E:1,&totalCheques)
+    ACT(F:1,'TOTAL COBRANZAS DEL DÍA')
+    ACN(H:1,&totalCobranzas)
+    
+    ACT(F:3,'DIFERENCIA')
+    ACN(H:3,&totalCobranzas-&totalCheques)    
+else
+    Cancelar ('No existen cobranzas recibidas para los datos seleccionados')
+endif 
+
+Recorrer&j 1,100
+    CrearListBox;'Arial,8,B'  ; "Cobranzas del día "~Dialogo.Fecha1~" - Vehiculo: "~Dialogo.Vehiculo1~" -Book: "~Dialogo.Book1
+       'NrOperacion'   ;A1..A:&fila;NO;SI;'Error';180;STRING;;EXE('COLOR6')
+       'IDCheque'      ;B1..B:&fila;NO;SI;'Error';100;STRING;;EXE('COLOR6')
+       'Fecha Acred'   ;C1..C:&fila;NO;SI;'Error';100;STRING;;EXE('COLOR6')
+       'Comprobante'   ;D1..D:&fila;NO;SI;'Error';140;STRING;;EXE('COLOR6')
+       'Monto'         ;E1..E:&fila;NO;SI;'Error';100;STRING;;EXE('COLOR6')
+       ''              ;J1..J:&fila;NO;SI;'Error';30;STRING
+       'Comprobante'   ;F1..F:&fila;NO;SI;'Error';210;STRING;;EXE('COLOR8')
+       'Fecha de Cobro';G1..G:&fila;NO;SI;'Error';100;STRING;;EXE('COLOR8')
+       'Monto'         ;H1..H:&fila;NO;SI;'Error';100;STRING;;EXE('COLOR8')
+       'Concilia'      ;K1..K:&fila;NO;SI;'Error'; 50;STRING;;EXE('COLOR8')
+         
+    FinListBox
+     
+      If Not Ok
+         Cancelar
+      Endif
+      
+      ACN(ab3,0)
+      If &matcheados=1
+          ACN(zz4,MessageBox('Confirma las conciliaciones? ',3,1))
+          If VAL(zz4)=2
+             ACN(ab3,1)
+          else
+            ACN(ab3,0)
+          endif
+      endif
+      If Val(ab3)=0
+            Break
+      EndIf
+Proximo
+      
+Recorrer&i 1,&ultConcilia
+    **Registro la conciliación en la cobranza
+    SQL.ADD(" UPDATE "~DBO~".DDCOBRANZAS ")
+    SQL.ADD(" Set FechaConciliada='"~IdxDate(Ahora)~"', ")
+    SQL.ADD(" OperadorConc ='"~UsuarioActivo~"', ")
+    SQL.ADD(" Conciliada ='AUT', ")
+    SQL.ADD(" IDCheque ='"~Val(B:&i)~"', ")
+    SQL.ADD(" FechaConciliadaSys ='"~IdxDate(Fsys)~"' ")
+    SQL.ADD(" Where Comprobante= '"~Val(F:&i)~"'")
+    SQL.ADD(" and Vehiculo= '"~Dialogo.Vehiculo1~"'")
+    SQL.ADD(" and Book= '"~Dialogo.Book1~"'")
+    SQL.ADD(" and Fecha= '"~IdxDate(Dialogo.Fecha1)~"' ")
+    SQL.NEW
+    SQL.EXEC
+    
+    **Registro la conciliación en el cheque
+    SQL.ADD(" UPDATE "~DBO~".OPERACIONES ")
+    SQL.ADD(" Set RB1='1', ")
+    SQL.ADD(" Observac3 ='"~Val(F:&i)~"', ")
+    SQL.ADD(" FechaEj ='"~IdxDate(Ahora)~"', ")
+    SQL.ADD(" FechaEx1 ='"~IdxDate(Fsys)~"' ")
+    SQL.ADD(" Where NrOperacion= '"~Val(A:&i)~"'")
+    SQL.NEW
+    SQL.EXEC
+    
+Proximo
+
+MessageBox('Las conciliaciones finalizaron con éxito')

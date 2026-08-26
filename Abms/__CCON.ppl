@@ -1,0 +1,44 @@
+﻿# Instancio ExtendedPPL
+set xppl = $.NewExtendedPPL()
+#*********************************************************************************
+def abm 'Contabilidad'
+   def grid
+   Codigo:, Nombre:,Tipo:, Cliente:, Especie:, TipoOp:, Alias:, Entorno: , Moneda:
+   end
+   def key
+       Codigo: 
+   end
+   def dialog_size
+       650,500
+   end
+   def dialog
+       #**************************************************************************
+       tab 'General'
+          column
+            #Jerarquia: , 'Jerarquia', 
+             Codigo: , 'Codigo', large_text
+             Nombre: ,          , extra_large_text
+             Cliente: ,          , autocomplete, 'CLIENTES', 'Codigo,RazonSocial'
+             Especie: ,          , autocomplete, 'ESPECIES', 'Codigo,Nombre'
+             TipoOp: , 'Tipo Operac.', autocomplete, 'TIPOSOPERACION', 'Codigo,Nombre'
+             Moneda: ,          , small_text
+             Sector: ,          , small_text
+             Alias2: ,          , extra_large_text
+             Alias3: ,          , extra_large_text
+             Cuenta: ,          , autocomplete, 'CUENTAS', 'Codigo,Nombre'
+             Entorno: ,         , autocomplete, 'ENTORNOSSTDCORP', 'Codigo,Nombre'
+   end
+   validates_uniqueness_of: Codigo:
+   upper_case_fields: Codigo:
+   
+   %%ifndef STD_CORP
+    hide:
+        Entorno:;
+   %%endif 
+   before_show_dialog: do 
+        if $.Alta()
+            $.set_field Entorno:, xppl.Sigla()
+        endif  
+  end      
+   
+end

@@ -1,0 +1,291 @@
+﻿CAMPOS:1;;BuscarCampo('VEHICULOS','Alias1','Codigo',Vehiculo1)
+OperacionRef   : 'Set Like'       ;1;1; ;NOT EV;  ;Vacio(OPERACIONREF) o EqStr(OPREF.TIPOOP,'MMPRTM');'La Operacion de Referencia No es un Prestamo Taylor Made';NO;;;;;;;;"TipoOp = 'MMPRTM' and FechaOp2 = '"~IdxDate(Fsys)~"' "
+Especie        : 'Moneda'         ;3;1; ;NOT EV;  ;NoVacio(ESPECIE) y Incluido(ESPECIE,Var('MMMONEDA'));'Debe Ingresar una Moneda Valida';NO;;IF(VACIO(OPERACIONREF) o MODI o Incluido(ABM,'E'),ESPECIE,OPREF.ESPECIE);;;;;;"Status = 'HAB' and Codigo In ("~Pipe2Comillas(Var('MMMONEDA'))~") ";
+Cliente1       : 'Cliente'        ; ; ; ;NOT EV;  ;Vacio(Cliente1) o Incluido(Var('MMCPRES'),Ascendientes('CLIENTES',CLIENTE1),1);'El Cliente debe pertenecer a las jerarquias '~Pipe2Comillas(Var('MMCPRES'));NO;;IF(VACIO(OPERACIONREF) o MODI o Incluido(ABM,'E'),CLIENTE1,OPREF.CLIENTE1);;;;;;"select C.Codigo, C.RazonSocial from "~DBO~".CLIENTES C where C.Status Like 'HAB' and (Nacionalidad = '080' or TipoDocum = 'CUI') and C.Codigo In (Select C.Codigo from "~DBO~".CLIENTES X "~"where C.Jerarquia like SubString(X.Jerarquia,1,Charindex('000',X.Jerarquia)-1)+'%' "~"and X.Codigo In ("~Pipe2Comillas(Var('MMCPRES'))~") ) order by Codigo"
+Cantidad       : 'Cantidad'       ; ; ; ;NOT EV;  ;CANTIDAD>0;'La Cantidad debe ser Positiva';NO;;IF(VACIO(OPERACIONREF) o Incluido(ABM,'E'),CANTIDAD,OPREF.CANTIDAD);;;;;'####,###,###,###.##'
+
+FechaOp2       : 'Fecha Origen'   ;1;2; ;NO;  ;;;;FSYS;
+FechaOp        : 'Fecha Conc.'    ; ;2; ;NOT EV y VerificaAcceso('OPFVALOR');  ;EsHabil(FECHAOP,'ARG');'Fecha Conc.Incorrecta';NO;FSYS;
+Plazo          : 'Plazo'          ; ;2; ;NOT EV;  ;PLAZO>0 y PLAZO<29372;'El Plazo debe ser > 0 y < 29372';NO;365;IF(VACIO(OPERACIONREF) o EqStr(CAMPOEDITADO,'FechaVto') o EqStr(CAMPOEDITADO,'FechaOp') o Incluido(ABM,'E'),IF(EqStr(CAMPOEDITADO,'FechaOp'),PLAZO,FECHAVTO-FECHAOP),OPREF.PLAZO);
+FechaVto       : 'Fecha Vto.'     ;5;2; ;NOT EV;  ;ESHABIL(FECHAVTO,'ARG');'No es un Dia Habil';NO;FECHAOP+PLAZO;FECHAOP+PLAZO;
+
+MB2            : 'Tasa|Fija|Variable';7;1;;NOT EV;;;;;0;IF(VACIO(OPERACIONREF) o Incluido(ABM,'E'),MB2,OPREF.MB2)
+TipoTasa       : 'Tipo Tasa'         ;7;2;;NOT EV;MB2=1;MB2=0 o NoVacio(TIPOTASA);'Debe Ingresar Tipo Tasa';NO;;IF(VACIO(OPERACIONREF) o Incluido(ABM,'E'),TIPOTASA,OPREF.TIPOTASA);;;;;;"Tipo1 = 'P' ";
+DiasAnio       : 'Anio Base'         ;8;1;;NOT EV;;;;;1;IF(VACIO(OPERACIONREF) o Incluido(ABM,'E'),DIASANIO,OPREF.DIASANIO)
+MB4            : 'Corr.Liq.|Sig.Habil|Ant.Habil|Sig.Modi.|Ant.Modi.'    ;9;1;;NOT EV;;;;;0;
+RB4            : 'Ajuste Int.'      ;10;1;;NOT EV;;;;;1;IF(VACIO(OPERACIONREF) o Incluido(ABM,'E'),RB4,OPREF.RB4)
+Cuotas1        : 'Cuotas'           ;11;1;;;;CUOTAS1>=1;'Debe haber mas de Una Cuota';NO;1;
+
+Cuenta2        : 'Direc.Fondos'  ;12;1; ;NOT EV;;;;;;IF(Incluido(ABM,'E'),CUENTA2,QUERY("Select Codigo from "~DBO~".CUENTAS where Cliente = '"~CLIENTE1~"' and (Especies = '"~ESPECIE~"|' or Especies = 'MONEDA|') and Estado = 'HAB' and Permanente = 'SI' and Mercado is Null "));;;;;;"Cliente = '"~CLIENTE1~"' and Estado = 'HAB' and Mercado is Null   and TipoCuenta Not In ('FCI','INV') ";
+*Responsable1   : 'Responsable'   ;13;1; ;NOT EV;;NoVacio(RESPONSABLE1);'Debe indicar responsable';NO;;if(MODI o Incluido(ABM,'E'),RESPONSABLE1,IF(NOVACIO(OPERACIONREF),OPREF.RESPONSABLE1,Query("Select Responsable from "~DBO~".EQUIPOS where Codigo='"~BuscarCampo('CLIENTES','Equipo','Codigo',CLIENTE1)~"' and (Negocio= 'MM' or Negocio= NULL or Negocio=' ')")));;;;;;@HRESPONSAB
+*Book1          : 'Book'          ;14;1; ;;;BookValido2(VEHICULO1,TIPOOP,RESPONSABLE1,BOOK1);'Book Invalido';NO;BookDefault(VEHICULO1,TIPOOP,RESPONSABLE1);BookDefault(VEHICULO1,TIPOOP,RESPONSABLE1);;;;;;
+Operador       :                 ;13;2; ;NO;   ;;;;USUARIOACTIVO;
+Vehiculo1      : 'Vehiculo '     ;14;2; ;NOT EV;;NoVacio(VEHICULO1);'Debe Ingresar el Vehiculo';NO;
+UDN1           : 'Division'      ;15;2; ;NO;  ;NoVacio(UDN1);'El Usuario debe tener Division asignada';NO;BuscarCampo('USRVEHICULO','Udn','Codigo',USUARIOACTIVO);BuscarCampo('USRVEHICULO','Udn','Codigo',USUARIOACTIVO);;;;;;
+
+NrOperacion3   : 'Renueva Op.'    ;2;2;2;NO;
+NrOperacion2   : 'Acuerdo'        ;3;2;2;NO;
+OficialCuenta  : 'Oficial Cta.'   ;4;2;2;NO;
+CB9            : 'Pre-Cancelada'  ;5;2;2;NO;
+FechaPrecan    : 'F.Original'     ;6;2;2;NO;CB9=1;
+TasaPrecan     : 'TNA Original'   ;7;2;2;NO;CB9=1;
+VCAN2          : 'Plazo Ori.'     ;8;2;2;NO;CB9=1;;;;;FECHAPRECAN-FECHAOP;;;;;'####'
+VCAN4          : 'Plazo Rem.'     ;9;2;2;NO;CB9=1;;;;;FECHAPRECAN-FECHAVTO;;;;;'####'
+TotalAux3      : 'Int. Original' ;10;2;2;NO;CB9=1;;;;;
+
+MB5            : 'Modo|S/Interes|S/Capital|Fijo';11;2;2;NO;CB9=1;
+PorArancel     : 'Penalty Fee'   ;12;2;2;NO;CB9=1;
+TotalAux2      : 'Monto'         ;13;2;2;NO;CB9=1;
+
+Cliente5       : 'Grupo Ec.'      ;6;1;2;NO;;;;;;QUERY("Select Controlante from "~DBO~".GRUPOSECONOMICOS where TipoGrupo = 'LC' and Cliente = '"~CLIENTE1~"' ")
+Cotizacion1    : 'Tipo Cambio'    ; ; ;2;NO;;;;;;CotizacionC(ESPECIE,,,,FSYS,1,SI,'USD')
+TotalAux1      : 'Afecta USD'     ; ; ;2;NO;;;;;;CANTIDAD*COTIZACION1
+
+Observac2      : 'Obs.Anulacion' ;12;1;2;NO;INSTANCIA=30;;;;
+*Mercado4       : 'Area'          ;13;1;2;NO;;;;;;BuscarCampo('Clientes','TipoCliente','Codigo',CLIENTE1)
+Mercado4       : 'Area'          ;13;1;2;NO;;;;;;
+
+VTXT1          : 'Cond.IVA'      ;13;3;2;NO;NO;;;;;BuscarCampo('CLIENTES','CondicionIVA','Codigo',CLIENTE1);
+PorCaucion     : 'Por.IVA'       ;14;1;2;NO;NO;;;;;IF(Incluido(VTXT1,'INS|RES'),Var('IVAMINIMO'),Var('IVA'));;;;;'###,###.##'
+PorImpuestoBolsa:'Por.Percepcion';14;2;2;NO;NO;;;;;IF(Incluido(VTXT1,'INS'),Var('RG3337'),IF(Incluido(VTXT1,'NOI'),Var('RNI'),IF(Incluido(VTXT1,'NOC'),Var('IVANOCATEG'),0)));;;;;'###,###.##'
+VTXT2          : 'Persona Fis.'  ;16;3;1;NO;NO;;;;;BuscarCampo('CLIENTES','Persona','Codigo',CLIENTE1);
+PorDerechoBolsa: 'Por.Endeuda.'  ;16;1;2;NO;NO;;;;;IF(EqStr(VTXT2,'SI'),0,Var('IMPENDEU'));;;;;'###,###.##'
+TotalBrutoCli3 : 'Tot.Intereses' ;  ; ;2;NO;NO;;;;;Sum(CUOTASL,10)+CUOTAS1-CUOTAS1;NO
+
+ContraEspecie  :                  ;1;3;2;NO;NO;;;;;COTIZAEN(ESPECIE);
+TotalNetoCli1  :                  ; ;3;2;NO;NO;;;;;TOTALBRUTOCLI1
+Cliente2       :                  ; ;3;2;NO;NO;;;;;CLIENTE1
+*Campo PLAZO en LimConsumido arma la consulta PlazoHasta
+*VPRE7          : 'LimCons'        ; ;3;2;NO;NO;;;;;LimConsumido(CLIENTE1,IF(EqStr(ESPECIE,'ARP'),'RE04','RE43'),'USD',0,VEHICULO1,,,NROPERACION,,,,,,,,,PLAZO);;;;;
+VPRE7          : 'LimCons'        ; ;3;2;NO;NO;;;;;LimConsumido(CLIENTE1,IF(EqStr(ESPECIE,'ARP'),'RE04','RE43'),'USD',0,VEHICULO1,,,NROPERACION,,,,,,,,,);;;;;
+*Campo PLAZO en LimAsignado arma la consulta PlazoDesde/PlazoHasta
+*VPRE8          : 'LimAsig'        ; ;3;2;NO;NO;;;;;LimAsignado(CLIENTE1, IF(EqStr(ESPECIE,'ARP'),'RE04','RE43'),'USD',,,,,,,,,,,PLAZO);;;;;
+VPRE8          : 'LimAsig'        ; ;3;2;NO;NO;;;;;LimAsignado(CLIENTE1, IF(EqStr(ESPECIE,'ARP'),'RE04','RE43'),'USD',,,,,,,,,,,);;;;;
+FormaLiquidacion2:'MarcaRep'      ; ;3;2;NO;NO;;;;0;
+FormaLiquidacion1:'Marca'         ; ;3;2;NO;NO;;;;;IF([VPRE8 = VPRE7] y FORMALIQUIDACION2 = 0,0,2)
+TotalAux4      : 'DesAfecta USD'  ; ;3;2;NO;NO;;;;;IF(FORMALIQUIDACION2 = 1,IF(TOTALCAUCION>TOTALAUX1,TOTALAUX1,TOTALCAUCION),IF((VPRE8 - VPRE7)>=TOTALAUX1,TOTALAUX1,(VPRE8-VPRE7)))
+
+TotalCaucion   : 'Monto Op.'      ; ; ;2;NO;NO;;;;;
+
+LISTA:SI;CUOTAS1;
+  Fecha1   : 'F.Origen'     ;NO;;;;;IF(Fila=1,FECHAOP,IF(RB4=0,CUOTASL.FECHA2[Fila-1],CUOTASL.FECHA3[Fila-1]));90;;Fecha
+  Plazo1   : 'Plazo'        ;NO;;;;;IF(RB4=1,CUOTASL.FECHA3[Fila]-CUOTASL.FECHA1[Fila],CUOTASL.FECHA2[Fila]-CUOTASL.FECHA1[Fila]);40;NO;Numero;'####';SI
+  Fecha2   : 'F.Vto.'       ;  ;;[[Fila<CUOTAS1 y CUOTASL.FECHA2[Fila]<=FECHAVTO] o [Fila=CUOTAS1 y CUOTASL.FECHA2[Fila]=FECHAVTO]] y CUOTASL.FECHA2[Fila] >= CUOTASL.FECHA1[Fila];'Fecha de Vencimiento Inferior a la de Origen';FECHAVTO;;90;;Fecha;NO;NO;;SI
+  Fecha3   : 'F.Liq.'       ;NO;;[CUOTASL.FECHA3[Fila]>=FECHAOP2] ;'Cuotas Vencidas';;IF(ESHABIL(CUOTASL.FECHA2[Fila],'ARG'),CUOTASL.FECHA2[Fila],HABILES(CUOTASL.FECHA2[Fila],IF(MB4=0,1,IF(MB4=1,-1,IF(MB4=2,IF(Mes(CUOTASL.FECHA2[Fila])=Mes(HABILES(CUOTASL.FECHA2[Fila],1,'ARG',SI)),1,-1),IF(Mes(CUOTASL.FECHA2[Fila])=Mes(HABILES(CUOTASL.FECHA2[Fila],-1,'ARG',SI)),-1,1)))),'ARG',SI));90;;Fecha
+
+  Cantidad1: 'Imp Amort'    ;;;CUOTASL.CANTIDAD1[Fila]>=0;'Amortizacion Negativa';IF(Fila=1,IF(MODI,CUOTASL.CANTIDAD1[Fila],CANTIDAD),0);;120;;Numero;'###,###,###,###,###.##';SI;NO;;SI;;;SI
+  *No existe tasaproducto
+  *Precio2  : 'Tasa Base'    ;;MB2=1;;;;TasaProducto(TIPOTASA,TIPOOP,ESPECIE,CUOTASL.PLAZO1[Fila],1,NO,FECHAOP);80;;Numero;'###,###.######';NO;NO;
+  Precio2  : 'Tasa Base'    ;;MB2=1;;;;;80;;Numero;'###,###.######';NO;NO;
+  Precio1  : 'Tasa N.A.'    ;;;CUOTASL.PRECIO1[Fila]>=0;'TNA Negativa';IF(Fila=1,CUOTASL.PRECIO1[Fila],CUOTASL.PRECIO1[Fila-1]);IF(Fila=1,CUOTASL.PRECIO1[Fila],CUOTASL.PRECIO1[Fila-1]);80;;Numero;'###,###.######';SI;NO;
+  Precio3  : 'Tasa Trans.'  ;;;;;IF(Fila=1,CUOTASL.PRECIO3[Fila],CUOTASL.PRECIO3[Fila-1]);IF(Fila=1,CUOTASL.PRECIO3[Fila],CUOTASL.PRECIO3[Fila-1]);80;;Numero;'###,###.######';SI;NO;
+  Cantidad3: 'Saldo'        ;NO;;;;IF(Fila=1,CANTIDAD,0);IF(Fila=1,CANTIDAD,CUOTASL.CANTIDAD3[Fila-1]-CUOTASL.CANTIDAD1[Fila-1]);120;;Numero;'###,###,###.##';SI;SI;;NO;
+
+  Cantidad2: 'Interes'      ;NO;;;;;IF(Fila=1,ROUND(CUOTASL.CANTIDAD3[Fila]*(CUOTASL.PRECIO1[Fila]+CUOTASL.PRECIO2[Fila])*CUOTASL.PLAZO1[Fila]/(DIASA(DIASANIO,FECHAVTO)*100),2),ROUND((CUOTASL.CANTIDAD3[Fila]*CUOTASL.PLAZO1[Fila]+CUOTASL.TOTAL7[Fila-1])*(CUOTASL.PRECIO1[Fila]+CUOTASL.PRECIO2[Fila])/(DIASA(DIASANIO,FECHAVTO)*100),2));120;;Numero;'###,###,###,###,###.##';NO;NO;
+  Total1   : 'Monto'        ;NO;;[[CUOTASL.TOTAL1[Fila]<>0] y [CUOTASL.PLAZO1[Fila]<>0]] o [CUOTASL.PLAZO1[Fila]=0];'El Monto No puede ser Cero';;ROUND(CUOTASL.CANTIDAD1[Fila]+CUOTASL.CANTIDAD2[Fila]+CUOTASL.CANTIDAD4[Fila]+CUOTASL.TOTAL3[Fila]+CUOTASL.TOTAL6[Fila],2);120;;Numero;'###,###,###,###,###.##'
+  Total4   : 'Total Int.'   ;NO;;;;;IF(Fila=1,CUOTASL.CANTIDAD2[Fila],CUOTASL.TOTAL4[Fila-1]+CUOTASL.CANTIDAD2[Fila]);120;;Numero;'###,###,###,###,###.##'
+  Total7   : 'Cant*Plazo'   ;NO;NO;;;;IF(Fila=1,IF(CUOTASL.CANTIDAD2[Fila]=0,CUOTASL.CANTIDAD3[Fila]*CUOTASL.PLAZO1[Fila],0),IF(CUOTASL.CANTIDAD2[Fila]=0,CUOTASL.TOTAL7[Fila-1]+(CUOTASL.CANTIDAD3[Fila]*CUOTASL.PLAZO1[Fila]),0));120;;Numero;'###,###,###,###,###.##'
+
+  Precio4  : 'Por.IVA'      ;;;CUOTASL.PRECIO4[Fila]>=0;'IVA Negativo';;PORCAUCION+CUOTAS1-CUOTAS1;80;;Numero;'###,###.######';SI;NO;
+  Cantidad4: 'IVA'          ;NO;;;;;ROUND(CUOTASL.CANTIDAD2[Fila]*CUOTASL.PRECIO4[Fila]/100,2);120;;Numero;'###,###.######';NO;NO;
+  Tasa1    :'Por.Percepcion';;;CUOTASL.TASA1[Fila]>=0;'Percepcion Negativa';;PORIMPUESTOBOLSA+CUOTAS1-CUOTAS1;80;;Numero;'###,###.######';SI;NO;
+  Total2   :'LALA'          ;NO;NO;;;;ROUND(CUOTASL.CANTIDAD2[Fila]*CUOTASL.TASA1[Fila]/100,2);120;;Numero;'###,###.######';NO;NO;
+  Total3   :'Percepcion'    ;NO;;;;;IF(Incluido(VTXT1,'INS'),IF(CUOTASL.CANTIDAD2[Fila]>Var('INSMONTO') o CUOTASL.TOTAL2[Fila]>Var('INSPERCEP'),CUOTASL.TOTAL2[Fila],0),IF(Incluido(VTXT1,'NOI'),CUOTASL.TOTAL2[Fila],IF(Incluido(VTXT1,'NOC'),IF(CUOTASL.CANTIDAD2[Fila]>Var('NOCMONTO') o CUOTASL.TOTAL2[Fila]>Var('NOCPERCEP'),CUOTASL.TOTAL2[Fila],0),0)));120;;Numero;'###,###.######';NO;NO;
+  Tasa2    :'Por.Endeuda.'  ;;;CUOTASL.TASA2[Fila]>=0;'Endeudamiento Negativo';;PORDERECHOBOLSA+CUOTAS1-CUOTAS1;80;;Numero;'###,###.######';SI;NO;
+  Total6   :'Endeudamiento' ;NO;;;;;IF((CUOTASL.PRECIO1[Fila]+CUOTASL.PRECIO2[Fila])<=Var('TASAENDEU'),ROUND(CUOTASL.CANTIDAD2[Fila]*CUOTASL.TASA2[Fila]/100,2),ROUND(IF(Fila=1,ROUND(CUOTASL.CANTIDAD3[Fila]*Var('TASAENDEU')*CUOTASL.PLAZO1[Fila]/(DIASA(DIASANIO,FECHAVTO)*100),2),ROUND((CUOTASL.CANTIDAD3[Fila]*CUOTASL.PLAZO1[Fila]+CUOTASL.TOTAL7[Fila-1])*Var('TASAENDEU')/(DIASA(DIASANIO,FECHAVTO)*100),2))*CUOTASL.TASA2[Fila]/100,2));120;;Numero;'###,###.######';NO;NO;
+
+CONDICIONES
+*HAbierto('PRESTA');'Sector Cerrado';NO;
+
+*EV o Incluido(TIPOOP, BuscarCampo('Clientes','TiposOperacionMM','Codigo',CLIENTE1));'El Cliente No tiene Habilitado el Tipo de Operacion';NO;
+
+EV o EqStr(BuscarCampo('Especies','Status','Codigo',Especie),'HAB');'La Moneda No esta Habilitada';NO
+EV o Vacio(Cliente1) o EqStr(BuscarCampo('Clientes','Status','Codigo',Cliente1),'HAB');'El Cliente No esta Habilitado';NO
+EV o Vacio(Cliente1) o EqStr(BuscarCampo('Clientes','Nacionalidad','Codigo',Cliente1),'080');'El Cliente debe ser Local';NO
+Vacio(Cuenta2) o EqStr(BuscarCampo('Cuentas','Cliente','Codigo',Cuenta2),Cliente1) o EqStr(BuscarCampo('Cuentas','Cliente','Codigo',Cuenta2),Vehiculo1);'La Cuenta a Direccionar debe ser del Cliente o del Banco';NO
+
+NO;'Prestamo Taylor Made';SI;SI;FSYS;'OPERAT';;NO
+
+[Round(Sum(CUOTASL,5),2) = Round(Cantidad,2)];'El Importe Amortizado: '~Fstr(Round(Sum(CUOTASL,5),2),0,2)~' es Distinto al Capital: '~Fstr(Round(Cantidad,2),0,2);NO
+
+EV o [MB2=0] o [MB2=1 y NoVacio(TipoTasa)];'Debe Ingresar Tipo de Tasa';NO;
+*EV o [Vacio(TipoTasa)] o [EqStr(QUERY("Select Tipo1 from "~DBO~".TIPOSTASA where Codigo = '"~TIPOTASA~"' "),'P')];'La Tasa '~TIPOTASA~' debe ser Publica';NO 
+
+EV o DifDias(FechaOp,Fsys,'ARG',SI)<1;'Fecha Valor Mayor a un Dia: '~Fecha(FechaOp);SI;SI;FSYS;'FECHAVAL'
+EV o FechaOp > Fecha(Var('FECHAVALOR'));'La Fecha Valor No Debe Superar el '~Var('FECHAVALOR');NO
+EV o [EqStr(Especie,'ARP')] o [EsHabil(FechaOp,'USA')];'Fecha de Operacion No Habil en USA';SI;SI;FSYS;'OPEWAR'
+EV o [EqStr(Especie,'ARP')] o [EsHabil(FechaVto,'USA')];'Fecha de Vencimiento No Habil en USA';SI;SI;FSYS;'OPEWAR'
+EV o [FechaOp>FSYS] o [[Mes(FechaOp)=Mes(FSYS) y Anio(FechaOp) = Anio(FSYS)] y [DifDias(FechaOp,FSYS,'ARG',SI)<=VAR('FVALORMES')]] o [[Mes(FechaOp)+1=Mes(Fsys)] y [FechaOp >= Habiles(FinDeMes(FechaOp,SI,'ARG'),-VAR('FVALORMESA'),'ARG',SI)] y [DifDias(FechaOp,FSYS,'ARG',SI)<=VAR('FVALORMES')]];'Fecha de Concertacion Invalida';NO;
+
+*EV o Incluido(Vehiculo1,'BKB');'El Vehiculo no esta Habilitado para la Operacion';NO
+EV o Incluido(Vehiculo1, UsrVehiculos(Operador)) o Vacio(UsrVehiculos(Operador));'El Operador no esta habilitado para operar con el Vehiculo';NO
+
+SI o EV o Vacio(Cliente1) o FechaOp > Fsys o [BuscarCampo('Clientes','Patrimonio','Codigo',Cliente1)>LimConsumido(CLIENTE1,'RPCCLI','USD',0,VEHICULO1,,,NROPERACION)];'Patrimonio del Cliente Excedido';SI;SI;FSYS;'RPC';;;1
+SI o EV o Vacio(Cliente1) o FechaOp > Fsys o [Not DesciendeDeCliente(Cliente1,'VINCULADOS')] o [DesciendeDeCliente(Cliente1,'VINCULADOS') y BuscarCampo('Clientes','Patrimonio','Codigo',Vehiculo1)*Var('PVINC')>LimConsumido(CLIENTE1,'RPCBCO','USD',0,VEHICULO1,,,NROPERACION)];'Deuda RPC del Cliente Excedido';SI;SI;FSYS;'RPC';;;1
+SI o EV o Vacio(Cliente1) o FechaOp > Fsys o [Not DesciendeDeCliente(Cliente1,'BLOCAL')] o [DesciendeDeCliente(Cliente1,'BLOCAL') y BuscarCampo('Clientes','Patrimonio','Codigo',Vehiculo1)*Var('PFINAN')>LimConsumido(CLIENTE1,'RPCBCO','USD',0,VEHICULO1,,,NROPERACION)];'Deuda RPC del Cliente Excedido';SI;SI;FSYS;'RPC';;;1
+SI o EV o Vacio(Cliente1) o FechaOp > Fsys o [Not DesciendeDeCliente(Cliente1,'BEXTER')] o [DesciendeDeCliente(Cliente1,'BEXTER') y BuscarCampo('Clientes','Patrimonio','Codigo',Vehiculo1)*Var('PFINEXT')>LimConsumido(CLIENTE1,'RPCBCO','USD',0,VEHICULO1,,,NROPERACION)];'Deuda RPC del Cliente Excedido';SI;SI;FSYS;'RPC';;;1
+SI o EV o Vacio(Cliente1) o FechaOp > Fsys o [Not DesciendeDeCliente(Cliente1,'CORREXT')] o [DesciendeDeCliente(Cliente1,'CORREXT') y BuscarCampo('Clientes','Patrimonio','Codigo',Vehiculo1)*Var('PCORREXT')>LimConsumido(CLIENTE1,'RPCBCO','USD',0,VEHICULO1,,,NROPERACION)];'Deuda RPC del Cliente Excedido';SI;SI;FSYS;'RPC';;;1
+SI o EV o Vacio(Cliente1) o FechaOp > Fsys o [DesciendeDeCliente(Cliente1,'BANCOS')] o [DesciendeDeCliente(Cliente1,'VINCULADOS')] o [DesciendeDeCliente(Cliente1,'CORRESP')] o [Not DesciendeDeCliente(Cliente1,'BANCOS') y Not DesciendeDeCliente(Cliente1,'VINCULADOS') y Not DesciendeDeCliente(Cliente1,'CORRESP') y BuscarCampo('Clientes','Patrimonio','Codigo',Vehiculo1)*Var('PCLIENTE')>LimConsumido(CLIENTE1,'RPCBCO','USD',0,VEHICULO1,,,NROPERACION)];'Deuda RPC del Cliente Excedido';SI;SI;FSYS;'RPC';;;1
+
+SI o EV o Vacio(Cliente1) o FechaOp > Fsys o [BuscarCampo('Clientes','Patrimonio','Codigo',Vehiculo1)*Var('P25')>BuscarCampo('Clientes','Patrimonio','Codigo',Cliente1)*3];'Deuda RPC del Cliente Excedido';SI;SI;FSYS;'RPC';;;1
+
+EV o Vacio(Cliente1) o FechaOp > Fsys o ExisteLimite(IF(EqStr(ESPECIE,'ARP'),'04','43'),Cliente1,'USD'); 'Sub-Limite No Asignado ';SI;SI;FSYS;'LINOAS';;;2
+EV o Vacio(Cliente1) o FechaOp > Fsys o VtoLimite(IF(EqStr(ESPECIE,'ARP'),'04','43'),Cliente1,'USD') >= FechaOp; 'Sub-Limite Vencido '; SI;SI;FSYS;'LIVENC';;;2
+EV o Vacio(Cliente1) o FechaOp > Fsys o [LimAsignado(Cliente1,IF(EqStr(ESPECIE,'ARP'),'04','43'),'USD')>=(LimConsumido(CLIENTE1,IF(EqStr(ESPECIE,'ARP'),'04','43'),'USD',0,VEHICULO1,,,NROPERACION) + TotalAux1)];'Sub-Limite Excedido en U$D '~PYC(((LimConsumido(CLIENTE1,IF(EqStr(ESPECIE,'ARP'),'04','43'),'USD',0,VEHICULO1,,,NROPERACION) + TotalAux1)-LimAsignado(Cliente1,IF(EqStr(ESPECIE,'ARP'),'04','43'),'USD')),1,0)~'.-';SI;SI;FSYS;'LIEXCE';;;2
+
+EV o Vacio(Cliente1) o FechaOp > Fsys o VtoLimite('L1EL',Cliente1,'USD') >= FechaOp; 'Level 1 Exposure Limit Vencido '; SI;SI;FSYS;'LIVENC';;;3
+EV o Vacio(Cliente1) o FechaOp > Fsys o [LimAsignado(Cliente1,'L1EL','USD')>=(LimConsumido(CLIENTE1,'TREASURY','USD',0,VEHICULO1,,,NROPERACION) + LimConsumido(CLIENTE1,'CREDIT','USD',0,VEHICULO1,,,NROPERACION) + TotalAux1)];'Level 1 Exposure Limit Excedido en U$D '~PYC(((LimConsumido(CLIENTE1,'TREASURY','USD',0,VEHICULO1,,,NROPERACION) + LimConsumido(CLIENTE1,'CREDIT','USD',0,VEHICULO1,,,NROPERACION) + TotalAux1)-LimAsignado(Cliente1,'L1EL','USD')),1,0)~'.-';SI;SI;FSYS;'LIEXCE';;;3
+
+EV o Vacio(Cliente1) o FechaOp > Fsys o VtoLimite('TE',Cliente1,'USD') >= FechaOp; 'Total Exposure Limit Vencido '; SI;SI;FSYS;'LIVENC';;;3
+EV o Vacio(Cliente1) o FechaOp > Fsys o [LimAsignado(Cliente1,'TE','USD')>=(LimConsumido(CLIENTE1,'TREASURY','USD',0,VEHICULO1,,,NROPERACION) + LimConsumido(CLIENTE1,'CREDIT','USD',0,VEHICULO1,,,NROPERACION) + LimConsumido(CLIENTE1,'SERVICE','USD',0,VEHICULO1,,,NROPERACION) + LimConsumido(CLIENTE1,'INDIRECT','USD',0,VEHICULO1,,,NROPERACION) + TotalAux1)];'Total Exposure Limit Excedido en U$D '~PYC(((LimConsumido(CLIENTE1,'TREASURY','USD',0,VEHICULO1,,,NROPERACION) + LimConsumido(CLIENTE1,'CREDIT','USD',0,VEHICULO1,,,NROPERACION) + LimConsumido(CLIENTE1,'SERVICE','USD',0,VEHICULO1,,,NROPERACION) + LimConsumido(CLIENTE1,'INDIRECT','USD',0,VEHICULO1,,,NROPERACION) + TotalAux1)-LimAsignado(Cliente1,'L1EL','USD')),1,0)~'.-';SI;SI;FSYS;'LIEXCE';;;3
+
+EV o Vacio(Cliente1) o FechaOp > Fsys o [Not Incluido(Cliente1,Var('MPECLI'))] o [Incluido(Cliente1,Var('MPECLI')) y VtoLimite('MPE',Cliente1,'USD') >= FechaOp]; 'Maximum Potential Exposure Vencido '; SI;SI;FSYS;'LIVENC';;;3
+EV o Vacio(Cliente1) o FechaOp > Fsys o [Not Incluido(Cliente1,Var('MPECLI'))] o [Incluido(Cliente1,Var('MPECLI')) y LimAsignado(Cliente1,'MPE','USD')>=(LimConsumido(CLIENTE1,'TREASURY','USD',0,VEHICULO1,,,NROPERACION) + LimConsumido(CLIENTE1,'CREDIT','USD',0,VEHICULO1,,,NROPERACION) + LimConsumido(CLIENTE1,'SERVICE','USD',0,VEHICULO1,,,NROPERACION) + LimConsumido(CLIENTE1,'INDIRECT','USD',0,VEHICULO1,,,NROPERACION) + TotalAux1)];'Maximum Potential Exposure Excedido en U$D '~PYC(((LimConsumido(CLIENTE1,'TREASURY','USD',0,VEHICULO1,,,NROPERACION) + LimConsumido(CLIENTE1,'CREDIT','USD',0,VEHICULO1,,,NROPERACION) + LimConsumido(CLIENTE1,'SERVICE','USD',0,VEHICULO1,,,NROPERACION) + LimConsumido(CLIENTE1,'INDIRECT','USD',0,VEHICULO1,,,NROPERACION) + TotalAux1)-LimAsignado(Cliente1,'MPE','USD')),1,0)~'.-';SI;SI;FSYS;'LIEXCE';;;3
+
+EV o Vacio(Cliente5) o FechaOp > Fsys o ExisteLimite(IF(EqStr(ESPECIE,'ARP'),'04','43'),Cliente5,'USD'); 'Sub-Limite No Asignado para Grupo Economico';SI;SI;FSYS;'LINOAS';;;4
+EV o Vacio(Cliente5) o FechaOp > Fsys o VtoLimite(IF(EqStr(ESPECIE,'ARP'),'04','43'),Cliente5,'USD') >= FechaOp; 'Sub-Limite Vencido para Grupo Economico '; SI;SI;FSYS;'LIVENC';;;4
+EV o Vacio(Cliente5) o FechaOp > Fsys o [LimAsignado(Cliente5,IF(EqStr(ESPECIE,'ARP'),'04','43'),'USD')>=(LimConsumido(CLIENTE5,IF(EqStr(ESPECIE,'ARP'),'04','43'),'USD',0,VEHICULO1,,,NROPERACION) + TotalAux1)];'Sub-Limite Excedido para Grupo Economico en U$D '~PYC(((LimConsumido(CLIENTE5,IF(EqStr(ESPECIE,'ARP'),'04','43'),'USD',0,VEHICULO1,,,NROPERACION) + TotalAux1)-LimAsignado(Cliente5,IF(EqStr(ESPECIE,'ARP'),'04','43'),'USD')),1,0)~'.-';SI;SI;FSYS;'LIEXCE';;;4
+
+EV o Vacio(Cliente5) o FechaOp > Fsys o [LimAsignado(Cliente5,'L1EL','USD')>=(LimConsumido(CLIENTE5,'TREASURY','USD',0,VEHICULO1,,,NROPERACION) + LimConsumido(CLIENTE5,'CREDIT','USD',0,VEHICULO1,,,NROPERACION) + TotalAux1)];'Level 1 Exposure Limit Excedido para Grupo Economico en U$D '~PYC(((LimConsumido(CLIENTE5,'TREASURY','USD',0,VEHICULO1,,,NROPERACION) + LimConsumido(CLIENTE5,'CREDIT','USD',0,VEHICULO1,,,NROPERACION) + TotalAux1)-LimAsignado(Cliente5,'L1EL','USD')),1,0)~'.-';SI;SI;FSYS;'LIEXCE';;;5
+EV o Vacio(Cliente5) o FechaOp > Fsys o [LimAsignado(Cliente5,'TE','USD')>=(LimConsumido(CLIENTE5,'TREASURY','USD',0,VEHICULO1,,,NROPERACION) + LimConsumido(CLIENTE5,'CREDIT','USD',0,VEHICULO1,,,NROPERACION) + LimConsumido(CLIENTE5,'SERVICE','USD',0,VEHICULO1,,,NROPERACION) + LimConsumido(CLIENTE5,'INDIRECT','USD',0,VEHICULO1,,,NROPERACION) + TotalAux1)];'Total Exposure Limit Excedido para Grupo Economico en U$D '~PYC(((LimConsumido(CLIENTE5,'TREASURY','USD',0,VEHICULO1,,,NROPERACION) + LimConsumido(CLIENTE5,'CREDIT','USD',0,VEHICULO1,,,NROPERACION) + LimConsumido(CLIENTE5,'SERVICE','USD',0,VEHICULO1,,,NROPERACION) + LimConsumido(CLIENTE5,'INDIRECT','USD',0,VEHICULO1,,,NROPERACION) + TotalAux1)-LimAsignado(Cliente5,'L1EL','USD')),1,0)~'.-';SI;SI;FSYS;'LIEXCE';;;5
+EV o Vacio(Cliente5) o FechaOp > Fsys o [Not Incluido(Cliente5,Var('MPECLI'))] o [Incluido(Cliente5,Var('MPECLI')) y LimAsignado(Cliente5,'MPE','USD')>=(LimConsumido(CLIENTE5,'TREASURY','USD',0,VEHICULO1,,,NROPERACION) + LimConsumido(CLIENTE5,'CREDIT','USD',0,VEHICULO1,,,NROPERACION) + LimConsumido(CLIENTE5,'SERVICE','USD',0,VEHICULO1,,,NROPERACION) + LimConsumido(CLIENTE5,'INDIRECT','USD',0,VEHICULO1,,,NROPERACION) + TotalAux1)];'Maximum Potential Exposure Excedido para Grupo Economico en U$D '~PYC(((LimConsumido(CLIENTE5,'TREASURY','USD',0,VEHICULO1,,,NROPERACION) + LimConsumido(CLIENTE5,'CREDIT','USD',0,VEHICULO1,,,NROPERACION) + LimConsumido(CLIENTE5,'SERVICE','USD',0,VEHICULO1,,,NROPERACION) + LimConsumido(CLIENTE5,'INDIRECT','USD',0,VEHICULO1,,,NROPERACION) + TotalAux1)-LimAsignado(Cliente5,'MPE','USD')),1,0)~'.-';SI;SI;FSYS;'LIEXCE';;;5
+
+LIMITES
+FechaOp;Cliente1;IF(EqStr(ESPECIE,'ARP'),'04','43')  ;'USD';;TotalAux1                ;TipoOp~' '~Especie; NoVacio(Cliente1) y FechaVto >= Fsys y [VPRE8 = VPRE7]                                 y FechaOp<=FSys ;Vehiculo1;;;;;;;;;;Plazo
+FechaOp;Cliente1;IF(EqStr(ESPECIE,'ARP'),'RE04','RE43');'USD';;TotalAux1              ;TipoOp~' '~Especie; NoVacio(Cliente1) y FechaVto >= Fsys y [(VPRE8 - VPRE7)>=TotalAux1]                    y FechaOp<=FSys ;Vehiculo1;;;;;;;;;;Plazo
+FechaOp;Cliente1;IF(EqStr(ESPECIE,'ARP'),'RE04','RE43');'USD';;(VPRE8-VPRE7)          ;TipoOp~' '~Especie; NoVacio(Cliente1) y FechaVto >= Fsys y [(VPRE8 - VPRE7)< TotalAux1] y [VPRE8 <> VPRE7] y FechaOp<=FSys ;Vehiculo1;;;;;;;;;;Plazo
+FechaOp;Cliente1;IF(EqStr(ESPECIE,'ARP'),'04','43')  ;'USD';;TotalAux1-(VPRE8-VPRE7)  ;TipoOp~' '~Especie; NoVacio(Cliente1) y FechaVto >= Fsys y [(VPRE8 - VPRE7)< TotalAux1] y [VPRE8 <> VPRE7] y FechaOp<=FSys ;Vehiculo1;;;;;;;;;;Plazo
+
+FechaOp;Cliente1;'CREDIT';'USD';;TotalAux1;TipoOp~' '~Especie; NoVacio(Cliente1) y FechaVto >= Fsys y FechaOp<=FSys ;Vehiculo1;
+
+FechaOp;Cliente5;IF(EqStr(ESPECIE,'ARP'),'04','43');'USD';;TotalAux1;TipoOp~' '~Especie; NoVacio(Cliente1) y NoVacio(Cliente5) y FechaVto >= Fsys y FechaOp<=FSys ;Vehiculo1;;;;;;;;;;Plazo
+FechaOp;Cliente5;'CREDIT';'USD';;TotalAux1;TipoOp~' '~Especie                          ; NoVacio(Cliente1) y NoVacio(Cliente5) y FechaVto >= Fsys y FechaOp<=FSys ;Vehiculo1;
+
+MOVIMIENTOS
+FechaOp ;Cliente1 ;Especie ;;;;MERCADO;Vehiculo1;1;         Cantidad;;'Prestamo Taylor Made';SI;NO;1;NOVACIO(CLIENTE1);;;;1;'MMPR';;;;;;;;UDN1
+
+MOVCUOTAS
+CuotasL.Fecha3[Fila];Cliente1 ;Especie ;;Vehiculo1;1;-ROUND(CuotasL.Total1[Fila],2);'Vencimiento Cuota '~TIPOOP;SI;NO;;NOVACIO(CLIENTE1) Y CuotasL.Total1[Fila]<>0;;;;(Fila+1);'MMPR';;;;;;;;UDN1
+
+CASHFLOW
+FechaOp  ;Vehiculo1;;;Especie;TipoOp;; -Cantidad;3;;UDN1
+
+CASHFLOWCUOTAS
+CuotasL.Fecha3[Fila];Vehiculo1;;;Especie;TipoOp;; ROUND(CUOTASL.CANTIDAD1[Fila]+CUOTASL.CANTIDAD2[Fila],2);3;NOVACIO(CLIENTE1) Y CuotasL.Cantidad1[Fila]+CuotasL.Cantidad2[Fila]<>0;UDN1
+
+*POSTEDICION
+*Incluido(ABM,'A|M|E') y FechaOp <= Fsys; 'CONPOS'; NrOperacion1 = NrOperacion
+
+SQL:EqStr(ABM,'E')
+"Delete from "~DBO~".EXCEPCIONES where NrOperacion = '"~NrOperacion~"' "
+
+BITS
+1;1
+2;0
+7;0
+12;0
+13;0
+14;0
+28;0
+30;0
+70;0
+80;0
+20;0
+
+INSTANCIA1
+CAMPOS:1;;;FW=2
+Observac2   : 'Obs.Anulacion' ;2;1;;;FW=2;;;;
+
+*POSTEDICION
+*FW=2; 'DESAFE'; NrOperacion1 = NrOperacion
+*FW=1 y NoVacio(Cliente1) y FechaOp <= Fsys y FechaOp2 < FechaOp; 'EJECON'; NrOperacion1 = NrOperacion
+*
+BITS
+1;0;FW=1 y NoVacio(Cliente1) y FechaOp <= Fsys
+12;1;FW=1 y NoVacio(Cliente1) y FechaOp <= Fsys
+1;0;FW=2
+30;1;FW=2
+
+INSTANCIA2
+CAMPOS:1;;;FW=2
+Observac2   : 'Obs.Anulacion' ;2;1;;;FW=2;;;;
+
+*POSTEDICION
+*FW=2; 'DESAFE'; NrOperacion1 = NrOperacion
+*
+BITS
+2;0
+28;1;FW=1 
+30;1;FW=2 y Vacio(NrOperacion2)
+7;0;FW=2
+14;0;FW=2
+28;0;FW=2
+12;1;FW=2 y NoVacio(NrOperacion2)
+
+INSTANCIA7
+CAMPOS:1;;;FW=2 y [CB9=0 o Vacio(CB9)]
+Observac2   : 'Obs.Anulacion' ;2;1;;;FW=2;;;;
+
+*POSTEDICION
+*FW=2 y [CB9=0 o Vacio(CB9)]; 'DESAFE'; NrOperacion1 = NrOperacion
+*FW=2 y  CB9=1; 'ANUPRE'; NrOperacion1 = NrOperacion
+*
+BITS
+7;0
+28;1;FW=1 
+30;1;FW=2 y [CB9=0 o Vacio(CB9) o Vacio(NrOperacion2)]
+2;0;FW=2 y [CB9=0 o Vacio(CB9)]
+14;0;FW=2 y [CB9=0 o Vacio(CB9)]
+28;0;FW=2 y [CB9=0 o Vacio(CB9)]
+12;1;FW=2 y [CB9=1 o NoVacio(NrOperacion2)]
+
+INSTANCIA28
+CAMPOS:1;;;FW=2
+Observac2   : 'Obs.Anulacion' ;2;1;;;FW=2;;;;
+
+*POSTEDICION
+*FW=2; 'DESAFE'; NrOperacion1 = NrOperacion
+*
+BITS
+28;0;FW=1 y QUERY("Select Valor from "~DBO~".OPERACIONESBITS where NrOperacion = '"~NrOperacion~"' and NrBit = 2 ") = 0 y QUERY("Select Valor from "~DBO~".OPERACIONESBITS where NrOperacion = '"~NrOperacion~"' and NrBit = 7 ") = 0 y QUERY("Select Valor from "~DBO~".OPERACIONESBITS where NrOperacion = '"~NrOperacion~"' and NrBit = 14 ") = 0 
+80;1;FW=1 y QUERY("Select Valor from "~DBO~".OPERACIONESBITS where NrOperacion = '"~NrOperacion~"' and NrBit = 2 ") = 0 y QUERY("Select Valor from "~DBO~".OPERACIONESBITS where NrOperacion = '"~NrOperacion~"' and NrBit = 7 ") = 0 y QUERY("Select Valor from "~DBO~".OPERACIONESBITS where NrOperacion = '"~NrOperacion~"' and NrBit = 14 ") = 0 
+28;0;FW=2
+30;1;FW=2
+2;0;FW=2
+7;0;FW=2
+14;0;FW=2
+
+INSTANCIA80
+CAMPOS:1;;;FW=2 o FW=1 
+Observac2      : 'Obs.Anulacion'  ;2;1; ;  ;FW=2;
+Especie        : 'Moneda'         ;3;1; ;NO;FW=1;
+Cliente1       : 'Cliente'        ;4; ; ;NO;FW=1;
+Cantidad       : 'Cantidad'       ;5; ; ;NO;FW=1;
+
+FechaOp        : 'Fecha Conc.'    ;3;2; ;NO;FW=1;
+Plazo          : 'Plazo'          ;4;2; ;NO;FW=1;
+FechaVto       : 'Fecha Vto.'     ;5;2; ;NO;FW=1;
+
+Precio1        : 'Tasa N.A.'      ;7;1; ;NO;FW=1;
+TotalIntereses : 'Interes'        ; ; ; ;NO;FW=1;
+TotalBrutoCli1 : 'Monto'          ; ; ; ;NO;FW=1;
+
+Cuenta2        : 'Direc.Fondos'   ;7;2; ;  ;FW=1;;;;;;;;;;;"Cliente = '"~CLIENTE1~"' and Estado = 'HAB' and (Especies = '"~ESPECIE~"|' or Especies = 'MONEDA|') and Mercado is Null  ";
+
+*POSTEDICION
+*FW=2; 'DESAFE'; NrOperacion1 = NrOperacion
+*
+BITS
+80;0
+70;1;FW=1
+30;1;FW=2
+
+INSTANCIA70
+BITS
+70;0;FW=2 y QUERY("SELECT 1 FROM "~DBO~".MOVEJECUTADOS WHERE NrOperacion = '"~NROPERACION~"' AND NrSaldo = 1  ") <> 1 y [[NoVacio(FechaPrecan)] o [FechaOp>FSYS] o [[Mes(FechaOp)=Mes(FSYS) y Anio(FechaOp) = Anio(FSYS)] y [DifDias(FechaOp,FSYS,'ARG',SI)<=Var('FVALORMES')]] o [[Mes(FechaOp)+1=Mes(Fsys)] y [FechaOp >= Habiles(FinDeMes(FechaOp,SI,'ARG'),-Var('FVALORMESA'),'ARG',SI)] y [DifDias(FechaOp,FSYS,'ARG',SI)<=Var('FVALORMES')]]]
+80;1;FW=2 y QUERY("SELECT 1 FROM "~DBO~".MOVEJECUTADOS WHERE NrOperacion = '"~NROPERACION~"' AND NrSaldo = 1  ") <> 1 y [[NoVacio(FechaPrecan)] o [FechaOp>FSYS] o [[Mes(FechaOp)=Mes(FSYS) y Anio(FechaOp) = Anio(FSYS)] y [DifDias(FechaOp,FSYS,'ARG',SI)<=Var('FVALORMES')]] o [[Mes(FechaOp)+1=Mes(Fsys)] y [FechaOp >= Habiles(FinDeMes(FechaOp,SI,'ARG'),-Var('FVALORMESA'),'ARG',SI)] y [DifDias(FechaOp,FSYS,'ARG',SI)<=Var('FVALORMES')]]]
+
+INSTANCIA20
+BITS
+20;0;FW=1
+70;1;FW=1 

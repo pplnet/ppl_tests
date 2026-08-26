@@ -1,0 +1,1 @@
+﻿SQL(" Select Tasa2 FROM "~DBO~".COMISIONES2 WHERE NrOperacion = '"~FBN('NrOperacion')~"' and NrComision = "~FBN('NrMov')~"-10000 ")

@@ -1,0 +1,564 @@
+﻿CrearDialogo
+  Fecha1     : "Fecha Desde" ;1;1;;;;Dialogo.Fecha1<>0 Y Dialogo.Fecha1 <= Dialogo.Fecha2;'Fecha Incorrecta';NO;Fsys-7
+  Fecha2     : "Fecha Hasta" ;2;1;;;;Dialogo.Fecha2<>0 Y Dialogo.Fecha1 <= Dialogo.Fecha2;'Fecha Incorrecta';NO;Fsys
+  *El cliente se deja comentado por ahora
+  *Cliente1   : "Entidad"     ;3;1;;NO;NO;
+  Especie1   : "Titulo"      ;3;1;;;;Vacio(Dialogo.Especie1) O DESCIENDEDEESPECIE(Dialogo.Especie1,'TITULO') O DESCIENDEDEESPECIE(Dialogo.Especie1,'LETRA');'La Especie ingresada no es un TITULO o una Letra';NO;;;;;;"dbo.DESCIENDEDEESPECIE(Codigo,'TITULO') = 1 OR dbo.DESCIENDEDEESPECIE(Codigo,'LETRA') = 1";
+  Radio2     : 'Filtra Book|SI|NO'    ;4;1;;;;;;;1;
+  Lista1     : 'Vehiculos'            ;5;1;;;Dialogo.Radio2=1;;;;;;IIF(Vacio(UsrVehiculos(UsuarioActivo)),SQLSET("Select Codigo from "~DBO~".VEHICULOS Where (Status='HAB' or Status Is Null or Status='')"),SQLSET("Select U.Vehiculo from "~DBO~".USRVEHICULO U,"~DBO~".VEHICULOS V where U.Codigo='"~UsuarioActivo~"' and U.Vehiculo=V.Codigo and (Status='HAB' or Status Is Null or Status='') "))
+  Vehiculo1  : 'Vehiculo'             ;1;1;;Dialogo.Radio2=0;Dialogo.Radio2=0;Dialogo.Radio2=1 O NoVacio(Dialogo.Vehiculo1) ;'Vehiculo Invalido';NO;;;;;;;
+  Lista2     : 'Books'                ;2;1;;;Dialogo.Radio2=0;;;;;;SQLSet(" Select Codigo From "~DBO~".BOOKS Where Vehiculo = '"~Dialogo.Vehiculo1~"' ");;
+  Radio3     : 'Consolida Book|SI|NO' ;3;1;;;;;;;0;
+FinDialogo
+
+if Not Ok
+  Cancelar
+endif
+
+***Si se selecciona Book, uso el mismo código cambiando lista vehiculo por campo vehiculo
+IF Dialogo.Radio2 = 0 
+  ACT(zz6,Dialogo.Vehiculo1)
+  IF NoVacio(Dialogo.Lista2)
+    ***ZZ6 es la celda que guarda la variable de vehiculo, seguirla a través del script
+    ***ZZ7 Guarda el dato del Book
+    ACT(ZZ:7, Dialogo.Lista2)
+  ELSE
+    ACT(ZZ:7, SQLSet(" Select Codigo From "~DBO~".BOOKS Where Vehiculo = '"~Dialogo.Vehiculo1~"' "))
+  EndIf
+  *** Si no se selecciona Book (el Radio2 es uno) entonces trabaja igual que antes:
+ELSE
+  * Vehiculos permitidos por el usuario
+  If NoVacio(Dialogo.Lista1)
+     ACT(zz6,Dialogo.Lista1)
+  Else
+    If NoVacio(UsrVehiculos(UsuarioActivo))
+      ACT(zz6,SQLSET("Select U.Vehiculo from "~DBO~".USRVEHICULO U,"~DBO~".VEHICULOS V where U.Codigo='"~UsuarioActivo~"' and U.Vehiculo=V.Codigo and (Status='HAB' or Status Is Null or Status='') "))
+    Else
+      ACT(zz6,SQLSET("Select Codigo from "~DBO~".VEHICULOS Where (Status='HAB' or Status Is Null or Status='')")) 
+    EndIf
+  EndIf
+ENDIF
+
+
+CrearFont(1,"Arial,8,")
+CrearFont(2,"Arial,8,B")
+CrearFont(3,"Arial,10,B")
+
+***Insertar Logo
+let &filaLogo 1
+@LOGO
+
+SetFilaActual(fac+5)
+ACT(a:fac,'CONTROL CONTABLE')
+SetFont(a:fac..a:fac,2)
+
+SetFilaActual(7)
+ifa
+ACT(c:fac,'Fecha : '~Var('FECHASYS'))
+SetFont(c:fac..c:fac,1)
+ifa
+ifa
+ACT(a:FAC, "Titulos")
+SetFont(a:fac..a:fac,3)
+
+if NoVacio(VAL(ZZ6))
+  ACT(a:FAC+1, 'Vehiculo : '~VAL(ZZ6))
+else
+  ACT(a:FAC+1, 'Vehiculo : Todos')
+endif
+
+IF NoVacio(Dialogo.Lista2)
+    ACT(A:FAC+2,'Book : ' ~Dialogo.Lista2)
+Else
+    ACT(A:FAC+2,'Book : Todos')
+Endif
+
+ACT(a:FAC+3, 'Fecha Desde : '~Dialogo.Fecha1)
+ACT(a:FAC+4, 'Fecha Hasta : '~Dialogo.Fecha2)
+*if NoVacio(Dialogo.Cliente1)
+*    ACT(a:FAC+5, 'Entidad : '~Dialogo.Cliente1~'  '~BuscarCampo('Clientes','RazonSocial','Codigo',Dialogo.Cliente1))
+*else
+*    ACT(a:FAC+5, 'Entidad : Todas')
+*endif
+if NoVacio(Dialogo.Especie1)
+    ACT(a:FAC+5, 'Titulo : '~Dialogo.Especie1~'  '~BuscarCampo('Especies','Nombre','Codigo',Dialogo.Especie1))
+else
+    ACT(a:FAC+5, 'Titulo : Todos')
+endif
+IF Dialogo.Radio3 = 0
+    ACT(A:FAC+6,'Consolida Book: SI')
+ELSE
+    ACT(A:FAC+6,'Consolida Book: NO')
+ENDIF
+SetFont(a:fac+1..a:fac+6,2)
+
+SetFilaActual(FAC+7)
+
+*LEVANTO LOS DATOS
+*Saldo Inicial
+SQL.ADD(" SELECT S.Fecha, 'Saldo Inicial' Operacion, S.Saldo Cantidad, 0 Tip,   ")
+SQL.ADD(" 0 PrecioDirty, 0 PrecioClean, 'Saldo Inicial' NrOperacion, E.InteresesC CotizaClean, ")
+SQL.ADD(" S.EnteCustodia Vehiculo, S.Especie, E.Cotiza, S.Book,  ")
+SQL.ADD(" 0 ResultadoInteres, 0 ResultadoCapital, 0 ResultadoInteresCorte ")
+SQL.ADD(" FROM "~DBO~".SALDOSDIA S, "~DBO~".ESPECIES E, "~DBO~".VEHICULOS V ")
+SQL.ADD(" WHERE S.NrSaldo = 1  ")
+SQL.ADD(" AND S.Especie = E.Codigo ")
+SQL.ADD(" AND S.EnteCustodia = V.Codigo ")
+SQL.ADD(" AND S.Saldo <> 0 ")
+*IF NoVacio(Dialogo.Cliente1)
+*    SQL.ADD(" AND S.Cliente = '"~Dialogo.Cliente1~"' ")
+*ENDIF
+IF NoVacio(Dialogo.Especie1)
+    SQL.ADD(" AND S.Especie = '"~Dialogo.Especie1~"' ")
+ENDIF
+SQL.ADD(" AND (dbo.DESCIENDEDEESPECIE(E.Codigo,'TITULO') = 1 OR dbo.DESCIENDEDEESPECIE(E.Codigo,'LETRA') = 1) ")
+if NoVacio(VAL(ZZ6))
+    SQL.ADD("and S.Cliente  in ("~Pipe2Comillas(val(zz6))~")")
+    SQL.ADD("and S.EnteCustodia in ("~Pipe2Comillas(val(zz6))~") ")
+endif
+IF Dialogo.Radio2 = 0
+    SQL.ADD(" AND S.Book IN ("~Pipe2Comillas(val(zz7))~") ")
+ENDIF
+SQL.ADD(" AND S.Fecha = ( SELECT Max(D.Fecha) FROM "~DBO~".SALDOSDIA D ")
+SQL.ADD("               WHERE D.NrSaldo = 1 ")
+SQL.ADD("               AND D.EnteCustodia = S.EnteCustodia ")
+SQL.ADD("               AND D.Especie = S.Especie ")
+SQL.ADD("               AND D.Cliente = S.Cliente ")
+SQL.ADD("               AND D.Fecha < '"~IdxDate(Dialogo.Fecha1)~"') ")
+SQL.ADD(" UNION ")
+*Compras y Ventas
+SQL.ADD(" SELECT O.FechaVto Fecha, CASE TipoOp WHEN 'SECS' THEN 'Compra' ELSE 'Venta' END Operacion, O.Cantidad, 1 Tip,  ")
+SQL.ADD(" O.Spread PrecioDirty, O.Precio6 PrecioClean, O.NrOperacion, E.InteresesC CotizaClean, ")
+SQL.ADD(" O.Vehiculo1 Vehiculo, O.Especie, E.Cotiza, O.Book1 Book,  ")
+SQL.ADD(" 0 ResultadoInteres, 0 ResultadoCapital, 0 ResultadoInteresCorte ")
+SQL.ADD(" FROM "~DBO~".ESPECIES E, "~DBO~".OPERACIONES O ")
+SQL.ADD(" WHERE O.TipoOp in ('SECS','SEVS') ")
+SQL.ADD(" AND O.Especie = E.Codigo ")
+*IF NoVacio(Dialogo.Cliente1)
+*    SQL.ADD(" AND O.Cliente1 = '"~Dialogo.Cliente1~"' ")
+*ENDIF
+IF NoVacio(Dialogo.Especie1)
+    SQL.ADD(" AND O.Especie = '"~Dialogo.Especie1~"' ")
+ENDIF
+SQL.ADD(" AND (dbo.DESCIENDEDEESPECIE(E.Codigo,'TITULO') = 1 OR dbo.DESCIENDEDEESPECIE(E.Codigo,'LETRA') = 1) ")
+if NoVacio(VAL(zz6))
+    SQL.ADD(" AND O.Vehiculo1 in ("~Pipe2Comillas(val(zz6))~") ")
+endif
+IF Dialogo.Radio2 = 0
+    SQL.ADD(" AND O.Book1 IN ("~Pipe2Comillas(val(zz7))~") ")
+ENDIF
+SQL.ADD(" AND O.FechaVto Between '"~IdxDate(Dialogo.Fecha1)~"' AND '"~IdxDate(Dialogo.Fecha2)~"' ")
+SQL.ADD(" UNION ")
+*Cupones
+SQL.ADD(" SELECT T2.Fecha1 Fecha, 'Cupon' Operacion, T2.Cantidad1 Cantidad, 2 Tip, ")
+SQL.ADD(" 0 PrecioDirty, 0 PrecioClean, T2.NrTrans NrOperacion, E.InteresesC CotizaClean, ")
+SQL.ADD(" T2.Vehiculo1 Vehiculo, T2.Especie, E.Cotiza, T2.Book1 Book, ")
+SQL.ADD(" 0 ResultadoInteres, 0 ResultadoCapital, 0 ResultadoInteresCorte ")
+SQL.ADD(" FROM "~DBO~".TRANSACCIONES2 T2, "~DBO~".ESPECIES E ")
+SQL.ADD(" WHERE T2.Especie = E.Codigo ")
+SQL.ADD(" AND T2.TipoTr2 = 'CUPON' AND T2.Cantidad4 = 2 ")
+IF NoVacio(Dialogo.Especie1)
+    SQL.ADD(" AND T2.Especie = '"~Dialogo.Especie1~"' ")
+ENDIF
+SQL.ADD(" AND (dbo.DESCIENDEDEESPECIE(E.Codigo,'TITULO') = 1 OR dbo.DESCIENDEDEESPECIE(E.Codigo,'LETRA') = 1) ")
+if NoVacio(VAL(zz6))
+    SQL.ADD(" AND T2.Vehiculo1 in ("~Pipe2Comillas(val(zz6))~") ")
+endif
+IF Dialogo.Radio2 = 0
+    SQL.ADD(" AND T2.Book1 IN ("~Pipe2Comillas(val(zz7))~") ")
+ENDIF
+SQL.ADD(" AND T2.Fecha1 Between '"~IdxDate(Dialogo.Fecha1)~"' AND '"~IdxDate(Dialogo.Fecha2)~"' ")
+SQL.ADD(" UNION ")
+*Revaluo (levanto varios registros, pero solo proceso fin de mes)
+SQL.ADD(" SELECT R2.Fecha, 'Revaluo' Operacion, 0 Cantidad, 3 Tip, ")
+SQL.ADD(" 0 PrecioDirty, 0 PrecioClean, 'Revaluo' NrOperacion, E.InteresesC CotizaClean, ")
+SQL.ADD(" R2.Vehiculo, R2.Especie, E.Cotiza, R2.Book, ")
+SQL.ADD(" INMEMTD ResultadoInteres, VRMEMTD + RRMEMTD ResultadoCapital, INMEYTD ResultadoInteresCorte ")
+SQL.ADD(" FROM "~DBO~".RESULTADOS2 R2, "~DBO~".ESPECIES E ")
+SQL.ADD(" WHERE R2.Especie = E.Codigo ")
+SQL.ADD(" AND R2.NrSaldo = 2 ")
+SQL.ADD(" AND R2.Fecha Between '"~IdxDate(Dialogo.Fecha1)~"' AND '"~IdxDate(Dialogo.Fecha2)~"' ")
+IF NoVacio(Dialogo.Especie1)
+    SQL.ADD(" AND R2.Especie = '"~Dialogo.Especie1~"' ")
+ENDIF
+SQL.ADD(" AND (dbo.DESCIENDEDEESPECIE(E.Codigo,'TITULO') = 1 OR dbo.DESCIENDEDEESPECIE(E.Codigo,'LETRA') = 1) ")
+if NoVacio(VAL(zz6))
+    SQL.ADD(" AND R2.Vehiculo in ("~Pipe2Comillas(val(zz6))~") ")
+endif
+IF Dialogo.Radio2 = 0
+    SQL.ADD(" AND R2.Book IN ("~Pipe2Comillas(val(zz7))~") ")
+ENDIF
+IF Dialogo.Radio3 = 0
+   SQL.ADD(" Order By 10,9,1,4,2,12 ") 
+ELSE
+   SQL.ADD(" Order By 10,9,12,1,4,2 ") 
+ENDIF
+
+*Declaro las variables que me hacen falta
+let &esPrimerRegistro 0 
+
+let &totalResultadoInteres 0
+let &totalResultadoCapital 0
+let &totalResultado 0
+
+let &especieActual ''
+let &vehiculoActual ''
+let &bookActual ''
+let &fechaUltimoRegistroProcesado Fecha('01/01/1900')
+
+let &huboVenta 0
+let &fechaUltimaVenta ''
+let &celdaUltimaVenta 0
+
+*Esta variable se va a usar en el Revaluo siempre que sea Consolidado por Book
+let &ultimoRegistroEsRevaluo 0
+
+*En estas variables voy a guardar los Books de las operaciones que tuvieron ventas y los Books de los revaluos
+let &booksVentas '|'
+
+*Fecha donde voy a guardar el ultimo corte de cupon que tuve
+let &mesUltimoCorteCupon 0
+let &anioUltimoCorteCupon 0
+
+Recorrer SQL
+    *14/02/2023 -> TODO ESTE BLOQUE COMENTADO ESTÁ EN DESUSO
+    *Si mi ultimo registro fue revaluo, tengo que calcular el Resultado por Intereses
+    *Solo lo hago si cambie de fecha o si sigo en la misma fecha pero llegó otro Book y no es consolidado
+*    IF &esPrimerRegistro <> 0 Y &ultimoRegistroEsRevaluo = 1 Y ((fbn('Fecha') <> &fechaUltimoRegistroProcesado Y &fechaUltimoRegistroProcesado = FinDeMes(&fechaUltimoRegistroProcesado)) O (Not Eqstr(fbn('Book'),&bookActual) Y Dialogo.Radio3 = 1))
+*        *Busco los intereses corridos a fin de mes
+*        let &interesesCorridosFinMes SQL(" SELECT Intereses FROM "~DBO~".INTERESESCORRIDOS WHERE Especie = '"~&especieActual~"' and Fecha = (SELECT Max(Fecha) FROM "~DBO~".INTERESESCORRIDOS WHERE Especie = '"~&especieActual~"' AND Fecha <= '"~IdxDate(&fechaUltimoRegistroProcesado)~"')  ")
+*        IF &mesUltimoCorteCupon = Mes(&fechaUltimoRegistroProcesado) Y &anioUltimoCorteCupon = Anio(&fechaUltimoRegistroProcesado)
+*            *Hubo corte de cupon en el mes,no tengo que buscar los intereses corridos de fin de mes anterior
+*            let &interesesCorridosFinMesAnterior 0
+*        ELSE
+*            *No hubo corte de cupon en el mes, tengo que buscar los intereses corridos de fin de mes anterior
+*            let &interesesCorridosFinMesAnterior SQL(" SELECT Intereses FROM "~DBO~".INTERESESCORRIDOS WHERE Especie = '"~&especieActual~"' and Fecha = (SELECT Max(Fecha) FROM "~DBO~".INTERESESCORRIDOS WHERE Especie = '"~&especieActual~"' AND Fecha <= '"~IdxDate(PriDeMes(&fechaUltimoRegistroProcesado,SI)-1)~"')  ")
+*        ENDIF
+*        let &interesesCorridosMes &interesesCorridosFinMes-&interesesCorridosFinMesAnterior
+*        let &interesesPagados IIF(Val(C:&celdaRevaluo)=0,0,Val(IP:&celdaRevaluo)/Val(C:&celdaRevaluo))
+*        let &resultadoInteres (Val(C:&celdaRevaluo)*(&interesesCorridosMes-&interesesPagados))*IIF(Eqstr(&monedaCotizaActual,'ARP'),1,IIF(Incluido(&vehiculoActual,VAR('VEHDOLBI')),COTIZACIONBNA(Var('DOLBILLETE'),&fechaUltimoRegistroProcesado,1,NO,NO),COTIZACIONBNA(VAR('MONEEXTR'),&fechaUltimoRegistroProcesado,1,NO,NO)))
+*        
+*        SCN(H:&celdaRevaluo,&resultadoInteres)
+*        SCN(J:&celdaRevaluo,Val(H:&celdaRevaluo))
+*        FormatoCeldas(H:&celdaRevaluo..J:&celdaRevaluo,Exe('F2'))
+*        
+*        let &totalResultadoInteres &totalResultadoInteres+&resultadoInteres
+*        let &totalResultado &totalResultado+&resultadoInteres
+*        
+*        let &mesUltimoCorteCupon 0
+*        let &anioUltimoCorteCupon 0
+*    ENDIF
+
+    *Si hubo una venta para un día, tengo que poner los resultados en la ultima venta del mismo
+    *Si cambió de fecha o si sigo en la misma fecha pero no tengo más ventas, pongo los resultados
+    IF &esPrimerRegistro <> 0 Y &huboVenta = 1 Y (fbn('Fecha') <> &fechaUltimaVenta O fbn('Tip') <> 1 O (Not Eqstr(fbn('Book'),&bookActual) Y Dialogo.Radio3 = 1))
+        *Voy a buscar los resultados para ponerlos en la ultima venta
+        SQL.ADD(" SELECT SUM(IRMEDAY) ResultadoInteres, SUM(CRMEDAY) ResultadoCapital ")
+        SQL.ADD(" FROM "~DBO~".RESULTADOS2 R2 ")
+        SQL.ADD(" WHERE NrSaldo = 2 ")
+        SQL.ADD(" AND Especie = '"~&especieActual~"' ")
+        SQL.ADD(" AND Vehiculo = '"~&vehiculoActual~"' ")
+        SQL.ADD(" AND Book IN ("~Pipe2Comillas(&booksVentas)~") ")
+        SQL.ADD(" AND Fecha = '"~IdxDate(&fechaUltimaVenta)~"' ")
+        Recorrer SQL
+            DFA
+            let &resultadoInteresVenta fbn('ResultadoInteres')
+            let &resultadoCapitalVenta fbn('ResultadoCapital')
+        Proximo
+        ACN(H:&celdaUltimaVenta,&resultadoInteresVenta*IIF(Eqstr(fbn('Cotiza'),'ARP'),1,IIF(Incluido(&vehiculoActual,VAR('VEHDOLBI')),COTIZACIONBNA(Var('DOLBILLETE'),&fechaUltimaVenta,1,NO,NO),COTIZACIONBNA(VAR('MONEEXTR'),&fechaUltimaVenta,1,NO,NO))))
+        ACN(I:&celdaUltimaVenta,&resultadoCapitalVenta*IIF(Eqstr(fbn('Cotiza'),'ARP'),1,IIF(Incluido(&vehiculoActual,VAR('VEHDOLBI')),COTIZACIONBNA(Var('DOLBILLETE'),&fechaUltimaVenta,1,NO,NO),COTIZACIONBNA(VAR('MONEEXTR'),&fechaUltimaVenta,1,NO,NO))))
+        ACN(J:&celdaUltimaVenta,Val(H:&celdaUltimaVenta)+Val(I:&celdaUltimaVenta))
+        FormatoCeldas(H:&celdaUltimaVenta..J:&celdaUltimaVenta,Exe('F2'))
+        
+        let &totalResultadoInteres &totalResultadoInteres+Val(H:&celdaUltimaVenta)
+        let &totalResultadoCapital &totalResultadoCapital+Val(I:&celdaUltimaVenta)
+        let &totalResultado &totalResultado+Val(J:&celdaUltimaVenta)
+        
+        let &huboVenta 0
+        let &resultadoInteresVenta 0
+        let &resultadoCapitalVenta 0     
+     
+        let &booksVentas '|'
+    ENDIF
+
+    *Si cambió la especie o el vehiculo o el book (si es NO consolidado), tengo que empezar un nuevo cuadro
+    IF Not Eqstr(fbn('Especie'),&especieActual) O Not Eqstr(fbn('Vehiculo'),&vehiculoActual) O (Not Eqstr(fbn('Book'),&bookActual) Y Dialogo.Radio3 = 1 )
+        IF &esPrimerRegistro <> 0
+            *Totalizo por Especie, Vehiculo y Book (si es no consolidado)
+            IF Dialogo.Radio3 = 1
+                ACT(A:FAC,'Total '~&especieActual~' '~&vehiculoActual~' '~&bookActual)
+            ELSE
+                ACT(A:FAC,'Total '~&especieActual~' '~&vehiculoActual)
+            ENDIF
+            SetFont(A:fac..A:fac,2)
+            ACN(H:FAC,&totalResultadoInteres)
+            ACN(I:FAC,&totalResultadoCapital)
+            ACN(J:FAC,&totalResultado)
+            FormatoCeldas(H:FAC..J:FAC,Exe('F2'))
+            AgregarMarco(A:&celdaInicioDatos..J:fac-1,2,0)
+            AgregarMarco(A:FAC..J:fac,2,0,Exe('COLOR6'))
+            SetFont(A:&celdaInicioDatos..J:fac,2)
+            let &totalResultadoInteres 0
+            let &totalResultadoCapital 0
+            let &totalResultado 0
+            IFA
+            IFA
+            let &mesUltimoCorteCupon 0
+            let &anioUltimoCorteCupon 0
+        ENDIF
+    
+        *Pongo los titulos y completo las variables para el registro actual
+        let &especieActual fbn('Especie')
+        let &vehiculoActual fbn('Vehiculo')
+        
+        ACT(A:FAC,'Vehiculo: '~fbn('Vehiculo'))
+        IFA
+        IF Dialogo.Radio3 = 0
+            ACT(A:FAC,'Book: Consolidado')
+        ELSE
+            ACT(A:FAC,'Book: '~fbn('Book'))
+        ENDIF
+        IFA
+        ACT(A:FAC,'Moneda: '~fbn('Cotiza'))
+        IFA
+        ACT(A:FAC,'Especie: '~fbn('Especie'))
+        SetFont(A:fac-3..A:fac,2)
+        IFA
+        ACT(A:FAC,'Fecha')
+        ACT(A:FAC+1,'Liquidacion')
+        ACT(B:FAC,'Operacion')
+        ACT(C:FAC,'Cantidad')
+        ACT(D:FAC,'Precio')
+        ACT(D:FAC+1,'Dirty')
+        ACT(E:FAC,'Monto')
+        ACT(F:FAC,'Precio')
+        ACT(F:FAC+1,'Clean')
+        ACT(G:FAC,'Nro Operacion')
+        ACT(H:FAC,'Res INTERES')
+        ACT(H:FAC+1,'en ARP')
+        ACT(I:FAC,'Res CAPITAL')
+        ACT(I:FAC+1,'en ARP')
+        ACT(J:FAC,'Res TOTAL')
+        ACT(J:FAC+1,'en ARP')
+        SetFont(A:fac..J:fac+1,2)
+        AgregarMarco(A:fac..J:fac+1,2,0,Exe('COLOR'))
+        AlinearCeldas(A:fac..J:fac+1,'C')
+        IFA
+        IFA
+        let &celdaInicioDatos FAC
+    ENDIF
+    *Proceso el registro actual
+    ACD(A:FAC,fbn('Fecha'))
+    ACT(B:FAC,fbn('Operacion'))
+    ACN(C:FAC,fbn('Cantidad'))
+    ACT(G:FAC,fbn('NrOperacion'))
+    let &precioEspecie Cotizacion(fbn('Especie'),,,,fbn('Fecha'),1,SI,SI)
+    let &interesCorrido SQL(" SELECT Intereses FROM "~DBO~".INTERESESCORRIDOS WHERE Especie = '"~fbn('Especie')~"' and Fecha = (SELECT Max(Fecha) FROM "~DBO~".INTERESESCORRIDOS WHERE Especie = '"~fbn('Especie')~"' and Fecha <= '"~IdxDate(fbn('Fecha'))~"')  ")
+    IF fbn('Tip') = 0
+        *SaldoInicial
+        IF Eqstr(fbn('CotizaClean'),'CLE')
+            *Cotiza Clean
+            ACN(D:FAC,&precioEspecie+&interesCorrido)
+            ACN(F:FAC,&precioEspecie)
+        ELSE
+            *Cotiza Dirty
+            ACN(D:FAC,&precioEspecie)
+            ACN(F:FAC,&precioEspecie-&interesCorrido)            
+        ENDIF
+        ACN(E:FAC,Val(C:FAC)*Val(D:FAC))
+        let &ultimoRegistroEsRevaluo 0
+    ELSE
+        IF fbn('Tip') = 1
+            *Operacion
+            ACLO(G:FAC,fbn('NrOperacion'))
+            ACN(D:FAC,fbn('PrecioDirty'))
+            ACN(F:FAC,fbn('PrecioClean'))
+            *Reviso si es una venta, y si lo es, me guardo los datos para poner resultados
+            IF Eqstr(fbn('Operacion'),'Venta')
+                let &huboVenta 1
+                let &fechaUltimaVenta fbn('Fecha')
+                let &celdaUltimaVenta FAC
+            ENDIF
+            ACN(E:FAC,Val(C:FAC)*Val(D:FAC))
+            let &ultimoRegistroEsRevaluo 0
+            IF Not Incluido(&bookActual,&booksVentas)
+                let &booksVentas &booksVentas~&bookActual~'|'
+            ENDIF
+        ELSE
+            IF fbn('Tip') = 2
+                *Cupon
+                ACLT(G:FAC,fbn('NrOperacion'))
+                IF Eqstr(fbn('CotizaClean'),'CLE')
+                    *Cotiza Clean
+                    ACN(D:FAC,&precioEspecie+&interesCorrido)
+                    ACN(F:FAC,&precioEspecie)
+                ELSE
+                    *Cotiza Dirty
+                    ACN(D:FAC,&precioEspecie)
+                    ACN(F:FAC,&precioEspecie-&interesCorrido)            
+                ENDIF
+                ACN(E:FAC,Val(C:FAC)*Val(D:FAC))
+                
+                let &resultadoInteresCupon SQL(" SELECT Cantidad5 FROM "~DBO~".TRANSACCIONES2 WHERE TipoTr2 = 'CCUPON' AND Especie2 = '"~fbn('Especie')~"' AND Vehiculo1 = '"~fbn('Vehiculo')~"' AND Fecha1 = '"~IdxDate(fbn('Fecha'))~"' ")
+                let &resultadoCapitalCupon SQL(" SELECT Cantidad6 FROM "~DBO~".TRANSACCIONES2 WHERE TipoTr2 = 'CCUPON' AND Especie2 = '"~fbn('Especie')~"' AND Vehiculo1 = '"~fbn('Vehiculo')~"' AND Fecha1 = '"~IdxDate(fbn('Fecha'))~"' ")
+                
+                ACN(H:FAC,&resultadoInteresCupon*IIF(Eqstr(fbn('Cotiza'),'ARP'),1,IIF(Incluido(fbn('Vehiculo'),VAR('VEHDOLBI')),COTIZACIONBNA(Var('DOLBILLETE'),fbn('Fecha'),1,NO,NO),COTIZACIONBNA(VAR('MONEEXTR'),fbn('Fecha'),1,NO,NO))))
+                ACN(I:FAC,&resultadoCapitalCupon*IIF(Eqstr(fbn('Cotiza'),'ARP'),1,IIF(Incluido(fbn('Vehiculo'),VAR('VEHDOLBI')),COTIZACIONBNA(Var('DOLBILLETE'),fbn('Fecha'),1,NO,NO),COTIZACIONBNA(VAR('MONEEXTR'),fbn('Fecha'),1,NO,NO))))
+                ACN(J:FAC,Val(H:FAC)+Val(I:FAC))
+                
+                let &totalResultadoInteres &totalResultadoInteres+Val(H:FAC)
+                let &totalResultadoCapital &totalResultadoCapital+Val(I:FAC)
+                let &totalResultado &totalResultado+Val(J:FAC)
+                
+                let &ultimoRegistroEsRevaluo 0
+                
+                let &mesUltimoCorteCupon Mes(fbn('Fecha'))
+                let &anioUltimoCorteCupon Anio(fbn('Fecha'))
+            ELSE
+                *Revaluo
+                IF fbn('Fecha') = FinDeMes(fbn('Fecha'),NO)
+                    *Es fin de mes. Proceso
+                    IF Dialogo.Radio3 = 0 Y &ultimoRegistroEsRevaluo = 1 Y fbn('Fecha') = &fechaUltimoRegistroProcesado
+                        *Ya procesé un Revaluo antes. Es consolidado para la misma fecha
+                        DFA
+                    ENDIF  
+                    
+                    SQL.ADD(" SELECT CantidadFin Cantidad, IFME FROM "~DBO~".POSICIONES2 ")                      
+                    SQL.ADD(" WHERE NrSaldo = 2 AND Especie = '"~&especieActual~"' ")
+                    SQL.ADD(" AND Vehiculo = '"~&vehiculoActual~"' AND Book = '"~&bookActual~"' ")
+                    SQL.ADD(" AND Fecha = '"~IdxDate(fbn('Fecha'))~"' ")
+                    Recorrer SQL
+                        DFA
+                        SCN(C:FAC,fbn('Cantidad'))
+                        *14/02/2023 -> El calculo queda en desuso
+                        *Voy a usar esta celda para calcular Cantidad*IFME (Intereses pagados)
+                        *SCN(IP:FAC,(fbn('Cantidad')*fbn('IFME')))
+                    Proximo
+                    
+                    IF Eqstr(fbn('CotizaClean'),'CLE')
+                        *Cotiza Clean
+                        ACN(D:FAC,&precioEspecie+&interesCorrido)
+                        ACN(F:FAC,&precioEspecie)
+                    ELSE
+                        *Cotiza Dirty
+                        ACN(D:FAC,&precioEspecie)
+                        ACN(F:FAC,&precioEspecie-&interesCorrido)            
+                    ENDIF
+                    ACN(E:FAC,Val(C:FAC)*Val(D:FAC))
+
+                    IF &mesUltimoCorteCupon = Mes(fbn('Fecha')) Y &anioUltimoCorteCupon = Anio(fbn('Fecha'))
+                        *Hubo Corte de Cupon en el mes
+                        let &resultadoInteres fbn('ResultadoInteresCorte')*IIF(Eqstr(fbn('Cotiza'),'ARP'),1,IIF(Incluido(fbn('Vehiculo'),VAR('VEHDOLBI')),COTIZACIONBNA(Var('DOLBILLETE'),fbn('Fecha'),1,NO,NO),COTIZACIONBNA(VAR('MONEEXTR'),fbn('Fecha'),1,NO,NO)))
+                    ELSE
+                        *NO hubo Corte de Cupon en el mes
+                        let &resultadoInteres fbn('ResultadoInteres')*IIF(Eqstr(fbn('Cotiza'),'ARP'),1,IIF(Incluido(fbn('Vehiculo'),VAR('VEHDOLBI')),COTIZACIONBNA(Var('DOLBILLETE'),fbn('Fecha'),1,NO,NO),COTIZACIONBNA(VAR('MONEEXTR'),fbn('Fecha'),1,NO,NO)))
+                    ENDIF       
+                    let &resultadoCapital fbn('ResultadoCapital')*IIF(Eqstr(fbn('Cotiza'),'ARP'),1,IIF(Incluido(fbn('Vehiculo'),VAR('VEHDOLBI')),COTIZACIONBNA(Var('DOLBILLETE'),fbn('Fecha'),1,NO,NO),COTIZACIONBNA(VAR('MONEEXTR'),fbn('Fecha'),1,NO,NO)))
+
+                    SCN(H:FAC,&resultadoInteres)
+                    SCN(I:FAC,&resultadoCapital)
+                    SCN(J:FAC,Val(H:FAC)+Val(I:FAC))
+                    
+                    let &totalResultadoInteres &totalResultadoInteres+&resultadoInteres
+                    let &totalResultadoCapital &totalResultadoCapital+&resultadoCapital
+                    let &totalResultado &totalResultado+&resultadoInteres+&resultadoCapital
+                    
+                    let &ultimoRegistroEsRevaluo 1
+                    let &celdaRevaluo FAC
+                ELSE
+                    *No es fin de mes. No proceso
+                    BorrarCeldas(A:FAC..J:FAC)
+                    DFA
+                ENDIF
+            ENDIF
+        ENDIF
+    ENDIF
+    FormatoCeldas(C:FAC,Exe('F2'))
+    FormatoCeldas(D:FAC,Exe('F8'))
+    FormatoCeldas(E:FAC,Exe('F2'))
+    FormatoCeldas(F:FAC,Exe('F8'))
+    FormatoCeldas(H:FAC..J:FAC,Exe('F2'))
+    
+    let &esPrimerRegistro 1
+    let &fechaUltimoRegistroProcesado fbn('Fecha')
+    let &bookActual fbn('Book')
+    let &monedaCotizaActual fbn('Cotiza')
+Proximo
+
+*14/02/2023 -> Este bloque comentado queda en desuso
+*Proceso el ultimo revaluo si no vinieron mas registros despues (siempre que sea un fin de mes)
+*IF &ultimoRegistroEsRevaluo = 1 Y &fechaUltimoRegistroProcesado = FinDeMes(&fechaUltimoRegistroProcesado)
+*    *Busco los intereses corridos a fin de mes
+*    let &interesesCorridosFinMes SQL(" SELECT Intereses FROM "~DBO~".INTERESESCORRIDOS WHERE Especie = '"~&especieActual~"' and Fecha = (SELECT Max(Fecha) FROM "~DBO~".INTERESESCORRIDOS WHERE Especie = '"~&especieActual~"' AND Fecha <= '"~IdxDate(&fechaUltimoRegistroProcesado)~"')  ")
+*    IF &mesUltimoCorteCupon = Mes(&fechaUltimoRegistroProcesado) Y &anioUltimoCorteCupon = Anio(&fechaUltimoRegistroProcesado)
+*        *Hubo corte de cupon en el mes, no tengo que buscar los intereses corridos de fin de mes anterior
+*        let &interesesCorridosFinMesAnterior 0
+*    ELSE
+*        *No hubo corte de cupon en el mes, tengo que buscar los intereses corridos de fin de mes anterior
+*        let &interesesCorridosFinMesAnterior SQL(" SELECT Intereses FROM "~DBO~".INTERESESCORRIDOS WHERE Especie = '"~&especieActual~"' and Fecha = (SELECT Max(Fecha) FROM "~DBO~".INTERESESCORRIDOS WHERE Especie = '"~&especieActual~"' AND Fecha <= '"~IdxDate(PriDeMes(&fechaUltimoRegistroProcesado,SI)-1)~"')  ")
+*    ENDIF
+*    let &interesesCorridosMes &interesesCorridosFinMes-&interesesCorridosFinMesAnterior
+*    let &interesesPagados IIF(Val(C:&celdaRevaluo)=0,0,Val(IP:&celdaRevaluo)/Val(C:&celdaRevaluo))
+*    let &resultadoInteres (Val(C:&celdaRevaluo)*(&interesesCorridosMes-&interesesPagados))*IIF(Eqstr(&monedaCotizaActual,'ARP'),1,IIF(Incluido(&vehiculoActual,VAR('VEHDOLBI')),COTIZACIONBNA(Var('DOLBILLETE'),&fechaUltimoRegistroProcesado,1,NO,NO),COTIZACIONBNA(VAR('MONEEXTR'),&fechaUltimoRegistroProcesado,1,NO,NO)))
+*    
+*    SCN(H:&celdaRevaluo,&resultadoInteres)
+*    SCN(J:&celdaRevaluo,Val(H:&celdaRevaluo))
+*    
+*    let &totalResultadoInteres &totalResultadoInteres+&resultadoInteres
+*    let &totalResultado &totalResultado+&resultadoInteres
+*    
+*    let &mesUltimoCorteCupon 0
+*    let &anioUltimoCorteCupon 0
+*ENDIF
+
+*Proceso la ultima venta si no vinieron mas registros después
+IF &huboVenta = 1
+    SQL.ADD(" SELECT SUM(IRMEDAY) ResultadoInteres, SUM(CRMEDAY) ResultadoCapital ")
+    SQL.ADD(" FROM "~DBO~".RESULTADOS2 R2 ")
+    SQL.ADD(" WHERE NrSaldo = 2 ")
+    SQL.ADD(" AND Especie = '"~&especieActual~"' ")
+    SQL.ADD(" AND Vehiculo = '"~&vehiculoActual~"' ")
+    SQL.ADD(" AND Book IN ("~Pipe2Comillas(&booksVentas)~") ")
+    SQL.ADD(" AND Fecha = '"~IdxDate(&fechaUltimaVenta)~"' ")
+    Recorrer SQL
+        DFA
+        let &resultadoInteresVenta fbn('ResultadoInteres')
+        let &resultadoCapitalVenta fbn('ResultadoCapital')
+    Proximo
+    ACN(H:&celdaUltimaVenta,&resultadoInteresVenta*IIF(Eqstr(&monedaCotizaActual,'ARP'),1,IIF(Incluido(&vehiculoActual,VAR('VEHDOLBI')),COTIZACIONBNA(Var('DOLBILLETE'),&fechaUltimaVenta,1,NO,NO),COTIZACIONBNA(VAR('MONEEXTR'),&fechaUltimaVenta,1,NO,NO))))
+    ACN(I:&celdaUltimaVenta,&resultadoCapitalVenta*IIF(Eqstr(&monedaCotizaActual,'ARP'),1,IIF(Incluido(&vehiculoActual,VAR('VEHDOLBI')),COTIZACIONBNA(Var('DOLBILLETE'),&fechaUltimaVenta,1,NO,NO),COTIZACIONBNA(VAR('MONEEXTR'),&fechaUltimaVenta,1,NO,NO))))
+    ACN(J:&celdaUltimaVenta,Val(H:&celdaUltimaVenta)+Val(I:&celdaUltimaVenta))
+    FormatoCeldas(H:&celdaUltimaVenta..J:&celdaUltimaVenta,Exe('F2'))
+    
+    let &totalResultadoInteres &totalResultadoInteres+Val(H:&celdaUltimaVenta)
+    let &totalResultadoCapital &totalResultadoCapital+Val(I:&celdaUltimaVenta)
+    let &totalResultado &totalResultado+Val(J:&celdaUltimaVenta)      
+ENDIF
+
+*Pongo el total del ultimo registro
+IFA
+IF Dialogo.Radio3 = 1
+    ACT(A:FAC,'Total '~&especieActual~' '~&vehiculoActual~' '~&bookActual)
+ELSE
+    ACT(A:FAC,'Total '~&especieActual~' '~&vehiculoActual)
+ENDIF
+ACN(H:FAC,&totalResultadoInteres)
+ACN(I:FAC,&totalResultadoCapital)
+ACN(J:FAC,&totalResultado)
+SetFont(A:&celdaInicioDatos..J:fac,2)
+AgregarMarco(A:&celdaInicioDatos..J:fac-1,2,0)
+AgregarMarco(A:FAC..J:fac,2,0,Exe('COLOR6'))
+FormatoCeldas(H:FAC..J:FAC,Exe('F2'))
+
+IFA
+IFA
+ACO(1,18)
+ACO(3,12)
+ACO(5,12)
+ACO(7,12)
+ACO(8,12)
+ACO(9,12)
+ACO(10,12)
+ACT(A:FAC,'Fin Del Informe')
+SetFont(A:fac..A:fac,2)
+LimitesVision(K:FAC)

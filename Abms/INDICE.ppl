@@ -1,0 +1,26 @@
+﻿#*********************************************************************************
+#combos data sources.
+set ds_Tipo                = "CAP:Capitalizaciones|CUP:CuotasParte|ULK:USDLINK|OTR:Otro"
+
+
+def abm 'Indices'
+    def grid
+        Codigo:, Descripcion:, Especie:, Tipo:
+    end
+    def key
+        Codigo:
+    end
+    def dialog
+        tab 'General'
+            column
+                Codigo:,,small_text
+                Descripcion:,,large_text
+                Especie:,'Especie',autocomplete,'ESPECIES','Codigo,Nombre',,"Tipo = 'MON'"
+                MonedaLiq:,'Moneda de Pago',autocomplete,'ESPECIES','Codigo,Nombre',,"Tipo = 'MON'"
+                Tipo:,,combo,ds_Tipo
+    end
+    
+    upper_case_fields: Codigo:
+    required_fields: Codigo:
+    
+end

@@ -1,0 +1,1 @@
+﻿COTIZACIONC(fbn('Especie'),,,,Val(FV:2),1,SI,fbn('Moneda'))

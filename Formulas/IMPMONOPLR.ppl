@@ -1,0 +1,2 @@
+﻿***///Importe en Moneda de Operacion para Resultado+DC -> item en Moneda Local
+IIF(#ESMONELOCA Y Not #ESMONEFUE,Abs(#RXTDCIE),0)

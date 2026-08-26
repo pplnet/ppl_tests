@@ -1,0 +1,1 @@
+﻿Copy(&modeloContable~'-'~fbn('Cliente1')~'-'~fbn('NrOperacion'), 1, 30)

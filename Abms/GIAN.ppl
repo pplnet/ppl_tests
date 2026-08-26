@@ -1,0 +1,44 @@
+﻿set ds_Tipo                = "PUB:Publico|ONE:O.N."
+#*********************************************************************************
+#*********************************************************************************
+def abm 'Especies'
+   def grid
+   Jerarquia:, Codigo:, Nombre:, Extendido:, ISIN: 
+   end
+   def key
+       Jerarquia:, Codigo:
+   end
+    def dialog
+        #**************************************************************************
+        tab 'General'
+            column
+             Jerarquia: , 'Jerarquía',
+             Bcuelga: , 'Depende del anterior' , check
+             Codigo: , 'Código Especie', small_text,'XXXXXX'
+             EsJerarquia:,'Es Jerarquia',check
+             Nombre: , 'Nombre Resumido', 
+             Tipo: ,          , combo, ds_Tipo
+            
+    end
+    upper_case_fields: Codigo:
+    validates_uniqueness_of: Codigo:
+    do_not_map: Bcuelga:
+       before_show_create_dialog: do 
+        if $.Alta()
+            # Se muestra solo en el alta
+            $.show(Bcuelga:)
+            set jerRef = $.val(sender.JERARQUIA)
+            $.set_field Jerarquia:, ppl.GenerarJerarquiaByRef('ESPECIES', jerRef, $.val Bcuelga: = 'SI')
+        endif
+       END 
+   after_save:  do
+      If __action__ = "A"
+         set ds_TipoEnviar = $.val(Tipo:)
+         If $.val(Tipo:) = 'PUB' OR $.val(Tipo:) = 'ONE'            
+            $.Alert(' PUB o ONE')
+         end
+         
+      end
+    
+    end
+end

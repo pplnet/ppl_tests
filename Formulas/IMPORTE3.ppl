@@ -1,0 +1,1 @@
+﻿IIF(Eqstr(fbn('Moneda'), fbn('Especie')), fbn('TotalBrutoCli1'), fbn('Cantidad'))

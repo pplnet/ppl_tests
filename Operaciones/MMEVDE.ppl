@@ -1,0 +1,11 @@
+﻿CAMPOS:1;;99
+FechaOp        : 'Fecha'               ;2;1;1;SI;;;;;FSYS;
+Cantidad       : 'Cantidad'            ;3;1;1;SI;;;;;;;;;;;;'###,###,###,###,###.##'
+Cuenta1        : 'Cuenta'              ;4;1;1;SI;;;;;'G101CITIACAR01';;
+Especie        : 'Moneda'              ;5;1;1;SI;;;;;'ARP'
+Vehiculo1      : 'Vehiculo'            ;6;1;1;SI;;;;;'G101'
+Observac3      : 'Referencia'          ;7;1;1;NO;;;;
+CB5            : 'Procesado'           ;8;1;1;NO;;;;
+
+CONDICIONES
+SI O NO;'Operacion de Generacion Automatica';NO

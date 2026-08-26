@@ -1,0 +1,131 @@
+﻿let &monedaOp fbn('Moneda')
+let &monedaLocal fbn('MonLocalVeh')
+ACT(TO:88, fbn('TipoOp'))
+ACT(TO:99, fbn('NrOperacion'))
+ACN(BD:55, 0)
+ACN(MO:66, 0)
+ACN(DI:1, 0)
+ACN(DI:2, 0)
+ACN(DI:3, 0)
+let &intDevDiaMF 0
+let &intDevDiaML 0
+let &intDevDiaMG 0
+
+**// Seteo en &nrCot si la Op. es Activa o Pasiva
+If Incluido(FBN('TipoOp'),Var('OPEACT'))
+   let &nrCot VAR('NRCOTACT')
+Else
+   let &nrCot VAR('NRCOTPAS')
+Endif
+
+
+***/// Proceso dia a dia desde el inicio hasta la fecha actual
+SQL.ADD(" Select NrOperacion, Fecha, Monto ")
+SQL.ADD(" From "~DBO~".MOVDEVENGADOS ")
+SQL.ADD(" Where NrOperacion = '"~FBN('NrOperacion')~"' ")
+SQL.ADD(" and TipoDevengado = '"~FBN('TipoDevengado')~"' ")
+If NOT #ESPRECANCELACION
+    SQL.ADD(" and Fecha > '"~IdxDate(&fechaIniCONVTC)~"' ")
+    SQL.ADD(" and Fecha <= '"~IdxDate(&fechaFinCONVTC)~"' ")
+Else
+    ****Para casos de Precancelacion busco devengados por FechaEj y Cupon
+    SQL.ADD(" and FechaEj = '"~IdxDate(&fechaFinCONVTC)~"' ")
+    SQL.ADD(" and Cupon = '"~FsTr(fbn('NrCuota1'),0,0)~"' ")
+    SQL.ADD(" And Fecha <= '"~IdxDate(&fechaFinCONVTC)~"' ")
+EndIf
+SQL.ADD(" Order by Fecha ")
+Recorrer SQL
+    ***// Para las operaciones Activas/Pasivas se toma TC Comprador/Vendedor
+    If Not EqStr(BuscarCampo('TIPOSOPERACION','ClaseOperacion','Codigo',Val(TO:88)),VAR('CLASEOPVIN'))
+        ***/// Calculo de Interes con cotizacion diaria
+        IF Eqstr(&monedaOp, Val(ME:1))
+           let &diarioIntDevMF fbn('Monto') * CotizacionBNA(&monedaOp,FBN('Fecha'),&nrCot,NO,NO)
+           IF Eqstr(&monedaLocal, Val(ML:1))
+              let &diarioIntDevML &diarioIntDevMF
+           ELSE
+              let &diarioIntDevML fbn('Monto') * CotizacionBCU(&monedaOp,FBN('Fecha'),&nrCot,NO,NO)
+           ENDIF
+           let &diarioIntDevMG fbn('Monto')
+        ELSE
+           IF Eqstr(&monedaOp, Val(ML:1))
+              let &diarioIntDevMF fbn('Monto')
+              IF Eqstr(&monedaLocal, Val(ML:1))
+                 let &diarioIntDevML &diarioIntDevMF
+              ELSE
+                 let &diarioIntDevML fbn('Monto') * CotizacionBNABCU(Val(ME:1),FBN('Fecha'),&nrCot,NO,NO)
+              ENDIF
+              let &diarioIntDevMG fbn('Monto') / CotizacionBNA(&dolContableVh,FBN('Fecha'),&nrCot,NO,NO)
+           ELSE
+              IF Eqstr(&monedaOp, Val(MU:1))    
+                 let &diarioIntDevMF fbn('Monto') / CotizacionBNABCU(Val(ME:1),FBN('Fecha'),&nrCot,NO,NO)
+                 IF Eqstr(&monedaLocal, Val(ML:1))
+                    let &diarioIntDevML fbn('Monto') / CotizacionBNABCU(Val(ME:1),FBN('Fecha'),&nrCot,NO,NO)
+                 ELSE
+                    let &diarioIntDevML fbn('Monto')
+                 ENDIF
+                 let &diarioIntDevMG fbn('Monto') / CotizacionBCU(Val(ME:1),FBN('Fecha'),&nrCot,NO,NO)
+              ENDIF
+           ENDIF
+        ENDIF
+    ELSE
+    ***/// Para las operaciones vinculadas toma TC promedio
+        ***/// Calculo de Interes con cotizacion diaria
+        IF Eqstr(&monedaOp, Val(ME:1))
+           ACN(CT:1, (CotizacionBNA(&monedaOp,FBN('Fecha'),1,NO,NO) + CotizacionBNA(&monedaOp,FBN('Fecha'),2,NO,NO))/2)
+           let &diarioIntDevMF fbn('Monto') * Val(CT:1)
+           IF Eqstr(&monedaLocal, Val(ML:1))
+              let &diarioIntDevML &diarioIntDevMF
+           ELSE
+              ACN(CT:1, (CotizacionBCU(&monedaOp,FBN('Fecha'),1,NO,NO) + CotizacionBCU(&monedaOp,FBN('Fecha'),2,NO,NO))/2)
+              let &diarioIntDevML fbn('Monto') * Val(CT:1)
+           ENDIF
+           let &diarioIntDevMG fbn('Monto')
+        ELSE
+           IF Eqstr(&monedaOp, Val(ML:1))
+              let &diarioIntDevMF fbn('Monto')
+              IF Eqstr(&monedaLocal, Val(ML:1))
+                 let &diarioIntDevML &diarioIntDevMF
+              ELSE
+                 ACN(CT:1, (CotizacionBNABCU(Val(ME:1),FBN('Fecha'),1,NO,NO) + CotizacionBNABCU(Val(ME:1),FBN('Fecha'),2,NO,NO))/2)
+                 let &diarioIntDevML fbn('Monto') * Val(CT:1)
+              ENDIF
+              ACN(CT:1, (CotizacionBNA(&dolContableVh,FBN('Fecha'),1,NO,NO) + CotizacionBNA(&dolContableVh,FBN('Fecha'),2,NO,NO))/2)
+              let &diarioIntDevMG fbn('Monto') / Val(CT:1)
+           ELSE
+              IF Eqstr(&monedaOp, Val(MU:1))
+                 ACN(CT:1, (CotizacionBNABCU(Val(ME:1),FBN('Fecha'),1,NO,NO) + CotizacionBNABCU(Val(ME:1),FBN('Fecha'),2,NO,NO))/2)
+                 let &diarioIntDevMF fbn('Monto') / Val(CT:1)
+                 IF Eqstr(&monedaLocal, Val(ML:1))
+                    ACN(CT:1, (CotizacionBNABCU(Val(ME:1),FBN('Fecha'),1,NO,NO) + CotizacionBNABCU(Val(ME:1),FBN('Fecha'),2,NO,NO))/2)
+                    let &diarioIntDevML fbn('Monto') / Val(CT:1)
+                 ELSE
+                    let &diarioIntDevML fbn('Monto')
+                 ENDIF
+                 ACN(CT:1, (CotizacionBCU(Val(ME:1),FBN('Fecha'),1,NO,NO) + CotizacionBCU(Val(ME:1),FBN('Fecha'),2,NO,NO))/2)
+                 let &diarioIntDevMG fbn('Monto') / Val(CT:1)
+              ENDIF
+           ENDIF
+        ENDIF
+    ENDIF
+    let &intDevDiaMF &intDevDiaMF+&diarioIntDevMF
+    let &intDevDiaML &intDevDiaML+&diarioIntDevML
+    let &intDevDiaMG &intDevDiaMG+&diarioIntDevMG
+
+    ***/// Calculo DC Diario
+    SCN(MO:66, Abs(fbn('Monto')))
+    IF Val(BD:55) = 1
+        ***---Hay DC desde el segundo dia que devenga, por el monto acumulado al dia anterior que se procesa
+        ***---Tanto a fin de mes como al Vto. se calcula la DC dia a dia a partir del interes acumulado a principio de mes
+        let &capital Val(MO:66) - Abs(fbn('Monto'))
+        ACD(FD:55, FBN('Fecha')-1)
+        ACD(FH:55, FBN('Fecha'))
+        IF [Val(CK:99) = 0 Y fbn('Fecha') >= Val(FD:90)] O [Val(CK:99) = 1 Y fbn('Fecha') >= Val(V:3)]
+            ***/// El dia procesado correspone al mes actual, entonces calculo DC diario.
+            (.'DCDIARIA'.)
+            SCN(DI:1, &dcCapitalMonFuerte)
+            SCN(DI:2, &dcCapitalMonLocal)
+            SCN(DI:3, &dcCapitalMonGrupo)
+        ENDIF
+    ENDIF
+    ACN(BD:55, 1)
+Proximo

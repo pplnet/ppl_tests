@@ -1,0 +1,22 @@
+﻿CAMPOS:1;;BuscarCampo('VEHICULOS','Alias1','Codigo',Vehiculo1)
+FechaOp        : 'Fecha Movimiento'       ;1;1;;NOT EV y VERIFICAACCESO('OPFVALOR');;EsHabil(FECHAOP,'ARG');'Fecha incorrecta';NO;FSYS;
+@VEHITO
+Especie        : 'Moneda'                 ;2;1;;NOT EV;;NOVACIO(ESPECIE) y DESCIENDEDEESPECIE(ESPECIE,'MONEDA') y ESTERMINAL(ESPECIE, ESPECIE);'Debe Ingresar una Especie';NO;;;;;;;;"Codigo IN ("~Pipe2Comillas(Descendientes('ESPECIES','MONEDA'))~") and Status = 'HAB'"
+Cantidad       : 'Cantidad'               ;;;;NOT EV;;CANTIDAD>0;'La Cantidad DEBE SER POSITIVA';NO;
+Operador       :                          ;;;;;;NOVACIO(OPERADOR);'El Operador es Invalido';NO;USUARIOACTIVO;
+Cliente1       : 'Cliente Tomador'        ;;;;NO;NO;;;;;VEHICULO1;;
+OperacionRef   : ''                           ;;;;NO;NO;
+
+CONDICIONES
+FECHAOP =Fsys;'La Fecha de Origen no coincide con la de Sistema';SI;SI;FSYS;'ORIGFVALOR'
+@CONDIOP
+
+EDICION
+EqStr(Operador, UsuarioActivo) o Incluido(UsuarioActivo, Var('ULMODI'));'No se puede modificar, Operador: '~Operador
+
+BAJA
+EqStr(Operador, UsuarioActivo) o Incluido(UsuarioActivo, Var('ULBAJA'));'No se puede dar de baja, Operador: '~Operador
+
+MOVIMIENTOS
+FechaOp ;Vehiculo1;Especie ;;;;;Vehiculo1;3;Cantidad;;'Presupuesto '~Especie;SI;SI;;Incluido(Vehiculo1,Var('VLIQUIDA')~Var('VLIQUIDA2'));;;
+

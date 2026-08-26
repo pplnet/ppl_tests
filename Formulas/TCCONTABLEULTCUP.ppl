@@ -1,0 +1,1 @@
+﻿CotizacionBNA(&monedaOpOn,&fechaUltCupon,VAR('NRCOTPAS'),NO,NO)

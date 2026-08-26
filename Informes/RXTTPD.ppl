@@ -1,0 +1,395 @@
+﻿***---Este evento toma las posiciones de especies que no son de irsa. Para bonos propios se va a crear un nuevo NrSaldo de posicion, y se contabiliza en otro evento, para que se haga por book. Ver Pago de dividendos de esos bonos.
+
+MostrarCuadroDeMensajes
+ModoReproceso(ConDialogo)
+CrearDialogo
+  Fecha1:   'Fecha'    ; 1; ;;;;;;;fsys
+  Especie1: 'Especie'  ; 1;2;
+  Lista1:   'Vehiculos'; 3;1;;;;;;;;;iif(Vacio(UsrVehiculos(UsuarioActivo)),SQLSET("Select Codigo from "~DBO~".VEHICULOS"),SQLSET("Select Vehiculo from "~DBO~".USRVEHICULO where Codigo = '"~UsuarioActivo~"'"))
+  Check1:      'Contab.Procesada' ;;;;NO;NO;
+FinDialogo
+
+If Not Ok
+   Cancelar
+Endif
+
+message('--- Procesando ---')
+
+*ACN(x1, SQL("Select 1 from "~DBO~".VARIABLES where Codigo = 'DIASCONT' "))
+*ACN(x3, SQL("Select 1 from "~DBO~".VARIABLES where Codigo = 'DIASCONT' "))
+*
+*if Val(x1)=1
+*  ACN(x1, Trunc(Var('DIASCONT'),0))
+*endif
+*if Val(x1)<1
+*  ACN(x1, 1)
+*endif
+*ACD(x2, Habiles(PriDeMes(Dialogo.Fecha1,SI)-1,Val(x1),'ARG'))
+*if Dialogo.Fecha1<>Val(x2)
+*  Cancelar('La fecha es incorrecta. Verificar variable DIASCONT.')
+*endif
+
+CrearFont(1, 'Arial,8,')
+CrearFont(2, 'Arial,8,B')
+CrearFont(3, 'Arial,10,B')
+
+**--Header
+let &filaLogo 1
+(.'LOGO'.)
+ifa
+ifa
+ifa
+ACT(F:1, 'RXT Titulos a Precio Dirty')
+SetFont(F:1, 3)
+SetFilaActual(fac+3)
+Let &fi1 fac
+ACT(A:fac, 'Fecha: '~Dialogo.Fecha1)
+ifa
+IF NoVacio(Dialogo.Lista1)
+    ACT(A:fac, 'Vehiculos: '~Dialogo.Lista1)
+    ACT(LS:1, Dialogo.Lista1)
+ELSE
+    ACT(A:fac, 'Vehiculos: Todos')
+ENDIF
+ifa
+If NoVacio(Dialogo.Especie1)
+    ACT(A:fac, 'Especie: '~Dialogo.Especie1)
+    ifa
+Endif
+
+SetFont(A:&fi1..B:fac, 2)
+
+SetFilaActual(fac+1)
+
+ACD(vv:1, Dialogo.Fecha1)
+ACD(vv:2, Habiles(PriDeMes(Dialogo.Fecha1),-1,'ARG'))
+ACD(vv:3, Habiles(PriDeMes(Val(vv:2)),-1,'ARG'))
+ACT(yy:1, Dialogo.Lista1)
+ACT(yy:2, '101,102')
+
+
+SetFilaActual(10)
+
+ACT(a:FAC, 'Especie')
+ACT(b:FAC, 'Nombre')
+ACT(c:FAC, 'Vehiculo')
+ACT(d:FAC, 'Book')
+ACT(e:FAC, 'FechaPos')
+ACT(f:FAC, 'CantidadFin')
+ACT(g:FAC, 'PrecioFin')
+ACT(h:FAC, 'Cotiza')
+ACT(i:FAC, 'Cot.Mes Ant')
+ACT(j:FAC, 'Cot.Actual')
+ACT(k:FAC, 'Dif.Cotiz.')
+ACT(l:FAC, 'Res.Saldo Ant.')
+ACT(m:FAC, 'Res.Operac.')
+ACT(n:FAC, 'Res.TOTAL')
+
+
+SetFont(A:fac..n:fac,2)
+AgregarMarco(A:fac..n:fac, 0, 0, Exe('COLOR'))
+
+
+
+ACT(p:FAC, 'Especie')
+ACT(q:FAC, 'Nombre')
+ACT(r:FAC, 'Vehiculo')
+ACT(s:FAC, 'Book')
+ACT(t:FAC, 'FechaMov')
+ACT(u:FAC, 'Cantidad')
+ACT(v:FAC, 'Precio')
+ACT(w:FAC, 'Cotiza')
+ACT(x:FAC, 'Cotizacion')
+ACT(y:FAC, 'Dif.Cotiz.')
+ACT(z:FAC, 'Resultado')
+ACT(aa:FAC, 'Linea')
+ACT(ab:FAC, 'NrOperacion')
+ACT(ac:FAC, 'TipoOp')
+ACT(ad:FAC, 'FechaOp')
+ACT(Ae:fac, 'ContraEsp')
+ACT(Af:fac, 'CotOp')
+
+SetFont(p:fac..af:fac,2)
+AgregarMarco(p:fac..af:fac, 0, 0, Exe('COLOR'))
+
+SQL.ADD("select P.Especie,  P.NrSaldo, P.TipoNegocio, ")
+SQL.ADD("       P.Vehiculo, E.Nombre, E.Cotiza,  E.InteresesC, ")
+SQL.ADD("       Sum(P.CantidadFin) as Cantidad, ")
+SQL.ADD("       Sum(P.CantidadFin*P.PrecioFin) as Monto, '' Observaciones, '' Cliente1, P.Vehiculo Vehiculo, E.Alias8,P.Book,P.Fecha ")
+SQL.ADD(" from  "~DBO~".POSICIONES P, "~DBO~".ESPECIES E ")
+SQL.ADD(" where P.Especie     = E.Codigo ")
+SQL.ADD("   and P.NrSaldo     in ("~Val(yy:2)~") ")
+SQL.ADD("   and P.TipoNegocio = 'SEC' ")
+if NoVacio(Dialogo.Especie1)
+  SQL.ADD("  and P.Especie     = '"~Dialogo.Especie1~"' ")
+endif
+If NoVAcio(Dialogo.Lista1)
+   SQL.ADD(" AND P.Vehiculo IN ("~Pipe2Comillas(Dialogo.Lista1)~")  ")
+Else
+   If NoVacio(UsrVehiculos(UsuarioActivo))
+      SQL.ADD(" AND P.Vehiculo IN (Select Vehiculo from "~DBO~".USRVEHICULO where Codigo = '"~UsuarioActivo~"') ")
+   Endif
+Endif
+***---SQL.ADD("   and P.CantidadFin <> 0 ")
+SQL.ADD("   and P.Fecha       <= (select Max(Fecha) ")
+SQL.ADD("                       from  "~DBO~".POSICIONES P2 ")
+SQL.ADD("                       where P2.Especie     = P.Especie ")
+***---SQL.ADD("                         and (LTrim(Rtrim(P2.Cupon)) = LTrim(Rtrim(P.Cupon)) or (P2.Cupon IS NULL and P.Cupon IS NULL)) ")
+***---SQL.ADD("                         and P2.Cliente     = P.Cliente ")
+SQL.ADD("                         and P2.Vehiculo    = P.Vehiculo ")
+SQL.ADD("                         and P2.NrSaldo     = P.NrSaldo ")
+SQL.ADD("                         and P2.TipoNegocio = P.TipoNegocio ")
+SQL.ADD("                         and P2.Fecha      <= "~IdxDate2(Val(vv:1))~")  ")
+
+***---No se valuan las Especies de companias de IRSA
+SQL.ADD(" AND ((E.Alias8 Is Null OR E.Alias8 = '') Or (E.Alias8 > '9000' )) ")
+SQL.ADD(" AND (E.EsCupon Is Null OR E.EsCupon = 'NO') ")
+***/// PENDIENTE--SQL.ADD(" AND   P.Vehiculo    NOT IN ("~Pipe2Comillas(Var('VNOLIQUID')~Var('VNOLIQUID2'))~") ")
+
+*SQL.ADD(" order by P.Especie, P.Cupon ")
+SQL.ADD(" Group by P.Especie, P.NrSaldo, P.TipoNegocio, P.Vehiculo, E.Nombre, E.Cotiza, E.InteresesC, E.Alias8,P.Book,P.Fecha ")
+watch(sql.batch)
+Recorrer SQL
+  IF Round(fbn('Cantidad'), 2) <> 0
+    ACT(a:FAC, FBN('Especie'))
+    ACT(b:FAC, FBN('Nombre'))
+    ACT(c:FAC, FBN('Vehiculo'))
+    ACT(d:FAC, FBN('Book'))
+    ACD(e:FAC, FBN('Fecha'))
+  *  ACT(c:Val(ww:1), FBN('Cupon'))
+*  ACN(d:Val(ww:1), FBN('NrSaldo'))
+*  ACT(e:Val(ww:1), FBN('TipoNegocio'))
+  *  ACN(i:FAC, FBN('CantidadFin'))
+*    ACN(j:FAC, FBN('PrecioFin'))
+    ACN(f:FAC, FBN('Cantidad'))
+    ACN(g:FAC, FBN('Monto')/FBN('Cantidad'))
+    ACT(h:FAC, FBN('Cotiza'))
+    ACN(i:FAC, CotizacionC(FBN('Especie'),,,,Val(vv:2),1,SI,FBN('Cotiza')))
+    ACN(j:FAC, CotizacionC(FBN('Especie'),,,,Val(vv:1),1,SI,FBN('Cotiza')))
+    ACN(k:FAC, Val(j:FAC)-Val(g:FAC))
+    ACN(l:FAC, Val(f:FAC)*Val(k:FAC))
+    ifa
+  ENDIF
+  dfa
+proximo
+
+ACN(ww:1, 10)
+SQL.ADD("select M.FechaMov,    M.Cliente,     M.Especie,     M.Cupon,  ")
+SQL.ADD("       M.NrSaldo,     M.TipoNegocio, M.Cantidad,    M.Precio, ")
+SQL.ADD("       M.Vehiculo,    M.Book,        M.NrOperacion, ")
+SQL.ADD("       E.Nombre,      E.Cotiza,      E.InteresesC,  ")
+SQL.ADD("       O.TipoOp,      O.FechaOp, E.Tipo, V.Valor1, V.Valor2, E.Cotiza Moneda, O.ContraEspecie, ")
+SQL.ADD("       O.PlazoRenovPredeter CotOp, O.Observaciones, E.Alias8 ")
+SQL.ADD("  from "~DBO~".MOVPOSEJE M, "~DBO~".ESPECIES E, "~DBO~".OPERACIONES O, "~DBO~".VEHICULOS V ")
+SQL.ADD(" where M.NrSaldo     in ("~Val(yy:2)~") ")
+SQL.ADD(" AND V.Codigo = M.Vehiculo ")
+SQL.ADD("   and M.TipoNegocio = 'SEC' ")
+if NoVacio(Dialogo.Especie1)
+  SQL.ADD("  and M.Especie    = '"~Dialogo.Especie1~"' ")
+endif
+SQL.ADD("   and M.FechaMov    >= "~IdxDate2(Val(vv:3))~" ")
+SQL.ADD("   and M.FechaMov    <=  "~IdxDate2(Val(vv:1))~" ")
+SQL.ADD("   and M.Especie     = E.Codigo ")
+SQL.ADD("   and M.NrOperacion = O.NrOperacion ")
+***---No se valuan las Especies de companias de IRSA
+SQL.ADD(" AND ((E.Alias8 Is Null OR E.Alias8 = '') Or (E.Alias8 > '9000' )) ")
+If NoVAcio(Dialogo.Lista1)
+   SQL.ADD(" AND O.Vehiculo1 IN ("~Pipe2Comillas(Dialogo.Lista1)~")  ")
+  
+Else
+   If NoVacio(UsrVehiculos(UsuarioActivo))
+      SQL.ADD(" AND O.Vehiculo1 IN (Select Vehiculo from "~DBO~".USRVEHICULO where Codigo = '"~UsuarioActivo~"') ")
+   Endif
+Endif
+SQL.ADD(" AND (E.EsCupon Is Null OR E.EsCupon = 'NO') ")
+***/// PENDIENTE--SQL.ADD(" AND  O.Vehiculo1    NOT IN ("~Pipe2Comillas(Var('VNOLIQUID')~Var('VNOLIQUID2'))~") ")
+
+SQL.ADD(" order by M.Especie, M.NrOperacion ")
+Recorrer SQL
+  DFA
+  SCN(ww:1,1)
+  ACN(ww:2,0)
+  if FAC>1
+    recorrer&i 11,FAC
+*      if EqStr(FBN('Especie'),Val(a:&i)) y EqStr(FBN('Cupon'),Val(c:&i))
+      **//if EqStr(FBN('Especie'),Val(a:&i))
+      if EqStr(FBN('Especie'),Val(a:&i)) Y EqStr(FBN('Vehiculo'),Val(c:&i))
+       ACN(ww:2, &i)
+        Break
+      endif
+    proximo
+  endif
+  if Val(ww:2)=0
+    IFA
+    ACT(a:FAC, FBN('Especie'))
+    ACT(b:FAC, FBN('Nombre'))
+    ACT(c:FAC, FBN('Vehiculo'))
+    ACT(d:FAC, FBN('Book'))
+    ACN(f:FAC, FBN('Cantidad'))
+    ACD(e:FAC, FBN('FechaMov'))
+    ACT(h:FAC, FBN('Cotiza'))
+    ACN(i:FAC, CotizacionC(FBN('Especie'),,,,Val(vv:2),1,SI,FBN('Cotiza')))
+    ACN(j:FAC, CotizacionC(FBN('Especie'),,,,Val(vv:1),1,SI,FBN('Cotiza')))
+    ACN(k:FAC, Val(g:FAC)-Val(j:FAC))
+    ACN(l:FAC, Val(f:FAC)*Val(k:FAC))
+    *  ACT(c:Val(ww:1), FBN('Cupon'))
+*  ACN(d:Val(ww:1), FBN('NrSaldo'))
+*  ACT(e:Val(ww:1), FBN('TipoNegocio'))
+    ACN(ww:2, FAC)
+  endif
+
+  ACT(p:Val(ww:1), FBN('Especie'))
+  ACT(q:Val(ww:1), FBN('Nombre'))
+*  ACT(ac:Val(ww:1), FBN('Cupon'))
+*  ACN(ad:Val(ww:1), FBN('NrSaldo'))
+*  ACT(ae:Val(ww:1), FBN('TipoNegocio'))
+  ACT(r:Val(ww:1), FBN('Vehiculo'))
+  ACT(s:Val(ww:1), FBN('Book'))
+  ACD(t:Val(ww:1), FBN('FechaMov'))
+  ACN(u:Val(ww:1), FBN('Cantidad'))
+  IF Eqstr(fbn('Cotiza'), fbn('ContraEspecie'))
+    ACN(v:Val(ww:1), FBN('Precio'))
+  ELSE
+      ACT(MD:2, SQL(" Select Modo From "~DBO~".MODOESPECIES Where Especie1 = '"~fbn('Cotiza')~"' AND Especie2 = '"~fbn('ContraEspecie')~"' "))
+      ***---ACN(AJ:Val(W:1), IIF(Eqstr(Val(MD:2), 'INV'), fbn('Precio') / fbn('CotOp'), fbn('Precio') * fbn('CotOp')))
+      ***---ACN(AJ:Val(W:1), IIF(Eqstr(Val(MD:2), 'INV'), fbn('Precio') * fbn('CotOp'), fbn('Precio') / fbn('CotOp')))
+      ***---En la carga de operaciones se ingresa la cotizacion de cotiza en contraespecie.
+      IF Eqstr(fbn('ContraEspecie'), Var('MONELOCA')) O Eqstr(fbn('Cotiza'), Var('MONELOCA'))
+        ACN(v:Val(WW:1), fbn('Precio') / fbn('CotOp'))
+      ELSE
+        ACN(v:Val(WW:1), fbn('Precio') * fbn('CotOp'))
+      ENDIF
+  ENDIF
+  ACT(w:Val(ww:1), FBN('Cotiza'))
+  ACN(x:Val(ww:1), CotizacionC(FBN('Especie'),,,,Val(vv:2),1,SI,FBN('Cotiza')))
+  ACN(y:Val(ww:1), Val(x:Val(ww:1))-Val(v:Val(ww:1)))
+  ACN(z:Val(ww:1), Val(u:Val(ww:1))*Val(y:Val(ww:1)))
+  ACN(aa:Val(ww:1), Val(ww:2))
+  ACT(ab:Val(ww:1), FBN('NrOperacion'))
+  ACLO(ab:Val(ww:1), FBN('NrOperacion'))
+  ACT(ac:Val(ww:1), FBN('TipoOp'))
+  ACD(ad:Val(ww:1), FBN('FechaOp'))
+  ACT(ae:Val(ww:1), fbn('ContraEspecie'))
+  ACN(af:Val(ww:1), fbn('CotOp'))
+  SCN(m:Val(ww:2), Val(z:Val(ww:1)))
+proximo
+
+if FAC>1
+  recorrer&i 11,FAC
+  IF Round(Val(f:&i), 2) <> 0
+    ACN(n:&i, Val(l:&i)+Val(m:&i)) 
+    ACN(RS:1, Val(n:&i))
+  ENDIF  
+*    ***---Busco si hubieron pagos de cupones durante el mes
+*    SQL.ADD(" Select Sum(T.Cantidad2) Monto, T.TipoTr2 From "~DBO~".TRANSACCIONES2 T, "~DBO~".ESPECIES E ")
+*    SQL.ADD(" Where E.Alias3 = T.Especie ")
+*    SQL.ADD(" AND TipoTr2 IN ('CCUPON','PCUPON') ")
+*    SQL.ADD(" AND E.Codigo = '"~Val(A:&i)~"' ")
+*    SQL.ADD(" AND T.Vehiculo1 = '"~Val(F:&i)~"' ")
+*    SQL.ADD(" AND T.Fecha1 >  '"~IdxDate(Val(V:3))~"' ")
+*    SQL.ADD(" AND T.Fecha1 <=  '"~IdxDate(Val(V:2))~"' ")
+*    ***---No se toman los cobros de zero cupon ya que el resultado es la diferencia de precios.
+*    SQL.ADD(" AND (ZeroCoupon <> 'SI' OR ZeroCoupon = '' OR ZeroCoupon = null) ")
+*    SQL.ADD(" Group By T.TipoTr2 ")
+*    Recorrer SQL
+*        IF Eqstr(fbn('TipoTr2'), 'CCUPON')
+*            SCN(RS:1, fbn('Monto'))
+*        ELSE
+*            SCN(RS:1, -fbn('Monto'))
+*        ENDIF
+*    Proximo
+*    ACN(CT:1, Val(AI:&i) + Val(I:&i))
+*    if DesciendeDeEspecie(Val(a:&i),'ACCION')
+*      ACT(r:&i, Var('TIPASITESE'))
+*    else
+*      ACT(r:&i, Var('TIPASITESE'))
+*    endif
+*    SQL.ADD("select MA.Codigo ")
+*    SQL.ADD("  from "~DBO~".MODELOSASIENTO MA ")
+*    SQL.ADD(" where MA.TipoAsiento IN ("~Pipe2Comillas(Val(r:&i))~") ")
+*    Recorrer SQL    
+*      DFA
+*      Message(Val(a:&i)~' - Modelo: '~fbn('Codigo'))
+*      ACD(FV:1, Val(V:2))
+*      ACT(VH:1, Val(F:&i))
+*      (.'FECHAVALOR'.)
+*      ACT(MD:1, fbn('Codigo'))
+*      SQL.ADD(" select E.Codigo Especie, V.Codigo Vehiculo, E.Nombre, E.Cotiza, E.Tipo, V.Valor1, V.Valor2, ")
+*      SQL.ADD(" E.Cotiza Moneda, E.Cotiza ContraEspecie, '' Observaciones, '' Cliente1, V.Codigo Vehiculo1, "~Fstr(Abs(Val(CT:1)), 0, 0)~" Cantidad, E.Alias8 ")
+*      SQL.ADD(" From "~DBO~".ESPECIES E, "~DBO~".VEHICULOS V ")
+*      SQL.ADD(" Where E.Codigo = '"~Val(A:&i)~"' ")
+*      SQL.ADD(" AND V.Codigo = '"~Val(F:&i)~"' ")
+*      Recorrer SQL
+*          DFA
+*          ACN(CK:1, 0)
+*          IF Dialogo.Check1 = 1 O Dialogo.Fecha1 < Fsys
+*             ACN(CK:1, 1)
+*             **// Chequeo si el periodo contable esta abierto 
+*             If Val(BD:9)=0
+*                IF Vacio(SQL(" Select A.NrUnicoAsiento From "~DBO~".ASIENTOSCON A, "~DBO~".ASIENTOSCON1 A1 Where A.NrUnicoAsiento = A1.NrUnicoAsiento AND A1.Alias7 = '"~fbn('Especie')~"' AND A.Modelo = '"~Val(MD:1)~"' AND A.Estado = 'E' AND (A.NrAsiento Is Null OR A.NrAsiento = '' OR A.NrAsiento = ' ') AND A.FechaValor = '"~IdxDate(Val(V:2))~"' AND A.Vehiculo = '"~Val(F:&i)~"' "))
+*                   ACN(CK:1, 0)
+*                ENDIF
+*             Else
+*                **// Si esta cerrado, chequeo con la FechaValor original y la FechaEjecucion (Fecha1) que corresponda
+*                IF Vacio(SQL(" Select A.NrUnicoAsiento From "~DBO~".ASIENTOSCON A, "~DBO~".ASIENTOSCON1 A1 Where A.NrUnicoAsiento = A1.NrUnicoAsiento AND A1.Alias7 = '"~fbn('Especie')~"' AND A.Modelo = '"~Val(MD:1)~"' AND A.Estado = 'E' AND (A.NrAsiento Is Null OR A.NrAsiento = '' OR A.NrAsiento = ' ') AND (A.FechaValor = '"~IdxDate(Val(V:2))~"' OR A.FechaValor = '"~IdxDate(Val(FV:1))~"') AND A.Fecha1 = '"~IdxDate(Dialogo.Fecha1)~"' AND A.Vehiculo = '"~Val(F:&i)~"' "))
+*                   ACN(CK:1, 0)
+*                ENDIF
+*             Endif
+*          ENDIF
+*          IF Val(CK:1) = 0
+*              SQL.GenerarAsientoOp(Val(MD:1), '','','',810,Val(FV:1),Val(f:&i),,,,,,,,,,,,,fsys,Dialogo.Fecha1)
+*              SQL.EXEC
+*          ENDIF
+*      Proximo
+*    proximo
+  proximo
+endif
+*
+****---HojaVisible(SI)
+
+AgregarMarco(A:10..n:fac, 0, 0)
+AgregarMarco(p:10..af:fac, 0, 0)
+FormatoCeldas(Aa:10..Aa:fac, Exe('F0'))
+FormatoCeldas(g:10..k:fac, Exe('F8'))
+FormatoCeldas(x:10..y:fac, Exe('F8'))
+FormatoCeldas(z:10..z:fac, Exe('F2'))
+FormatoCeldas(u:10..v:fac, Exe('F2'))
+FormatoCeldas(m:10..n:fac, Exe('F2'))
+FormatoCeldas(af:10..af:fac, Exe('F8'))
+
+
+ACO(1,10)
+ACO(2,10)
+ACO(3,20)
+ACO(4,10)
+ACO(5,10)
+ACO(6,10)
+ACO(7,10)
+ACO(8,10)
+ACO(9,10)
+ACO(12,10)
+ACO(13,10)
+ACO(14,10)
+ACO(15,10)
+ACO(16,10)
+ACO(17,10)
+ACO(18,10)
+ACO(19,10)
+ACO(20,10)
+ACO(21,10)
+ACO(22,10)
+ACO(23,10)
+ACO(24,10)
+ACO(25,10)
+ACO(26,10)
+ACO(27,10)
+ACO(28,10)
+ACO(42,10)
+
+
+
+
+SetFilaActual(FAC+2)
+ACT(a:FAC, 'FIN DEL INFORME')
+SetFont(a:FAC, 2)
+LimitesVision(Ag:fac)

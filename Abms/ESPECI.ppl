@@ -1,0 +1,741 @@
+﻿#*********************************************************************************
+#combos data sources.
+set ds_Status              = "HAB:Habilitada|DES:Deshabilitada|"
+set ds_InteresesC          = "DIR:Dirty|CLE:Clean|"
+set ds_CotizaMAE           = "DIR:Dirty|CLE:Clean|"
+set ds_DiasMes             = "30:30|REA:Real|30E:30E|31E:30E+1|"
+set ds_DiasAnio            = "360:360|365:365|REA:Real|"
+set ds_Tipo                = ":|PUB:Publico|PRI:Privado|ONE:O.N.|FON:Fondo|MON:Moneda|OTR:Otro|IND:Indice"
+set ds_TipoEC              = "ESC:Escritural|CAR:Cartular|"
+set ds_TipoCartera         = "CON:Conservadora|MOD:Moderada|AGR:Agresiva|"
+set ds_Modo                = "NOR:Normal|CAL:Called|PUT:Put|DEF:Default|"
+set ds_IVA                 = "EXE:Exento|IVA:IVA|RNI:IVA RNI|"
+set ds_FormaCalculoInts    = "IND:Indice|TAS:Tasa|"
+set ds_PIKs                = "NO:No|SIE:Siempre|OPT:Optativo|"
+set ds_Security            =  "0:I|1:II|2:III|3:Otro|" 
+set ds_Tasa                =  "FIJ:Fija|FLO:Variable|"
+set ds_DvTasa              =  "COR:Fecha Corte|PAG:Fecha Pago|PAO:Fecha Pago Original|"
+set ds_Fondo               = "0:MM|1:Securities|"
+set ds_Fondo1              = "0:Round|1:Trunc|"
+#set RespMessage = 10
+# Instancio ExtendedPPL
+set xppl = $.NewExtendedPPL()
+
+#*********************************************************************************
+def abm 'Especies'
+   def grid
+   Jerarquia:, Codigo:, Nombre:, Extendido:, ISIN: 
+   end
+   def key
+       Jerarquia:, Codigo:
+   end
+   
+   def context_menu
+       "Copiar Especie", do
+       set especie = sender.Codigo; 
+       $.EjecutarEvento('COPESP', {especie1:especie})
+       $.RefreshGrid()
+       end 
+   end
+   
+   def dialog
+       #**************************************************************************
+       tab 'General'
+          column
+             Jerarquia: , 'Jerarquía',
+             Codigo: , 'Código Especie', small_text,'XXXXXX'
+             EsJerarquia:,'Es Jerarquia',check
+             Nombre: , 'Nombre Resumido', 
+             Cupon: , 'Cupon', numeric,'#########0'
+             Extendido: , 'Nom Extendido', extra_large_text
+             Cotiza: , 'Cotiza en', autocomplete, 'ESPECIES', 'Codigo,Nombre',''," Tipo='MON'"
+             FEmision: , 'Fecha Emisión', date
+             Fecha: , 'Fec Maduración', date
+             MonedaEmision: , 'Moneda Emision', autocomplete, 'ESPECIES', 'Codigo,Nombre',''," Tipo='MON'"
+             column
+             Bcuelga: , 'Depende del anterior' , check
+             Status: ,          , combo, ds_Status
+             InteresesC: , 'Cotiza', combo, ds_InteresesC
+             CotizaMAE: , 'Cotiza MAE', combo, ds_CotizaMAE
+       #**************************************************************************
+       tab 'Adicional'
+          column
+             TamanioLote: , 'Tamaño del Lote', numeric,'###########0.00000'
+             VTeorico: , 'Valor Teorico', numeric,'######0.00000000'
+             VNominal: , 'Valor Nominal', numeric,'####0.00000'
+             Factor: , 'Factor', numeric,'####0.000000'
+             MercadoDef: , 'Mercado Default', autocomplete, 'MERCADOS', 'Codigo,Descripcion'
+             Tasa1: , 'Tasa 1', numeric,'####0.00000'
+             Tasa2: , 'Tasa 3', numeric,'####0.00000'
+             Tasa3: , 'Tasa 2', numeric,'####0.00000'
+             ISIN: , , text
+             CUSIP: , , small_text
+             Cedel: , , text
+             EuroClear: , , text
+          Column
+             DiasMes: , 'Mes', combo, ds_DiasMes
+             DiasAnio: , 'Año', combo, ds_DiasAnio
+             Caracter: ,          , autocomplete_ar_list, 'CARACTERISTICAS', 'Codigo,Descripcion'
+       #**************************************************************************
+       tab 'Datos'
+          column
+             # Codigo Bolsa
+             CodAlfCajaValores: , , extra_small_text
+             CodNumCajaValores: , , extra_small_text
+             LaminaMinima: ,          , numeric,'###########0.000'
+             VolumenMinimo: , 'Vol minimo'         , numeric,'########0.00'
+             CantidadVotos: ,          , numeric,'########0.00'             
+             DenominCajaValores: , 'Den. Caja Valores', extra_large_text
+             ClaseCajaValores: ,  'Clase Valores', small_text
+             CodMAEContado: ,      'Cod MAE cont'    , small_text,'XXXXX'
+             CodMAEPase: ,        'Cod MAE Pase'  , small_text
+             CodMAEPaseAforado: ,  'Cod MAE Af:'        , small_text
+             CodMAECaucion: ,    'Cod MAE Cau'      , small_text
+             PaisOrigen: ,          , autocomplete,'PAISES','Codigo,Nombre'
+             Tranche:  , ,small_text
+             ISO: ,          , extra_small_text
+          Column
+             TipoEC: , 'Tipo EC', combo, ds_TipoEC
+             Tipo: ,          , combo, ds_Tipo
+             TipoIndice:,     , autocomplete,'TIPOSINDICE','Codigo,Descripcion'
+        #**************************************************************************
+        tab 'Otros'
+           column 
+              PlazoLiq:, 'Plazo Liq. en hs',numeric,'#0'
+              ExNumber:,'External Num',
+              ExNumberS:,'Ext Num source',
+              Issue:,'Issue type',
+              SType:,'Security Type',
+              Issuer:,'Emisor', autocomplete, 'CLIENTES', 'Codigo,RazonSocial'
+              Guarantor:,,
+              CalDate:,'Call Date',date
+              PutDate:,'Put Date',date
+              ConDate:,'Conv. Date',date
+              CallPrice:,,numeric,'0.000000'
+              PutPrice:,,numeric,'0.000000'
+              CommonCode:,,
+           column
+             Security:,'Security Cassification',combo,ds_Security
+             Reestructurado:,,check
+             Indexado:,,check
+             #IndiceEnPrecio:,,check
+             Indice:,'Indice',autocomplete, 'ESPECIES', 'Codigo,Nombre',''," "+dbo+".DESCIENDEDEESPECIE(Codigo,'INDICE') = 1"
+      #**************************************************************************
+      tab 'Variable'
+           column
+              Valor1:, 'TipEmisor', numeric,'0.00000000'
+              #Valor2:, 'QtyDec FCI', numeric,'0.00000000'
+              #Valor3:, 'Round/Trunc FCI', combo, ds_Valor3
+              Fondo2:, 'QtyDec FCI', numeric,'0.00000000'
+              Valor2Bis:, 'Valor 2',
+              Fondo1:, 'Round/Trunc FCI', combo, ds_Fondo1
+              Valor3Bis:, 'Valor 3',
+              Valor4:, 'Valor 4', numeric,'0.00000000'
+              Valor5:, 'Indice', numeric,'0.00000000'
+              Valor6:, 'D.Indice', numeric,'0.00000000'
+              Valor7:, 'Valor 7', numeric,'0.00000000'
+              Valor8:, 'ResInc', numeric,'0.00000000'
+              Valor9:, 'Valor 9', numeric,'0.00000000'
+              Valor10:, 'Valor 10 ', numeric,'000.00000000'
+              Valor3:, 'Valor 3',
+              Valor2:, 'Valor 2',
+           column
+              Alias1:, 'Alias 1', 
+              #Alias2:, 'TipoFci', combo, ds_Alias2
+              Fondo:, 'TipoFci', combo, ds_Fondo
+              Alias2Bis:, 'Alias 2',
+              Alias3:, 'EspCup',
+              Alias4:, 'Alias 4',
+              Alias5:, 'GtiaFCI', 
+              Alias6:, 'Alias 6',
+              Alias6Bis:,'Especie Vinc.', autocomplete, 'ESPECIES', 'Codigo,Nombre',''," MonedaEmision='USD' and Cotiza = 'ARP' "
+              Alias7:, 'Alias 7',
+              Alias8:, 'EspSoc',
+              Alias9:, 'Alias 9',
+              Alias10:, 'Esp.Sist.Cont.',
+              Alias2:, 'Alias 2',
+           column          
+              Fecha1:, 'Fecha 1',  date        
+              Fecha2:, 'Fecha 2',  date        
+              Fecha3:, 'Fecha 3',  date        
+              Fecha4:, 'Fecha 4',  date        
+              Fecha5:, 'Fecha 5',  date        
+              Fecha6:, 'Fecha 6',  date        
+              Fecha7:, 'Fecha 7',  date        
+              Fecha8:, 'Fecha 8',  date        
+              Fecha9:, 'Fecha 9',  date        
+              Fecha10:, 'Fecha 10',date                                
+       #**************************************************************************
+       tab 'Series'
+          column
+          Series:,,embeded_abm,"SERIES"
+       #**************************************************************************
+        tab 'Rating'
+           column
+              LocalRating1: ,, 
+              LocalRatingSource1: ,'Local Rat.Sou.1', 
+              LocalRating2: ,, 
+              LocalRatingSource2: ,'Local Rat.Sou.2', 
+              SyPRating: ,, extra_small_text
+              MoodysRating: ,, extra_small_text
+       #**************************************************************************
+       tab 'Cupones'
+          column
+             CodEsCuponAnterior: , 'Cupon Anterior', autocomplete, 'ESPECIES', 'Codigo,Nombre'
+             CodEsProximoCupon: , 'Proximo Cupon', autocomplete, 'ESPECIES', 'Codigo,Nombre'
+             CodEsCuponAdherido: , 'Cupon Adherido', autocomplete, 'ESPECIES', 'Codigo,Nombre'
+             FechaCorteCupon: , 'F. Corte Cupon', date
+             FechaPresentaCupon: , 'F. Pres.Cupon', date
+             FechaProximoCorte: , 'F. Prox.Corte', date
+             FechaPagoCupon: , 'F. Pago Cupon', date
+             FechaCambioTasa: , 'F. Cambio Tasa', date
+             TasaIntVigente: , 'Tasa Vigente', numeric,'########0.00000000'
+             TasaIntAnterior: , 'Tasa Anterior', numeric,'########0.00000000'
+             IntsCapitalizados: , 'Int. Cap', numeric,'########0.00000000'
+             PeriodoIntereses: , 'Ult. Cupon Cap.', numeric,'########0.00000000'
+             TasaAmortProxCupon: , 'T. Am. Prox. Cup', numeric,'########0.00000000'
+             TasaPIKsVigente: ,, numeric,'########0.00000000'
+             TasaIntPiksVigente: ,, numeric,'########0.00000000'
+          column
+             FormaCalculoInts: , 'Forma Cal Int', combo, ds_FormaCalculoInts
+             EsCupon: ,          , check
+             ZeroCoupon: ,          , check
+             TipoTasa:   , 'Tipo Tasa', autocomplete, 'TIPOSTASA','Codigo,Nombre'
+             Spread:  ,              , numeric,'########0.0000000'
+             DiasTasa: ,, numeric,'########0'
+             TasaCap: ,, numeric,'########0.0000000'
+             TasaFloor: ,, numeric,'########0.0000000'
+             PIKs: ,, combo, ds_PIKs
+             DDPIKs: ,, check
+       #**************************************************************************
+        tab 'Graficos'
+           column
+              MaxGraficar: , 'Max.Graficar', numeric,'########0.0000000'
+              MinGraficar: , 'Min.Graficar', numeric,'########0.0000000'
+              MaxSupuesto: , 'Max Supuesto', numeric,'########0.0000000'
+              MinSupuesto: , 'Min.Supuesto', numeric,'########0.0000000'
+              Intervalos:  ,               , numeric,'########0.0000000'
+       #**************************************************************************
+       tab 'Observaciones'
+          column
+             Observaciones: ,          , full_tab_text
+   end
+   
+   required_fields: Codigo:
+   upper_case_fields: Codigo:, Alias9:
+   disable:  Jerarquia:,1=1;
+   # Esto hace que el campo no se grabe.
+   do_not_map: Bcuelga:, Fondo:, Alias2Bis:, Fondo1:, Valor3Bis:, Fondo2:, Valor2Bis:,Alias6Bis:
+   
+   hide_fields: 
+   Bcuelga:
+   
+   before_show_create_dialog: do 
+        if $.Alta()
+            # Se muestra solo en el alta
+            $.show(Bcuelga:)
+            set jerRef = $.val(sender.JERARQUIA)
+            $.set_field Jerarquia:, ppl.GenerarJerarquiaByRef('ESPECIES', jerRef, $.val Bcuelga: = 'SI')
+            #Combos que vienen con default
+            $.set_field DiasMes:, 'REA'
+            $.set_field DiasAnio:, 'REA'
+            $.set_field ZeroCoupon:, false
+            $.Enable(Cupon:)
+            $.show(EsJerarquia:)
+            $.Hide(TipoIndice:)
+        endif
+   end
+   
+   before_show_dialog: do 
+   If ppl.DesciendeDeEspecie(val (sender.Codigo),'TITULO') 
+         If $.val(MonedaEmision:) == 'USD'
+             $.hide(Alias6:)
+             $.show(Alias6Bis:)
+         else
+             $.show(Alias6:)
+             $.hide(Alias6Bis:)
+         endif
+    else
+         $.show(Alias6:)
+         $.hide(Alias6Bis:)
+    endif
+    if $.Alta()
+           $.set_field ZeroCoupon:, false
+           $.Enable(Codigo:)
+           $.Enable(EsJerarquia:)
+           $.Enable(Cupon:)
+           $.hide(Alias2:)
+           $.hide(Fondo:)
+           #$.hide(Alias2Bis:)
+           $.hide(Valor3:)
+           $.hide(Fondo1:)
+           #$.hide(Valor3Bis:)
+           $.hide(Valor2:)
+           $.hide(Fondo2:)
+           $.hide(Indice:)
+          # $.hide(Valor2Bis:)
+          $.set_field Tipo:, ''
+           IF $.val(Tipo:) == 'FON'
+               $.set_field Fondo:, null
+               $.set_field Fondo1:, null
+               $.set_field Alias2Bis:, null
+               $.set_field Valor3Bis:, null
+           end
+           
+        end
+        
+        IF  $.Modificacion() OR $.Baja()
+            $.Disable(Codigo:)
+            $.Disable(EsJerarquia:)
+            $.hide(Alias2:)
+            $.hide(Valor3:)
+            $.hide(Valor2:)
+            #$.show(Alias2:)
+            If $.val Indexado: = 'SI'
+                $.show(Indice:)
+            else
+                $.hide(Indice:)
+                $.set_field Indice:, ''
+            end
+            If ppl.DesciendeDeEspecie(val (sender.Codigo),'TITULO') AND $.val MonedaEmision: = 'USD'
+                $.set_field Alias6Bis:, $.val(Alias6:)
+            else
+                true
+            endif
+            If $.val(Tipo:) == 'FON'
+                $.set_field Fondo:, $.val(Alias2:)
+                $.show(Fondo:)
+                $.hide(Alias2Bis:)
+                $.set_field Fondo1:, $.val(Valor3:)
+                $.show(Fondo1:)
+                $.hide(Valor3Bis:)
+                $.set_field Fondo2:, $.val(Valor2:)
+                $.show(Fondo2:)
+                $.hide(Valor2Bis:)
+            else
+                $.set_field Alias2Bis:, $.val(Alias2:)
+                $.set_field Fondo:, null
+                $.set_field Fondo1:, null
+                $.set_field Fondo2:, null
+                $.show(Alias2Bis:)
+                $.hide(Fondo:)
+                $.set_field Valor3Bis:, $.val(Valor3:)
+                $.show(Valor3Bis:)
+                $.hide(Fondo1:)
+                $.set_field Valor2Bis:, $.val(Valor2:)
+                $.show(Valor2Bis:)
+                $.hide(Fondo2:)
+            end
+            
+        endif
+    end
+   
+   
+   
+   when_change: Bcuelga: do
+        if $.Alta()
+            set jerRef = $.val(sender.JERARQUIA)
+            $.set_field Jerarquia:, ppl.GenerarJerarquiaByRef('ESPECIES', jerRef, $.val Bcuelga: = 'SI')
+        endif
+   end
+   
+   when_change: Indexado: do
+        If $.val Indexado: = 'SI'
+            $.show(Indice:)
+        else
+            $.hide(Indice:)
+            $.set_field Indice:, ''
+        end
+    end   
+   
+   #**********************
+   # INDICES
+   when_change: Tipo: do
+        If $.val(Tipo:) = 'IND'
+            $.Show(TipoIndice:)
+            $.Show(Alias2Bis:)
+            $.hide(Fondo:)
+            $.Show(Valor3Bis:)
+            $.hide(Fondo1:)
+            $.Show(Valor2Bis:)
+            $.hide(Fondo2:)
+        else
+            $.Hide(TipoIndice:)
+            $.set_field TipoIndice:, null
+            If $.val(Tipo:) = 'FON'
+                $.Show(Fondo:)
+                $.hide(Alias2Bis:)
+                $.Show(Fondo1:)
+                $.hide(Valor3Bis:)
+                $.Show(Fondo2:)
+                $.hide(Valor2Bis:)
+                $.set_field Fondo:, null
+                $.set_field Fondo1:, null
+            else
+                $.Show(Alias2Bis:)
+                $.hide(Fondo:)
+                $.Show(Valor3Bis:)
+                $.hide(Fondo1:)
+                $.Show(Valor2Bis:)
+                $.hide(Fondo2:)
+                $.set_field Alias2Bis:, null
+                $.set_field Valor3Bis:, null
+            endif
+        endif
+   end
+   
+   before_show_dialog: do
+       If $.val(Tipo:)='IND'
+           $.Show(TipoIndice:)
+       Endif
+   end
+   
+   #**********************************************
+   
+   
+    
+    
+   when_change: MonedaEmision: do
+       If ppl.DesciendeDeEspecie(val (sender.Codigo),'TITULO') 
+         If $.val(MonedaEmision:) == 'USD'
+             $.hide(Alias6:)
+             $.show(Alias6Bis:)
+         else
+             $.show(Alias6:)
+             $.hide(Alias6Bis:)
+         endif
+       else
+         $.show(Alias6:)
+         $.hide(Alias6Bis:)
+       endif
+   end
+    
+      when_change: Tipo: do
+        If $.val(Tipo:) = 'PUB' OR $.val(Tipo:) = 'ONE' 
+           If $.val EsCupon: = 'NO'  
+                $.set_field Alias3:, 'C'+$.val(Codigo:)
+                $.Disable(Alias3:)
+                set ds_TipoEnviar = $.val(Tipo:)
+           end     
+        else        
+            $.set_field Alias3:, null
+            $.Enable(Alias3:)
+        endif  
+      end
+
+   before_save:  do
+     If ppl.DesciendeDeEspecie(val (sender.Codigo),'TITULO') 
+        If $.val ZeroCoupon: = 'SI'
+           If $.val Cupon: > 1
+              $.Alert('La especie es ZeroCoupon y el # cupon es > 1.')
+              false
+#              RespMessage = 2
+#              set RespMessage =  ppl.MessageBox('La especie es ZeroCoupon y el # cupon NO es 0. Confirma?',1,1)
+#              ppl.MessageBox(RespMessage)
+#              if ppl.MessageBox('La especie es ZeroCoupon y el # cupon NO es 0. Confirma?',1,2) = 6
+#                 true
+#              else
+#                 false
+#              end
+           else
+              true
+           end
+        else
+           If $.val Cupon: = 0
+              $.Alert('El # cupon es 0 y la especie NO es ZeroCoupon.')
+              false
+           else
+              true
+           end
+        end
+     else
+        true
+     end
+   end
+   
+   
+   before_save: do
+        If ppl.DesciendeDeEspecie(val (sender.Codigo),'TITULO') 
+            If __action__ = "A"
+           If $.val EsJerarquia: = 'NO'
+              If $.val PaisOrigen: = null 
+                 $.Alert('Debe completar el campo PaisOrigen antes de guardar ')
+                 false
+              else
+                 true
+              end
+          else
+             true
+          end
+        else
+           true
+        end
+   else
+        true
+     end
+   end
+   
+   
+  
+   
+   before_save: do
+    if $.val(Tipo:) = 'FON'
+           If $.val Issuer: = null
+              $.Alert('Emisor Obligatorio ')
+              false
+           else
+               If $.val Fondo: = null 
+                  $.Alert('TipoFci Obligatorio ')
+                  false
+               else
+               if $.val Fondo1: = null 
+                       $.Alert('Round/Trunc FCI Obligatorio ')
+                       false
+                   else
+                       true
+                   end
+               end
+            end
+        else
+            true
+        end
+   end
+   
+   before_save: do
+        if  $.val(Tipo:) = 'FON'
+            $.set_field Alias2:, $.val(Fondo:)
+            $.set_field Valor3:, $.val(Fondo1:)
+            $.set_field Valor2:, $.val(Fondo2:)
+        else
+            if $.val(Tipo:) <> null
+                $.set_field Alias2:, $.val(Alias2Bis:)
+                $.set_field Valor3:, $.val(Valor3Bis:)
+                $.set_field Valor2:, $.val(Valor2Bis:)                
+            else
+                 if $.val(Tipo:) = null
+                    if __action__ <> "B"
+                        if $.val(EsJerarquia:) <> 'SI'
+                            $.Alert('Tipo Obligatorio.')
+                            false
+                        else
+                            true
+                        endif
+                    else
+                        true
+                    endif  
+                    
+                 else
+                    
+                            true
+                endif
+            endif
+        endif
+   end
+   
+   
+   before_save: do
+        if __action__ <> "B"
+           if $.val(EsJerarquia:) <> 'SI'
+            if $.val(Cotiza:) = null
+            $.Alert('Cotiza En Obligatorio.')
+              false
+            else
+               true
+            endif
+           else
+              true
+           endif
+            
+       else
+           true
+       endif  
+   end
+   
+   before_save: do
+   if __action__ <> "B"
+    If ppl.DesciendeDeEspecie(val (sender.Codigo),'TITULO')
+                If $.val(EsJerarquia:) <> 'SI'
+                If $.val MonedaEmision: = null
+                  $.Alert('Debe completar el campo MonedaEmision antes de guardar ')
+                  false
+               else 
+                    If $.val MonedaEmision: = 'USD'
+                        $.set_field Alias6:, $.val(Alias6Bis:)
+                    else
+                        true
+                    endif
+               end
+              else
+                true
+              end
+    else
+           true
+       endif
+     else
+           true
+       endif    
+   end
+    
+   
+   before_save: do
+        if $.val(Tipo:) = 'IND'
+            if $.val(TipoIndice:) = ''
+                $.Alert('TipoIndice Obligatorio.')
+                false
+            else
+                true
+            end
+        else
+            true
+        end
+   end
+   
+  before_save: do
+    If __action__ = "A"
+        If (($.val(Tipo:) = 'PUB' OR $.val(Tipo:) = 'ONE') AND $.val EsCupon: = 'SI')
+            $.Alert('La Especie Cupón se genera automáticamente.')
+             false
+        else
+            true
+        end
+
+    else
+        true
+    end
+  end
+        when_change: ZeroCoupon: do
+      If $.val(ZeroCoupon:) = 'SI' 
+             $.set_field Cupon:, 0
+            $.Disable(Cupon:)
+        else        
+            $.set_field Cupon:, null
+            $.Enable(Cupon:)
+
+        endif  
+      end
+ 
+     
+   
+   validates_max_length_of:
+   Codigo:, 6 ,true;
+   Nombre:, 15,true;
+   Cupon:, 10,true;
+   Extendido: , 100,true;
+   ISIN: , 12,true;
+   CUSIP: , 9,true;
+   Cedel: , 12,true;
+   EuroClear: , 12,true;
+   CodAlfCajaValores: , 5,true;
+   CodNumCajaValores: , 5,true;
+   DenominCajaValores: , 25,true;
+   ClaseCajaValores: , 10,true;
+   CodMAEContado: , 10,true;
+   CodMAEPase: , 10,true;
+   CodMAEPaseAforado: , 10,true;
+   CodMAECaucion: , 10,true;
+   PaisOrigen: , 10,true;
+   Tranche: , 3,true;
+   ISO: , 5,true;
+   ExNumber: , 13,true;
+   ExNumberS: , 15,true;
+   Issue: , 10,true;
+   SType: , 10,true;
+   Issuer: , 10,true;
+   Guarantor:, 10,true;
+   CommonCode:, 12,true;
+   Indice:, 12,true;
+   Alias1: , 20,true; 
+   Alias2: , 20,true; 
+   Alias3: , 6,true; 
+   Alias4: , 20,true; 
+   Alias5: , 20,true; 
+   Alias6: , 6,true;
+   Alias7: , 20,true;
+   Alias8: , 20,true;
+   Alias9: , 20,true;
+   Alias10: , 20,true;     
+   LocalRating1: , 4,true;
+   LocalRatingSource1: , 15,true;         
+   LocalRating2: , 4,true;  
+   LocalRatingSource2: , 15,true;        
+   SyPRating: , 4,true;
+   MoodysRating:, 4,true;
+   
+   
+   
+   
+ 
+   # Este callback se ejecuta despues de grabar un registro.
+   # (El evento necesita que ya exista la especie en la tabla)
+   after_save:  do
+      If __action__ = "A"
+         If $.val ZeroCoupon: = 'SI'
+            #$.Alert('Hay que generar cupon!')
+            set especie = $.val(Codigo:);
+            $.EjecutarEvento('GENZER', {especie1:especie})
+         end
+         If $.val(Tipo:) = 'PUB' 
+            If $.val(EsCupon:) = 'NO' 
+                set especie = $.val(Codigo:);
+                set especieC = $.val(Alias3:);
+                set monedaCot = $.val(Cotiza:);
+                set monedaEmi= $.val(MonedaEmision:);
+                $.EjecutarEvento('ALESCU', {especie1:especie,especie2:especieC,contraespecie1:monedaCot,contraespecie2:monedaEmi,String1:ds_TipoEnviar})
+            end
+         Else
+            If $.val(Tipo:) = 'ONE'
+                If $.val(EsCupon:) = 'NO' 
+                    set especie = $.val(Codigo:);
+                    set especieC = $.val(Alias3:);
+                    set monedaCot = $.val(Cotiza:);
+                    set monedaEmi= $.val(MonedaEmision:);
+                    $.EjecutarEvento('ALESCU', {especie1:especie,especie2:especieC,contraespecie1:monedaCot,contraespecie2:monedaEmi,String1:ds_TipoEnviar})
+                end
+            end     
+         end
+         
+      end
+    
+    end
+   
+   #before_save: do
+   # set xppl = $.NewExtendedPPL()
+   # #set value = $.Val(TipoIndice:)
+   # If $.val(Tipo:) = 'IND' AND not xppl.NoVacio(TipoIndice:)
+   #     $.Alert("El campo TipoIndice no debe quedar vacío");
+   # endif
+   #end
+   
+    #Antes de borrar, hay que ver que no tenga descendientes
+    before_delete: do
+        if xppl.Eqstr(xppl.Copy($.val(Jerarquia:),4,3),'000')
+            set limiteJerarquia = 3
+        else
+            if xppl.Eqstr(xppl.Copy($.val(Jerarquia:),7,3),'000')
+                set limiteJerarquia = 6
+            else
+                if xppl.Eqstr(xppl.Copy($.val(Jerarquia:),10,3),'000')
+                    set limiteJerarquia = 9
+                else
+                    if xppl.Eqstr(xppl.Copy($.val(Jerarquia:),13,3),'000')
+                        set limiteJerarquia = 12
+                    else
+                        set limiteJerarquia = 15
+                    endif
+                endif
+            endif
+        endif
+        
+        set raizBuscar = xppl.Copy($.val(Jerarquia:),1,limiteJerarquia)
+        
+        if ppl.NoVacio(ppl.SQL(" SELECT 1 FROM "+dbo+".ESPECIES WHERE Jerarquia like '"+raizBuscar+"%' and Jerarquia <> '"+$.val(Jerarquia:)+"' ")) AND limiteJerarquia <> 15
+            $.Alert('La especie no puede eliminarse porque tiene descendientes')
+            false
+        else
+            true
+        endif
+    end
+   
+   validates_uniqueness_of: Jerarquia:, Codigo:
+   
+end

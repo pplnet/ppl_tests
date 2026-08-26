@@ -1,0 +1,6 @@
+﻿RelacionCuenta(#RESIDENTE,'','','',
+                '',
+                #MONEDA,
+                '',
+                '',
+                Modelo.Alias1)

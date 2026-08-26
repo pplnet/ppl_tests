@@ -1,0 +1,7 @@
+﻿IIF(Eqstr(#MONEDAGASTOS, #MONEFUERTE),
+   1,
+   IIF(Eqstr(#MONEDAGASTOS, #MONEURU),
+      (1/#CBNABCUSDC),
+      #TCCONTABLEVHC
+   )
+)

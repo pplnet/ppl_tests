@@ -1,0 +1,3 @@
+﻿*Esta formula guarda el total Renta + Total Amortizacion de la transacción CCUPON. 
+*En la CCUPON, son los campos Cantidad5 y Cantidad6
+fbn('Cantidad5')+fbn('Cantidad6')

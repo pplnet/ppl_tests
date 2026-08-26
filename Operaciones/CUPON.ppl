@@ -1,0 +1,41 @@
+﻿CAMPOS:1;;BuscarCampo('VEHICULOS','Alias1','Codigo',Vehiculo1)
+Especie        : 'Cupon'             ; 2;1; ;NO;;
+Cupon1         : 'Nr.Cupon'          ;  ; ; ;NO;;;;;;;;;;;'###'
+Cantidad       : 'Cantidad'          ;  ; ; ;NO;;
+ContraEspecie2 : 'Especie'           ;  ; ; ;NO;;
+MB4:'Origen|Spot|Posicion|Repo|Saldo'; 7; ; ;NO;;
+TipoCambio3    : 'NrSaldo'           ; 8;1; ;NO;TIPOCAMBIO3<>0; ; ; ; ; ;;;;;'###'
+MB2        : 'NoVencido|Spot|Futuro' ;  ; ; ;NO;MB4=2;
+Spread         : 'Pr.Posic.'         ; 8;2; ;NO;MB4=1;
+Precio3        : 'Pr.Pos.Ant'        ;  ;2; ;NO;MB4=1;
+FechaPago      : 'F.Pago'            ; 2;2; ;NO;;
+FechaOp        : 'F.Posicion'        ;  ;2; ;NO;;
+MB3            : 'Tipo|Cobro|Pago'   ;  ;2; ;NO;;
+Precio1        : '% Amort.'          ;10;1; ;NO;;
+Precio2        : '% Prox.'           ;10;2; ;NO;;
+Cliente1       : 'Cliente'           ;11;1; ;NO;;
+@VEHITO
+TipoCambio     : 'Tipo Cambio'       ;  ; ; ;NO;TIPOCAMBIO<>0;
+OperacionRef   : 'OperacionRef'      ;  ; ; ;NO;NOVACIO(OPERACIONREF);
+NrOperacion2   : 'Oper.Pago'         ;  ; ; ;NO;NOVACIO(NROPERACION2);
+RB3            : 'MOF'               ;10;2; ;NO;NO;;;;;IF(INSTANCIA=2,0,1)
+
+MOVIMIENTOS
+FechaOp   ;Vehiculo1;Especie       ;;;;;;3 ;IF(MB3=0,Cantidad,-Cantidad);;'Corte de Cupon Spot';SI;SI;;Cantidad<>0 y [MB4=0 o MB2=1];;;;3;'CUPON';
+FechaOp   ;Cliente1;Especie       ;;;;;;10;IF(MB3=0,Cantidad,-Cantidad);;'Corte de Cupon Spot';SI;SI;;Cantidad<>0 y MB4=0 y TipoCambio3=10;;;;4;'CUPON';;;;;;;Book1;
+
+FechaOp   ;Cliente1;Especie       ;;;;;Vehiculo1;1 ;IF(MB3=0,-Cantidad,Cantidad);;'Corte de Cupon Repo';SI;Incluido(Vehiculo1,Var('VLIQUIDAA'));;Cantidad<>0 y MB4=2;;;;6;'CUPON';
+FechaOp   ;Vehiculo1;Especie      ;;;;;;3;IF(MB3=0,Cantidad,-Cantidad);;'Corte de Cupon Repo';SI;SI;;Cantidad<>0 y MB4=2;;;;7;'CUPON';
+
+FechaOp   ;Cliente1;Especie       ;;;;;If(TipoCambio3=1,Vehiculo1);TipoCambio3;IF(MB3=0,Cantidad,-Cantidad);;'Corte de Cupon Saldo';SI;SI;;Cantidad<>0 y MB4=3;;;;8;'CUPON';;;;;;If(tipoCambio3 = 2 O TipoCambio3 = 10, Book1);
+
+POSICION
+FechaOp   ;Vehiculo1;ContraEspecie2;;;;Vehiculo1;;;;;TipoCambio3;-Cantidad;Precio3       ;;; If(tipoCambio3 = 101 O TipoCambio3 = 110+Cartera, Book1); ;'SEC';MB4=1;' ';'2'
+FechaOp   ;Vehiculo1;ContraEspecie2;;;;Vehiculo1;;;;;TipoCambio3; Cantidad;Spread        ;;; If(tipoCambio3 = 101 O TipoCambio3 = 110+Cartera, Book1); ;'SEC';MB4=1;' ';'2'
+
+FechaOp   ;Vehiculo1;Especie       ;;;;Vehiculo1;;;;;TipoCambio3; Cantidad;Precio3-Spread;;;; If(tipoCambio3 = 101 O TipoCambio3 = 110+Cartera, Book1) ;'SEC';MB4=1;' ';'2'
+FechaOp   ;Vehiculo1;Especie       ;;;;Vehiculo1;;;;;TipoCambio3;-Cantidad;Precio3-Spread;;;; If(tipoCambio3 = 101 O TipoCambio3 = 110+Cartera, Book1) ;'SEC';MB4=1 y NOVACIO(NROPERACION2);' ';'2'
+
+@INSTOPE
+@INST19GENE
+@INST19BITS

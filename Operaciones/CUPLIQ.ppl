@@ -1,0 +1,38 @@
+﻿CAMPOS:1;;BuscarCampo('VEHICULOS','Alias1','Codigo',Vehiculo1)
+Especie        : 'Cupon'                            ;2;1;;NO;;
+Cupon1         : 'Nr.Cupon'                         ; ; ;;NO;;
+Cantidad       : 'Cantidad'                         ; ; ;;NO;;
+FechaPago      : 'F.Liqu'                           ;2;2;;NO;;
+FechaOp        : 'F.Carga'                          ; ;2;;NO;;
+MB4            : 'Origen|Repo|Saldo|Spot'           ; ;2;;NO;;
+TipoCambio3    : 'NrSaldo'                          ; ;2;;NO;TIPOCAMBIO3<>0; ; ; ; ; ;;;;;'###'
+MB3            : 'Tipo|Cobro|Pago'                  ; ;2;;NO;;
+ContraEspecie  : 'Moneda Pago'                      ;7;1;;NO;;
+TotalNetoCli1  : 'Neto a Cobrar'                    ; ; ;;NO;;
+Precio1        : 'Precio Cup.'                      ;7;2;;NO;;
+TotalAux3      : 'Arancel CV'                       ;9;1;;NO;;
+ImporteImp     : 'Impto. gan.'                      ;9;2;;NO;;
+Cliente1       : 'Cliente'                          ;10;1;;NO;;
+@VEHITO
+Cuenta1        : 'Cta.Propia'                       ;12;1;;NO;NOVACIO(Cuenta1);
+TipoCambio     : 'Tipo Cambio'                      ; ;;;NO;TipoCambio<>0;
+OperacionRef   : 'OperacionRef'                     ;;;;NO;NOVACIO(OPERACIONREF);
+RB3            : 'MOF'                              ;10;2;;NO;NO;;;;;IF(INSTANCIA=2,0,1)
+
+MOVIMIENTOS
+FechaPago ;Vehiculo1;Especie       ;;;;;         ;3 ;-IF(MB3=0,Cantidad,-Cantidad)          ;;'Liquidacion de Cupon';SI;SI;;MB4<2 y Cantidad<>0  y TipoCambio3<>10;;;;1;'CUPON';
+FechaPago ;Cliente1;ContraEspecie ;;;;;Vehiculo1;1 ; IF(MB3=0,-TotalNetoCli1,TotalNetoCli1);;'Liquidacion de Cupon';SI;Incluido(Vehiculo1,Var('VLIQUIDAA'));;MB4<2 y TotalNetoCli1<>0 y TipoCambio3<>10;;;;2;'CUPON';
+
+FechaPago ;Vehiculo1;Especie       ;;;;;;3 ;IF(MB3=0,-Cantidad,Cantidad); ;'Liq. de Cupon Spot';SI;SI;;Cantidad<>0 y MB4=2 ;;;;3;'CUPON';
+FechaPago ;Cliente1;Especie       ;;;;;;10;IF(MB3=0,-Cantidad,Cantidad);;'Liq. de Cupon Spot' ;SI;SI;;Cantidad<>0 y MB4=2 y TipoCambio3=10;;;;4;'CUPON';
+FechaPago ;Cliente1;ContraEspecie ;;;;;Vehiculo1;1 ; IF(MB3=0,-TotalNetoCli1,TotalNetoCli1);;'Liq. de Cupon Spot';SI;Incluido(Vehiculo1,Var('VLIQUIDAA'));;MB4=2 y TotalNetoCli1<>0;;;;5;'CUPON';
+
+FechaPago ;Cliente1;Especie       ;;;;;         ;2 ;-IF(MB3=0,Cantidad,-Cantidad)          ;;'Liq. de Cupon Saldo 2 ';SI;SI;;MB4<2 y TipoCambio3=10;;;;6;'CUPON';;;;;;Book1;
+FechaPago ;Cliente1;Especie       ;;;;;         ;10;-IF(MB3=0,Cantidad,-Cantidad)          ;;'Liq. de Cupon Saldo 10';SI;SI;;MB4<2 y TipoCambio3=10;;;;7;'CUPON';;;;;;Book1;
+
+FechaPago ;Cliente1;ContraEspecie ;;;;;Vehiculo1;1 ; IF(MB3=0,-ImporteImp,ImporteImp);;'Cupliq Impuesto Ganancias';SI;Incluido(Vehiculo1,Var('VLIQUIDAA'));;ImporteImp<>0 y TipoCambio3=3;;;;8;'CUPON';
+
+
+@INSTOPE
+@INST19GENE
+@INST19BITS

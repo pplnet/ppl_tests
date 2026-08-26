@@ -1,0 +1,1 @@
+﻿IIf(#ESUSDLINKON,ROUND(&cantidadNoCorrientePrecan , 2),ROUND(#IMPPRECNOCTE*#COTMONGRUPA, 2))

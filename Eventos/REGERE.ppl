@@ -1,0 +1,65 @@
+﻿**************************************************
+* Recalcula RESULTADOS *
+**************************************************
+
+CrearDialogo
+   Fecha1   :   'Fecha'                   ;;;;;;NoVacio(Dialogo.Fecha1);'Debe ingresar una fecha';NO;FSys
+   Radio2   :   'NrSaldo|1|2'       ;;;;;;NoVacio(Radio2);'Debe seleccionar un NrSaldo';NO;
+   Radio1   :   'TipoNegocio|SEC|FC|Todos';;;;;;;;;2
+   Especie1 :   'Especie'                 ;;;;;;;;;
+   *Check1   :   'Filtra Cupon'       ;;;;;;;;;0
+   *Entero2  :   'Cupon'                   ;;;;;Dialogo.Check1=1;;;;
+   Book1    :   'Book'                    ;;;;;;;;;
+   Vehiculo1:   'Vehiculo'                ;;;;;;;;;
+FinDialogo
+
+If not Ok
+  Cancelar
+Endif
+
+ 
+
+Message('----- Recalculando Resultados desde el '~Dialogo.Fecha1)
+
+*If Dialogo.Radio2<>2
+*    let &nrSaldo Dialogo.Radio2+1
+*Endif
+
+If Dialogo.Radio1<>2
+    If Dialogo.Radio1=0
+        let &tipoNeg 'SEC'
+    else
+        let &tipoNeg 'FC'
+    Endif
+Endif
+
+SQL.ADD("Select DISTINCT Vehiculo, Book,Especie,Cupon,TipoNegocio,NrSaldo from POSICIONES2 ")
+SQL.ADD("Where Fecha>='"~IdxDate(Dialogo.Fecha1)~"' ")
+IF Dialogo.Radio2 = 0
+    SQL.ADD(" and NrSaldo= 1 ")
+ENDIF
+IF Dialogo.Radio2 = 1
+    SQL.ADD(" and NrSaldo= 2 ")
+ENDIF
+If NoVacio(&tipoNeg)
+    SQL.ADD("and TipoNegocio= '"~&tipoNeg~"'")
+Endif
+If NoVacio(Dialogo.Especie1)
+    SQL.ADD("and Especie= '"~Dialogo.Especie1~"'")
+Endif
+*If Dialogo.Check1=1
+*    SQL.ADD("and Cupon= '"~FStr(Dialogo.Entero2,1,0)~"' ")
+*Endif
+If NoVacio(Dialogo.Book1)
+    SQL.ADD("and Book= '"~Dialogo.Book1~"'")
+Endif
+If NoVacio(Dialogo.Vehiculo1)
+    SQL.ADD("and Vehiculo= '"~Dialogo.Vehiculo1~"'")
+Endif
+SQL.ADD("Order By Vehiculo,Book,Especie")
+Recorrer SQL
+    SQL.ADD("EXEC "~DBO~".CalcularResultados2 '"~IdxDate(Dialogo.Fecha1)~"', "~FStr(FBN['NrSaldo'],1,0)~",'"~FBN['TipoNegocio']~"','"~FBN['Especie']~"','','"~FBN['Book']~"','"~FBN['Vehiculo']~"' ")
+    SQL.NEW
+    SQL.EXEC
+Proximo
+Message('-- Recalculo Terminado --')

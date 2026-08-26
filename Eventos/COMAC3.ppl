@@ -1,0 +1,214 @@
+﻿CrearDialogo
+    Vehiculo1  : 'Vehiculo'                       ;;;;;;NoVacio(Vehiculo1);'Debe ingresar un vehículo';NO;VAR('DDVEHDEF');SQL("Select Vehiculo1 from "~DBO~".OPERACIONES Where TipoOp='DDC' and ObservacDoc='"~Dialogo.ObservacDoc~"' ");;;;"Codigo IN (Select Vehiculo1 from "~DBO~".OPERACIONES Where ObservacDoc = '"~Dialogo.ObservacDoc~"') "
+    Book1      : 'Book'                           ;;;;;;EqStr(Dialogo.Vehiculo1,BuscarCampo('BOOKS','Vehiculo','Codigo',Dialogo.Book1));'El book ingresado no corresponde al Vehiculo';NO;Var('BOOKDDCHE');;;;;" Vehiculo = '"~Dialogo.Vehiculo1~"' "
+    ObservacDoc: 'Cod. Cheque'                    ;;;;;;NoVacio(Dialogo.ObservacDoc) Y EqStr(BuscarCampo('OPERACIONES','TipoOp','ObservacDoc',Dialogo.ObservacDoc),'DDC') y BuscarCampo('OPERACIONES','RB1','ObservacDoc',Dialogo.ObservacDoc)<1 y BuscarCampo('OPERACIONES','FechaVto','ObservacDoc',Dialogo.ObservacDoc)<=FSys;'Debe ingresar un código de cheque válido';NO;;;;;;IIF(Vacio(Dialogo.Vehiculo1),"TipoOp='DDC' and (RB1 IS NULL OR RB1=0 or RB1=' ' or RB1='') and FechaVto<='"~IdxDate(FSYS)~"' and (ObservacDoc is not null and ObservacDoc<>'' and ObservacDoc<>' ')","TipoOp='DDC' and (RB1 IS NULL OR RB1=0 or RB1=' ' or RB1='') and FechaVto<='"~IdxDate(FSYS)~"' and (ObservacDoc is not null and ObservacDoc<>'' and ObservacDoc<>' ') and Vehiculo1='"~Dialogo.Vehiculo1~"' and Book1='"~Dialogo.Book1~"' ")
+    Fecha1     : 'Fecha Cobro'                    ;;;;;Dialogo.Radio1=1;NoVacio(Dialogo.Fecha1) o Dialogo.Radio1=0;'Debe ingresar Fecha Cobro';NO;FSys;;
+    Radio1     : 'Tipo|Conciliacion MAV|Cobro Directo';;;;;;Dialogo.Radio1>-1;'Debe seleccionar un tipo';NO;-1;;;;
+    Check1     : 'Incluye gastos'                 ;;;;;Dialogo.Radio1=0;;;;0;;;;
+FinDialogo
+
+If Not Ok
+    Cancelar
+Endif
+
+let &radio Dialogo.Radio1
+let &nrOperacion BuscarCampo('OPERACIONES','NrOperacion','ObservacDoc',Dialogo.ObservacDoc)
+If &radio=1
+    let &FechaCobro Dialogo.Fecha1
+Endif    
+**Levanto datos de la operacion
+SQL.ADD(" Select NrOperacion,NrOperacion4 'IdCheque',FechaVto2 'FechaAcr', ") 
+SQL.ADD(" TotalBrutoCli1 'Monto', ObservacDoc  ")
+SQL.ADD(" FROM  "~DBO~".OPERACIONES  ")
+SQL.ADD(" Where NrOperacion='"~&nrOperacion~"' ")
+
+
+let &fila FAC
+let &sinDatos 1
+Recorrer SQL
+    **Datos cheque
+    ACT(A:FAC,FBN['NrOperacion'])
+    ACT(B:FAC,FBN['IDCheque'])
+    **Esta columna que contiene fechas se trata como un string aca y en el listbox ya que sino en el listbox próximo
+    **se ve el formato de fecha vacío en filas donde no referencia a nada realmente
+    ACT(C:FAC,Fecha(FBN['FechaAcr'],'dd/mm/yyyy'))
+    
+    
+    ACT(D:FAC,FBN['ObservacDoc'])
+    ACN(E:FAC,FBN['Monto'])
+    let &montoCobrado Val(E:FAC)
+Proximo
+
+**Levanto cobranzas no conciliadas
+SQL.ADD(" Select Fecha,Haber,Comprobante  ")
+SQL.ADD(" FROM "~DBO~".DDCOBRANZAS   ")
+SQL.ADD(" Where (Conciliada is null or Conciliada='' or Conciliada=' ')  ") 
+SQL.ADD(" AND Vehiculo= '"~Dialogo.Vehiculo1~"'")
+SQL.ADD(" AND Book= '"~Dialogo.Book1~"'")
+
+dfa
+Recorrer SQL
+    let &sinDatos 0
+    ACT(F:FAC,FBN['Comprobante'])
+    ACT(G:FAC,FBN['Fecha'])
+    ACN(H:FAC,FBN['Haber'])   
+    ACN(K:FAC,0)
+    let &fila &fila+1
+Proximo
+
+if &sinDatos=1 y &radio<>1
+    Cancelar ('No existen cobranzas sin conciliar del Vehiculo '~Dialogo.Vehiculo1~' y Book '~Dialogo.Book1)
+endif 
+
+If Radio1=0
+    Recorrer&j 1,100
+        CrearListBox;'Arial,8,B'  ; "Cobranzas - Vehiculo: "~Dialogo.Vehiculo1~" -Book: "~Dialogo.Book1
+           'NrOperacion'   ;A1..A:&fila;NO;SI;'Error';180;STRING;;EXE('COLOR6')
+           'IDCheque'      ;B1..B:&fila;NO;SI;'Error';100;STRING;;EXE('COLOR6')
+           'Fecha Acred'   ;C1..C:&fila;NO;SI;'Error';100;STRING;;EXE('COLOR6')
+           'Comprobante'   ;D1..D:&fila;NO;SI;'Error';140;STRING;;EXE('COLOR6')
+           'Monto'         ;E1..E:&fila;NO;SI;'Error';100;STRING;;EXE('COLOR6')
+           ''              ;J1..J:&fila;NO;SI;'Error';30;STRING
+           'Comprobante'   ;F1..F:&fila;NO;SI;'Error';210;STRING;;EXE('COLOR8')
+           'Fecha de Cobro';G1..G:&fila;NO;SI;'Error';100;STRING;;EXE('COLOR8')
+           'Monto'         ;H1..H:&fila;NO;SI;'Error';100;STRING;;EXE('COLOR8')
+           'Concilia'       ;K1..K:&fila;SI;;;60;COMBO;'NO|SI';;
+             
+        FinListBox
+         
+          If Not Ok
+             Cancelar
+          Endif
+          
+          ACN(aw:1, SUM(K:1..K:&fila))
+          if Val(aw:1)=1
+              ACN(zz4,MessageBox('Confirma la conciliacion? ',3,2))
+              If VAL(zz4)=7
+                 ACN(ab3,1)
+              else
+                ACN(ab3,0)
+                Break
+              endif
+          endif
+          if Val(aw:1)<=0
+            ACN(ab3,1)
+            MessageBox('No se selecciono ninguna cobranza para conciliar')
+          endif
+          if Val(aw:1)>1
+            ACN(ab3,1)      
+            MessageBox('Se selecciono mas de una cobranza para conciliar')
+          endif
+        
+          If Val(ab3)=0
+                Break
+          EndIf
+
+    Proximo
+Endif    
+
+let &check Dialogo.Check1
+let &vehiculo Dialogo.Vehiculo1
+let &book Dialogo.Book1
+
+Recorrer&t 1,100
+      If (&radio=0 y &check=1) o &radio=1
+
+              If &radio=1
+                  CrearDialogo
+                      Cantidad3: 'Monto Cobrado'         ;;;;;;NoVacio(Cantidad3);'Debe Ingresar un Monto';NO;&montoCobrado;;
+                      Cantidad1: 'Int. Punitorios'       ;;;;;;Dialogo.Cantidad1>0 o Dialogo.Cantidad2>0;'Debe ingresar Int. Punitorios o IIBB';NO;;;;;;
+                      Cantidad2: 'IIBB'                  ;;;;;;Dialogo.Cantidad1>0 o Dialogo.Cantidad2>0;'Debe ingresar Int. Punitorios o IIBB';NO;;;;;;
+                      Especie1 : 'Moneda Gastos'         ;;;;;;NoVacio(Dialogo.Especie1);'La moneda de gastos no puede estar vacía';NO;VAR('MONELOCA');;;;;"Status='HAB' AND Codigo In ("~Pipe2Comillas(Descendientes('ESPECIES','MONEDA' ))~")"
+                      Cuenta1  : 'Cuenta Cheque'         ;;;;;;EqStr(BuscarCampo('CUENTAS','Cliente','Codigo',Dialogo.cuenta1),&vehiculo) Y ESPECIECUENTA(Dialogo.Especie1,Dialogo.Cuenta1) y EqSTr(BuscarCampo('CUENTAS','Estado','Codigo',Dialogo.Cuenta1),'HAB');'La cuenta ingresada es inválida';NO;;;;;;"Estado='HAB' and Especies Like '%"~Dialogo.Especie1~"%' and Cliente='"~&vehiculo~"' "
+                      Cuenta2  : 'Cuenta Int.Pun./IIBB'  ;;;;;;EqStr(BuscarCampo('CUENTAS','Cliente','Codigo',Dialogo.cuenta2),&vehiculo) Y ESPECIECUENTA(Dialogo.Especie1,Dialogo.Cuenta2) y EqSTr(BuscarCampo('CUENTAS','Estado','Codigo',Dialogo.Cuenta2),'HAB');'La cuenta ingresada es inválida';NO;;;;;;"Estado='HAB' and Especies Like '%"~Dialogo.Especie1~"%' and Cliente='"~&vehiculo~"' "
+                  FinDialogo              
+              else
+                  CrearDialogo
+                      Cantidad1: 'Int. Punitorios'  ;;;;;;Dialogo.Cantidad1>0 o Dialogo.Cantidad2>0;'Debe ingresar Int. Punitorios o IIBB';NO;;;;;;
+                      Cantidad2: 'IIBB'             ;;;;;;Dialogo.Cantidad1>0 o Dialogo.Cantidad2>0;'Debe ingresar Int. Punitorios o IIBB';NO;;;;;;
+                      Especie1 : 'Moneda Gastos'    ;;;;;;NoVacio(Dialogo.Especie1);'La moneda de gastos no puede estar vacía';NO;VAR('MONELOCA');;;;;"Status='HAB' AND Codigo In ("~Pipe2Comillas(Descendientes('ESPECIES','MONEDA' ))~")"
+                      Cuenta2  : 'Cuenta Int.Pun./IIBB'   ;;;;;;EqStr(BuscarCampo('CUENTAS','Cliente','Codigo',Dialogo.cuenta2),&vehiculo) Y ESPECIECUENTA(Dialogo.Especie1,Dialogo.Cuenta2) y EqSTr(BuscarCampo('CUENTAS','Estado','Codigo',Dialogo.Cuenta2),'HAB');'La cuenta ingresada es inválida';NO;;;;;;"Estado='HAB' and Especies Like '%"~Dialogo.Especie1~"%' and Cliente='"~&vehiculo~"' "
+                  FinDialogo
+              endif
+
+
+          If Not Ok
+              ACN(zz5,MessageBox('Anula la conciliacion? ',3,2))
+              If VAL(zz5)=7
+                   ACN(ab4,1)    
+              else
+                 ACN(ab4,0)
+                 Cancelar('La conciliacion fue cancelada')
+              endif
+              
+          Endif
+
+      Endif
+
+      If Val(ab4)=0
+            Break
+      EndIf
+Proximo
+
+If &radio<> 1   
+    Recorrer&y 1,&fila+1
+        If Val(K:&y)=1
+            **Registro la conciliación en la cobranza
+            SQL.ADD(" UPDATE "~DBO~".DDCOBRANZAS ")
+            SQL.ADD(" Set FechaConciliada='"~IdxDate(Ahora)~"', ")
+            SQL.ADD(" OperadorConc ='"~UsuarioActivo~"', ")
+            SQL.ADD(" Conciliada ='MAN', ")
+            SQL.ADD(" IDCheque ='"~Val(B:1)~"', ")
+            SQL.ADD(" FechaConciliadaSys='"~IdxDate(Fsys)~"' ")
+            SQL.ADD(" Where Comprobante= '"~Val(F:&y)~"'")
+            SQL.ADD(" and Vehiculo= '"~&vehiculo~"'")
+            SQL.ADD(" and Book= '"~&book~"'")
+            SQL.NEW
+            SQL.EXEC
+            let &comprobante Val(F:&y)
+            let &FechaCobro Fecha(Val(G:&y))
+            Break
+        Endif
+    Proximo
+Endif
+
+
+***Cintia 051023 - (se saca porque se agrega en el IMPCHE)
+*SQL.ADD(" Select ContraEspecie,TotalBrutoCli1,FechaOp from "~DBO~".OPERACIONES Where NrOperacion= '"~&nrOperacion~"' ")
+*Recorrer SQL
+*    If Eqstr(FBN['ContraEspecie'],VAR('MONELOCA'))
+*        let &totalBrutoCli2 FBN['TotalBrutoCli1']
+*    Else
+*        let &totalBrutoCli2 FBN['TotalBrutoCli1']*CotizacionBNA(FBN['ContraEspecie'],FBN['FechaOp'],1,NO,NO)
+*    Endif
+*Proximo
+
+
+**Registro la conciliación en el cheque
+SQL.ADD(" UPDATE "~DBO~".OPERACIONES ")
+SQL.ADD(" Set RB1='2', ")
+SQL.ADD(" Observac3 ='"~&comprobante~"', ")
+If (&radio=0 y &check=1) o &radio=1
+    SQL.ADD(" ContraEspecie2 ='"~Dialogo.Especie1~"', ")
+    SQL.ADD(" Cuenta3 ='"~Dialogo.Cuenta2~"', ")
+    SQL.ADD(" TotalAux1 ='"~FStr(Dialogo.Cantidad1,0,2)~"', ")
+    SQL.ADD(" TotalAux2 ='"~FStr(Dialogo.Cantidad2,0,2)~"', ")
+    If &radio=1  
+        SQL.ADD(" Cuenta2 ='"~Dialogo.Cuenta1~"', ")
+        SQL.ADD(" TotalAux3 ='"~FStr(Dialogo.Cantidad3,0,2)~"', ")
+    Endif 
+Endif    
+SQL.ADD(" FechaEj ='"~IdxDate(Ahora)~"', ")
+SQL.ADD(" FechaEx1 ='"~IdxDate(Fsys)~"', ")
+***Cintia 051023 - (se saca porque se agrega en el IMPCHE)
+*SQL.ADD(" TotalBrutoCli2 ='"~FStr(&totalBrutoCli2,0,2)~"', ")
+**
+SQL.ADD(" Fecha2 ='"~IdxDate(&FechaCobro)~"' ")
+SQL.ADD(" Where NrOperacion= '"~&nrOperacion~"'")
+SQL.NEW
+SQL.EXEC
+
+SQL.ActualizarMovimientos2(&nrOperacion,NO,SI,NO,NO)
+SQL.EXEC
+    
+MessageBox('La conciliación finalizó con éxito')

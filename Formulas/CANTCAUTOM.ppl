@@ -1,0 +1,1 @@
+﻿IIF(EqStr(fbn('CB1'),'0'),fbn('TotalNetoCli1'),#CANTIDAD)

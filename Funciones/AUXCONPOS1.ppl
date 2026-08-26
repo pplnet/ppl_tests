@@ -1,0 +1,272 @@
+﻿  if Val(x3)=0
+   if [EqStr(fbn['TipoOp'],'MMPF') y Not EqStr(fbn['PaseCB'],'3')] o Not EqStr(fbn['TipoOp'],'MMPF')
+    SQL.ADD("Insert into "~DBO~".MOVLIMITES (")
+    SQL.ADD("FechaMov, Cliente, Limite,")
+    SQL.ADD("Especie, Monto, NrOperacion,")
+    SQL.ADD("Descripcion, Vehiculo, Book,")
+    SQL.ADD("Responsable, TipoPosicion, Producto,")
+    SQL.ADD("TipoNegocio, FechaLim, ActPas,")
+    SQL.ADD("Bits")
+    SQL.ADD(") values (")
+    SQL.ADD("'"~IdxDate(fbn('FechaOp'))~"', '"~fbn('Cliente2')~"' ,'VMAXMMESC', ")
+    SQL.ADD("'"~Val(x1)~"', "~FStr(Val(x2),1,2)~" ,'"~Dialogo.NrOperacion1~"', ")
+    SQL.ADD("'Afectacion "~fbn('TipoOp')~"', '"~fbn('Vehiculo1')~"' ,'"~fbn('Book1')~"', ")
+    SQL.ADD("'"~fbn('Responsable1')~"', 'MMKTS' ,'"~Val(z6)~"', ")
+    SQL.ADD("'MM', '"~IdxDate(PriDeMes(fbn('FechaVto'),SI))~"', '"~Val(z2)~"',")
+    if fbn('FechaOp')<=FSys
+      SQL.ADD("'P'")
+    else
+      SQL.ADD("'N'")
+    endif
+    SQL.ADD(")")
+    SQL.NEW
+    SQL.ADD("Insert into "~DBO~".MOVLIMITES (")
+    SQL.ADD("FechaMov, Cliente, Limite,")
+    SQL.ADD("Especie, Monto, NrOperacion,")
+    SQL.ADD("Descripcion, Vehiculo, Book,")
+    SQL.ADD("Responsable, TipoPosicion, Producto,")
+    SQL.ADD("TipoNegocio, FechaLim, ActPas,")
+    SQL.ADD("Bits")
+    SQL.ADD(") values (")
+    SQL.ADD("'"~IdxDate(fbn('FechaOp'))~"', '"~fbn('Cliente2')~"' ,'VMAXMDIAC', ")
+    SQL.ADD("'"~Val(x1)~"', "~FStr(Val(x2),1,2)~" ,'"~Dialogo.NrOperacion1~"', ")
+    SQL.ADD("'Afectacion "~fbn('TipoOp')~"', '"~fbn('Vehiculo1')~"' ,'"~fbn('Book1')~"', ")
+    SQL.ADD("'"~fbn('Responsable1')~"', 'MMKTS' ,'"~Val(z6)~"', ")
+    SQL.ADD("'MM', '"~IdxDate(fbn('FechaVto'))~"', '"~Val(z2)~"',")
+    if fbn('FechaOp')<=FSys
+      SQL.ADD("'P'")
+    else
+      SQL.ADD("'N'")
+    endif
+    SQL.ADD(")")
+    SQL.NEW
+   endif
+    recorrer&i 27, 31
+      if Val(&i:3)>0
+        SQL.ADD("Insert into "~DBO~".MOVLIMITES (")
+        SQL.ADD("FechaMov, Cliente, Limite,")
+        SQL.ADD("Especie, Monto, NrOperacion,")
+        SQL.ADD("Descripcion, Vehiculo, Book,")
+        SQL.ADD("Responsable, TipoPosicion, Producto,")
+        SQL.ADD("TipoNegocio, ActPas,")
+        SQL.ADD("PlazoDesde, PlazoHasta,")
+        SQL.ADD("Bits")
+        SQL.ADD(") values (")
+        SQL.ADD("'"~IdxDate(Val(&i:3))~"', '"~fbn('Cliente2')~"' ,'VMAXMTRAC', ")
+        SQL.ADD("'"~Val(x1)~"', "~FStr(Val(x2),1,2)~" ,'"~Dialogo.NrOperacion1~"', ")
+        SQL.ADD("'Afectacion "~fbn('TipoOp')~"', '"~fbn('Vehiculo1')~"' ,'"~fbn('Book1')~"', ")
+        SQL.ADD("'"~fbn('Responsable1')~"', 'MMKTS' ,'"~Val(z6)~"', ")
+        SQL.ADD("'MM', '"~Val(z2)~"',")
+        SQL.ADD(""~FStr(Val(&i:1),1,0)~", "~FStr(Val(&i:2),1,0)~",")
+        if Val(&i:3)<=FSys
+          SQL.ADD("'P'")
+        else
+          SQL.ADD("'N'")
+        endif
+        SQL.ADD(")")
+        SQL.NEW
+        SQL.ADD("Insert into "~DBO~".MOVLIMITES (")
+        SQL.ADD("FechaMov, Cliente, Limite,")
+        SQL.ADD("Especie, Monto, NrOperacion,")
+        SQL.ADD("Descripcion, Vehiculo, Book,")
+        SQL.ADD("Responsable, TipoPosicion, Producto,")
+        SQL.ADD("TipoNegocio, ActPas,")
+        SQL.ADD("PlazoDesde, PlazoHasta,")
+        SQL.ADD("Bits")
+        SQL.ADD(") values (")
+        SQL.ADD("'"~IdxDate(Val(&i:4))~"', '"~fbn('Cliente2')~"' ,'VMAXMTRAC', ")
+        SQL.ADD("'"~Val(x1)~"', "~FStr(-Val(x2),1,2)~" ,'"~Dialogo.NrOperacion1~"', ")
+        SQL.ADD("'Des-Afectacion "~fbn('TipoOp')~"', '"~fbn('Vehiculo1')~"' ,'"~fbn('Book1')~"', ")
+        SQL.ADD("'"~fbn('Responsable1')~"', 'MMKTS' ,'"~Val(z6)~"', ")
+        SQL.ADD("'MM', '"~Val(z2)~"',")
+        SQL.ADD(""~FStr(Val(&i:1),1,0)~", "~FStr(Val(&i:2),1,0)~",")
+        if Val(&i:4)<=FSys
+          SQL.ADD("'P'")
+        else
+          SQL.ADD("'N'")
+        endif
+        SQL.ADD(")")
+        SQL.NEW
+
+        SQL.ADD("Insert into "~DBO~".MOVLIMITES (")
+        SQL.ADD("FechaMov, Cliente, Limite,")
+        SQL.ADD("Especie, Monto, NrOperacion,")
+        SQL.ADD("Descripcion, Vehiculo, Book,")
+        SQL.ADD("Responsable, TipoPosicion, Producto,")
+        SQL.ADD("TipoNegocio, ActPas,")
+        SQL.ADD("PlazoDesde, PlazoHasta,")
+        SQL.ADD("Bits")
+        SQL.ADD(") values (")
+        SQL.ADD("'"~IdxDate(Val(&i:3))~"', 'BKB' ,'VMAXMTRAT', ")
+        SQL.ADD("'"~Val(x1)~"', "~FStr(Val(x2),1,2)~" ,'"~Dialogo.NrOperacion1~"', ")
+        SQL.ADD("'Afectacion "~fbn('TipoOp')~"', '"~fbn('Vehiculo1')~"' ,'"~fbn('Book1')~"', ")
+        SQL.ADD("'"~fbn('Responsable1')~"', 'MMKTS' ,'"~Val(z6)~"', ")
+        SQL.ADD("'MM', '"~Val(z2)~"',")
+        SQL.ADD(""~FStr(Val(&i:1),1,0)~", "~FStr(Val(&i:2),1,0)~",")
+        if Val(&i:3)<=FSys
+          SQL.ADD("'P'")
+        else
+          SQL.ADD("'N'")
+        endif
+        SQL.ADD(")")
+        SQL.NEW
+        SQL.ADD("Insert into "~DBO~".MOVLIMITES (")
+        SQL.ADD("FechaMov, Cliente, Limite,")
+        SQL.ADD("Especie, Monto, NrOperacion,")
+        SQL.ADD("Descripcion, Vehiculo, Book,")
+        SQL.ADD("Responsable, TipoPosicion, Producto,")
+        SQL.ADD("TipoNegocio, ActPas,")
+        SQL.ADD("PlazoDesde, PlazoHasta,")
+        SQL.ADD("Bits")
+        SQL.ADD(") values (")
+        SQL.ADD("'"~IdxDate(Val(&i:4))~"', 'BKB' ,'VMAXMTRAT', ")
+        SQL.ADD("'"~Val(x1)~"', "~FStr(-Val(x2),1,2)~" ,'"~Dialogo.NrOperacion1~"', ")
+        SQL.ADD("'Des-Afectacion "~fbn('TipoOp')~"', '"~fbn('Vehiculo1')~"' ,'"~fbn('Book1')~"', ")
+        SQL.ADD("'"~fbn('Responsable1')~"', 'MMKTS' ,'"~Val(z6)~"', ")
+        SQL.ADD("'MM', '"~Val(z2)~"',")
+        SQL.ADD(""~FStr(Val(&i:1),1,0)~", "~FStr(Val(&i:2),1,0)~",")
+        if Val(&i:4)<=FSys
+          SQL.ADD("'P'")
+        else
+          SQL.ADD("'N'")
+        endif
+        SQL.ADD(")")
+        SQL.NEW
+      endif
+    proximo
+   if [EqStr(fbn['TipoOp'],'MMPF') y Not EqStr(fbn['PaseCB'],'3')] o Not EqStr(fbn['TipoOp'],'MMPF')
+    SQL.ADD("Insert into "~DBO~".MOVLIMITES (")
+    SQL.ADD("FechaMov, Cliente, Limite,")
+    SQL.ADD("Especie, Monto, NrOperacion,")
+    SQL.ADD("Descripcion, Vehiculo, Book,")
+    SQL.ADD("Responsable, TipoPosicion, Producto,")
+    SQL.ADD("TipoNegocio, FechaLim, ActPas,")
+    SQL.ADD("Bits")
+    SQL.ADD(") values (")
+    SQL.ADD("'"~IdxDate(fbn('FechaOp'))~"', 'BKB' ,'VMAXMMEST', ")
+    SQL.ADD("'"~Val(x1)~"', "~FStr(Val(x2),1,2)~" ,'"~Dialogo.NrOperacion1~"', ")
+    SQL.ADD("'Afectacion "~fbn('TipoOp')~"', '"~fbn('Vehiculo1')~"' ,'"~fbn('Book1')~"', ")
+    SQL.ADD("'"~fbn('Responsable1')~"', 'MMKTS' ,'"~Val(z6)~"', ")
+    SQL.ADD("'MM', '"~IdxDate(PriDeMes(fbn('FechaVto'),SI))~"', '"~Val(z2)~"',")
+    if fbn('FechaOp')<=FSys
+      SQL.ADD("'P'")
+    else
+      SQL.ADD("'N'")
+    endif
+    SQL.ADD(")")
+    SQL.NEW
+    SQL.ADD("Insert into "~DBO~".MOVLIMITES (")
+    SQL.ADD("FechaMov, Cliente, Limite,")
+    SQL.ADD("Especie, Monto, NrOperacion,")
+    SQL.ADD("Descripcion, Vehiculo, Book,")
+    SQL.ADD("Responsable, TipoPosicion, Producto,")
+    SQL.ADD("TipoNegocio, FechaLim, ActPas,")
+    SQL.ADD("Bits")
+    SQL.ADD(") values (")
+    SQL.ADD("'"~IdxDate(fbn('FechaOp'))~"', 'BKB' ,'VMAXMDIAT', ")
+    SQL.ADD("'"~Val(x1)~"', "~FStr(Val(x2),1,2)~" ,'"~Dialogo.NrOperacion1~"', ")
+    SQL.ADD("'Afectacion "~fbn('TipoOp')~"', '"~fbn('Vehiculo1')~"' ,'"~fbn('Book1')~"', ")
+    SQL.ADD("'"~fbn('Responsable1')~"', 'MMKTS' ,'"~Val(z6)~"', ")
+    SQL.ADD("'MM', '"~IdxDate(fbn('FechaVto'))~"', '"~Val(z2)~"',")
+    if fbn('FechaOp')<=FSys
+      SQL.ADD("'P'")
+    else
+      SQL.ADD("'N'")
+    endif
+    SQL.ADD(")")
+    SQL.NEW
+   endif
+    SQL.ADD("Select Controlante from "~DBO~".GRUPOSECONOMICOS where Cliente='"~fbn('Cliente2')~"'")
+    recorrer SQL
+     if [EqStr(fbn['TipoOp',0],'MMPF') y Not EqStr(fbn['PaseCB',0],'3')] o Not EqStr(fbn['TipoOp',0],'MMPF')
+      SQL.ADD("Insert into "~DBO~".MOVLIMITES (")
+      SQL.ADD("FechaMov, Cliente, Limite,")
+      SQL.ADD("Especie, Monto, NrOperacion,")
+      SQL.ADD("Descripcion, Vehiculo, Book,")
+      SQL.ADD("Responsable, TipoPosicion, Producto,")
+      SQL.ADD("TipoNegocio, FechaLim, ActPas,")
+      SQL.ADD("Bits")
+      SQL.ADD(") values (")
+      SQL.ADD("'"~IdxDate(fbn('FechaOp',0))~"', '"~fbn('Controlante')~"' ,'VMAXMMESG', ")
+      SQL.ADD("'"~Val(x1)~"', "~FStr(Val(x2),1,2)~" ,'"~Dialogo.NrOperacion1~"', ")
+      SQL.ADD("'Afectacion "~fbn('TipoOp',0)~"', '"~fbn('Vehiculo1',0)~"' ,'"~fbn('Book1',0)~"', ")
+      SQL.ADD("'"~fbn('Responsable1',0)~"', 'MMKTS' ,'"~Val(z6)~"', ")
+      SQL.ADD("'MM', '"~IdxDate(PriDeMes(fbn('FechaVto',0),SI))~"', '"~Val(z2)~"',")
+      if fbn('FechaOp',0)<=FSys
+        SQL.ADD("'P'")
+      else
+        SQL.ADD("'N'")
+      endif
+      SQL.ADD(")")
+      SQL.NEW
+      SQL.ADD("Insert into "~DBO~".MOVLIMITES (")
+      SQL.ADD("FechaMov, Cliente, Limite,")
+      SQL.ADD("Especie, Monto, NrOperacion,")
+      SQL.ADD("Descripcion, Vehiculo, Book,")
+      SQL.ADD("Responsable, TipoPosicion, Producto,")
+      SQL.ADD("TipoNegocio, FechaLim, ActPas,")
+      SQL.ADD("Bits")
+      SQL.ADD(") values (")
+      SQL.ADD("'"~IdxDate(fbn('FechaOp',0))~"', '"~fbn('Controlante')~"' ,'VMAXMDIAG', ")
+      SQL.ADD("'"~Val(x1)~"', "~FStr(Val(x2),1,2)~" ,'"~Dialogo.NrOperacion1~"', ")
+      SQL.ADD("'Afectacion "~fbn('TipoOp',0)~"', '"~fbn('Vehiculo1',0)~"' ,'"~fbn('Book1',0)~"', ")
+      SQL.ADD("'"~fbn('Responsable1',0)~"', 'MMKTS' ,'"~Val(z6)~"', ")
+      SQL.ADD("'MM', '"~IdxDate(fbn('FechaVto',0))~"', '"~Val(z2)~"',")
+      if fbn('FechaOp',0)<=FSys
+        SQL.ADD("'P'")
+      else
+        SQL.ADD("'N'")
+      endif
+      SQL.ADD(")")
+      SQL.NEW
+     endif
+      recorrer&i 27, 31
+        if Val(&i:3)>0
+          SQL.ADD("Insert into "~DBO~".MOVLIMITES (")
+          SQL.ADD("FechaMov, Cliente, Limite,")
+          SQL.ADD("Especie, Monto, NrOperacion,")
+          SQL.ADD("Descripcion, Vehiculo, Book,")
+          SQL.ADD("Responsable, TipoPosicion, Producto,")
+          SQL.ADD("TipoNegocio, ActPas,")
+          SQL.ADD("PlazoDesde, PlazoHasta,")
+          SQL.ADD("Bits")
+          SQL.ADD(") values (")
+          SQL.ADD("'"~IdxDate(Val(&i:3))~"', '"~fbn('Controlante')~"' ,'VMAXMTRAG', ")
+          SQL.ADD("'"~Val(x1)~"', "~FStr(Val(x2),1,2)~" ,'"~Dialogo.NrOperacion1~"', ")
+          SQL.ADD("'Afectacion "~fbn('TipoOp',0)~"', '"~fbn('Vehiculo1',0)~"' ,'"~fbn('Book1',0)~"', ")
+          SQL.ADD("'"~fbn('Responsable1',0)~"', 'MMKTS' ,'"~Val(z6)~"', ")
+          SQL.ADD("'MM', '"~Val(z2)~"',")
+          SQL.ADD(""~FStr(Val(&i:1),1,0)~", "~FStr(Val(&i:2),1,0)~",")
+          if Val(&i:3)<=FSys
+            SQL.ADD("'P'")
+          else
+            SQL.ADD("'N'")
+          endif
+          SQL.ADD(")")
+          SQL.NEW
+          SQL.ADD("Insert into "~DBO~".MOVLIMITES (")
+          SQL.ADD("FechaMov, Cliente, Limite,")
+          SQL.ADD("Especie, Monto, NrOperacion,")
+          SQL.ADD("Descripcion, Vehiculo, Book,")
+          SQL.ADD("Responsable, TipoPosicion, Producto,")
+          SQL.ADD("TipoNegocio, ActPas,")
+          SQL.ADD("PlazoDesde, PlazoHasta,")
+          SQL.ADD("Bits")
+          SQL.ADD(") values (")
+          SQL.ADD("'"~IdxDate(Val(&i:4))~"', '"~fbn('Controlante')~"' ,'VMAXMTRAG', ")
+          SQL.ADD("'"~Val(x1)~"', "~FStr(-Val(x2),1,2)~" ,'"~Dialogo.NrOperacion1~"', ")
+          SQL.ADD("'Des-Afectacion "~fbn('TipoOp',0)~"', '"~fbn('Vehiculo1',0)~"' ,'"~fbn('Book1',0)~"', ")
+          SQL.ADD("'"~fbn('Responsable1',0)~"', 'MMKTS' ,'"~Val(z6)~"', ")
+          SQL.ADD("'MM', '"~Val(z2)~"',")
+          SQL.ADD(""~FStr(Val(&i:1),1,0)~", "~FStr(Val(&i:2),1,0)~",")
+          if Val(&i:4)<=FSys
+            SQL.ADD("'P'")
+          else
+            SQL.ADD("'N'")
+          endif
+          SQL.ADD(")")
+          SQL.NEW
+        endif
+      proximo
+    proximo
+  endif

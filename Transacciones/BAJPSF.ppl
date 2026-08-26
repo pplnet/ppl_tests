@@ -1,0 +1,24 @@
+﻿CAMPOS:8;;BuscarCampo('VEHICULOS','Alias3','Codigo',Vehiculo1)
+Fecha1   : 'Fecha'         ;;1;1;NO;SI;
+Especie  : 'Especie'       ;;1;1;NO;SI;
+Especie2 : 'ContraEspecie' ;;1;1;NO;SI;
+Cantidad2: 'NrSaldo'       ;;1;1;NO;SI;;;;;;;;;;"###"
+Cliente1 : 'Cliente'       ;;1;1;NO;SI; 
+Vehiculo1: 'Vehiculo'      ;;1;1;NO;SI;
+RB1      : 'Tipo|Posicion|Saldo';;1;1;NO;SI;;;;;
+Cantidad1: 'Saldo'         ;;1;1;NO;SI;;;;;;;;;;"###,###,###,###.###############"
+Ley1     : 'Book'          ;;1;1;NO;SI;
+Precio1  : 'Precio'        ;;1;1;NO;SI;
+Cupon1   : 'Cupon'         ;;1;1;NO;SI;
+Cuenta1  : 'Cuenta'        ;;1;1;NO;SI;
+RB2      : 'Signo|Baja|Sube';;1;1;NO;SI;;;;;
+RB3      : 'Genera Mov|NO|SI';;1;1;NO;SI;
+
+MOVIMIENTOS
+Fecha1;Cliente1 ;Especie ;;;;;Vehiculo1;1;IF(RB2=0,-Cantidad1,Cantidad1);;'Baja Posicion Cuotasparte';SI;SI;;RB3=1;;Cuenta1;;1;;;Cupon1;
+Fecha1;Vehiculo1;Especie ;;;;;Vehiculo1;2;IF(RB2=0,-Cantidad1,Cantidad1);;'Baja Posicion Cuotasparte';SI;SI;;RB3=1;;Cuenta1;;4;;;Cupon1;;;;Ley1;
+
+POSICION
+Fecha1;Vehiculo1;Especie;;;;Vehiculo1;;;;;101;IF(RB2=0,-Cantidad1,Cantidad1);Precio1;;;Ley1;;'FC';NO
+Fecha1;Vehiculo1;Especie;;;;Vehiculo1;;;;;121;IF(RB2=0,-Cantidad1,Cantidad1);Precio1*if(EqStr(Especie2,Var('MONELOCA')),1,COTIZACIONC(ESPECIE2,,,,FECHA1-1,1,SI,Var('MONELOCA')));;;Ley1;;'FC';NO
+Fecha1;Vehiculo1;Especie;;;;Vehiculo1;;;;;131;IF(RB2=0,-Cantidad1,Cantidad1);Precio1*if(EqStr(Especie2,Var('MONEEXTR')),1,COTIZACIONC(ESPECIE2,,,,FECHA1-1,1,SI,Var('MONEEXTR')));;;Ley1;;'FC';NO

@@ -1,0 +1,61 @@
+﻿#*********************************************************************************
+#combos data sources.
+set ds_Status              = "OPE:Operativo|BLO:Bloqueado|ENT:En Tramite|CAN:Cancelado|"
+set ds_ActPas              = "ACT:Activo|PAS:Pasivo|TOD:Todos|"
+set ds_CarteraBCRA         = "AAA:A|BBB:B|CCC:C|"
+ 
+#*********************************************************************************
+def abm 'LimAsignados'
+   def grid
+       Cliente:, Especie:, Limite:, Vehiculo:, Facility:,Tenor:,FVencimiento:,Monto: 
+   end
+   def filter
+       "Where Limite in (Select Codigo from dbo.TIPOSLIMITE Where Clase = 'P')"
+   end
+   def key
+       Cliente:, Especie:, Limite:, Vehiculo:, Facility:,Tenor:,FVencimiento:,Monto: 
+   end
+   def dialog
+       #**************************************************************************
+       tab 'General'
+          column
+             Limite: ,          , autocomplete, 'TIPOSLIMITE', 'Codigo,Descripcion',, "Clase = 'P'"
+             Cliente: ,          , autocomplete, 'CLIENTES', 'Codigo,RazonSocial'
+             Especie: ,          , autocomplete, 'ESPECIES', 'Codigo,Nombre'
+             Facility: ,          , 
+             Tenor: ,          , numeric
+             FVencimiento: ,          , date
+             FAsignacion: ,          ,  date
+             FRevision: ,          ,    date
+             Monto: ,          , numeric,'##,###,###,##0.00'
+#             PlazoDesde: , 'PlazoDesde', numeric
+#             PlazoHasta: , 'PlazoHasta', numeric
+#             MontoRealocado: , 'MontoRealocado', numeric
+#             MontoBloqueado: , 'MontoBloqueado', numeric
+#             MontoAmpliado: , 'MontoAmpliado', numeric
+#             MontoOperativo: , 'MontoOperativo', numeric
+#             Commited: ,          , check
+#             Status: , 'Status', combo, ds_Status
+#             ActPas: , 'Activo/Pasivo', combo, ds_ActPas
+       #**************************************************************************
+       tab 'Codigos'
+          column
+             Vehiculo: ,          , autocomplete, 'VEHICULOS', 'Codigo,Descripcion'
+             Operador: ,          , autocomplete, 'USUARIOS', 'Codigo,Nombre'
+             Book: ,          , autocomplete, 'BOOKS', 'Codigo,Descripcion'
+             Trader: , 'Trader', autocomplete, 'USUARIOS', 'Codigo,Nombre'
+             TipoNegocio: , 'TipoNegocio', autocomplete, 'TIPOSNEGOCIO', 'Codigo,Descripcion'
+             Responsable: , 'Responsable', autocomplete, 'RESPONSABLES', 'Codigo,Descripcion'
+             #TipoPosicion: , 'TipoPosicion', autocomplete, 'TiposPosicion', 'Codigo,Descripcion'
+             #Producto: , 'Producto', autocomplete, 'Productos', 'Codigo,Descripcion'
+             #GrupoEspecie: , 'GrupoEspecie', autocomplete, 'GruposEspecie', 'Codigo,Descripcion'
+             CarteraBCRA: , 'CarteraBCRA', combo, ds_CarteraBCRA
+#             SubLimite: , 'SubLimite ', autocomplete, 'SubLimites', 'Codigo,Descripcion'
+#             Cartera: , 'CarteraBCRA ', autocomplete, 'Carteras', 'Codigo,Descripcion'
+   end
+   upper_case_fields: Cliente:, Especie:
+   required_fields: Cliente:, FVencimiento:
+   validates_uniqueness_of_set: Cliente:, Especie:, Limite:, Vehiculo:, Book:,Responsable:,TipoNegocio:,Trader:
+  
+end
+

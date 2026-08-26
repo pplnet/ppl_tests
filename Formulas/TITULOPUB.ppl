@@ -1,0 +1,3 @@
+﻿***---Incluido(fbn('Tipo'),'PUB')
+[DesciendeDeEspecie(fbn('Especie'), 'PUBLIC') O DesciendeDeEspecie(fbn('Especie'), 'CORP B') O DesciendeDeEspecie(fbn('Especie'), 'EXTRAN')]
+***---DesciendeDeEspecie(fbn('Especie'), 'CORP B')

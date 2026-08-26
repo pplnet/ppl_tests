@@ -1,0 +1,11 @@
+﻿HojaVisible(SI)
+let &contador 0
+Repetir
+    IF &contador < 5
+        let &contador &contador+1
+    ELSE
+        break
+    ENDIF
+Proximo
+
+ACN(A:1,&contador)

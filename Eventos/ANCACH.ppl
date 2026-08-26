@@ -1,0 +1,53 @@
+﻿CrearDialogo
+    Vehiculo1: 'Vehiculo'   ;;;;;;NoVacio(Vehiculo1);'Debe ingresar un vehículo';NO;VAR('DDVEHDEF');;;
+    Book1    : 'Book'       ;;;;;;EqStr(Dialogo.Vehiculo1,BuscarCampo('BOOKS','Vehiculo','Codigo',Dialogo.Book1));'El book ingresado no corresponde al Vehiculo';NO;Var('BOOKDDCHE');;;;;" Vehiculo = '"~Dialogo.Vehiculo1~"' "
+    Fecha1   : 'Fecha'      ;;;;;;NoVacio(Dialogo.Fecha1);'Debe ingresar una fecha';NO;FSys;;;
+FinDialogo
+
+If Not Ok
+    Cancelar
+Endif
+
+**Levanto cheques y cobranzas asociadas
+SQL.ADD(" Select C.NrOperacion,D.Comprobante,C.ObservacDoc ")
+SQL.ADD(" FROM "~DBO~".DDCOBRANZAS D  JOIN "~DBO~".OPERACIONES C ")
+SQL.ADD(" ON SubString(D.Comprobante,1,13)=C.ObservacDoc ")
+SQL.ADD(" Where C.TipoOp='DDC' and D.Haber=C.TotalBrutoCli1  ")
+SQL.ADD(" and (C.RB1='1') ")
+SQL.ADD(" and (D.Conciliada='AUT')  ")
+SQL.ADD(" AND D.Fecha='"~IdxDate(Dialogo.Fecha1)~"' ")
+SQL.ADD(" AND C.Vehiculo1= '"~Dialogo.Vehiculo1~"' AND D.Vehiculo= '"~Dialogo.Vehiculo1~"'")
+SQL.ADD(" AND D.Book= '"~Dialogo.Book1~"' AND C.Book1= '"~Dialogo.Book1~"'")
+
+
+
+Recorrer SQL
+    Message('Anulando conciliacion de cheque '~FBN['ObservacDoc'])
+    **Cobranza
+    SQL.ADD(" UPDATE "~DBO~".DDCOBRANZAS ")
+    SQL.ADD(" Set FechaConciliada=null, ")
+    SQL.ADD(" OperadorConc =null, ")
+    SQL.ADD(" Conciliada =null, ")
+    SQL.ADD(" IDCheque =null, ")
+    SQL.ADD(" FechaConciliadaSys =null ")
+    SQL.ADD(" Where Comprobante= '"~FBN['Comprobante']~"'")
+    SQL.ADD(" and Vehiculo= '"~Dialogo.Vehiculo1~"'")
+    SQL.ADD(" and Book= '"~Dialogo.Book1~"'")
+    SQL.ADD(" and Fecha= '"~IdxDate(Dialogo.Fecha1)~"' ")
+    SQL.NEW
+    SQL.EXEC
+
+    **Operacion
+    SQL.ADD(" UPDATE "~DBO~".OPERACIONES ")
+    SQL.ADD(" Set RB1='0', ")
+    SQL.ADD(" Observac3 =null, ")
+    SQL.ADD(" FechaEj =null, ")
+    SQL.ADD(" FechaEx1 =null, ")
+    SQL.ADD(" Fecha2 =null ")
+    SQL.ADD(" Where NrOperacion= '"~FBN['NrOperacion']~"'")
+    SQL.NEW
+    SQL.EXEC
+    
+    SQL.ActualizarMovimientos2(FBN['NrOperacion'],NO,SI,NO,NO)
+    SQL.EXEC
+Proximo

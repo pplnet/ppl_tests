@@ -1,0 +1,27 @@
+﻿CrearDialogo
+  Especie1   :'Especie'    ;;;;;;
+  Entero1    :'Nr.Cupon'   ;;;;;;;;;;1+IIF(Dialogo.Check6=1,0,1)
+  Fecha1     :'F.Corte'    ;;;;;;;;;;SQL(" SELECT FechaCorte FROM "~DBO~".AGENDACUPONES WHERE Especie = '"~Dialogo.Especie1~"' AND NrCupon = '"~FSTR(Dialogo.Entero1,1,0)~"' ")
+  Check6     :'UltCupon'   ;;;;;;;;;;IIF(ValorTeorico2(Dialogo.Especie1,Dialogo.Fecha1) = 0,1,0);
+FinDialogo
+
+
+
+*HojaVisible(SI)
+*
+*CrearDialogo
+*  Especie1   :'Especie'    ;;;;;;
+*  Entero1    :'Nr.Cupon'   ;;;;;;;;;;1+IIF(Dialogo.Check6=1,0,1)
+*  Fecha2     : 'Fecha2'    ;;;;;;;;;Fsys-2000;
+*  Fecha1     :'F.Corte'    ;;;;;;;;;fsys;IIF(SQL(" SELECT FechaCorte FROM "~DBO~".AGENDACUPONES WHERE Especie = '"~Dialogo.Especie1~"' AND NrCupon = '"~FSTR(Dialogo.Entero1,1,0)~"' ") < Dialogo.Fecha2, Fsys, SQL(" SELECT FechaCorte FROM "~DBO~".AGENDACUPONES WHERE Especie = '"~Dialogo.Especie1~"' AND NrCupon = '"~FSTR(Dialogo.Entero1,1,0)~"' "))
+*  Check6     :'UltCupon'   ;;;;;;;;;;IIF(ValorTeorico2(Dialogo.Especie1,Fecha(Dialogo.Fecha1)) = 0,1,0);
+*FinDialogo
+*
+**CrearDialogo
+**  Especie1   :'Especie'    ;;;;;;
+**  Entero1    :'Nr.Cupon'   ;;;;;;;;;;1+IIF(Dialogo.Check6=1,0,1)
+**  Fecha1     :'F.Corte'    ;;;;;;;;;;
+**  Check6     :'UltCupon'   ;;;;;;;;;;IIF(ValorTeorico2(Dialogo.Especie1,Dialogo.Fecha1) = 0,1,0);
+**FinDialogo
+ 
+*ACN(A:1, ValorTeorico2(Dialogo.Especie1,Dialogo.Fecha1))

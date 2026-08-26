@@ -1,0 +1,3 @@
+﻿IIF(Eqstr(fbn('ContraEspecie'), Var('MONELOCA')),
+   0,
+   COTIZACIONBNA(fbn('ContraEspecie'),Val(FV:2),1,NO,NO))

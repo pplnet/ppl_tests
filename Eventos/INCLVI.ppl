@@ -1,0 +1,25 @@
+﻿Dialogovisible(no)
+
+CrearDialogo
+    Vehiculo1  : 'Vehiculo Vinculado'   ;;;;;;;;;
+    String1    : 'Razon Social'         ;;;;;;;;;
+FinDialogo
+
+IF Not Ok
+  Cancelar
+ENDIF
+
+let &codigo Dialogo.Vehiculo1
+let &razonSocial Dialogo.String1
+let &estado 'HAB'
+let &jerarquiaVinculado Jerarquia('CLIENTES','VINCULADOS')~'000000000000'
+let &jerarquiaClienteVinculado GenerarJerarquiaByRef('CLIENTES',&jerarquiaVinculado,true)
+
+If Query("Select 1 from "~DBO~".CLIENTES Where Codigo = '"~Dialogo.Vehiculo1~"' ") <> 1
+    SQL.ADD("INSERT INTO "~DBO~".CLIENTES (Jerarquia, Codigo, RazonSocial, Status) ")
+    SQL.ADD("VALUES ('"~&jerarquiaClienteVinculado~"','"~&codigo~"','"~&razonSocial~"','"~&estado~"')")
+    SQL.NEW
+    SQL.EXEC
+else
+    messagebox('Ya existe un cliente asociado al vehiculo.')
+EndIf

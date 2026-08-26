@@ -1,0 +1,7 @@
+﻿IIF(Eqstr(#MONEGRUPO, #ESPECIE),
+   #CANTIDAD,
+   IIF(Eqstr(#MONEGRUPO, #CONTRAESP),
+      #MONTOBRUTO,
+      #IMPORTGRUV
+   )
+)

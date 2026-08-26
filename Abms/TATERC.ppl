@@ -1,0 +1,29 @@
+﻿#*********************************************************************************
+#combos data sources.
+ 
+#*********************************************************************************
+def abm 'TasasTerceros'
+   def grid
+       Fecha:, Vehiculo:, Cliente:, Especie:, Tasa:, Tipo:
+   end
+   def key
+       Fecha:, Vehiculo:, Cliente:, Especie:, Tasa:
+   end     
+   def dialog
+       #**************************************************************************
+       tab 'General'
+          column
+          Fecha:, , date,
+          Vehiculo:, , autocomplete, 'VEHICULOS', 'Codigo,Descripcion'
+          Cliente:, , autocomplete, 'CLIENTES', 'Codigo,RazonSocial'
+          Especie:, , autocomplete, 'ESPECIES', 'Codigo,Nombre'
+          Tasa:, , numeric,'#########0'
+          Tipo:, , small_text
+   end
+   
+   required: Fecha:, Vehiculo:, Cliente:, Especie:, Tasa:
+   
+   validates_max_length_of:
+        Tipo:, 6,true;
+   
+end

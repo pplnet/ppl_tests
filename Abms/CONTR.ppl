@@ -1,0 +1,49 @@
+﻿#*********************************************************************************
+def abm 'Contratos'
+   def grid
+        Codigo:, Descripcion:, CotizaEn:
+   end
+   def key
+   Codigo:, Descripcion:
+   end
+   def dialog
+       #**************************************************************************
+       tab 'General'
+          column
+              Codigo: , 'Codigo', small_text
+              Descripcion: ,          , extra_large_text
+              Tamanio:, 'Tamaño', numeric,'#########0'
+              SettlementDate:, 'Settlement Date', date
+              MaturityDate:, 'Maturity Date', date
+              LastTradingDate:, 'LTrdDateFut:', date
+              LastTradingDateOPC:, 'LTrdDateOpc:', date
+              CotizaEn: , 'Cotiza En' , autocomplete, 'ESPECIES', 'Codigo,Nombre'
+              Mercado:    , 'Mercado' , autocomplete , 'MERCADOS', 'Codigo,Descripcion'
+       tab 'Adicional'
+         column
+              TickerSymbol:, 'Ticker Symbol', large_text
+              ReutersCod:, 'Reuters Cod', large_text
+              BloombergCod:, 'Bloomberg Cod', large_text
+              Especies: , , autocomplete_ar_list, 'ESPECIES', 'Codigo,Nombre'
+         column
+              Delivery:, 'Settlement', combo, "CSH:Cash|DEL:Delivery"
+              ClaseContrato:, 'Clase', combo, "EQT:Equities|COM:Commodities|CUR:Currencies|FXI:Fixed Income"
+              Estado:, , combo, "HAB:Habilitado|VEN:Vencido"
+       tab 'Extra'
+        column
+              UnidadMedida:, 'Unidad Medida', autocomplete, 'UMEDIDAS', 'Codigo,Descripcion'
+              PriceQuoted:, 'Price Quoted', numeric,'#########0'
+              MinPriceMovement:, 'Min Price Movement', numeric,'#########0'
+              TickValue:, 'Tick Value', numeric,'#########0'
+   end
+   upper_case_fields: Codigo:
+   
+   validates_max_length_of:
+        Codigo:, 15,true;
+        Descripcion:, 40,true;
+        TickerSymbol:, 10,true;
+        ReutersCod:, 15,true;
+        BloombergCod:, 15,true;
+        
+        validates_uniqueness_of: Codigo:
+end

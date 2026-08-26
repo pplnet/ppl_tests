@@ -1,0 +1,16 @@
+﻿CrearDialogo
+  Label1: '' ;1;1;;;;;;;'Tipos de Codigos para Cuentas Principales'
+  Lista1: '' ;2 ;1;;;;;;;VAR('CPBD020');;SQLSet(" Select Codigo From "~DBO~".TIPOSCODIGODATANET ");;
+  Label2: '' ;  ;1;;;;;;;'Tipos de Codigos para Cuentas Recaudadoras, Intermedias y Pagadoras'
+  Lista2: '' ;  ;1;;;;;;;VAR('CPBD021');;SQLSet(" Select Codigo From "~DBO~".TIPOSCODIGODATANET ");;
+FinDialogo
+
+If Not Ok 
+  Cancelar
+Endif
+
+SQL.ADD("UPDATE "~DBO~".VARIABLES SET Valor = '"~Dialogo.Lista1~"' WHERE Codigo='CPBD020' ")
+SQL.NEW
+SQL.ADD("UPDATE "~DBO~".VARIABLES SET Valor = '"~Dialogo.Lista2~"' WHERE Codigo='CPBD021' ")
+SQL.NEW
+SQL.EXEC

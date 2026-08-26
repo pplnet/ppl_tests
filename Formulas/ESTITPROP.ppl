@@ -1,0 +1,1 @@
+﻿SQL("Select Valor1 from "~DBO~".ESPECIES Where Codigo = '"~#ESPECIE~"' ")=1

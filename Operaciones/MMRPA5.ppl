@@ -1,0 +1,70 @@
+﻿CAMPOS:1;;BuscarCampo('VEHICULOS','Alias1','Codigo',Vehiculo1)
+FechaOp2        : 'Fecha Conc.'                ;1;1;;NO;;FECHAOP2<=FECHAOP;'Fecha incorrecta';NO;FECHAOP;
+FechaOp         : 'Fecha_Origen'               ;2;1;;NOT EV Y VerificaAcceso('OPFVALOR');;NoVacio(FECHAOP);'Fecha de Origen Incorrecta';;PriDeMes(FSYS,SI)
+*FechaVto        : 'Fecha_Vto'                 ;9;2;;NO;;;;;FECHAOP+1;FECHAOP + PLAZO
+FechaVto        : 'Fecha_Vto'                  ;3;1;;NO;;;;;FinDeMes(FSYS,SI);FECHAOP + PLAZO
+Plazo           : 'Plazo'                      ;4;1;;;;PLAZO>0;'El plazo debe ser mayor a cero';NO;FECHAVTO-FECHAOP;FECHAVTO-FECHAOP
+@VEHITO
+*Vehiculo1      : 'Vehiculo'                   ;1;2;;;;NoVacio(VEHICULO1) Y  Incluido(VEHICULO1,SqlSet("Select Codigo from "~DBO~".VEHICULOS WHERE Codigo = '"~Vehiculo1~"' and Status ='HAB' ")) y [Vacio(UsrVehiculos(UsuarioActivo)) o Incluido(VEHICULO1,SqlSet("Select Vehiculo From "~DBO~".USRVEHICULO Where Codigo = '"~UsuarioActivo~"'"))];'El VEHICULO es INVALIDO';NO;         ;IIF([Incluido(TIPOOP,'MMPRCO|MMPREC') o [Incluido(TIPOOP,'SECS|SEVS|SECSV|SEVSV|FXCS|FXVS|FXCSV|FXVSV|FCCPV|FCVPV') y CB13=1]] THEN BuscarCampo('OPERACIONES','Vehiculo1','NrOperacion', NROPERACION5) ELSE IF(Incluido(TIPOOP, 'MMONRE'), OPREF.VEHICULO1) ENDIF);;;;;;IF(Vacio(UsrVehiculos(UsuarioActivo)),  " Status ='HAB' " ,  " Codigo IN (Select Vehiculo from "~DBO~".USRVEHICULO where Codigo = '"~UsuarioActivo~"')")
+*Book1          : 'Book'                       ;2;2;;Not Incluido(TIPOOP, 'MMPRCO|MMPREC|MMONRE|SECS|SEVS|SECSV|SEVSV|FXCS|FXVS|FXCSV|FXVSV|FCCPV|FCVPV|SECAT') o [Incluido(TIPOOP,'SECS|SEVS|SECSV|SEVSV|FXCS|FXVS|FXCSV|FXVSV|FCCPV|FCVPV') y CB13=0];;[SI O BookValido(BOOK1, TIPOOP, ESPECIE, VEHICULO1, OPERADOR,'')] Y NoVacio(BOOK1);'Book Invalido';NO;BuscarCampo('VEHICULOS','Alias5','Codigo',VEHICULO1);IIF([Incluido(TIPOOP,'SECS|SEVS|SECSV|SEVSV|FXCS|FXVS|FXCSV|FXVSV|FCCPV|FCVPV') y CB13=1] THEN BuscarCampo('OPERACIONES','Book1','NrOperacion', NROPERACION5) ELSE BuscarCampo('VEHICULOS','Alias5','Codigo',VEHICULO1) ENDIF);;;;;;" Vehiculo='"~VEHICULO1~"' AND (TiposOperacion='' OR TiposOperacion Is Null OR TiposOperacion Like '%"~TIPOOP~"|%') ";
+Especie         : 'Moneda'                     ;7;1;;NOT EV;;NoVacio(ESPECIE) y DesciendeDeEspecie(ESPECIE,'MONEDA') y EsTerminal(ESPECIE, ESPECIE);'Debe Ingresar una Moneda';NO;VAR('MONELOCA');;;;;;;"Codigo In ("~Pipe2Comillas(Descendientes('ESPECIES','MONEDA' ))~") and Status = 'HAB'";
+Cliente1        : 'Entidad'                    ;8;1;;NOT EV;;NoVacio(CLIENTE1) y EsTerminal(CLIENTE1, CLIENTE1);'La Entidad Contratante ES INCORRECTA';NO;;;;;;;;"Codigo In ("~Pipe2Comillas(Descendientes('CLIENTES','BANCOS' ))~") and Status = 'HAB'";;;;
+TipoTasa        : 'Tipo_Tasa'                  ;9;1;;NO;;NoVacio(TIPOTASA);'El Tipo de Tasa ES INVALIDO';NO;'FIJA';
+FechaPago       : 'Fecha Pago'                 ;9;2;;;;EsHabil(FECHAPAGO,TABLAFERIADOS1);'La Fecha de Pago no es Habil en la tabla de Feriados Seleccionada';;Habiles(FECHAVTO, 1, TABLAFERIADOS1, SI);;
+Precio1         : 'Tasa (%)'                   ;10;1;;;;PRECIO1>0;'La Tasa Debe ser positiva';NO;
+
+TotalIntereses  : 'Intereses'                  ;;;;NO;;;;;;;;;;;;;;;;;;
+Cantidad        : 'Saldo Minimo'               ;;;;CB3=0;;;;;;;;;;;;;;;;;;
+
+CB1             : 'Cumple Minimo'              ;;;;NO;;;;;;;;;;;;;;;;;;
+TotalNetoCli1   : 'Saldo Prom'                 ;;;;NO;;;;;;;;;;;;;;;;;;
+
+CB2             : 'Saldo Min Modif'            ;;;;NO;CB1=1;;;;;;;;;;;;;;;;;
+TotalNetoCli2   : 'Nuevo Saldo Min'            ;;;;NO;TOTALNETOCLI2>0;;;;;;;;;;;;;;;;;
+
+Operador        :                              ;20;2;;NO;;NoVacio(OPERADOR);'El Operador es Invalido';NO;USUARIOACTIVO;
+MB3             : 'Tipo|Pasiva|Activo'         ;15;1;1;NO;NO;;;;IF(Incluido(TIPOOP,VAR('OPEACT')),1,0);IF(Incluido(TIPOOP,VAR('OPEACT')),1,0)
+
+RB8             : 'U.Tiempo|360|365'           ;7;2;;;;RB8>=0;'Unidad de Tiempo Tasa Interes INVALIDA';NO;0;
+TablaFeriados1  : 'Feriados'                   ;8;2;;;;NoVacio(TABLAFERIADOS1);'Se debe indicar feriados a utilizar';NO;'ARG';BuscarCampo('Feriados','Codigo','Codigo',BuscarCampo('Especies','PaisOrigen','Codigo',ESPECIE)) 
+UsrInput        :                              ;20;2;;NO;;NoVacio(OPERADOR);'El Operador es Invalido';NO;USUARIOACTIVO;
+CB3             : 'Aut.'                       1;1;2;NO;;;;
+
+@CUENTAS
+*Cuenta1         : If(Incluido(TIPOOP,EXE('CARTA1V')) Y Not Incluido(TIPOOP,'FXAS|FXASV|FXAT|FXATV|'),'Debito en','Credito a');18;1;2;Not EV;Not Incluido(TipoOp, 'DSEO');[Incluido(TipoOp, 'DSEO')] O [[ClienteCuenta(VEHICULO1,CUENTA1) y EspecieCuenta(ESPECIE,CUENTA1) y EqSTr(BuscarCampo('CUENTAS','Estado','Codigo',CUENTA1),'HAB')] y NoVacio(CUENTA1)];"Error en Cuenta '"~If(Incluido(TIPOOP,EXE('CARTA1V')),'Debito en','Credito a')~"' "~ESPECIE;SI;IF(Eqstr(ABM, 'A'), CUENTACLIENTE(VEHICULO1,ESPECIE,CLIENTE1,,TIPOOP,'HAB'), CUENTA1);IF(Eqstr(ABM, 'A'), CUENTACLIENTE(VEHICULO1,ESPECIE,CLIENTE1,,TIPOOP,'HAB'), CUENTA1);;;;;;"Cliente='"~VEHICULO1~"' and Estado = 'HAB' and (Especies Like '%"~Especie~"%' or Especies Like '%"~ItemLista(VTXT11,Elementos(VTXT11))~"%')"     
+
+LISTA:Not Eqstr(ABM, 'A');;
+  Fecha1    : 'Fecha'          ;NO;SI;;;;;100;;Fecha;
+  Cantidad1 : 'Saldo dia'      ;NO;SI;;;;;100;;Numero;'###,###,###,###,###.##';
+  Cantidad2 : 'Saldo promedio' ;NO;SI;;;;;100;;Numero;'###,###,###,###,###.##';
+  Total1    : 'Intereses'      ;NO;SI;;;;;100;;Numero;'###,###,###,###,###.##';
+  
+  
+CONDICIONES
+*SI O [PRECIO1<=VPRE12 Y PRECIO1>=VPRE11];'Tasa Fuera de Rango: '~VPRE11~" Y "~VPRE12;SI;SI;FSYS;'RTASA'
+PRECIO1<=VAR('RTASA2') Y PRECIO1>=VAR('RTASA1');'Tasa Fuera de Rango: '~VAR('RTASA1')~" Y "~VAR('RTASA2');SI;SI;FSYS;'RTASA'
+EsHabil(FECHAPAGO,TABLAFERIADOS1);'La Fecha de Pago de Intereses NO ES DIA HABIL en la tabla de feriados seleccionada';SI;SI;FSYS;'VTOINH'
+Not EqStr('DES',BuscarCampo('Clientes','Status','Codigo',CLIENTE1));'El Cliente esta deshabilitado';NO
+Not EqStr('CLIOBS',BuscarCampo('Clientes','Alias7','Codigo',CLIENTE1));'El Cliente esta Observado';SI;SI;FSYS;'CLIOBS'
+DesciendeDeCliente(CLIENTE1,'BANCOS');"El Cliente debe ser una Entidad Bancaria";NO
+FECHAOP2 = Fsys;'La Fecha de Concertacion no coincide con la de Sistema';SI;SI;FSYS;'CONCFVALOR'
+FECHAOP  = Fsys;'La Fecha de Origen no coincide con la de Sistema';SI;SI;FSYS;'ORIGFVALOR'
+
+BAJA
+[QUERY("Select 1 From "~DBO~".CUOTAS Where NrOperacion ='"~NROPERACION~"' ") <> 1] o TOTALNETOCLI <= 0;'La operacion no se puede eliminar ya que posee calculos de intereses procesados';NO
+
+MOVIMIENTOS
+FechaPago;Cliente1;Especie;;;;;Vehiculo1;1;-TotalIntereses;;'Vto Int '~TIPOOP;SI;Incluido(Vehiculo1,Var('VLIQUIDAA'));;CB1=1 Y CB2 <> 1;;Cuenta1;;1;
+
+DEVENGADOS
+FechaOp+1;FechaVto;SI;SI;NO;'ARG';SI;SI;'INTLEN';TotalIntereses;140;Vehiculo1;Vehiculo1;;;;;;TipoOp;;Especie;;;;;;Book1;Operador;'MM';;;Especie;
+
+POSTEDICION
+%%ifdef BFSA
+    SI;'DETRIE';TipoOp = TIPOOP;Especie1=ESPECIE;Cantidad1=CANTIDAD;Book1=BOOK1;NrOperacion=NROPERACION;Fecha1=FechaOp2
+%%endif
+
+
+@INSTOPE
+@INST19MM
+@INST19BITS

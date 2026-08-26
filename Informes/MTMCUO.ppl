@@ -1,0 +1,260 @@
+﻿CrearDialogo
+  NrOperacion1: 'Operacion'     ;2;1;;;;NoVacio(Dialogo.NrOperacion1);'Debe ingresar la operacion';NO;;
+FinDialogo
+
+If Not OK
+  Cancelar
+EndIf
+
+CrearFont(1,'Arial,9,BU')
+CrearFont(2,'Arial,8,B')
+CrearFont(3,'Arial,8,')
+
+ACT(A:2,'Detalle MTM Por Operacion')
+SetFont(A:2,1)
+
+SetFilaActual(4)
+
+ACT(A:FAC,'NrOperacion:')
+ACT(B:FAC,Dialogo.NrOperacion1)
+ACLO(B:FAC,Val(B:FAC))
+ACT(A:FAC+1,'VN:')
+ACN(B:FAC+1,BuscarCampo('OPERACIONES','Cantidad','NrOperacion',Dialogo.NrOperacion1))
+ACT(A:FAC+2,'Tipo Op:')
+ACT(B:FAC+2,BuscarCampo('OPERACIONES','TipoOp','NrOperacion',Dialogo.NrOperacion1))
+
+FormatoCeldas(B:FAC+1, Exe('F2'))
+SetFont(A:FAC..B:FAC+2,2)
+AlinearCeldas(B:FAC..B:FAC+2,'D')
+
+SetFilaActual(FAC+4)
+
+ACT(A:FAC,'Fecha Hoy')
+ACT(B:FAC,'Fecha Ayer')
+ACT(C:FAC,'Cot. Hoy')
+ACT(D:FAC,'Cot. Ayer')
+ACT(E:FAC,'MTM')
+ACN(CE:1,FAC)
+AlinearCeldas(A:FAC..A:FAC,'C')
+AgregarMarco(A:FAC..E:FAC,2,0,Exe('COLOR'))
+SetFont(A:FAC..E:FAC,2)
+
+SQL.ADD(" Select M.Fecha1, M.Fecha2, M.PrecioHoy, M.PrecioAyer, M.MTM, O.CB6")
+SQL.ADD("   from "~DBO~".MTMDIARIO M")
+SQL.ADD(" JOIN "~DBO~".OPERACIONES O ")
+SQL.ADD(" ON O.NrOperacion = M.NrOperacion ")
+SQL.ADD("  Where M.NrOperacion = '"~Dialogo.NrOperacion1~"' ")
+SQL.ADD(" Order by Fecha1 ")
+  
+ACN(Z:1,FAC+1)
+
+**Fecha 1 es la Fecha que voy a usar para poder extraer los datos
+  
+Recorrer SQL
+  ACD(A:FAC,FBN['Fecha1'])
+  ACD(B:FAC,FBN['Fecha2'])
+  ACN(C:FAC, fbn('PrecioHoy'))
+  ACN(D:FAC, fbn('PrecioAyer'))
+  ACN(E:FAC, fbn('MTM'))
+  let &Manual fbn('CB6')
+  SCN(TO:1,Val(E:FAC))
+Proximo
+AlinearCeldas(A:Val(CE:1)+1..A:FAC,'C')
+
+*SQL.ADD(" SELECT CB6 FROM "~DBO~".OPERACIONES ")
+*SQL.ADD(" WHERE  NrOperacion = '"~Dialogo.NrOperacion1~"'")
+*Recorrer SQL
+*    DFA
+    
+*Proximo
+  
+FormatoCeldas(C:Val(Z:1)..D:FAC, Exe('F8'))
+FormatoCeldas(E:Val(Z:1)..E:FAC, Exe('F2'))
+SetFont(A:Val(Z:1)..E:FAC,3)
+  
+IFA
+ACT(A:FAC,'Total')
+ACN(E:FAC,Val(TO:1))
+let &TotalNeto Val(E:FAC)
+FormatoCeldas(E:FAC, Exe('F2'))
+AgregarMarco(A:FAC..E:FAC,1,0,Exe('COLOR8'))
+SetFont(A:FAC..E:FAC,2)
+
+LimitesVision(F:FAC+1)
+
+ACO(1,10)
+ACO(2,8)
+ACO(3,10)
+ACO(4,10)
+ACO(5,10)
+
+IFA
+IFA
+IFA
+
+ACT(B:FAC,'Gastos')
+SetFont(B:FAC..B:FAC,1)
+IFA
+
+ACT(A:FAC,'Gasto')
+ACT(B:FAC,'Fecha')
+ACT(C:FAC,'Importe')
+AgregarMarco(A:FAC..C:FAC,2,0,Exe('COLOR'))
+SetFont(A:FAC..C:FAC,2)
+
+IF &Manual = 0
+    SQL.ADD(" SELECT Arancel1, TotalIVA3, CASE TipoOp WHEN 'FXVF' THEN -Arancel2 ELSE Arancel2 END Arancel2, CASE TipoOp WHEN 'FXVF' THEN -TotalIVA4 ELSE TotalIVA4 END TotalIVA4,  ")
+    SQL.ADD(" ImpComMerEq1, TotalIVA, ImpComMerEq2, TotalIVA2, FechaOp, FechaVto, ")
+    SQL.ADD(" CASE TipoOp WHEN 'FXVF' THEN -ImpComMerEq3 ELSE ImpComMerEq3 END ImpComMerEq3, CASE TipoOp WHEN 'FXVF' THEN -ImpComMerEq4 ELSE ImpComMerEq4 END ImpComMerEq4,")
+    SQL.ADD(" CASE TipoOp WHEN 'FXVF' THEN -TotalIVA5 ELSE TotalIVA5 END TotalIVA5, CASE TipoOp WHEN 'FXVF' THEN -TotalIVA6 ELSE TotalIVA6 END TotalIVA6 ")
+    SQL.ADD(" FROM "~DBO~".OPERACIONES ")
+    SQL.ADD(" WHERE NrOperacion = '"~Dialogo.NrOperacion1~"' ")
+ELSE
+    SQL.ADD(" Select O.Arancel1, O.TotalIVA3, CASE O.TipoOp WHEN 'FXVF' THEN -O.Arancel2 ELSE O.Arancel2 END Arancel2, CASE O.TipoOp WHEN 'FXVF' THEN -O.TotalIVA4 ELSE O.TotalIVA4 END TotalIVA4,  ")
+    SQL.ADD(" O.FechaOp, O.FechaVto, CU.Total2, CU.Total3, CU.Descripcion ")
+    SQL.ADD(" FROM "~DBO~".OPERACIONES O JOIN "~DBO~".CUOTAS CU ")
+    SQL.ADD(" ON O.NROPERACION = CU.NROPERACION ")
+    SQL.ADD(" WHERE O.NROPERACION = '"~Dialogo.NrOperacion1~"' AND CU.Descripcion is not null ")
+    SQL.ADD(" ORDER BY CU.Fecha1 ")
+ENDIF
+
+let &DerechosRegistro 0
+let &IVADerechosRegistro 0
+let &DerechosClearing 0
+let &IVADerechosClearing 0
+
+let &DerechosRegistroVTO 0
+let &IVADerechosRegistroVTO 0
+let &DerechosClearingVTO 0
+let &IVADerechosClearingVTO 0
+
+*HAY QUE DESARROLLAR PARA LAS CUOTAS QUE VENGAN DE ROFEX. NO ESTÁ COMPLETO
+Recorrer SQL
+    DFA
+    IF &Manual = 0
+     let &FechaOp FBN['FechaOp']
+        let &FechaVto FBN['FechaVto']
+        let &ArancelAlta FBN['Arancel1']
+        let &IVAArancelAlta FBN['TotalIVA3']
+        let &ArancelVto FBN['Arancel2']
+        let &IVAArancelVto FBN['TotalIVA4']
+        let &DerechosRegistro &DerechosRegistro+FBN['ImpComMerEq1']
+        let &IVADerechosRegistro &IVADerechosRegistro+FBN['TotalIVA']
+        let &DerechosClearing &DerechosClearing+FBN['ImpComMerEq2']
+        let &IVADerechosClearing &IVADerechosClearing+FBN['TotalIVA2']
+        let &DerechosRegistroVTO &DerechosRegistroVTO+FBN['ImpComMerEq3']
+        let &IVADerechosRegistroVTO &IVADerechosRegistroVTO+FBN['TotalIVA5']
+        let &DerechosClearingVTO &DerechosClearingVTO+FBN['ImpComMerEq4']
+        let &IVADerechosClearingVTO &IVADerechosClearingVTO+FBN['TotalIVA6']
+        let &DescDerClearAlt "Der. Clearing Alta"
+        let &DescIVADerClearAlt "IVA Der. Clear. Alta"
+        let &DescDerRegAlt "Der. Registro Alta"
+        let &DescIVADerRegAlt "IVA Der. Reg. Alta"
+        let &DescDerClearVTO "Der. Clearing VTO"
+        let &DescIVADerClearVTO "IVA Der. Clear. VTO"
+        let &DescDerRegVTO "Der. Registro VTO"
+        let &DescIVADerRegVTO "IVA Der. Reg. VTO"
+    ELSE
+        let &FechaOp FBN['FechaOp']
+        let &FechaVto FBN['FechaVto']
+        let &ArancelAlta FBN['Arancel1']
+        let &IVAArancelAlta FBN['TotalIVA3']
+        let &ArancelVto FBN['Arancel2']
+        let &IVAArancelVto FBN['TotalIVA4']
+        let &DescDerClearAlt "Der. Clearing DLR Rofex"
+        let &DescIVADerClearAlt "IVA Der. Clear. DLR Rofex"
+        let &DescDerRegAlt "Der. Registro DLR Rofex"
+        let &DescIVADerRegAlt "IVA Der. Reg. DLR Rofex"
+        let &DescDerClearVTO "Der. Clearing DLR Rofex"
+        let &DescIVADerClearVTO "IVA Der. Clear. DLR Rofex"
+        let &DescDerRegVTO "Der. Registro DLR Rofex"
+        let &DescIVADerRegVTO "IVA Der. Reg. DLR Rofex"
+        let &DerechosRegistroVTO 0
+        let &IVADerechosRegistroVTO 0
+        let &DerechosClearingVTO 0
+        let &IVADerechosClearingVTO 0
+        IF Buscar('Registro',FBN['Descripcion'])
+           let &DerechosRegistro &DerechosRegistro+FBN['Total2']
+           let &IVADerechosRegistro &IVADerechosRegistro+FBN['Total3']
+        ELSE
+           let &DerechosClearing &DerechosClearing+FBN['Total2']
+           let &IVADerechosClearing &IVADerechosClearing+FBN['Total3']
+        ENDIF
+    ENDIF
+Proximo
+
+IFA
+ACT(A:FAC,'Arancel Al Alta')
+ACD(B:FAC,&FechaOp)
+ACN(C:FAC,&ArancelAlta)
+IFA
+ACT(A:FAC,'IVA Arancel Alta')
+ACD(B:FAC,&FechaOp)
+ACN(C:FAC,&IVAArancelAlta)
+IFA
+ACT(A:FAC,&DescDerRegAlt)
+ACD(B:FAC,&FechaOp)
+ACN(C:FAC,&DerechosRegistro)
+IFA
+ACT(A:FAC,&DescIVADerRegAlt)
+ACD(B:FAC,&FechaOp)
+ACN(C:FAC,&IVADerechosRegistro)
+IFA
+ACT(A:FAC,&DescDerClearAlt)
+ACD(B:FAC,&FechaOp)
+ACN(C:FAC,&DerechosClearing)
+IFA
+ACT(A:FAC,&DescIVADerClearAlt)
+ACD(B:FAC,&FechaOp)
+ACN(C:FAC,&IVADerechosClearing)
+IFA
+ACT(A:FAC,'Arancel Al Vto')
+ACD(B:FAC,&FechaVto)
+ACN(C:FAC,&ArancelVto)
+IFA
+ACT(A:FAC,'IVA Arancel Vto')
+ACD(B:FAC,&FechaVto)
+ACN(C:FAC,&IVAArancelVto)
+IFA
+ACT(A:FAC,&DescDerRegVto)
+ACD(B:FAC,&FechaVto)
+ACN(C:FAC,&DerechosRegistroVTO)
+IFA
+ACT(A:FAC,&DescIVADerRegVto)
+ACD(B:FAC,&FechaVto)
+ACN(C:FAC,&IVADerechosRegistroVTO)
+IFA
+ACT(A:FAC,&DescDerClearVto)
+ACD(B:FAC,&FechaVto)
+ACN(C:FAC,&DerechosClearingVTO)
+IFA
+ACT(A:FAC,&DescIVADerClearVto)
+ACD(B:FAC,&FechaVto)
+ACN(C:FAC,&IVADerechosClearingVTO)
+
+
+IFA
+
+ACT(A:FAC,'Total Gastos')
+ACN(C:FAC,&ArancelAlta+&IVAArancelAlta+&DerechosRegistro+&DerechosRegistroVTO+&IVADerechosRegistro+&IVADerechosRegistroVTO+&DerechosClearing+&DerechosClearingVTO+&IVADerechosClearing+&IVADerechosClearingVTO+&ArancelVto+&IVAArancelVto)
+let &TotalNeto &TotalNeto-Val(C:FAC)
+
+AgregarMarco(A:FAC..C:FAC,1,0,Exe('COLOR8'))
+SetFont(A:FAC..C:FAC,2)
+
+IFA
+IFA
+
+ACT(A:FAC,'TotalNeto')
+ACN(C:FAC,&TotalNeto)
+FormatoCeldas(C:FAC, Exe('F2'))
+AgregarMarco(A:FAC..C:FAC,1,0,Exe('COLOR8'))
+SetFont(A:FAC..C:FAC,2)
+
+IFA
+IFA
+
+ACO(1,15)
+
+ACT(A:FAC,'Fin del informe')
+SetFont(A:FAC,2)

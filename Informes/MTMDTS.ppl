@@ -1,0 +1,309 @@
+﻿CrearDialogo
+  Fecha1   : 'Fecha Futuro'   ;1;1;;;;EsHabil(Dialogo.Fecha1,'ARG') y Dialogo.Fecha1>0;'Fecha Desde invalida';NO;FSys;
+  Fecha2   : 'Fecha Hoy'      ;2;1;;;;EsHabil(Dialogo.Fecha2,'ARG') y Dialogo.Fecha2>0;'Fecha Hasta invalida';NO;FSys;
+  Vehiculo1: 'Vehiculo'       ;3;1;;;;
+  Cliente1 : 'Cliente'        ;4;1;;;;
+FinDialogo
+
+If Not OK
+  Cancelar
+EndIf
+
+CrearFont(1,'Arial,9,BU')
+CrearFont(2,'Arial,8,B')
+CrearFont(3,'Arial,8,')
+
+ACT(A:2,'Detalle MTM Diario')
+SetFont(A:2,1)
+
+SetFilaActual(4)
+
+ACT(A:FAC, 'Fecha:')
+ACT(B:FAC, Dialogo.Fecha2)
+
+ACT(A:FAC+1,'Fecha Futuro: ')
+If Dialogo.Fecha1>0
+   ACT(B:FAC+1, Dialogo.Fecha1)
+Else
+   ACT(B:FAC+1,'Todos')
+EndIf
+
+ACT(A:FAC+2,'Cliente: ')
+If NoVacio (Dialogo.Cliente1)
+   ACT(B:FAC+2, BuscarCampo('CLIENTES','RazonSocial','Codigo',Dialogo.Cliente1))
+Else
+   ACT(B:FAC+2,'Todos')
+EndIf
+
+ACT(A:FAC+3,'Vehiculo: ')
+If NoVacio (Dialogo.Vehiculo1)
+   ACT(B:FAC+3, BuscarCampo('VEHICULOS','Descripcion','Codigo',Dialogo.Vehiculo1))
+Else
+   ACT(B:FAC+3,'Todos')
+EndIf
+
+SetFont(A:FAC..B:FAC+3,2)
+
+SetFilaActual(9)
+
+ACT(A:FAC,'Operacion')
+ACT(B:FAC,'TipoOp')
+ACT(C:FAC,'Vehiculo')
+ACT(D:FAC,'Cliente')
+ACT(E:FAC,'FechaOp')
+ACT(F:FAC,'FechaFut')
+ACT(G:FAC,'Precio Hoy')
+ACT(H:FAC,'Precio Ayer')
+ACT(I:FAC,'Cantidad')
+ACT(J:FAC,'MTM')
+ACT(K:FAC,'MTM x OP')
+ACT(L:FAC,'Aranceles Alta')
+ACT(M:FAC,'IVA Aranceles Alta')
+ACT(N:FAC,'Aranceles Vto')
+ACT(O:FAC,'IVA Aranceles Vto')
+ACT(P:FAC,'Derechos Registro')
+ACT(Q:FAC,'IVA Derechos Registro')
+ACT(R:FAC,'Derechos Clearing')
+ACT(S:FAC,'IVA Derechos Clearing')
+ACT(T:FAC,'Derechos Registro VTO')
+ACT(U:FAC,'IVA Derechos Registro VTO')
+ACT(V:FAC,'Derechos Clearing VTO')
+ACT(W:FAC,'IVA Derechos Clearing VTO')
+ACT(X:FAC,'Total Neto')
+AlinearCeldas(A:FAC..X:FAC,'C')
+AgregarMarco(A:FAC..X:FAC,2,0,Exe('COLOR'))
+SetFont(A:FAC..X:FAC,2)
+
+
+SQL.ADD(" Select O.NrOperacion, O.TipoOp, O.FechaOp, O.FechaVto, O.Cliente1, CASE O.TipoOp WHEN 'FXCF' THEN O.Cantidad ELSE -O.Cantidad END Cantidad, ")
+*SQL.ADD(" M.MTM, M.PrecioHoy, M.PrecioAyer, O.Vehiculo1, O.Cliente1, O.Cotizacion1, O.Cotizacion2, O.Precio1, ")
+SQL.ADD(" O.Vehiculo1, O.Cliente1, O.Cotizacion1, O.Cotizacion2, O.Precio1, ")
+SQL.ADD(" O.ImpComMerEq1, O.TotalIVA, O.ImpComMerEq2, O.TotalIVA2, O.Arancel1, O.TotalIVA3,  ")
+SQL.ADD(" CASE O.TipoOp WHEN 'FXCF' THEN O.Arancel2 ELSE -O.Arancel2 END Arancel2, CASE O.TipoOp WHEN 'FXCF' THEN O.TotalIVA4 ELSE -O.TotalIVA4 END TotalIVA4, O.CB6, ")
+SQL.ADD(" CASE O.TipoOp WHEN 'FXCF' THEN O.ImpComMerEq3 ELSE -O.ImpComMerEq3 END ImpComMerEq3, CASE O.TipoOp WHEN 'FXCF' THEN O.TotalIVA5 ELSE -O.TotalIVA5 END TotalIVA5, ")
+SQL.ADD(" CASE O.TipoOp WHEN 'FXCF' THEN O.ImpComMerEq4 ELSE -O.ImpComMerEq4 END ImpComMerEq4, CASE O.TipoOp WHEN 'FXCF' THEN O.TotalIVA6 ELSE -O.TotalIVA6 END TotalIVA6 ")
+SQL.ADD("   from "~DBO~".OPERACIONES O ")
+SQL.ADD("    Where O.TipoOp in ('FXCF','FXVF') ")
+SQL.ADD("    And O.FechaOp <= '"~IdxDate(Dialogo.Fecha2)~"' ")
+If Dialogo.Fecha1>0
+   SQL.ADD("    And O.FechaVto <= '"~IdxDate(Dialogo.Fecha1)~"' ")
+   SQL.ADD("    And O.FechaVto >= '"~IdxDate(Dialogo.Fecha2)~"' ")
+Else
+   SQL.ADD("    And O.FechaVto >= '"~IdxDate(Dialogo.Fecha2)~"' ")
+   *SQL.ADD("    And O.FechaVto = '"~IdxDate(Dialogo.Fecha2)~"' ")
+EndIf
+*SQL.ADD("    And M.Fecha1 = '"~IdxDate(Dialogo.Fecha2)~"' ")
+If NoVacio(Dialogo.Vehiculo1)
+   SQL.ADD(" And O.Vehiculo1 = '"~Dialogo.Vehiculo1~"' ")
+EndIf
+If NoVacio(Dialogo.Cliente1)
+   SQL.ADD(" And O.Cliente1 = '"~Dialogo.Cliente1~"' ")
+EndIf
+SQL.ADD(" Order by O.FechaOp, O.Vehiculo1, O.Cliente1, O.FechaVto ")
+ACN(Z:1,FAC+1)
+
+let &TotalArancelesAlta 0
+let &TotalIVAArancelesAlta 0
+let &TotalArancelesVto 0
+let &TotalIVAArancelesVto 0
+let &TotalDerechosClearing 0
+let &TotalIVADerechosClearing 0
+let &TotalDerechosRegistro 0
+let &TotalIVADerechosRegistro 0
+let &TotalDerechosClearingVTO 0
+let &TotalIVADerechosClearingVTO 0
+let &TotalDerechosRegistroVTO 0
+let &TotalIVADerechosRegistroVTO 0
+  
+Recorrer SQL
+  ACT(A:FAC,FBN['NrOperacion'])
+  ACLO(A:FAC,FBN['NrOperacion'])
+  ACT(B:FAC,FBN['TipoOp'])
+  ACT(C:FAC,BuscarCampo('VEHICULOS','Descripcion','Codigo',FBN['Vehiculo1']))
+  ACT(D:FAC,BuscarCampo('CLIENTES','RazonSocial','Codigo',FBN['Cliente1']))
+  ACD(E:FAC,FBN['FechaOp'])
+  ACD(F:FAC,FBN['FechaVto'])
+  ACN(G:FAC,FBN['Cotizacion1'])
+  ACN(H:FAC,FBN['Cotizacion2'])
+  ACN(I:FAC,FBN['Cantidad'])
+  
+  ***---Derechos Recibidos desde Rofex
+  IF FBN['CB6'] = 1
+     SQL.ADD(" SELECT Total2, Total3, Descripcion ")
+     SQL.ADD(" FROM "~DBO~".CUOTAS ")
+     SQL.ADD(" Where NrOperacion = '"~fbn('NrOperacion')~"' ")
+     SQL.ADD(" AND Fecha1 = '"~IdxDate(Dialogo.Fecha2)~"' ")
+  
+     let &DerechosCuotasRegistro 0
+     let &IVADerechosCuotasRegistro 0
+     let &DerechosCuotasClearing 0
+     let &IVADerechosCuotasClearing 0
+  
+  *let &Derechos 0
+  *let &IVADerechos 0
+  
+  *let &Aranceles 0
+  *let &IVAAranceles 0
+  
+      Recorrer SQL
+          DFA
+          IF Buscar('Registro',FBN['Descripcion']) 
+              let &DerechosCuotasRegistro &DerechosCuotasRegistro+fbn['Total2']
+              let &IVADerechosCuotasRegistro &IVADerechosCuotasRegistro+fbn['Total3']
+          ENDIF
+          IF Buscar('Clearing',FBN['Descripcion'])
+              let &DerechosCuotasClearing &DerechosCuotasClearing+fbn['Total2']
+              let &IVADerechosCuotasClearing &IVADerechosCuotasClearing+fbn['Total3']
+          ENDIF 
+      Proximo
+  ENDIF
+   ***---MTM
+   SQL.ADD(" SELECT MTM ")
+   SQL.ADD(" FROM "~DBO~".MTMDIARIO ")
+   SQL.ADD(" Where NrOperacion = '"~FBN['NrOperacion']~"'  ")
+   SQL.ADD("    And Fecha1 = '"~IdxDate(Dialogo.Fecha2)~"' ")
+   let &MTM 0
+   Recorrer SQL
+       DFA
+       let &MTM &MTM+FBN['MTM']
+   Proximo
+   
+   ACN(J:FAC,&MTM)
+  
+  ACT(K:FAC,FBN['NrOperacion'])
+  
+  let &ArancelAlta 0
+  let &IVAArancelAlta 0
+  let &ArancelVto 0
+  let &IVAArancelVto 0
+  let &DerechosRegistro 0
+  let &IVADerechosRegistro 0
+  let &DerechosClearing 0
+  let &IVADerechosClearing 0
+  let &DerechosRegistroVTO 0
+  let &IVADerechosRegistroVTO 0
+  let &DerechosClearingVTO 0
+  let &IVADerechosClearingVTO 0
+  
+  IF Dialogo.Fecha2 = fbn('FechaOp')
+      let &ArancelAlta &ArancelAlta+FBN['Arancel1']
+      let &IVAArancelAlta &IVAArancelAlta+FBN['TotalIVA3']
+      IF FBN['CB6'] <> 1 
+          let &DerechosRegistro &DerechosRegistro+FBN['ImpComMerEq1']
+          let &IVADerechosRegistro &IVADerechosRegistro+FBN['TotalIVA']
+          let &DerechosClearing &DerechosClearing+FBN['ImpComMerEq2']
+          let &IVADerechosClearing &DerechosClearing+FBN['TotalIVA2']
+      ELSE
+          let &DerechosRegistro &DerechosRegistro+&DerechosCuotasRegistro
+          let &IVADerechosRegistro &IVADerechosRegistro+&IVADerechosCuotasRegistro
+          let &DerechosClearing &DerechosClearing+&DerechosCuotasClearing
+          let &IVADerechosClearing &DerechosClearing+&IVADerechosCuotasClearing
+      ENDIF
+  ENDIF
+  
+  IF Dialogo.Fecha2 = fbn('FechaVto')
+      let &ArancelVto &ArancelVto+FBN['Arancel2']
+      let &IVAArancelVto &IVAArancelVto+FBN['TotalIVA4']
+      IF FBN['CB6'] <> 1 
+          let &DerechosRegistroVTO &DerechosRegistroVTO+FBN['ImpComMerEq3']
+          let &IVADerechosRegistroVTO &IVADerechosRegistroVTO+FBN['TotalIVA5']
+          let &DerechosClearingVTO &DerechosClearingVTO+FBN['ImpComMerEq4']
+          let &IVADerechosClearingVTO &DerechosClearingVTO+FBN['TotalIVA6']
+      ELSE
+          let &DerechosRegistroVTO &DerechosRegistroVTO+0
+          let &IVADerechosRegistroVTO &IVADerechosRegistroVTO+0
+          let &DerechosClearingVTO &DerechosClearingVTO+0
+          let &IVADerechosClearingVTO &DerechosClearingVTO+0
+      ENDIF
+  ENDIF
+  
+  ACN(L:FAC,&ArancelAlta)
+  ACN(M:FAC,&IVAArancelAlta)
+  ACN(N:FAC,&ArancelVto)
+  ACN(O:FAC,&IVAArancelVto)
+  ACN(P:FAC,&DerechosRegistro)
+  ACN(Q:FAC,&IVADerechosRegistro)
+  ACN(R:FAC,&DerechosClearing)
+  ACN(S:FAC,&IVADerechosClearing)
+  ACN(T:FAC,&DerechosRegistroVTO)
+  ACN(U:FAC,&IVADerechosRegistroVTO)
+  ACN(V:FAC,&DerechosClearingVTO)
+  ACN(W:FAC,&IVADerechosClearingVTO)
+  ACN(X:FAC,Val(J:FAC)-(Val(L:FAC)+Val(M:FAC)+Val(N:FAC)+Val(O:FAC)+Val(P:FAC)+Val(Q:FAC)+Val(R:FAC)+Val(S:FAC)+Val(T:FAC)+Val(U:FAC)+Val(V:FAC)+Val(W:FAC)))
+  
+
+  *ACL(K:FAC, 'MTMCUO', NrOperacion1=Val(A:FAC))       
+  LinkearHoja ('MTMCUO',1, NrOperacion1=Val(A:FAC))
+  ACN(K:FAC,LinkH(1,TO:1))
+  CerrarHoja('MTMCUO',1, NrOperacion1=Val(A:FAC) )   
+  ACL(K:FAC, 'MTMCUO', NrOperacion1=Val(A:FAC))
+  
+  SCN(TO:1,Val(I:FAC))
+  SCN(TO:2,Val(J:FAC))
+  let &TotalArancelesAlta &TotalArancelesAlta+Val(L:FAC)
+  let &TotalIVAArancelesAlta &TotalIVAArancelesAlta+Val(M:FAC)
+  let &TotalArancelesVto &TotalArancelesVto+Val(N:FAC)
+  let &TotalIVAArancelesVto &TotalIVAArancelesVto+Val(O:FAC)
+  let &TotalDerechosRegistro &TotalDerechosRegistro+Val(P:FAC)
+  let &TotalIVADerechosRegistro &TotalIVADerechosRegistro+Val(Q:FAC)
+  let &TotalDerechosClearing &TotalDerechosClearing+Val(R:FAC)
+  let &TotalIVADerechosClearing &TotalIVADerechosClearing+Val(S:FAC)
+  let &TotalDerechosRegistroVTO &TotalDerechosRegistroVTO+Val(T:FAC)
+  let &TotalIVADerechosRegistroVTO &TotalIVADerechosRegistroVTO+Val(U:FAC)
+  let &TotalDerechosClearingVTO &TotalDerechosClearingVTO+Val(V:FAC)
+  let &TotalIVADerechosClearingVTO &TotalIVADerechosClearingVTO+Val(W:FAC)
+Proximo
+
+FormatoCeldas(G:Val(Z:1)..X:FAC, Exe('F8'))
+FormatoCeldas(G:Val(Z:1)..X:FAC, Exe('F2'))
+SetFont(A:Val(Z:1)..F:FAC,3)
+  
+IFA
+ACT(A:FAC,'Total')
+ACN(I:FAC,Val(TO:1))
+ACN(J:FAC,Val(TO:2))
+ACN(L:FAC,&TotalArancelesAlta)
+ACN(M:FAC,&TotalIVAArancelesAlta)
+ACN(N:FAC,&TotalArancelesVto)
+ACN(O:FAC,&TotalIVAArancelesVto)
+ACN(P:FAC,&TotalDerechosRegistro)
+ACN(Q:FAC,&TotalIVADerechosRegistro)
+ACN(R:FAC,&TotalDerechosClearing)
+ACN(S:FAC,&TotalIVADerechosClearing)
+ACN(T:FAC,&TotalDerechosRegistroVTO)
+ACN(U:FAC,&TotalIVADerechosRegistroVTO)
+ACN(V:FAC,&TotalDerechosClearingVTO)
+ACN(W:FAC,&TotalIVADerechosClearingVTO)
+ACN(X:FAC,Val(J:FAC)-(Val(L:FAC)+Val(M:FAC)+Val(N:FAC)+Val(O:FAC)+Val(P:FAC)+Val(Q:FAC)+Val(R:FAC)+Val(S:FAC)+Val(T:FAC)+Val(U:FAC)+Val(V:FAC)+Val(W:FAC)))
+FormatoCeldas(I:FAC..X:FAC, Exe('F2'))
+AgregarMarco(A:FAC..X:FAC,1,0,Exe('COLOR8'))
+SetFont(A:FAC..X:FAC,2)
+
+LimitesVision(Y:FAC+1)
+
+
+ACO(1,10)
+ACO(2,8)
+ACO(3,15)
+ACO(4,18)
+ACO(5,10)
+ACO(6,10)
+ACO(7,10)
+ACO(8,10)
+ACO(9,10)
+ACO(10,10)
+ACO(11,10)
+ACO(12,10)
+ACO(13,10)
+ACO(14,10)
+ACO(15,10)
+ACO(16,10)
+ACO(17,12)
+ACO(18,10)
+ACO(19,12)
+ACO(20,14)
+ACO(21,14)
+ACO(22,14)
+ACO(23,14)
+ACO(24,10)
+

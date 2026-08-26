@@ -1,0 +1,108 @@
+﻿CAMPOS:1;;BuscarCampo('VEHICULOS','Alias3','Codigo',Vehiculo1)
+
+Vehiculo1       :'Vehiculo'            ;2;1;;;;NoVacio(VEHICULO1);'Vehiculo invalido';NO;BuscarCampo('USRVEHICULO','Vehiculo','Codigo',USUARIOACTIVO);
+Especie         :'Especie'             ;3;1;;;;NoVacio(ESPECIE) y DesciendeDeEspecie(ESPECIE,'TITULO') y EsTerminal(ESPECIE, Especie);'Titulo Invalido';NO;;;;;;;;"Status = 'HAB' and Jerarquia Like '"~Jerarquia('ESPECIES','TITULO')~"%' ";
+
+Fecha1          :'Fecha'               ;2;2;;VerificaAcceso('OPFVALOR');;FECHA1<=FSYS y EsHabil(FECHA1,'ARG');'Fecha invalida';NO;FSYS
+Fecha2          :'Fecha Acredit'       ;3;2;;;;EsHabil(FECHA2,'ARG');'Fecha de Acreditacion Invalida';NO;FSYS;
+
+Especie1        :'Moneda'              ;4;1;;;;NoVacio(ESPECIE1) y DesciendeDeEspecie(ESPECIE1,'MONEDA') y EsTerminal(ESPECIE1, Especie);'Moneda invalida';NO;;CotizaEn(ESPECIE);;;;;;"Status = 'HAB' and Jerarquia Like '"~Jerarquia('ESPECIES','MONEDA')~"%' ";
+Cantidad1       :'V_Nominal'           ;5;1;;NOT EV;;CANTIDAD1>0;'El Valor Nominal DEBE SER POSITIVO';NO;
+Precio1         :'Precio'              ;6;1;;NO;;PRECIO1>0;'El Precio DEBE SER POSITIVO';NO;;COTIZACIONC(ESPECIE,,,,FECHA1-1,1,SI,ESPECIE1);;;;;'##,###,###.########';;
+
+Cantidad2       :'Monto'               ;7;1;;NO;;;;;;CANTIDAD1*PRECIO1;
+Cantidad3       :'Interes'             ;7;2;;NO;NO Y Eqstr(BuscarCampo('ESPECIES','InteresesC','Codigo',ESPECIE),'CLE');;;;;IF(Eqstr(BuscarCampo('ESPECIES','InteresesC','Codigo',ESPECIE),'CLE'),ValorTeorico2(ESPECIE,FECHA1)*CANTIDAD1*PRECIO4/DIASA(EspecieDiasAnio(ESPECIE),FSYS)/100*IF(EspecieDiasAnio(ESPECIE)=0 y EspecieDiasMes(ESPECIE)=0,Dif360(FECHA3,FECHA1,4),DifDias(FECHA3,FECHA1,'USA',NO)),0);
+
+VTXT14          :'Cupon Actual'        ;4;2;;NO;NO;;;;FStr(NrCupon2(ESPECIE,FECHA2),0,0);FStr(NrCupon2(ESPECIE,FECHA2),0,0);
+Cupon1          :'Cupon'               ;5;2;;;;EqStr(CUPON1,VTXT14);'Cupon Incorrecto';NO;VTXT14;VTXT14;;;;;'###'
+
+Cliente1        :'De Banco'            ;9;1;;;;[Eqstr(BuscarCampo('CUENTAS','Comitente','Codigo', CUENTA4), CLIENTE1) y Eqstr(BuscarCampo('CLIENTES','Status','Codigo',CLIENTE1), 'HAB')];'Banco Origen invalido';NO;;BuscarCampo('CUENTAS','Comitente','Codigo',CUENTA4);;;;;; " Codigo IN ("~Pipe2Comillas(Descendientes('CLIENTES','BANCOS'))~") and Status = 'HAB'";
+Cuenta4         :'De Cuenta'           ;10;1;;;;Eqstr(BuscarCampo('CUENTAS','Comitente','Codigo',CUENTA4), CLIENTE1);'Cuenta Origen invalida';NO;;QUERY("select Codigo from "~DBO~".CUENTAS where Cliente='"~VEHICULO1~"' and Estado='HAB' and Comitente='"~CLIENTE1~"' AND (Especies LIKE '%"~ESPECIE~"%' or Especies LIKE '%TITULO%') ");;;;;;IF(NoVacio(CLIENTE1), "Cliente='"~VEHICULO1~"' and Estado='HAB' and (Especies LIKE '%"~ESPECIE~"%' or Especies LIKE '%TITULO%') AND Comitente = '"~CLIENTE1~"' ", "Cliente='"~VEHICULO1~"' and Estado='HAB' and (Especies LIKE '%"~ESPECIE~"%' or Especies LIKE '%TITULO%')") 
+Book1           :'De Book'             ;11;1;;;;[SI O [BookValido(BOOK1, TIPOOP, ESPECIE, VEHICULO1, OPERADOR,'') o [BookValido(BOOK1, TIPOOP, ESPECIE, '', OPERADOR,'') y Vacio(Query("Select Vehiculo from "~DBO~".BOOKS where Codigo = '"~BOOK1~"'"))] ]] y NoVacio(BOOK1);'El Book seleccionado no corresponde a la Especie, Tipo de Operacion, Operador, Vehiculo';NO;;;;;;;;" (Vehiculo='"~VEHICULO1~"' OR Vehiculo is null) AND (TiposOperacion='' OR TiposOperacion Is Null OR TiposOperacion Like '%"~TIPOOP~"|%') ";
+*
+*Cliente2        :'A Banco'             ;9;2;;;;[Eqstr(BuscarCampo('CUENTAS','Comitente','Codigo', CUENTA1), CLIENTE2) y Eqstr(BuscarCampo('CLIENTES','Status','Codigo',CLIENTE2), 'HAB')];'Banco Destino invalido';NO;;BuscarCampo('CUENTAS','Comitente','Codigo',CUENTA1);;;;;;" Codigo IN ("~Pipe2Comillas(Descendientes('CLIENTES','BANCOS'))~") and Status = 'HAB'";
+*Cuenta1         :'A Cuenta'            ;10;2;;;;Eqstr(BuscarCampo('CUENTAS','Comitente','Codigo',CUENTA1), CLIENTE2);'Cuenta Destino Invalida';NO;;QUERY("select Codigo from "~DBO~".CUENTAS where Cliente='"~IF(CB3=1,VEHICULO2,VEHICULO1)~"' and Estado='HAB' and Comitente='"~CLIENTE2~"' AND (Especies LIKE '%"~ESPECIE~"%' or Especies LIKE '%TITULO%') ");;;;;;IF(NoVacio(CLIENTE2), "Cliente='"~IF(CB3=1,VEHICULO2,VEHICULO1)~"' and Estado='HAB' and (Especies LIKE '%"~ESPECIE~"%' or Especies LIKE '%TITULO%') AND Comitente = '"~CLIENTE2~"' " , "Cliente='"~IF(CB3=1,VEHICULO2,VEHICULO1)~"' and Estado='HAB' and (Especies LIKE '%"~ESPECIE~"%' or Especies LIKE '%TITULO%') ")
+*Book2           :'A Book'              ;11;2;;;;[SI O [BookValido(BOOK2, TIPOOP, ESPECIE, VEHICULO1, OPERADOR,'') o [BookValido(BOOK2, TIPOOP, ESPECIE, '', OPERADOR,'') y Vacio(Query("Select Vehiculo from "~DBO~".BOOKS where Codigo = '"~BOOK2~"'"))] ]] y NoVacio(BOOK2);'El Book seleccionado no corresponde a la Especie, Tipo de Operacion, Operador, Vehiculo';NO;;;;;;;;" (Vehiculo='"~VEHICULO1~"' OR Vehiculo is null) AND (TiposOperacion='' OR TiposOperacion Is Null OR TiposOperacion Like '%"~TIPOOP~"|%') ";
+*
+UsrInput        :                      ;12;1;;NO;;NOVACIO(USRINPUT);'El Operador es Invalido';NO;USUARIOACTIVO;
+Precio2         : 'TC_Concert.'        ;13;2;;;Not Eqstr(ESPECIE1,VAR('MONELOCA'));PRECIO2<=VPRE1*(1+VAR('RPRECIO2')/100) Y PRECIO2>=VPRE1*(1-VAR('RPRECIO2')/100);'Tipo de Cambio Concertacion Fuera de Rango: '~FSTR(VPRE1*(1-VAR('RPRECIO2')/100),1,7)~' y '~FSTR(VPRE1*(1+VAR('RPRECIO2')/100),1,7);NO;;COTIZACIONBNA(ESPECIE1,FECHA1-1,1,NO,NO)
+
+CB5             :'Aprobada'            ;12;2;;NO;NO;;;;;
+
+Fecha3          : 'Ult.Cupon'          ;  ; ;2;NO;Eqstr(BuscarCampo('ESPECIES','InteresesC','Codigo',ESPECIE),'CLE');;;;;IF(EsHabil(UltCupon2(ESPECIE,FECHA1),'USA'),UltCupon2(ESPECIE,FECHA1),Habiles(UltCupon2(ESPECIE,FECHA1),IF(EqStr(BuscarCampo('ESPECIES','CuponFeriado','Codigo',ESPECIE),'SIG'),1,IF(EqStr(BuscarCampo('ESPECIES','CuponFeriado','Codigo',ESPECIE),'ANT'),-1,0)),'USA'))
+
+VPRE1           : 'Cot.TC/ContraEspecie' ;10;2;;NO;NO;;;;;COTIZACIONBNA(ESPECIE1,FECHA1-1,1,NO,NO)
+
+CB3                : ''                 ;15;2; ;NO;NO;;;;
+Vehiculo2          : ''                 ;15;2; ;NO;NO;;;;
+Precio4            : 'Tasa Int Cupon'   ;15;2; ;NO;NO;;;;
+CB2                : 'PaseCB'           ;15;2; ;NO;NO;;;;
+CB4                : 'Liquidado'        ;15;2; ;NO;NO;;;;
+
+Sector2         : 'Perfil'              ;16;2;2;NO;SI;;;;BuscarCampo('USUARIOS','Perfiles','Codigo',USUARIOACTIVO);BuscarCampo('USUARIOS','Perfiles','Codigo',USUARIOACTIVO);
+
+***---Campos para POSICIONES2
+***---Precio6           : 'Precio Clean'          ;20;2; ;NO;SI;;;;;IF(TOTALIMPUESTO1 > 0, IF(Eqstr(BuscarCampo('ESPECIES','InteresesC','Codigo',ESPECIE),'CLE'), PRECIO1, ((CANTIDAD1 * PRECIO1) - TOTALIMPUESTO1) / CANTIDAD1), PRECIO1) * (IF(VCAN30 > 0 Y Eqstr(BuscarCampo('ESPECIES','InteresesC','Codigo',ESPECIE),'CLE'), VCAN30, 1));;;;;'######.########'
+***---TotalBrutoCli3   : 'InteresVto'              ;10;2; ;NO;NO;;;;;IF(DesciendeDeEspecie(ESPECIE, 'PUBLIC') O DesciendeDeEspecie(ESPECIE, 'CORP B') O DesciendeDeEspecie(ESPECIE, 'EXTRAN'),ValorTeorico2(ESPECIE,FECHA2)*CANTIDAD1*PRECIO4/DIASA(EspecieDiasAnio(ESPECIE),FSYS)*IF(EspecieDiasAnio(ESPECIE)=0 y EspecieDiasMes(ESPECIE)=0,Dif360(FECHA3,FECHA2,4),DifDias(FECHA3,FECHA2,'USA',NO)),0);
+***---Esto que sigue es lo de IRSA
+*POSICION2
+*Fecha1;Vehiculo1;Book1;'SEC';Especie;Cupon1;1;Especie1;Cantidad1;Precio3;TotalBrutoCli3;'1';
+*Fecha2;Vehiculo1;Book1;'SEC';Especie;Cupon1;2;Especie1;Cantidad1;Precio3;TotalBrutoCli3;'1';Eqstr(CotizaEn(Especie),Especie1)
+*Fecha2;Vehiculo1;Book1;'SEC';Especie;Cupon1;2;CotizaEn(Especie);Cantidad1;PrecioEj;TotalBrutoCli3;'1';Not Eqstr(CotizaEn(Especie),Especie1)
+
+CONDICIONES
+Incluido(VEHICULO1, UsrVehiculos(USUARIOACTIVO))  o VACIO(UsrVehiculos(USUARIOACTIVO)); 'El usuario activo no esta habilitado para operar con el vehiculo '~VEHICULO1;NO
+*EspecieCuenta(ESPECIE, CUENTA4) O VACIO(CUENTA4);'El Titulo No Corresponde con la Cuenta Origen';NO
+*ClienteCuenta(VEHICULO1, CUENTA4) o VACIO(CUENTA4);'La Cuenta Origen no corresponde al Vehiculo';NO
+EspecieCuenta(ESPECIE, CUENTA1) o VACIO(CUENTA1);'El Titulo No Corresponde con la Cuenta Destino';NO
+SI O SaldoC(Vehiculo1,Especie,,,,,,Cuenta4,1,FSYS)>=CANTIDAD1;'Cantidad a transferir es superior al saldo en la cuenta origen.';SI
+
+EDICION
+NO O [EqStr(Operador, UsuarioActivo) o Incluido(UsuarioActivo, Var('ULMODI'))];'No se puede modificar, Operador: '~Operador
+
+BAJA
+EqStr(Operador, UsuarioActivo) o Incluido(UsuarioActivo, Var('ULBAJA'));'No se puede dar de baja, Operador: '~Operador
+
+*MOVIMIENTOS
+*Fecha2;Cliente1 ;Especie;;;;;Vehiculo1; 1; Cantidad1;;'Transferencia de '~Especie;SI;NO;;;;Cuenta4;;1;;;Cupon1
+*Fecha2;Cliente2 ;Especie;;;;;Vehiculo1; 1;-Cantidad1;;'Transferencia de '~Especie;SI;NO;;;;Cuenta1;;2;;;Cupon1
+
+*Fecha2;Cliente1 ;Especie;;;;;Vehiculo1;20; Cantidad1;;'Transferencia de '~Especie;SI;SI;;;;Cuenta4;;3;;;Cupon1;;;;Book1;
+*Fecha2;Cliente2 ;Especie;;;;;Vehiculo1;20;-Cantidad1;;'Transferencia de '~Especie;SI;SI;;;;Cuenta1;;4;;;Cupon1;;;;Book2;
+
+*Fecha2;Vehiculo1;Especie;;;;;         ;10; Cantidad1;;'Transferencia de '~Especie;;SI;;CB2=0 Y CB4=1;;Cuenta1;;5;;;Cupon1;;;;Book2;
+*Fecha1;Vehiculo1;Especie;;;;;Vehiculo1; 2; Cantidad1;;'Transferencia de '~Especie;;SI;;CB2=0;;Cuenta1;;6;;;Cupon1;;;;Book2;
+*Fecha2;Vehiculo1;Especie;;;;;         ; 3; Cantidad1;;'Transferencia de '~Especie;;SI;;CB2=0;;Cuenta1;;7;;;Cupon1;;;;Book2;
+
+*Fecha2;Vehiculo1;Especie;;;;;         ;10;-Cantidad1;;'Transferencia de '~Especie;;SI;;CB2=0 Y CB4=1;;Cuenta4;;8;;;Cupon1;;;;Book1;
+*Fecha1;Vehiculo1;Especie;;;;;Vehiculo1; 2;-Cantidad1;;'Transferencia de '~Especie;;SI;;CB2=0;;Cuenta4;;9;;;Cupon1;;;;Book1;
+*Fecha2;Vehiculo1;Especie;;;;;         ; 3;-Cantidad1;;'Transferencia de '~Especie;;SI;;CB2=0;;Cuenta4;;10;;;Cupon1;;;;Book1;
+
+
+*POSICION
+*Fecha1;Vehiculo1;Especie;;;;Vehiculo1;;;;;101;-Cantidad1;Precio1                                                                                             ;;;Book1;;'SEC';CB5=1;Cupon1
+*Fecha1;Vehiculo1;Especie;;;;Vehiculo1;;;;;110;-Cantidad1;Precio1                                                                                             ;;;Book1;;'SEC';CB5=1;Cupon1
+*Fecha1;Vehiculo1;Especie;;;;Vehiculo1;;;;;120;-Cantidad1;Precio1*if(EqStr(Especie1,VAR('MONELOCA')),1,COTIZACIONC(ESPECIE1,,,,FECHA1-1,1,SI,VAR('MONELOCA')));;;Book1;;'SEC';CB5=1;Cupon1
+*Fecha1;Vehiculo1;Especie;;;;Vehiculo1;;;;;130;-Cantidad1;Precio1*if(EqStr(Especie1,VAR('MONEEXTR')),1,COTIZACIONC(ESPECIE1,,,,FECHA1-1,1,SI,VAR('MONEEXTR')));;;Book1;;'SEC';CB5=1;Cupon1
+
+*Fecha1;Vehiculo1;Especie;;;;Vehiculo1;;;;;101; Cantidad1;Precio1                                                                                             ;;;Book2;;'SEC';CB5=1;Cupon1
+*Fecha1;Vehiculo1;Especie;;;;Vehiculo1;;;;;110; Cantidad1;Precio1                                                                                             ;;;Book2;;'SEC';CB5=1;Cupon1
+*Fecha1;Vehiculo1;Especie;;;;Vehiculo1;;;;;120; Cantidad1;Precio1*if(EqStr(Especie1,VAR('MONELOCA')),1,COTIZACIONC(ESPECIE1,,,,FECHA1-1,1,SI,VAR('MONELOCA')));;;Book2;;'SEC';CB5=1;Cupon1
+*Fecha1;Vehiculo1;Especie;;;;Vehiculo1;;;;;130; Cantidad1;Precio1*if(EqStr(Especie1,VAR('MONEEXTR')),1,COTIZACIONC(ESPECIE1,,,,FECHA1-1,1,SI,VAR('MONEEXTR')));;;Book2;;'SEC';CB5=1;Cupon1
+
+BITS
+1;1
+20;0
+
+INSTANCIA1
+BITS
+1;0;FW=1
+20;1;FW=1
+
+POSTEDICION
+FW = 1;'SUPTRA';NrTrans1=NRTRANS2;Radio1=0
+
+INSTANCIA20
+BITS
+1;1;FW=2
+20;0;FW=2

@@ -1,0 +1,83 @@
+﻿CAMPOS:1;;BuscarCampo('VEHICULOS','Alias1','Codigo',Vehiculo1)
+Especie:            'Moneda'            ;2;1;1;NO;SI;
+ContraEspecie:      'Mon Liq'           ;15;1;1;si      
+TipoCambio:         'T.Cambio'          ;7;2;1;No
+NrBoleto:           'Nro.Boleto'        ;6;2;1;No
+Cliente1:           'Entidad'         ;3;1;1;NO;SI
+FechaOp:            'F.Concertacion'    ;;;;NO
+FechaVto:           'F.Vencimiento'     ;;;;No
+FechaPago:          'F.Liquidac.'       ;4;2;;No           
+FechaVto2:          'F.Acreditac.'      ;;2;;No         
+Plazo:              'Plazo Instrumento' ;6;2;1;No    
+Cantidad:           'Capital'           ;6;1;;NO
+TotalIntereses:     'Descuento'         ;;;;No
+TotalBrutoCli1:     'Monto'             ;;;;No
+TotalImpuestos:     'Impuestos'         ;;;;No
+ImpGastos1:         'Der.Bol.'          ;;;;No
+ImpComMer1:         'Der.Mer.'          ;;;;No
+Precio1:            'Tasa'              ;12;1;;No
+TipoDoc:            'Instrumento'       ;14;1;1;No
+Vehiculo1:          'Vehiculo'          ;2;2;1;No
+Book1:              'Book'              ;3;2;1;No;;;;;BuscarCampo('VEHICULOS','Alias5','Codigo',VEHICULO1);BuscarCampo('VEHICULOS','Alias5','Codigo',VEHICULO1)    
+Cliente2:           'Contraparte'       ;16;1;;NO
+Cliente3:           'Banco'             ;;;;No
+NrSucursal:         'N.Sucursal'        ;17;2;;No
+
+NrOperacion2:    'Subasta'        ;2;3;1;No
+NrOperacion3:    'Reg Oper.'      ;;;1;No
+ObservacDoc:     'Cod.Cheque'     ;;;1;No
+NrOperacion4:    'Id.Cheque'      ;;;1;No          
+OperacionRef:    'Nro Cheque'     ;;;1;No
+CB1:             'Avalado'        ;8;2;1;NO
+MB2:             'Cond|EX|RI|Otro';10;2;1;No
+CB2:             'Sin Recurso'    ;;2;1;No
+CB4:             'E.PyME'         ;;2;1;No
+CB3:             'No a la orden'  ;;2;1;No
+CB5:             '1ra Negoc.'     ;;2;1;No
+MensajeChequeo:  'CUIT Comprador' ;8;3;1;No
+Contrato:        'CUIT Librador'  ;;3;1;No;CB1=0
+Cliente4:        'Codigo SGR'     ;;3;1;No
+CodComitente:    'Cod.Comitente'  ;;3;1;No
+ 
+
+Hora1:          'Hora Conc.'      ;14;2;1;No
+Hora2:          'Hora Ord.'       ;14;3;1;No
+Cuenta1:         'Cuenta'         ;15;3;1;No
+Operador:       'Operador'        ;17;3;1;NO;;;
+
+TotalBrutoCli2: 'Capital Mon.Loc' ;;;;NO;NO;;;;IF(Eqstr(ContraEspecie,VAR('MONELOCA')),TotalBrutoCli1,TotalBrutoCli1*CotizacionBNA(ContraEspecie,FechaOp,1,NO,NO));IF(Eqstr(ContraEspecie,VAR('MONELOCA')),TotalBrutoCli1,TotalBrutoCli1*CotizacionBNA(ContraEspecie,FechaOp,1,NO,NO))
+VTXT1:          'Tipo Limite'     ;;;;NO;NO;;;;IF(CB1=0,'DDNOA','DDA');IF(CB1=0,'DDNOA','DDA')
+CB6:            'Aprobado'        ;;;;NO;NO
+
+RB1:            'Conciliada|NO|Auto|Manual'      ;1;1;2;NO;;;;;0
+Observac3:      'Cobranza'                       ;;;2;NO;;;;;;;;;;;'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'
+FechaEj:        'Fecha conciliada'               ;;;2;NO;;;;;
+Label1:         ''                               ;;;2;;;;;;'Gastos';'Gastos';;;;;;
+ContraEspecie2: 'Mon. Gastos'                    ;;;2;NO;;;;;;
+TotalAux1:      'Int. Punitorios'                ;;;2;NO;;;;;;;;
+Cuenta2:        'Cta. conc. manual'              ;;;2;NO;;;;;;;;
+TotalAux2:      'IIBB'                           ;;;2;NO;;;;;;;;
+Cuenta3:        'Cta. Int.Pun./IIBB'             ;;;2;NO;;;;;;;;
+TotalAux3:      'Monto Cobro Directo'            ;;;2;NO;TotalAux3<>0;;;;;;;
+Fecha2:         'Fecha Cobro'                    ;;;2;NO;;;
+Fecha1:         'Fecha Aprob'                    ;;;2;NO;;;
+FechaEx1:       'Fsys Conciliacion':             ;;;2;NO;;;
+
+
+MOVIMIENTOS
+FechaPago;Cliente1;ContraEspecie;;;;;Vehiculo1;1;Cantidad;;'Descuento Documento'~TipoOp;SI;SI;;CB6=1;;Cuenta1;;1;;;;;;;;;;;;;;
+FechaPago;Vehiculo1;ContraEspecie;;;;;Vehiculo1;50;-Cantidad;;'Descuento Documento'~TipoOp;SI;SI;;CB6=1 Y Eqstr(BuscarCampo('CUENTAS','TipoCuenta','Codigo', Cuenta1), 'CUS') Y FechaPago>=Fecha(Var('FECHAMIGRA'));;Cuenta1;;10;;;;;;;;;;;;;;
+
+
+DEVENGADOS
+FechaOp+1;FechaVto;SI;SI;NO;'ARG';SI;SI;'INTLEN';TotalIntereses;140;Vehiculo1;Vehiculo1;;;;;;TipoOp;;Especie;;;;;;Book1;Operador;'DD';;;Especie;
+
+
+LIMITES
+FechaOp;IF(CB1=1,Cliente4,Contrato);VTXT1;VAR('MONELOCA');;TotalBrutoCli2;TipoOp~' '~Especie;CB6=1        ;Vehiculo1;;Book1;;;;IF(TipoDoc='ECHEQ','CPD',TipoDoc);Especie;;
+Fecha2;IF(CB1=1,Cliente4,Contrato);VTXT1;VAR('MONELOCA');;-TotalBrutoCli2 ;TipoOp~' '~Especie;CB6=1 Y RB1>0;Vehiculo1;;Book1;;;;IF(TipoDoc='ECHEQ','CPD',TipoDoc);Especie;;
+
+
+BITS
+18;0
+50;0

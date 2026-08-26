@@ -1,0 +1,5 @@
+﻿IIF(Eqstr(#MONOPER, #MONELOCAL),
+   0,
+   IIF(Eqstr(#COTIZA, #MONELOCAL),
+   IIF(Eqstr(SQL(" Select Modo From "~DBO~".MODOESPECIES Where Especie1 = '"~#COTIZA~"' AND Especie2 = '"~#MONOPER~"' "), 'INV'), #COTIZOPERA, #COTIZOPERA)
+   ,COTIZACIONBNA(#MONOPER,Val(FV:2),1,NO,NO)))

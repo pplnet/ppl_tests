@@ -1,0 +1,35 @@
+﻿Hojavisible(NO)
+IF Vacio(UsrVehiculos(UsuarioActivo))
+    ACT(LS:1, SQLSet(" Select Codigo from "~DBO~".VEHICULOS where Status = 'HAB' "))
+ELSE
+    ACT(LS:1, UsrVehiculos(UsuarioActivo))
+ENDIF
+
+CrearDialogo
+  Fecha1:    'Fecha Desde'                     ;;;;;;Dialogo.Fecha1>=Fecha(VAR('FECHAMIGRA'));'La fecha desde no puede ser menor al '~VAR('FECHAMIGRA');NO;PriDeMes(Habiles(PriDeMes(FSys,SI),-1,SI))
+  Fecha2:    'Fecha Hasta'                     ;;;;;;Dialogo.Fecha2<=FSys Y Dialogo.Fecha2>Dialogo.Fecha1;'La fecha Hasta no puede ser mayor a hoy y debe ser mayor a Fecha Desde';NO;FinDeMes(Dialogo.Fecha1,SI)
+  Radio1:    'Filtra Book|SI|NO'               ;3;;;;;;;;1;
+  Vehiculo1: 'Vehiculo'                        ;5;1;;Dialogo.Radio1=0;Dialogo.Radio1=0;Dialogo.Radio1=1 O NoVacio(Dialogo.Vehiculo1) ;'Vehiculo Invalido';NO;;;;;;;
+  Lista2:    'Books'                           ;6;1;;;Dialogo.Radio1=0;;;;;;SQLSet(" Select Codigo From "~DBO~".BOOKS Where Vehiculo = '"~Dialogo.Vehiculo1~"' ");;
+  Lista1:    'Vehiculos'                       ;-1;1;;;Dialogo.Radio1=1;;;;;;IIF(Vacio(UsrVehiculos(UsuarioActivo)), Val(LS:1), SQLSet(" Select U.Vehiculo From "~DBO~".USRVEHICULO U, "~DBO~".VEHICULOS V Where V.Codigo = U.Vehiculo AND U.Codigo = '"~UsuarioActivo~"' AND V.Status = 'HAB' "));;
+  Radio2:    'Expresado en|ARP|USD'            ;1;;;;;;;;0
+  Radio3:    'Expresado en|Millones|ImporteOri';;;;SI;SI;;;;0;;;;;
+FinDialogo
+
+IF Not OK
+  Cancelar
+ENDIF
+
+IF Dialogo.Radio1 = 0
+    LinkearHoja('REPCAA', 1, Fecha1 = Dialogo.Fecha1,Fecha2 = Dialogo.Fecha2, Vehiculo1 = Dialogo.Vehiculo1, Lista1 = Dialogo.Lista2, Radio2 = Dialogo.Radio2, Radio3 = Dialogo.Radio3)
+ELSE
+    IF NoVacio(Dialogo.Lista1)
+        Recorrer&k 1, Elementos(Dialogo.Lista1)
+        LinkearHoja('REPCAA', 1, Fecha1 = Dialogo.Fecha1,Fecha2 = Dialogo.Fecha2, Vehiculo1 = ItemLista(Dialogo.Lista1, &k), Lista1 = '', Radio2 = Dialogo.Radio2, Radio3 = Dialogo.Radio3)
+        Proximo
+    ELSE
+        Recorrer&k 1, Elementos(Val(LS:1))
+        LinkearHoja('REPCAA', 1, Fecha1 = Dialogo.Fecha1,Fecha2 = Dialogo.Fecha2, Vehiculo1 = ItemLista(Val(LS:1), &k), Lista1 = '', Radio2 = Dialogo.Radio2, Radio3 = Dialogo.Radio3)
+        Proximo
+    ENDIF
+ENDIF

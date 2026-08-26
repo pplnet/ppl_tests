@@ -1,0 +1,87 @@
+﻿CAMPOS:1;;3
+FechaOp         : 'Fecha Prov'                 ;1;1;;NO;;FECHAOP>=Fsys;'Fecha Incorrecta';NO;FSYS;FSYS
+@VEHITO
+Vehiculo2       : 'Veh. Cpte. '                ;3;2;;EqStr(ABM,'A');;NOVACIO(VEHICULO2);'El Vehiculo Contraparte no es valido';NO;;;;
+Book2           : 'Book Cprte'                 ;4;2; ;  ;  ;[SI O BookValido(BOOK2, TIPOOP, ESPECIE, VEHICULO2, OPERADOR, '' )] Y NoVacio(BOOK2);'Book del Vehiculo Contraparte inválido';NO;;Var('BOOKDEF');;;;;;;
+
+Operador        :                              ;3;1;;;;NOVACIO(OPERADOR);'El Operador es Invalido';NO;USUARIOACTIVO;
+Cliente1        : 'Cliente'                    ;;3;;NO;NO;;;;VEHICULO2;VEHICULO2;
+TipoOp2         : 'Clase Op'                   ;5;1;;;;NOVACIO(TIPOOP2);'DEBE INGRESAR UNA CLASE DE OPERACION';NO;;;;SqlSet("Select Codigo from "~DBO~".TIPOSOPERACION Where Codigo In ('MMCPRV','MMPCCM','MMPCCV','MMPV') ");NO
+Especie         : 'Moneda'                     ;;;;NOT EV;;NOVACIO(ESPECIE) y DESCIENDEDEESPECIE(ESPECIE,'MONEDA') y ESTERMINAL(ESPECIE, ESPECIE);'Debe Ingresar una Moneda';NO;;;;;;;;"Codigo In ("~Pipe2Comillas(Descendientes('ESPECIES','MONEDA' ))~") and Status = 'HAB'"
+Cantidad        : 'Importe'                    ;;;;NOT EV;;CANTIDAD>0;'IMPORTE INVALIDO';NO;;;;;;;'###,###,###,###,###.##'
+TablaFeriados1  : 'Feriados'                   ;;;;;;NOVACIO(TABLAFERIADOS1);'Se debe indicar feriados a utilizar';NO;;BuscarCampo('Feriados','Codigo','Codigo',BuscarCampo('Especies','PaisOrigen','Codigo',ESPECIE)) 
+MB3             : 'Tipo|Ingreso|Egreso'        ;;;;;;;;;0;
+OperacionRef    : 'Operac. Referencia'         ;;;;NO;NOVACIO(OPERACIONREF);
+MB4             : 'Gen_Contra|No|Si'           ;6;2;;;;MB4>=0;'Genera Contra Operacion?';NO;;
+NrOperacion3    : 'Op.Asociada'                ;;2;;NO;NOVACIO(NROPERACION3)
+
+
+RB3             : 'MOF'                        ;10;2;;NO;NO;;;;;IF(INSTANCIA=2,0,1)
+Impresa         : 'Modificado'                 ;10;3;;NO;NO;;;;0
+
+Cotizacion1     : 'TC_Concert.'                ;1;1;2;;Not Eqstr(ESPECIE,VAR('MONEEXTR'));Eqstr(ESPECIE,VAR('MONEEXTR')) O [COTIZACION1<=VPRE1*(1+VAR('RPRECIO2')/100) Y COTIZACION1>=VPRE1*(1-VAR('RPRECIO2')/100)];'Tipo de Cambio Concertacion Fuera de Rango: '~FSTR(VPRE1*(1-VAR('RPRECIO2')/100),1,7)~' y '~FSTR(VPRE1*(1+VAR('RPRECIO2')/100),1,7);NO;;IF(Eqstr(ESPECIE,VAR('MONEEXTR')),1)
+Cotizacion2     : 'TC_Vencim.'                 ;;;;COTIZACION2<>0;COTIZACION2<>0;;;;
+CB1             : 'Op.Automatica'              ;5;2;2;NO;CB1=1;;;;0
+*VPRE5           : 'Cot.ESP/USD'                ;10;3;;NO;NO;;;;;IF(eqstr(QUERY(" Select Modo from "~DBO~".MODOESPECIES where Especie1='"~ESPECIE~"' and Especie2='"~VAR('MONEEXTR')~"' "),'INV'),COTIZACIONC(VAR('MONEEXTR'),,,,Fsys,1,SI,'ARP')/COTIZACIONC(ESPECIE,,,,Fsys,1,SI,'ARP')),COTIZACIONC(ESPECIE,,,,Fsys,1,SI,'ARP')/COTIZACIONC(VAR('MONEEXTR'),,,,Fsys,1,SI,'ARP'))
+VPRE5           : 'Cot.ESP/USD'                 ;10;3;;NO;NO;;;;;IF(eqstr(QUERY(" Select Modo from "~DBO~".MODOESPECIES where Especie1='"~ESPECIE~"' and Especie2='"~VAR('MONEEXTR')~"' "),'INV'),COTIZACIONC(VAR('MONEEXTR'),,,,Fsys,1,SI,'ARP')/COTIZACIONC(ESPECIE,,,,Fsys,1,SI,'ARP'),COTIZACIONC(ESPECIE,,,,Fsys,1,SI,'ARP')/COTIZACIONC(VAR('MONEEXTR'),,,,Fsys,1,SI,'ARP'))
+*VPRE6           : 'Cot.CONTESP/USD'            ;10;3;;NO;NO;;;;;IF(eqstr(QUERY(" Select Modo from "~DBO~".MODOESPECIES where Especie1='"~CONTRAESPECIE~"' and Especie2='"~VAR('MONEEXTR')~"' "),'INV'),COTIZACIONC(VAR('MONEEXTR'),,,,Fsys,1,SI,'ARP')/COTIZACIONC(CONTRAESPECIE,,,,Fsys,1,SI,'ARP')),COTIZACIONC(CONTRAESPECIE,,,,Fsys,1,SI,'ARP')/COTIZACIONC(VAR('MONEEXTR'),,,,Fsys,1,SI,'ARP'))
+VPRE6           : 'Cot.CONTESP/USD'             ;10;3;;NO;NO;;;;;IF(eqstr(QUERY(" Select Modo from "~DBO~".MODOESPECIES where Especie1='"~CONTRAESPECIE~"' and Especie2='"~VAR('MONEEXTR')~"' "),'INV'),COTIZACIONC(VAR('MONEEXTR'),,,,Fsys,1,SI,'ARP')/COTIZACIONC(CONTRAESPECIE,,,,Fsys,1,SI,'ARP'),COTIZACIONC(CONTRAESPECIE,,,,Fsys,1,SI,'ARP')/COTIZACIONC(VAR('MONEEXTR'),,,,Fsys,1,SI,'ARP'))
+VPRE1           : 'Cot.TC/USD'                 ;10;2; ;NO;NO;;;;;COTIZACIONC(ESPECIE,,,,FECHAOP,1,SI,VAR('MONEEXTR'))^If(EqStr(Modo(ESPECIE,VAR('MONEEXTR')),'DIR'),1,-1)
+ContraEspecie   : 'ContraEspecie'              ;;;;NO;NO;
+FechaOp2        : ''                           ;;;;NO;NO;
+
+@CUENTAS
+@CUENTAS2
+
+CONDICIONES
+Not EqStrI(Vehiculo1,Vehiculo2);'El Vehiculo Contraparte debe ser diferente al Vehiculo por el cual se ingresa la Operacion';NO;NO;FSYS;'VEHDUPL'
+ESHABIL(FECHAOP,'ARG');'La Fecha de la Provision no es Dia Habil en Argentina';SI;SI;FSYS;'PROVINH'
+ESTERMINAL(VEHICULO2,VEHICULO);'El Vehiculo ContraParte debe ser Terminal';NO
+FECHAOP =Fsys;'La Fecha de Origen no coincide con la de Sistema';SI;SI;FSYS;'ORIGFVALOR'
+EqStr(Copy(TIPOOP2,1,2),'MM') y Incluido(TIPOOP2,'MMCPRV|MMPCCM|MMPCCV|MMPV');'El Tipo de Operacion a Asociar debe ser de Money Market Vinculadas';NO
+@CONDIOP
+
+EDICION
+EqStr(Operador, UsuarioActivo) o Incluido(UsuarioActivo, Var('ULMODI'));'No se puede modificar, Operador: '~Operador
+
+BAJA
+EqStr(Operador, UsuarioActivo) o Incluido(UsuarioActivo, Var('ULBAJA'));'No se puede dar de baja, Operador: '~Operador
+
+
+POSTEDICION
+MB4=1 Y EQSTR(ABM,'A');'INSEVI';NrOperacion1=NROPERACION;TipoOp1=TIPOOP;String=" MB3='"~IF(MB3=0,'1','0')~"' ";Vehiculo1=VEHICULO2;Vehiculo2=VEHICULO1;String1=""
+
+MOVIMIENTOS
+FechaOp ;Cliente1;Especie;;;;;Vehiculo1;11;if(MB3=0,-Cantidad,Cantidad);;'Carga Provisiones' ;SI;SI;;;;Cuenta1;;1;
+
+@INSTOPVINC
+
+INSTANCIA19
+CAMPOS:1;;BuscarCampo('VEHICULOS','Alias1','Codigo',Vehiculo1);FW=1
+FechaOp2        : 'Fecha Conc.'                ;1;1;;NO
+FechaOp         : 'Fecha_Origen'               ;2;1;;NO
+Vehiculo1       : 'Vehiculo'                   ;1;2;;NO
+Book1           : 'Book'                       ;2;2;;NO 
+   
+Cliente1        : 'Entidad'                    ;4;1;;NO
+Especie         : 'Especie'                    ;5;1;;NO
+Cantidad        : 'Cantidad'                   ;6;1;;NO;;;;;;;;;;;'###,###,###,###,###.##';
+TipoTasa        : 'Tipo_Tasa'                  ; ; ;;NO
+Plazo           : 'Plazo'                      ; ; ;;NO
+
+TablaFeriados1  : 'Feriados'                   ; ; ;;NO 
+Operador        :                              ; ; ;;NO
+
+VTXT11  : 'Ascend. Especie'  ;18;2;2;NO;NO;;;;Ascendientes('ESPECIES',ESPECIE);Ascendientes('ESPECIES',ESPECIE)
+VTXT12  : 'Ascend. ContraE'  ;19;2;2;NO;NO;;;;Ascendientes('ESPECIES',CONTRAESPECIE);Ascendientes('ESPECIES',CONTRAESPECIE)
+Label1     : ''              ;17;1;2;NO;NoVacio(CONTRAESPECIE);;;;'Especie                                                     ContraEspecie';'Especie                                                     ContraEspecie';;;;;;
+Label2     : ''              ;17;1;2;NO;Vacio(CONTRAESPECIE);;;;'Especie';'Especie';;;;;;
+Cuenta1 : If(Incluido(TIPOOP,EXE('CARTA1V')),'Debito en','Credito a')       ;18;1;2;; NOT EQSTR(TIPOOP,'MMDPAC') ;[CLIENTECUENTA(VEHICULO1,CUENTA1) y ESPECIECUENTA(ESPECIE,CUENTA1) y EqSTr(BuscarCampo('CUENTAS','Estado','Codigo',CUENTA1),'HAB')] y NOVACIO(CUENTA1);"Error en Cuenta '"~If(Incluido(TIPOOP,EXE('CARTA1V')),'Debito en','Credito a')~"' "~ESPECIE;SI;IF(Eqstr(ABM, 'A'), CUENTACLIENTE(VEHICULO1,ESPECIE,CLIENTE1,,TIPOOP,'HAB'), CUENTA1);IF(Eqstr(ABM, 'A'), CUENTACLIENTE(VEHICULO1,ESPECIE,CLIENTE1,,TIPOOP,'HAB'), CUENTA1);;;;;;"Cliente='"~VEHICULO1~"' and Estado = 'HAB' and (Especies Like '%"~Especie~"%' or Especies Like '%"~ItemLista(VTXT11,Elementos(VTXT11))~"%')"     
+Cuenta2 : If(Incluido(TIPOOP,EXE('CARTA1V')),'Credito a','Debito en')       ;18;2;2;NoVacio(CONTRAESPECIE);NoVacio(CONTRAESPECIE);Vacio(CONTRAESPECIE) o [NOVACIO(CUENTA2) y [[CLIENTECUENTA(VEHICULO1,CUENTA2) y ESPECIECUENTA(CONTRAESPECIE,CUENTA2) y EqSTr(BuscarCampo('CUENTAS','Estado','Codigo',CUENTA2),'HAB')]]];"Error en Cuenta '"~If(Incluido(TIPOOP,EXE('CARTA1V')),'Credito a','Debito en')~"' "~CONTRAESPECIE;SI;IF(Eqstr(ABM, 'A'),CUENTACLIENTE(VEHICULO1,CONTRAESPECIE,CLIENTE1,,TIPOOP,'HAB'), CUENTA2);IF(Eqstr(ABM, 'A'),CUENTACLIENTE(VEHICULO1,CONTRAESPECIE,CLIENTE1,,TIPOOP,'HAB'), CUENTA2);;;;;;"Cliente='"~VEHICULO1~"' and Estado = 'HAB' and (Especies Like '%"~ContraEspecie~"%' or Especies Like '%"~ItemLista(VTXT12,Elementos(VTXT12))~"%')" 
+
+VTXT15  : 'Ascend. Especie'  ;18;2;2;NO;NO;;;;Ascendientes('ESPECIES',ESPECIE);Ascendientes('ESPECIES',ESPECIE)
+VTXT16  : 'Ascend. ContraE'  ;19;2;2;NO;NO;;;;Ascendientes('ESPECIES',CONTRAESPECIE);Ascendientes('ESPECIES',CONTRAESPECIE)
+Cuenta4 : If(Incluido(TIPOOP,EXE('CARTA1V')),'Credito A','Debito  En')  ;19;1;2;;;[[CLIENTECUENTA(VEHICULO1,CUENTA4) y ESPECIECUENTA(ESPECIE,CUENTA4) y EqSTr(BuscarCampo('CUENTAS','Estado','Codigo',CUENTA4),'HAB')] y NOVACIO(CUENTA4)] O EQSTR(TIPOOP,'MMDPAC');"Error en Cuenta de '"~If(Incluido(TIPOOP,EXE('CARTA1V')),'Credito A','Debito  En')~"' "~ESPECIE;SI;IF(Eqstr(ABM, 'A'),CUENTACLIENTE(VEHICULO1,ESPECIE,CLIENTE1,,TIPOOP,'HAB'), CUENTA4);IF(Eqstr(ABM, 'A'),CUENTACLIENTE(VEHICULO1,ESPECIE,CLIENTE1,,TIPOOP,'HAB'), CUENTA4);;;;;;"Cliente='"~VEHICULO1~"' and Estado = 'HAB' and (Especies Like '%"~Especie~"%' or Especies Like '%"~ItemLista(VTXT15,Elementos(VTXT15))~"%')"     
+Cuenta5 : If(Incluido(TIPOOP,EXE('CARTA1V')),'Debito  En','Credito A')  ;19;2;2;NoVacio(CONTRAESPECIE) ;NoVacio(CONTRAESPECIE) ;EQSTR(TIPOOP,'MMDPAC') O [Vacio(CONTRAESPECIE) o [NOVACIO(CUENTA5) y [[CLIENTECUENTA(VEHICULO1,CUENTA5) y ESPECIECUENTA(CONTRAESPECIE,CUENTA5) y EqSTr(BuscarCampo('CUENTAS','Estado','Codigo',CUENTA5),'HAB')]]]];"Error en Cuenta de '"~If(Incluido(TIPOOP,EXE('CARTA1V')),'Debito  En','Credito A')~"' "~CONTRAESPECIE;SI;IF(Eqstr(ABM, 'A'),CUENTACLIENTE(VEHICULO1,CONTRAESPECIE,CLIENTE1,,TIPOOP,'HAB'), CUENTA5);IF(Eqstr(ABM, 'A'),CUENTACLIENTE(VEHICULO1,CONTRAESPECIE,CLIENTE1,,TIPOOP,'HAB'), CUENTA5);;;;;;"Cliente='"~VEHICULO1~"' and Estado = 'HAB' and (Especies Like '%"~ContraEspecie~"%' or Especies Like '%"~ItemLista(VTXT16,Elementos(VTXT16))~"%')"     
+
+@INST19VINC

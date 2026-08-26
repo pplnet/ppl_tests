@@ -1,0 +1,181 @@
+﻿CrearDialogo
+    Fecha1:     'Fecha Desde: ' ;1;1;;;;NoVacio(Dialogo.Fecha1);'Fecha Inválida';NO;FSYS;;
+    Fecha2:     'Fecha Hasta: ' ;2;1;;;;NoVacio(Dialogo.Fecha2) Y Dialogo.Fecha1<=Dialogo.Fecha2;'Fecha Desde debe ser mayor a Fecha Desde';NO;FSYS;;
+    Cliente1:   'ALyC: '        ;3;1;;;;NoVacio(Dialogo.Cliente1) Y NoVacio(BuscarCampo('CLIENTES','CodigoMAV','Codigo',Dialogo.Cliente1));'ALyC inválida';NO;;;;;;"CodigoMAV IS NOT NULL"
+    Vehiculo1:  'Vehiculo: '    ;4;1;;;;NoVacio(Dialogo.Vehiculo1);'Debe ingresar un Vehiculo';NO;;;
+    Book1:      'Book: '        ;5;1;;;;EqStr(Dialogo.Vehiculo1,BuscarCampo('BOOKS','Vehiculo','Codigo',Dialogo.Book1)) Y NoVacio(Dialogo.Book1);'El book ingresado no corresponde al Vehiculo';NO;;BuscarCampo('VEHICULOS','Alias5','Codigo',Dialogo.Vehiculo1);;;;" Vehiculo = '"~Dialogo.Vehiculo1~"'"
+    
+FinDialogo
+
+If not ok
+    Cancelar
+Endif
+
+************************************************************************************
+*NOTA: Para fines de probar el informe, se le agregó al cliente ABADI un CodigoMAV
+*NOTA2: Se le agregó al cliente ABADI un Valor1 de 25
+************************************************************************************
+*Datos para Testing en STDCORP
+*************
+*Set Datos 1:
+*Fecha Desde: 31/10/2020
+*Fecha Hasta: 05/10/2023
+*ALyC: ABADI
+*Vehiculo: C101
+*Book: 66554
+*
+*Set Datos 2:
+*Fecha Desde: 11/11/2022
+*Fecha Hasta: 05/10/2023
+*ALyC: ABADI
+*Vehiculo: 00161
+*Book: FOG ATP
+
+*Se cambió el Cliente 2 de las siguientes operaciones a 'ABADI' (antes era NULL)
+*('C1000750','C1000735','C1000757','C1000758','C1000739','C1001009','C1001017','C1001031',
+*'C1001012','C1001013','C1001014','C1001015','C1001034','C1001021','C1001028','C1001038')
+
+
+
+
+
+
+********
+*Fuentes
+********
+CrearFont(1, 'Arial,8,')
+CrearFont(2, 'Arial,8,B')
+CrearFont(3, 'Arial,16,B')
+**************
+*Logo y Título
+**************
+let &filaLogo 1
+(.'LOGO'.)
+
+ACT(D:1, 'Control de Limites ALyC')
+SetFont(D:1, 3)
+AlinearCeldas(D:1..D:1,'C')
+
+SetFilaActual(fac+6)
+*******
+*Header
+*******
+**Variables
+let &fi1 FAC
+
+ACT(A:fac,'Fecha Desde: '~Dialogo.Fecha1)
+ifa
+ACT(A:fac,'Fecha Hasta: '~Dialogo.Fecha2)
+ifa
+let &cliente Dialogo.Cliente1
+ACT(A:fac,'ALyC: '~&cliente)
+ifa
+ACT(A:fac,'Vehiculo: '~Dialogo.Vehiculo1)
+ifa
+ACT(A:fac,'Book: '~Dialogo.Book1)
+ifa
+let &LimALyC BuscarCampo('CLIENTES','Valor1','Codigo',&cliente)
+ACT(A:fac,'% Lim ALyC: '~&LimALyC~'%')
+*
+ifa
+    
+**********
+SetFont(A:&fi1..A:fac, 2)
+SetFont(B:&fi1..B:fac, 2)
+ifa
+******************************
+*Títulos de Columnas y Formato
+******************************
+ ACT(A:FAC, 'Fecha')
+ ACT(B:FAC, 'Monto Total ALyC')
+ ACT(C:FAC, 'Monto Total Operado')
+ ACT(D:FAC, '% ALyC')
+ ACT(E:FAC, 'Cumple')
+ 
+ AlinearCeldas(A:fac..E:fac,'C')
+ SetFont(A:fac..E:fac, 2)
+ AgregarMarco(A:fac..E:fac, 0, 0, Exe('COLOR'))
+Let &filaInicial fac+1
+**************
+*SENTENCIA SQL
+**************
+SQL.ADD("Select FechaOp,Cantidad,Cliente1, Cliente2 FROM "~dbo~".OPERACIONES")
+SQL.ADD("WHERE FechaOp  Between '"~idxDate(Dialogo.Fecha1)~"' AND '"~idxDate(Dialogo.Fecha2)~"' ")
+SQL.ADD("AND Cliente1 = '"~&cliente~"'")
+SQL.ADD("AND Vehiculo1 = '"~Dialogo.Vehiculo1~"'")
+SQL.ADD("AND Book1 = '"~Dialogo.Book1~"'")
+SQL.ADD("Order By FechaOp")
+
+WATCH(SQL.BATCH)
+
+let &fechaAnterior Dialogo.Fecha2+1000
+*************
+Recorrer SQL
+*************
+    IF FBN['FechaOp'] = &fechaAnterior
+    *   Si la fecha es igual a la anterior.
+        dfa
+    ENDIF
+    IF (EsHabil(FBN['FechaOp'],'ARG'))
+        *Si la fecha cambia, actualizo variable
+        let &fechaAnterior FBN['FechaOp']
+        *Y luego escribo por primera vez los datos de la nueva fecha
+        
+        ****COLUMNA A - Fecha
+        ACD(A:FAC, FBN['FechaOp'])
+        
+        ****COLUMNA B - Monto Total ALyC
+        If EqStr(FBN['Cliente2'],&cliente)
+            *Monto Total ALyC = Sumatoria del campo O.Cantidad de todas las operaciones de la fecha donde el cliente2 = contraparte del dialogo
+            SCN(B:FAC, FBN['Cantidad'])
+            ACL(B:FAC,'DEALYC', Fecha1=FBN['FechaOp'], Cliente1=FBN['Cliente2'], Vehiculo1=Dialogo.Vehiculo1, Book1=Dialogo.Book1)
+        Endif
+        
+        
+        ***COLUMNA C - Monto Total Operado
+        If EqStr(FBN['Cliente1'],&cliente)
+            *Monto Total Operado = Sumatoria del campo O.Cantidad de todas las operaciones de la fecha donde el cliente1 = contraparte del dialogo
+            SCN(C:FAC, FBN['Cantidad'])
+        Endif
+        
+        ****COLUMNA D - % ALyC
+        *% ALyC = (Monto Total ALyC % Monto Total Operado)
+        ACN(D:FAC, ( (Val(B:FAC)*100)/Val(C:FAC) ) )
+        
+        ****COLUMNA E - Cumple
+        *En el ABM CLIENTES, Valor1 representa un porcentaje. 
+        *Si el valor de %ALyC es mayor, la leyenda va a ser NO (no puede exceder limites).
+        *Si es menor igual va a ser SI.
+        *en el ejemplo del Excel debe ser de 20%
+        if &LimALyC < Val(D:FAC)
+            ACT(E:FAC, 'NO')
+        else
+        if &LimALyC >= Val(D:FAC)
+            ACT(E:FAC, 'SI')
+            endif
+        endif
+    ELSE
+        dfa
+    ENDIF
+        
+    
+Proximo   
+**********************
+*Marco y Ancho Columna
+**********************
+AgregarMarco(A:&filaInicial..E:fac, 0, 0,  Exe('COLOR7'))
+AlinearCeldas(E:&filaInicial..E:fac,'C')
+FormatoCeldas(C:&filaInicial..D:fac, Exe('F2'))
+*FormatoCeldas(E:&filaInicial..E:fac, Exe('F2%'))
+SetFilaActual(fac+2)
+
+ACO(1,10)
+ACO(2,10)
+ACO(3,15)
+ACO(4,15)
+ACO(5,10)
+******************************
+SetFilaActual(FAC+1)
+ACT(a:FAC, 'FIN DEL INFORME')
+SetFont(a:FAC, 2)
+LimitesVision(F:fac)      

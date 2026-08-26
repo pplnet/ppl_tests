@@ -1,0 +1,22 @@
+﻿HojaVisible(NO)
+CrearDialogo
+  String1     : 'Cod.Ch.CVSA'                               ;1;1;;;;;;;;;;;;
+  *Radio1      : 'Fecha|Liq|Acreditacion|Concertacion'       ;;;;;NO;NO;'Debe ingresar un tipo Fecha';NO;0
+  Fecha1      : 'Fecha Cobranza Desde'                               ;;;;;VACIO(Dialogo.String1);Dialogo.Fecha1<>-1;'Se debe ingresar una Fecha Desde';NO;FSYS
+  Fecha2      : 'Fecha Cobranza Hasta'                               ;;;;;VACIO(Dialogo.String1);Dialogo.Fecha2<>-1;'Se debe ingresar una Fecha Hasta';NO;FSYS
+  Vehiculo1   : 'Vehiculo'                                  ;1;2;;;VACIO(Dialogo.String1);NoVacio(Dialogo.Vehiculo1);'Debe Ingresar un Vehiculo';NO;Var('DDVEHDEF')
+  Book1       : 'Book'                                      ;2;2;;;VACIO(Dialogo.String1);EqStr(Dialogo.Vehiculo1,BuscarCampo('BOOKS','Vehiculo','Codigo',Dialogo.Book1));'El book ingresado no corresponde al Vehiculo';NO;Var('BOOKDDCHE');BuscarCampo('VEHICULOS','Alias5','Codigo',Dialogo.Vehiculo1);;;;" Vehiculo = '"~Dialogo.Vehiculo1~"'"  
+  Cliente1    : 'Entidad'                                   ;5;1;;;VACIO(Dialogo.String1);NoVacio(Dialogo.Cliente1);'Debe Ingresar una Entidad';NO;Var('DDCOMIDEF');;;;; "Codigo in (Select DISTINCT Cliente1 from OPERACIONES where TipoOp ='DDC')"
+  Especie1    : 'Moneda'                                    ;;;;;VACIO(Dialogo.String1);NoVacio(Dialogo.Especie1) Y DESCIENDEDEESPECIE(Dialogo.Especie1,'MONEDA');'Se debe ingresar una Moneda';NO;Var('MONELOCA');;;;;"dbo.DESCIENDEDEESPECIE(Codigo,'MONEDA') = 1"    
+  Radio2      : 'Segmento|No Avalado|Avalado|Ambos'         ;;;;;VACIO(Dialogo.String1);;;;2
+  Instrumento1: 'Instrumento'                               ;;;;;VACIO(Dialogo.String1);;;;
+  Radio3      : 'Cobrado|Si|No|Ambos'                       ;;;;;NO;;;;0
+  Check1      :  'Informe de Cobranzas'                     ;;;;;NO;;;;1                    
+FinDialogo
+
+If Not Ok
+    Cancelar
+Endif
+
+
+LinkearHoja('OPCHEQ',1, String1 = Dialogo.String1,Radio1=0, Fecha1 = Dialogo.Fecha1, Fecha2=Dialogo.Fecha2, Vehiculo1 = Dialogo.Vehiculo1, Book1 = Dialogo.Book1, Cliente1 = Dialogo.Cliente1, Especie1 = Dialogo.Especie1, Radio2 = Dialogo.Radio2, Instrumento1 = Dialogo.Instrumento1, Radio3 = Dialogo.Radio3, Check1 = Dialogo.Check1 )

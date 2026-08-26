@@ -1,0 +1,58 @@
+﻿CrearDialogo
+    TipoOp:       'TipoOp'            ;;;;;;;;;;;;;;;;;;
+    Especie1:      'Moneda'           ;;;;;;;;;;;;;;;;;;
+    Cantidad1:    'Importe'           ;;;;;;;;;;;;;;;;;;
+    Book1:        'Book'              ;;;;;;;;;;;;;;;;;;
+    NrOperacion:  'NrOperacion'       ;;;;;;;;;;;;;;;;;;
+    Fecha1:       'FechaOp'           ;;;;;;;;;;;;;;;;;;
+FinDialogo
+
+If Not Ok
+    Cancelar
+Endif
+
+If Incluido(Dialogo.TipoOp,VAR('TIPOPRBDIR'))
+    **Operaciones que siempre son de Riesgo Bajo
+    let &riesgo 'BA'
+else
+    ***Se setea el importe (a comparar contra los limites de mòdulos)
+    if EqStr(Dialogo.Especie1,VAR('MONELOCA'))
+        let &importe Dialogo.Cantidad1
+    else
+        let &importe CotizacionBNA(Dialogo.Especie1,Dialogo.Fecha1,1,NO,NO)*Dialogo.Cantidad1
+    Endif
+    ***Operaciones que pueden ser Riesgo Bajo o MedioBajo según módulos
+    If Incluido(Dialogo.TipoOp,VAR('TIPOPRBCON'))
+        let &modulos VAR('VALMODARP')*VAR('LIMMODRIEB')
+        If &importe<&modulos
+            let &riesgo 'BA'
+        else
+            let &riesgo 'MB'
+        endif
+    Else
+        ***Resto de las operaciones, pueden ser riesgo MedioBajo o MedioAlto (MD) según módulos y restricciones.
+        *Nota:El código de Riesgo MD se mantiene para que las op que ya tienen este código no haya que modificarlas, antes era Medio, ahora es MedioAlto.
+        *let &restricciones BuscarCampo('BOOKS','Alias2','Codigo',Dialogo.Book1)
+        *150823 CINTIA Se reemplaza dato sacado del book por dato sacado de la op
+        let &restricciones BuscarCampo('OPERACIONES','CB11','NrOperacion',Dialogo.NrOperacion)           
+        let &modulos VAR('VALMODARP')*VAR('LIMMODRIE')
+        If Incluido(Dialogo.TipoOp,VAR('TIPOPRACON'))
+            ***Operaciones que pueden ser Riesgo MedioBajo o Alto según módulos
+            If &restricciones=1 o &importe<&modulos
+                let &riesgo 'MB'
+            else
+                let &riesgo 'AL'
+            endif
+        else
+            If &restricciones=1 o &importe<&modulos
+                let &riesgo 'MB'
+            else
+                let &riesgo 'MD'
+            endif
+        endif
+    Endif
+Endif
+
+SQL.ADD("UPDATE "~DBO~".OPERACIONES SET Riesgo = '"~&riesgo~"' Where NrOperacion = '"~Dialogo.NrOperacion~"'")
+SQL.NEW
+SQL.EXEC

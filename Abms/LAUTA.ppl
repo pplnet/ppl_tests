@@ -1,0 +1,65 @@
+﻿#*********************************************************************************
+#combos data sources.
+set ds_Tipo                = "PUB:Publico|PRI:Privado|ONE:O.N.|FON:Fondo|MON:Moneda|OTR:Otro|IND:Indice"
+set ds_TipoEC              = "ESC:Escritural|CAR:Cartular|"
+#set RespMessage = 10
+
+#*********************************************************************************
+def abm 'Especies'
+   def grid
+       Jerarquia:, Codigo:, Nombre:, Extendido:, ISIN: 
+   end
+   def key
+       Jerarquia:, Codigo:
+   end
+   
+   def context_menu
+       "Copiar Especie", do
+       set especie = sender.Codigo; 
+       $.EjecutarEvento('COPESP', {especie1:especie})
+       $.RefreshGrid()
+       end 
+   end
+   
+   def dialog
+       #**************************************************************************
+       tab 'General'
+          column
+             Jerarquia: , 'Jerarquía',
+             Codigo: , 'Código Especie', small_text,'XXXXXX'
+             Nombre: , 'Nombre Resumido', 
+             Cotiza: , 'Cotiza en', autocomplete, 'ESPECIES', 'Codigo,Nombre'
+       #**************************************************************************
+       tab 'Datos'
+          Column
+             TipoEC: , 'Tipo EC', combo, ds_TipoEC
+             Tipo: ,          , combo, ds_Tipo
+             TipoIndice:,     , autocomplete,'TIPOSINDICE','Codigo,Descripcion'
+        #**************************************************************************
+       
+   end
+   
+   required_fields: Codigo:, Cotiza:
+   upper_case_fields: Codigo:
+   disable: Jerarquia:,1=1;
+   
+   
+   hide_fields: 
+   TipoIndice:
+   
+   validates_max_length_of:
+   Codigo:, 6 ,true;
+   Nombre:, 15,true;
+   
+   when_change: Tipo: do
+        If $.val(Tipo:) = 'IND'
+            $.Show(TipoIndice:)
+        else
+            $.Hide(TipoIndice:)
+            $.set_field TipoIndice:, null
+        endif
+   end
+   
+   validates_uniqueness_of: Jerarquia:, Codigo:
+   
+end

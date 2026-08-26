@@ -1,0 +1,1 @@
+﻿(Round(#IMPCOMONL,2) + Round(#IMPCIVAONL,2))

@@ -1,0 +1,30 @@
+﻿#*********************************************************************************
+#combos data sources.
+set ds_DayCount = "ACT:ActAct|365:Act365F|36A:Act360|360:360360|30E:30E360|"
+ 
+#*********************************************************************************
+def abm 'TiposTasa'
+   def grid
+       Codigo:, Nombre:, EspecieValida: 
+   end
+   def key
+       Codigo: 
+   end
+   def dialog
+       #**************************************************************************
+       tab 'General'
+          column
+             Codigo: , 'Codigo', small_text
+             Nombre: ,          , large_text
+             EspecieValida: ,          , autocomplete, 'ESPECIES', 'Codigo,Nombre'
+             TasaReferencia: , , numeric,'########0.000000000'
+             PrecioRef: ,'Fuente Ref' , autocomplete, 'PRECIOSREF', 'Codigo,Descripcion'
+          column
+             DayCount: , , combo, ds_DayCount
+   end
+   upper_case_fields: Codigo:
+   validates_max_length_of:
+     Codigo:, 6,true; 
+     Nombre:, 40,true;
+   validates_uniqueness_of: Codigo:
+end

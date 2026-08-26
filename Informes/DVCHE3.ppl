@@ -1,0 +1,366 @@
+﻿CrearDialogo
+  String1     : 'Cod.Ch.CVSA'                        ;;;;;;;;;
+  Fecha1      : 'Fecha Desde'                        ;;;;;VACIO(Dialogo.String1);;;;PriDeMes(Fsys,SI);PriDeMes(Dialogo.Fecha1,SI)
+  Fecha2      : 'Fecha Hasta'                        ;;;;;VACIO(Dialogo.String1);;;;FinDeMes(Fsys,SI);FinDeMes(Dialogo.Fecha2,SI)
+  Vehiculo1   : 'Vehiculo'                           ;1;2;;;VACIO(Dialogo.String1);NoVacio(Dialogo.Vehiculo1);'Debe Ingresar un Vehiculo';NO;Var('DDVEHDEF')
+  Book1       : 'Book'                               ;;;;SI;VACIO(Dialogo.String1);EqStr(Dialogo.Vehiculo1,BuscarCampo('BOOKS','Vehiculo','Codigo',Dialogo.Book1));'El book ingresado no corresponde al Vehiculo';NO;Var('BOOKDDCHE');BuscarCampo('VEHICULOS','Alias5','Codigo',Dialogo.Vehiculo1);;;;" Vehiculo = '"~Dialogo.Vehiculo1~"'"  
+  Cliente1    : 'Comitente'                          ;4;1;;;VACIO(Dialogo.String1);;;;Var('DDCOMIDEF');;;;; "Codigo in (Select DISTINCT Cliente1 from OPERACIONES where TipoOp ='DDC,DDV')"
+  Especie1    : 'Moneda'                             ;;;;NO;VACIO(Dialogo.String1);;;;Var('MONELOCA') 
+  Radio1      : 'Segmento|No Avalado|Avalado|Ambos'  ;;;;;VACIO(Dialogo.String1);;;;2
+  Radio2      : 'Cobrado|Si|No|Ambos'                ;;;;;VACIO(Dialogo.String1);;;;2
+  Instrumento1: 'Instrumento'                        ;;;;;VACIO(Dialogo.String1);;;;  
+FinDialogo
+
+if Not Ok
+  Cancelar
+endif
+
+
+CrearFont(1, 'Arial,8,')
+CrearFont(2, 'Arial,8,B')
+CrearFont(3, 'Arial,16,B')
+
+
+let &filaLogo 1
+@LOGO
+
+
+SetFilaActual(fac+3)
+
+ACT(F:1, 'Reporte de Cheques Devengados por Mes')
+SetFont(F:1, 3)
+SetFilaActual(fac+2)
+
+***---Header
+If NoVacio(Dialogo.String1)
+    ACT(A:fac, 'Cod.Ch.CVSA: '~Dialogo.String1)
+    ifa
+Else
+    ACT(A:fac, 'Fecha Desde: ')
+    ACT(B:fac,Dialogo.Fecha1)
+    ifa
+
+    ACT(A:fac, 'Fecha Hasta: ')
+    ACT(B:fac,Dialogo.Fecha2)
+    ifa
+    If NoVacio(Dialogo.Vehiculo1)
+        ACT(A:fac, 'Vehiculo:'~Dialogo.Vehiculo1)
+        ifa
+    Else
+        ACT(A:fac, 'Vehiculos: Todos')
+        ifa
+    Endif
+    If NoVacio(Dialogo.Book1)
+        ACT(A:fac, 'Book:'~Dialogo.Book1)
+        ifa
+    Else
+        ACT(A:fac, 'Books: Todos')
+        ifa
+    Endif
+    If NoVacio(Dialogo.Cliente1)
+        ACT(A:fac, 'Comitente: '~Dialogo.Cliente1)
+        ifa
+    Endif
+
+    If NoVacio(Dialogo.Especie1)
+        ACT(A:fac, 'Moneda: '~Dialogo.Especie1)
+        ifa
+    Endif
+
+
+    If NoVacio(Dialogo.Instrumento1)
+       ACT(A:fac, 'Instrumento:'~Dialogo.Instrumento1)
+       ifa
+    Else
+       ACT(A:fac, 'Instrumento: Todos')
+       ifa
+    Endif
+       
+    IF Dialogo.Radio1 = 1
+        ACT(A:fac, 'Segmento: Avalado')
+        ifa
+    ELSE
+        If Dialogo.Radio1 = 0
+        ACT(A:fac, 'Segmento: No Avalado')
+            ifa
+        Else
+            ACT(A:fac, 'Segmento: Ambos')
+            ifa
+        Endif
+    ENDIF
+
+    IF Dialogo.Radio2 = 0
+        ACT(A:fac, 'Cobrado: Si')
+        ifa
+    ELSE
+        If Dialogo.Radio2 = 1
+        ACT(A:fac, 'Cobrado: No')
+            ifa
+        Else
+            ACT(A:fac, 'Cobrado/No: Ambos')
+            ifa
+        Endif
+    ENDIF
+Endif
+SetFont(A:&fi1..A:fac, 2)
+SetFont(B:&fi1..B:fac, 2)
+ifa
+
+***---Columnas
+ACT(A:fac, 'NrOperacion')
+ACT(B:fac, 'Subasta')
+ACT(C:fac, 'Segmento')
+ACT(D:fac, 'Moneda')
+ACT(E:fac, 'Tasa')
+
+
+ACT(F:fac, 'Concertacion')
+ACT(G:fac, 'Liquidacion')
+ACT(H:fac, 'Reg.Oper')
+ACT(I:fac, 'Id.Cheque')
+ACT(J:fac, 'Banco')
+ACT(K:fac, 'Nro. Cheque')
+ACT(L:fac, 'Acreditacion')
+ACT(M:fac, 'Monto')
+
+ACT(N:fac, 'Capital')
+ACT(O:fac, 'Descuento')
+ACT(P:fac, 'Der.Mer.')
+ACT(Q:fac, 'Der.Bol.')
+ACT(R:fac, 'Comitente')
+ACT(S:fac, 'Cod.Ch.CVSA')
+ACT(T:fac, 'Vto.')
+ACT(U:fac, 'Nombre Banco') 
+ACT(V:fac, 'Boleto') 
+ACT(W:fac, 'Cobrado')
+
+  
+
+ 
+*** Columnas para devengados de cada mes segun el rango de fechas
+let &CantMes DifMeses(Dialogo.Fecha1, Dialogo.Fecha2)
+
+**escribo la columna  para el primer MES
+ ACT(Z:fac, Meses(Mes(Dialogo.Fecha1))~'-'~Fstr(Anio(Dialogo.Fecha1)))
+ SetFont(Z:fac,2)
+ AgregarMarco(Z:fac,2,0,Exe('COLOR'))
+ 
+
+**Titulo Dev x mes
+If &CantMes = 0
+    ACT(Z:fac-2, 'Intereses')
+    ACT(Z:fac-1, 'Devengados')
+    SetFont(Z:fac-2..Z:fac-1,2)
+    AgregarMarco(Z:fac-2..Z:fac-1,2,0,Exe('COLOR2'))
+Else
+    If &CantMes = 1
+        ACT(Z:fac-1, 'Intereses')
+        ACT(AA:fac-1, 'Devengados')
+        SetFont(Z:fac-1..AA:fac-1,2)
+        AgregarMarco(Z:fac-1..AA:fac-1,2,0,Exe('COLOR2'))
+        AlinearCeldas(Z:fac-1,'D')
+    Else
+        ACT(Z+(&CantMes/2):fac-1, 'Intereses Devengados') 
+        SetFont(Z+(&CantMes/2):fac-1,2)
+        AgregarMarco(Z:fac-1..Z+&CantMes:fac-1,2,0,Exe('COLOR2')) 
+    Endif
+Endif
+
+**Busco el siguiente mes y lo pongo dentro de una variable
+let &SigMes Habiles(FinDeMes(Dialogo.Fecha1),+1)
+Recorrer&i 1, &CantMes
+        *Escribo el resto de meses  
+        ACT(Z+&i:fac, Meses(Mes(&SigMes))~'-'~Fstr(Anio(&SigMes)))
+
+        ACO(25+&i+1,10)
+        SetFont(Z+&i:fac,2)
+        AgregarMarco(Z+&i:fac,2,0,Exe('COLOR'))
+        **Utilizo la misma variable para ir recorriendo los meses
+       let &SigMes Habiles(FinDeMes(&SigMes),+1)
+Proximo
+
+AlinearCeldas(A:FAC..Z+&CantMes:fac,'C')
+SetFont(a:fac..Z+&CantMes:fac,2)
+AgregarMarco(a:FAC..W:fac,2,0,Exe('COLOR'))
+AgregarMarco(Z:FAC..Z+&CantMes:fac,2,0,Exe('COLOR'))
+
+let &filaInicial fac
+***---Query
+SQL.ADD("   SELECT")
+SQL.ADD(" O.NrOperacion,    O.NrOperacion2,    O.CB1,             O.Especie,      O.TipoOp, ")
+SQL.ADD(" O.Precio1,        O.Cliente2,        O.FechaOp,         O.Hora1,        O.Hora2, ")
+SQL.ADD(" O.FechaPago,      O.NrOperacion3,    O.NrOperacion4,    O.Cliente3,     O.OperacionRef, ")
+SQL.ADD(" O.FechaVto2,      O.TotalBrutoCli1,  O.TotalIntereses,  O.Cantidad,     O.ImpComMer1,  ")
+SQL.ADD(" O.ImpGastos1,     O.Cliente1,        O.MensajeChequeo,  O.MB2,          O.Numerador,")
+SQL.ADD(" O.ObservacDoc,    O.ContraEspecie,   O.TipoCambio,      O.CB2,          O.CB3, ")
+SQL.ADD(" O.FechaVto,       O.NrSucursal,      O.CB4,             O.CB5,          O.NrBoleto, ")
+SQL.ADD(" O.TotalImpuestos, O.Plazo,           O.TipoDoc,         O.FechaCarga,   O.FechaCargaSys,")
+SQL.ADD(" O.Cliente4,       O.Contrato,        O.Vehiculo1,       O.CodComitente, O.Book1,     ")
+SQL.ADD(" O.Cuenta1,        O.RB1,             O.FechaEj  ") 
+SQL.ADD("FROM "~DBO~".OPERACIONES O")
+SQL.ADD("INNER JOIN "~DBO~".OPERACIONESBITS OB ON O.NrOperacion=OB.NrOperacion")
+SQL.ADD("WHERE O.TipoOp = 'DDC'")
+SQL.ADD("AND OB.NrBit=50 AND OB.Valor=1")
+
+If NoVacio(Dialogo.String1)
+    SQL.ADD("AND O.ObservacDoc = '"~Dialogo.String1~"' ")
+Else 
+    SQL.ADD("AND O.FechaOp >= '"~IdxDate(Dialogo.Fecha1)~"' AND O.FechaOp <= '"~IdxDate(Dialogo.Fecha2)~"'  ") 
+
+    If NoVacio(Dialogo.Vehiculo1)
+    SQL.ADD("AND O.Vehiculo1 = '"~Dialogo.Vehiculo1~"' ")
+    Endif
+    If NoVacio(Dialogo.Book1)
+         SQL.ADD("AND O.Book1 = '"~Dialogo.Book1~"' ")
+    Endif
+
+    If NoVacio(Dialogo.Cliente1)
+        SQL.ADD("AND O.Cliente1 = '"~Dialogo.Cliente1~"' ")
+    Endif
+
+    If NoVacio(Dialogo.Especie1)
+        SQL.ADD("AND O.Especie = '"~Dialogo.Especie1~"' ")
+    Endif
+
+    If NoVacio(Dialogo.Instrumento1)
+            SQL.ADD("AND O.TipoDoc = '"~Dialogo.Instrumento1~"' ") 
+    Endif
+       
+    IF Dialogo.Radio1 = 2
+        SQL.ADD("AND (O.CB1 = 0 OR  O.CB1 = 1 )")
+    ELSE
+        SQL.ADD("AND O.CB1 = "~Fstr(Dialogo.Radio1,0,0)~" ")
+    ENDIF 
+    IF Dialogo.Radio2 = 0 
+        SQL.ADD("AND O.RB1 >= 1 ")
+    ELSE 
+        IF Dialogo.Radio2 = 1
+            SQL.ADD("AND O.RB1=0 ")
+        ENDIF
+    ENDIF
+Endif
+
+SQL.ADD("AND O.TipoOp IN ('DDC','DDV')   ")  
+WATCH(SQL.BATCH)
+
+Recorrer SQL
+    
+    ACT(A:fac, fbn('NrOperacion'))
+    ACLO(A:fac, fbn('NrOperacion'))
+    ACT(B:fac, fbn('NrOperacion2'))
+    
+    IF fbn('CB1') = 1
+        ACT(C:fac, 'Avalado')
+    ELSE
+        IF fbn('CB1') = 0
+            ACT(C:fac, 'No Avalado')
+        Endif
+    ENDIF
+    
+    ACT(D:fac, fbn('Especie'))
+    ACN(E:fac, fbn('Precio1'))
+    ACD(F:fac, fbn('FechaOp'))
+    ACD(G:fac, fbn('FechaPago'))
+    ACT(H:fac, fbn('NrOperacion3'))
+    ACT(I:fac, fbn('NrOperacion4'))
+    ACT(J:fac, fbn('Cliente3'))
+    ACT(K:fac, fbn('OperacionRef'))
+    ACD(L:fac, fbn('FechaVto2'))
+    ACN(M:fac, fbn('TotalBrutoCli1'))
+    ACN(N:fac, fbn('Cantidad'))
+    ACN(O:fac, fbn('TotalIntereses'))
+    ACN(P:fac, fbn('ImpGastos1'))
+    ACN(Q:fac, fbn('ImpComMer1'))
+    ACT(R:fac, fbn('CodComitente'))
+    ACT(S:fac, fbn('ObservacDoc'))
+    ACD(T:fac, fbn('FechaVto'))
+    ACT(U:fac, BuscarCampo('CLIENTES','RazonSocial','Codigo',fbn('Cliente3'))) 
+    ACT(V:fac, fbn('NrBoleto'))
+    IF fbn('RB1') = 0 Y fbn('FechaVto')<FSYS
+        ACT(W:fac, 'MORA')
+    ELSE
+        IF fbn('RB1') >= 1 
+            ACT(W:fac, 'SI')
+        ELSE
+            ACT(W:fac, 'NO')
+        Endif
+    ENDIF
+
+
+      *--Intereses Devengados de cada mes
+      **Escribo la columna  para el primer MES
+        ACN(Z:fac, SQL(" Select Sum(M.Monto) From "~DBO~".MOVDEVENGADOS M Where M.NrOperacion = '"~fbn('NrOperacion')~"' AND M.Fecha >= '"~IdxDate(PriDeMes(Dialogo.Fecha1,SI))~"' AND M.Fecha <= '"~IdxDate(FinDeMes(Dialogo.Fecha1,SI))~"'"))
+        **Busco el siguiente mes y lo pongo dentro de una variable
+        let &SigMes Habiles(FinDeMes(Dialogo.Fecha1),+1)
+        
+        Recorrer&j 1, &CantMes
+
+                *Escribo el resto de meses  
+                ACN(Z+&j:fac, SQL(" Select Sum(M.Monto) From "~DBO~".MOVDEVENGADOS M Where M.NrOperacion = '"~fbn('NrOperacion')~"' AND M.Fecha >= '"~IdxDate(PriDeMes(&SigMes,SI))~"' AND M.Fecha <= '"~IdxDate(FinDeMes(&SigMes,SI))~"' "))
+                 **Utilizo la misma variable para ir recorriendo los meses
+               let &SigMes Habiles(FinDeMes(&SigMes),+1)
+               let &totalIntereses &totalIntereses + Val(Z+&j:fac)
+               IF fbn('RB1') = 1 O fbn('RB1') = 2
+                    let &interesesCobrados &interesesCobrados + Val(Z+&j:fac)
+               ENDIF
+        Proximo
+Proximo
+
+AlinearCeldas(A:&filaInicial..D:fac,'C')
+AlinearCeldas(F:&filaInicial..L:fac,'C')
+AlinearCeldas(R:&filaInicial..W:fac,'C')
+FormatoCeldas(E:&filaInicial..E:fac, Exe('F8'))
+AgregarMarco(A:&filaInicial+1..W:fac,2,0,Exe('COLOR7'))
+AgregarMarco(Z:&filaInicial+1..Z+&CantMes:fac,2,0,Exe('COLOR7'))
+
+
+Recorrer&j 1, &CantMes
+    
+    Recorrer&k &filaInicial, fac
+    
+        SCN(100:fac, Val(Z:&k))
+        ACN(Z:fac+1, Val(100:fac))
+    
+        SCN(100+&j:fac, Val(Z+&j:&k))
+        ACN(Z+&j:fac+1, Val(100+&j:fac))
+    Proximo
+    SetFont(Z:fac+1,2)
+    AgregarMarco(Z:fac+1,2,0,Exe('COLOR'))
+    SetFont(Z+&j:fac+1,2)
+    AgregarMarco(Z+&j:fac+1,2,0,Exe('COLOR'))
+    
+Proximo
+    
+SetFilaActual(fac+3)
+ACT(Z:fac, 'Planilla:')
+ACN(AA:fac, &totalIntereses)
+ifa
+ifa
+ACT(Z:fac, 'Cobrado:')
+ACN(AA:fac, &interesesCobrados)
+ifa
+ifa
+ACT(Z:fac, 'Cartera:')
+ACN(AA:fac, &totalIntereses - &interesesCobrados)
+
+AlinearCeldas(z:fac-4..z:fac,'I')
+SetFont(z:fac-4..aa:fac, 2)
+AgregarMarco(Z:fac-4..aa:fac,2,0,Exe('COLOR7'))
+AgregarMarco(Z:fac-4..aa:fac-4,2,0,Exe('COLOR'))
+AgregarMarco(Z:fac-2..aa:fac-2,2,0,Exe('COLOR'))
+AgregarMarco(Z:fac..aa:fac,2,0,Exe('COLOR'))
+
+
+
+
+
+ACO(19,10)
+ACO(21,20)
+ACO(26,10)
+SetFilaActual(FAC+2)
+ACT(a:FAC, 'FIN DEL INFORME')
+SetFont(a:FAC, 2)
+LimitesVision(Z+&CantMes+1:fac)
+
+
+    

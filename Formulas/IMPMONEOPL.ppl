@@ -1,0 +1,2 @@
+﻿***///Importe en Moneda de Operacion para DEV+DC -> item en Moneda Local
+IIF(#ESMONELOCA Y Not #ESMONEFUE,ABS(#MONTODEVEN),0)

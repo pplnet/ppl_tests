@@ -1,0 +1,42 @@
+﻿#*********************************************************************************
+def abm 'ParesVehiculo'
+   def grid
+   Vehiculo1:, Vehiculo2:, Ganancias1a2:, Ganancias2a1:
+   end
+   def key
+   Vehiculo1:, Vehiculo2:
+   end
+   def dialog
+       #**************************************************************************
+       tab 'General'
+          column
+              Vehiculo1: , 'Vehiculo 1' , autocomplete, 'VEHICULOS', 'Codigo,Descripcion'
+              Vehiculo2: , 'Vehiculo 2' , autocomplete, 'VEHICULOS', 'Codigo,Descripcion'
+              Ganancias1a2:, 'Ganancias 1 a 2', numeric,'#########0'
+              Ganancias2a1:, 'Ganancias 2 a 1', numeric,'#########0'
+              WHT1a2:, 'WHT 1 a 2', numeric,'#########0'
+              WHT2a1:, 'WHT 2 a 1', numeric,'#########0'
+              ListaEspecies: , , autocomplete_ar_list, 'ESPECIES', 'Codigo,Nombre'
+          column
+              Estado:, , combo, "HAB:Habilitado|DES:Deshabilitado"
+              Divisor:, , combo, "365|360"
+      tab 'Adicional'
+          column
+             Alias1:, 'Alias 1', large_text
+             Alias2:, 'Alias 2', large_text
+             Alias3:, 'Alias 3', large_text
+             Valor1:, 'Valor 1', numeric,'#########0'
+             Valor2:, 'Valor 2', numeric,'#########0'
+             Valor3:, 'Valor 3', numeric,'#########0'
+             Fecha1:, 'Fecha 1', date
+             Fecha2:, 'Fecha 2', date
+             Fecha3:, 'Fecha 3', date
+   end
+   upper_case_fields: Vehiculo1:, Vehiculo2:
+   
+   validates_max_length_of:
+        Alias1:, 10,true;
+        Alias2:, 10,true;
+        Alias3:, 10,true;
+        validates_uniqueness_of_set: Vehiculo1:, Vehiculo2:
+end

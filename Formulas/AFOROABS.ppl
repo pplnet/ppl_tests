@@ -1,0 +1,1 @@
+﻿IIF(fbn('PrecioMer') > 100, fbn('PrecioMer')-100, 100-fbn('PrecioMer'))

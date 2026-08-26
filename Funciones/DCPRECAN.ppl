@@ -1,0 +1,28 @@
+﻿****Obtengo los montos de diferencia de cambio para el capital y el interes
+let &dcCapitalCte 0
+let &dcCapitalNoCte 0
+let &dcInteres 0
+let &porcentajePrecanDC 0
+
+SQl.ADD("Select DC,TipoDC from "~DBO~".DCMM ")
+SQL.ADD("Where NrOperacion = '"~&nrOperacionOn~"' ")
+SQL.ADD("AND Fecha Between '"~IdxDate(&fechaIniCuota)~"' and '"~IdxDate(&fechaPrecan)~"' ORDER By TipoDC ")
+
+Recorrer SQL
+    If EqStr(fbn('TipoDC'),'CTE')
+        let &dcCapitalCte &dcCapitalCte + fbn('DC') 
+    EndIf 
+    If EqStr(fbn('TipoDC'),'NCT')
+        let &dcCapitalNoCte &dcCapitalNoCte + fbn('DC') 
+    EndIf 
+    If EqStr(fbn('TipoDC'),'INT')
+        let &dcInteres &dcInteres + fbn('DC') 
+    EndIf
+Proximo
+
+*let &porcentajePrecanDC &porcentajePrecan/(100-&porcentajePrecan) 
+let &porcentajePrecanDC &porcentajePrecan/(100-&porcentajeTotalPrecan) 
+
+ACN(DC:2, &dcInteres * &porcentajePrecanDC)
+let &DCCapMonedaLocalVehiculoNoCte &dcCapitalNoCte * &porcentajePrecanDC
+let &DCCapMonedaLocalVehiculoCte   &dcCapitalCte * &porcentajePrecanDC

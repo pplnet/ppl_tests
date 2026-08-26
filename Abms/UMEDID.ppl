@@ -1,0 +1,59 @@
+﻿#*********************************************************************************
+#combos data sources.
+ 
+#*********************************************************************************
+def abm 'UMedidas'
+   def grid
+   Codigo:, Descripcion:
+   end
+   def key
+        Codigo:, Descripcion:
+   end
+   def dialog
+       #**************************************************************************
+       tab 'General'
+          column
+             Codigo: , 'Codigo', small_text
+             Descripcion: ,          , extra_large_text
+             EspeciesValidas: , , autocomplete_ar_list, 'ESPECIES', 'Codigo,Nombre'
+       tab 'Formulas'
+          column
+            Formula1: , 'Formula 1', extra_large_text
+            Formula2: , 'Formula 2', extra_large_text
+            Formula3: , 'Formula 3', extra_large_text
+            Formula4: , 'Formula 4', extra_large_text
+            Formula5: , 'Formula 5', extra_large_text
+            Formula6: , 'Formula 6', extra_large_text
+            Formula7: , 'Formula 7', extra_large_text
+            Formula8: , 'Formula 8', extra_large_text
+            Formula9: , 'Formula 9', extra_large_text
+            Formula10: , 'Formula 10', extra_large_text
+       tab 'Validaciones'
+          column
+            Validacion1: , 'Validacion 1', extra_large_text
+            Validacion2: , 'Validacion 2', extra_large_text
+            Validacion3: , 'Validacion 3', extra_large_text
+            Validacion4: , 'Validacion 4', extra_large_text
+            Validacion5: , 'Validacion 5', extra_large_text
+   end
+   upper_case_fields: Codigo:
+   validates_max_length_of:
+        Codigo:, 10,true;
+        Descripcion:, 30,true;
+        Formula1:, 100, true;
+        Formula2:, 100, true;
+        Formula3:, 100, true;
+        Formula4:, 100, true;
+        Formula5:, 100, true;
+        Formula6:, 100, true;
+        Formula7:, 100, true;
+        Formula8:, 100, true;
+        Formula9:, 100, true;
+        Formula10:, 100, true;
+        Validacion1:, 100, true;
+        Validacion2:, 100, true;
+        Validacion3:, 100, true;
+        Validacion4:, 100, true;
+        Validacion5:, 100, true;
+    validates_uniqueness_of: Codigo:
+end

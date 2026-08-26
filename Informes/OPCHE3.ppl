@@ -1,0 +1,491 @@
+﻿MostrarCuadrodeMensajes
+DialogoVisible(SI)
+CrearDialogo
+  String1     : 'Cod.Ch.CVSA'                               ;1;1;;;;;;;;;;;;
+  Radio1      : 'Fecha|Liq|Acreditacion|Concertacion'       ;;;;;VACIO(Dialogo.String1);Dialogo.Radio1<>-1;'Debe ingresar un tipo Fecha';NO;0
+  Fecha1      : 'Fecha Desde'                               ;;;;;VACIO(Dialogo.String1);Dialogo.Fecha1<>-1;'Se debe ingresar una Fecha Desde';NO;FSYS
+  Fecha2      : 'Fecha Hasta'                               ;;;;;VACIO(Dialogo.String1);Dialogo.Fecha2<>-1;'Se debe ingresar una Fecha Hasta';NO;FSYS
+  Vehiculo1   : 'Vehiculo'                                  ;1;2;;;VACIO(Dialogo.String1);NoVacio(Dialogo.Vehiculo1);'Debe Ingresar un Vehiculo';NO;Var('DDVEHDEF')
+  Book1       : 'Book'                                      ;2;2;;;VACIO(Dialogo.String1);EqStr(Dialogo.Vehiculo1,BuscarCampo('BOOKS','Vehiculo','Codigo',Dialogo.Book1));'El book ingresado no corresponde al Vehiculo';NO;Var('BOOKDDCHE');BuscarCampo('VEHICULOS','Alias5','Codigo',Dialogo.Vehiculo1);;;;" Vehiculo = '"~Dialogo.Vehiculo1~"'"  
+  Cliente1    : 'Entidad'                                   ;5;1;;;VACIO(Dialogo.String1);NoVacio(Dialogo.Cliente1);'Debe Ingresar una Entidad';NO;Var('DDCOMIDEF');;;;; "Codigo in (Select DISTINCT Cliente1 from OPERACIONES where TipoOp ='DDC')"
+  Especie1    : 'Moneda'                                    ;;;;;VACIO(Dialogo.String1);NoVacio(Dialogo.Especie1) Y DESCIENDEDEESPECIE(Dialogo.Especie1,'MONEDA');'Se debe ingresar una Moneda';NO;Var('MONELOCA');;;;;"dbo.DESCIENDEDEESPECIE(Codigo,'MONEDA') = 1"    
+  Radio2      : 'Segmento|No Avalado|Avalado|Ambos'         ;;;;;VACIO(Dialogo.String1);;;;2
+  Instrumento1: 'Instrumento'                               ;;;;;VACIO(Dialogo.String1);;;;
+  Radio3      : 'Cobrado|Si|No|Ambos'                       ;;;;;VACIO(Dialogo.String1);;;;2
+FinDialogo
+
+if Not Ok
+  Cancelar
+endif
+
+
+
+CrearFont(1, 'Arial,8,')
+CrearFont(2, 'Arial,8,B')
+CrearFont(3, 'Arial,16,B')
+
+
+let &filaLogo 1
+@LOGO
+
+
+SetFilaActual(fac+3)
+
+ACT(F:1, 'Informe de Operaciones de Cheques')
+SetFont(F:1, 3)
+SetFilaActual(fac+2)
+
+***---Header
+If NoVacio(Dialogo.String1)
+    ACT(A:fac, 'Id Cheque: '~Dialogo.String1)
+    ifa
+Else   
+    ACT(A:fac, 'Fecha: ')
+    If Dialogo.Radio1 = 0
+        ACT(B:fac,'Liquidacion')
+    Else
+        If Dialogo.Radio1 = 1
+            ACT(B:fac,'Acreditacion')
+        Else
+            ACT(B:fac,'Concertacion')
+        Endif
+    Endif
+    ifa
+    ACT(A:fac, 'Fecha Desde: ')
+    ACT(B:fac,Dialogo.Fecha1)
+    ifa
+
+    ACT(A:fac, 'Fecha Hasta: ')
+    ACT(B:fac,Dialogo.Fecha2)
+    ifa
+    If NoVacio(Dialogo.Vehiculo1)
+        ACT(A:fac, 'Vehiculo:'~Dialogo.Vehiculo1)
+        ifa
+    Else
+        ACT(A:fac, 'Vehiculos: Todos')
+        ifa
+    Endif
+    If NoVacio(Dialogo.Book1)
+        ACT(A:fac, 'Book:'~Dialogo.Book1)
+        ifa
+    Else
+        ACT(A:fac, 'Books: Todos')
+        ifa
+    Endif
+
+    If NoVacio(Dialogo.Cliente1)
+        ACT(A:fac, 'Entidad: '~Dialogo.Cliente1)
+        ifa
+    Endif
+
+    If NoVacio(Dialogo.Especie1)
+        ACT(A:fac, 'Moneda:'~Dialogo.Especie1)
+        ifa
+    Else
+        ACT(A:fac, 'Monedas: Todas')
+        ifa
+    Endif
+
+    If NoVacio(Dialogo.Instrumento1)
+       ACT(A:fac, 'Instrumento:'~Dialogo.Instrumento1)
+       ifa
+    Else
+       ACT(A:fac, 'Instrumento: Todos')
+       ifa
+    Endif
+       
+    IF Dialogo.Radio2 = 0
+    ACT(A:fac, 'Segmento: No Avalado')
+        ifa
+    ELSE
+        If Dialogo.Radio2 = 1
+        ACT(A:fac, 'Segmento: Avalado')
+            ifa
+        Else
+            ACT(A:fac, 'Segmento: Ambos')
+            ifa
+        Endif
+    ENDIF
+    
+    IF Dialogo.Radio3 = 0
+        ACT(A:fac, 'Estado: Cobrado')
+        ifa
+    ELSE
+        If Dialogo.Radio3 = 1
+            ACT(A:fac, 'Estado: No Cobrado')
+            ifa
+        Else
+            ACT(A:fac, 'Estado: Ambos')
+            ifa
+
+        Endif
+    ENDIF
+Endif
+SetFont(A:&fi1..A:fac, 2)
+SetFont(B:&fi1..B:fac, 2)
+ifa
+
+***---Columnas
+ACT(A:fac, 'NrOperacion')
+ACT(B:fac, 'Subasta')
+ACT(C:fac, 'Segmento')
+ACT(D:fac, 'Moneda')
+ACT(E:fac, 'C-V')
+
+
+ACT(F:fac, 'Tasa')
+ACT(G:fac, 'Contraparte')
+ACT(H:fac, 'Hora Conc.')
+ACT(I:fac, 'Concertacion')
+ACT(J:fac, 'Liquidacion')
+ACT(K:fac, 'Reg.Oper')
+ACT(L:fac, 'Id.Cheque')
+ACT(M:fac, 'Banco')
+
+ACT(N:fac, 'Nro. Cheque')
+ACT(O:fac, 'Acreditacion')
+ACT(P:fac, 'Monto')
+ACT(Q:fac, 'Capital')
+ACT(R:fac, 'Descuento')
+ACT(S:fac, 'Der.Mer.')
+ACT(T:fac, 'Der.Bol.')
+ACT(U:fac, 'Comitente') 
+ACT(V:fac, 'CUIT Comprador') 
+ACT(W:fac, 'Hora Ord.')
+ 
+ACT(X:fac, 'Warrant')
+ACT(Y:fac, 'Cond')
+ACT(Z:fac, 'Cod.Ch.CVSA')
+ACT(AA:fac, 'Moneda Liq.')
+ACT(AB:fac, 'Tipo de Cambio')
+
+ACT(AC:fac, 'Sin Recurso')
+ACT(AD:fac, 'No a la Orden')
+ACT(AE:fac, 'Vto.')
+ACT(AF:fac, 'Nombre Banco')
+ACT(AG:fac, 'N.Sucursal')
+ACT(AH:fac, 'E.Pyme')
+
+ACT(AI:fac, 'Primera.Neg')
+ACT(AJ:fac, 'CUIT Librador')
+ACT(AK:fac, 'CUIT Beneficiario')
+ACT(AL:fac, 'LIBRADOR')
+ACT(AM:fac, 'Instrumento')
+ACT(AN:fac, 'Boleto')
+
+ACT(AO:fac, 'Mercado')
+ACT(AP:fac, 'Gastos')
+ACT(AQ:fac, 'Impuestos')
+ACT(AR:fac, 'Bruto')
+ACT(AS:fac, 'Codigo SGR')
+ACT(AT:fac, 'Arancel')
+ACT(AU:fac, 'Plazo') 
+ACT(AV:fac, 'Total debitado')  
+ACT(AW:fac, 'Estado') 
+ACT(AX:fac, 'Fecha Cobro MAV') 
+ACT(AY:fac, 'Fecha Cobro Directo') 
+  
+AlinearCeldas(A:fac..AY:fac,'C')
+SetFont(A:fac..AY:fac, 2)
+AgregarMarco(A:fac..AY:fac, 0, 0, Exe('COLOR'))
+Let &filaInicial fac+1
+ 
+***---Query
+SQL.ADD("SELECT")
+SQL.ADD("   O.NrOperacion,    O.NrOperacion2,    O.CB1,             O.Especie,       O.TipoOp, ")
+SQL.ADD("   O.Precio1,        O.Cliente2,        O.FechaOp,         O.Hora1,         O.Hora2, ")
+SQL.ADD("   O.FechaPago,      O.NrOperacion3,    O.NrOperacion4,    O.Cliente3,      O.OperacionRef, ")
+SQL.ADD("   O.FechaVto2,      O.TotalBrutoCli1,  O.TotalIntereses,  O.Cantidad,      O.ImpComMer1,  ")
+SQL.ADD("   O.ImpGastos1,     O.Cliente1,        O.MensajeChequeo,  O.MB2,           O.Numerador,")
+SQL.ADD("   O.ObservacDoc,    O.ContraEspecie,   O.TipoCambio,      O.CB2,           O.CB3, ")
+SQL.ADD("   O.FechaVto,       O.NrSucursal,      O.CB4,             O.CB5,           O.NrBoleto, ")
+SQL.ADD("   O.TotalImpuestos, O.Plazo,           O.TipoDoc,         O.FechaCarga,    O.FechaCargaSys,")
+SQL.ADD("   O.Cliente4,       O.Contrato,        O.Vehiculo1,       O.CodComitente,  O.Book1,     ")
+SQL.ADD("   O.Cuenta1,        O.RB1,             O.FechaEj,         O.Fecha2,        O.Observac2,  ") 
+SQL.ADD("   O.Opcion                                                                               ")
+
+SQL.ADD("FROM "~DBO~".OPERACIONES O")
+SQL.ADD("INNER JOIN "~DBO~".OPERACIONESBITS OB ON O.NrOperacion=OB.NrOperacion")
+SQL.ADD("WHERE O.TipoOp = 'DDC'")
+SQL.ADD("AND OB.NrBit=50 AND OB.Valor=1")
+ 
+If NoVacio(Dialogo.String1)
+    SQL.ADD(" AND  O.ObservacDoc = '"~Dialogo.String1~"' ")
+Else
+    If Dialogo.Radio1 = 0
+    SQL.ADD("AND  O.FechaPago >= '"~IdxDate(Dialogo.Fecha1)~"' AND O.FechaPago <= '"~IdxDate(Dialogo.Fecha2)~"'  ") 
+    Else
+         If Dialogo.Radio1 = 1
+         SQL.ADD(" AND  O.FechaVto2 >= '"~IdxDate(Dialogo.Fecha1)~"' AND O.FechaVto2 <= '"~IdxDate(Dialogo.Fecha2)~"'  ")
+         Else
+            SQL.ADD(" AND  O.FechaOp >= '"~IdxDate(Dialogo.Fecha1)~"' AND O.FechaOp <= '"~IdxDate(Dialogo.Fecha2)~"'  ")
+         Endif
+    Endif
+
+    If NoVacio(Dialogo.Vehiculo1)
+        SQL.ADD("  AND O.Vehiculo1 = '"~Dialogo.Vehiculo1~"' ")
+    Endif
+    If NoVacio(Dialogo.Book1)
+        SQL.ADD("  AND O.Book1 = '"~Dialogo.Book1~"' ")
+    Endif
+    If NoVacio(Dialogo.Cliente1)
+        SQL.ADD("  AND O.Cliente1 = '"~Dialogo.Cliente1~"' ")
+    Endif
+
+    If NoVacio(Dialogo.Especie1)
+        SQL.ADD("  AND O.Especie = '"~Dialogo.Especie1~"' ")
+    Endif
+
+
+    If NoVacio(Dialogo.Instrumento1)
+            SQL.ADD("  AND O.TipoDoc = '"~Dialogo.Instrumento1~"' ") 
+    Endif
+       
+    IF Dialogo.Radio2 = 2
+        SQL.ADD("  AND (O.CB1 = 0 OR  O.CB1 = 1 )")
+    ELSE
+        SQL.ADD("  AND O.CB1 = "~Fstr(Dialogo.Radio2,0,0)~" ")
+    ENDIF
+    
+    IF Dialogo.Radio3 = 0
+        SQL.ADD("  AND (O.RB1 >= 1)")
+    ELSE
+        IF Dialogo.Radio3 = 1
+            SQL.ADD("  AND (O.RB1 = 0) ")
+        ENDIF
+    ENDIF
+    
+    
+Endif 
+SQL.ADD(" AND O.TipoOp IN ('DDC','DDV')   ")  
+WATCH(SQL.BATCH)
+
+Recorrer SQL
+
+    ACT(A:fac, fbn('NrOperacion'))
+    ACLO(A:fac, fbn('NrOperacion'))
+    ACT(B:fac, fbn('NrOperacion2'))
+    
+    IF fbn('CB1') = 1
+        ACT(C:fac, 'Avalado')
+    ELSE
+        IF fbn('CB1') = 0
+            ACT(C:fac, 'No Avalado')
+        Endif
+    ENDIF
+    
+    ACT(D:fac, fbn('Especie'))
+    
+     IF Eqstr(fbn('TipoOp'),'DDC')
+        ACT(E:fac, 'C')
+    ELSE
+        ACT(E:fac, 'V')
+    ENDIF
+  
+
+    ACN(F:fac, fbn('Precio1'))
+    ACT(G:fac, fbn('Cliente2'))
+    ACT(H:fac, fbn('Hora1'))
+    ACD(I:fac, fbn('FechaOp'))
+    ACD(J:fac, fbn('FechaPago'))
+    ACT(K:fac, fbn('NrOperacion3'))
+    ACT(L:fac, fbn('NrOperacion4'))
+    ACT(M:fac, fbn('Cliente3'))
+
+    ACT(N:fac, fbn('OperacionRef'))
+    ACD(O:fac, fbn('FechaVto2'))
+    ACN(P:fac, fbn('TotalBrutoCli1'))
+    ACN(Q:fac, fbn('Cantidad'))
+    let &TotalCapital &TotalCapital + val(Q:fac)
+    let &Capital  &Capital + val(Q:fac)
+    ACN(R:fac, fbn('TotalIntereses'))
+    ACN(S:fac, fbn('ImpGastos1'))
+    let &TotalGastos &TotalGastos + val(S:fac)
+    let &Gastos &Gastos + val(S:fac)
+    ACN(T:fac, fbn('ImpComMer1'))
+    let &TotalGastos &TotalGastos + val(T:fac)
+    let &Gastos &Gastos + val(T:fac)
+    ACT(U:fac, fbn('CodComitente')) 
+    ACT(V:fac, fbn('MensajeChequeo')) 
+    ACT(W:fac, fbn('Hora2'))
+     
+    ACT(X:fac, '-')
+    
+    IF fbn('MB2') = 0
+        ACT(Y:fac, 'EX')
+    ELSE
+        IF fbn('MB2') = 1
+            ACT(Y:fac, 'RI')
+        ELSE
+            ACT(Y:fac, 'Otro')
+        Endif
+    ENDIF
+
+    ACT(Z:fac, fbn('ObservacDoc'))
+    ACT(AA:fac, fbn('ContraEspecie'))
+    ACN(AB:fac, 1)
+
+    IF fbn('CB2') = 0
+        ACT(AC:fac, 'No')
+    ELSE
+        IF fbn('CB2') = 1
+            ACT(AC:fac, 'Si')
+        Endif
+    ENDIF
+     IF fbn('CB3') = 0
+        ACT(AD:fac, 'No')
+    ELSE
+        IF fbn('CB3') = 1
+            ACT(AD:fac, 'Si')
+        Endif
+    ENDIF
+   
+    
+    ACD(AE:fac, fbn('FechaVto'))
+    ACT(AF:fac, BuscarCampo('CLIENTES','RazonSocial','Codigo',fbn('Cliente3')))
+    ACT(AG:fac, fbn('NrSucursal'))
+    IF fbn('CB4') = 0
+        ACT(AH:fac, 'No')
+    ELSE
+        IF fbn('CB4') = 1
+            ACT(AH:fac, 'Si')
+        Endif
+    ENDIF
+
+    IF fbn('CB5') = 0
+        ACT(AI:fac, 'No')
+    ELSE
+        IF fbn('CB5') = 1
+            ACT(AI:fac, 'Si')
+        Endif
+    ENDIF
+    ACT(AJ:fac, fbn('Contrato'))
+    ACT(AK:fac, fbn('Opcion'))
+    ACT(AL:fac, fbn('Observac2'))
+    ACT(AM:fac, fbn('TipoDoc'))
+    ACT(AN:fac, fbn('NrBoleto'))
+
+    ACT(AO:fac, '-')
+    ACT(AP:fac,'-' )
+    ACN(AQ:fac, fbn('TotalImpuestos'))
+    let &TotalGastos &TotalGastos + val(AQ:fac)
+    let &Gastos &Gastos + val(AQ:fac)
+    ACN(AR:fac, fbn('Cantidad'))
+    ACT(AS:fac, fbn('Cliente4'))
+    ACT(AT:fac, '-')
+    ACT(AU:fac, fbn('Plazo')) 
+    ACN(AV:fac, &Gastos + &Capital ) 
+    IF fbn('RB1') = 0 Y fbn('FechaVto')<FSYS
+        ACT(AW:fac, 'MORA')
+    ELSE
+        IF fbn('RB1') >= 1 
+            ACT(AW:fac, 'COBRADO')
+        ELSE
+            ACT(AW:fac, 'NO COBRADO')
+        Endif
+    ENDIF
+    IF fbn('RB1') = 1
+        ACD(AX:fac,fbn('Fecha2'))
+        ACT(AY:fac,'-')
+        
+    Else
+        If fbn('RB1') = 2
+            ACD(AY:fac,fbn('Fecha2'))
+            ACT(AX:fac,'-')
+        Else
+            ACT(AY:fac,'-')
+            ACT(AX:fac,'-')
+        Endif
+    Endif
+   
+    If Eqstr(Val(AW:fac),'COBRADO')
+        let &TotalCapitalConci &TotalCapitalConci + val(Q:fac)
+        let &TotalInteresesConci &TotalInteresesConci + val(R:fac) 
+    Endif 
+    
+    let &Gastos 0
+    let &Capital 0 
+    
+Proximo
+AlinearCeldas(A:&filaInicial..AY:fac,'C')
+AgregarMarco(A:&filaInicial..AY:fac, 0, 0,  Exe('COLOR7'))
+FormatoCeldas(F:&filaInicial..F:fac, Exe('F8'))
+FormatoCeldas(AB:&filaInicial..AB:fac, Exe('F8'))
+SetFilaActual(fac+2)
+
+ACT(B:fac,'Todos los cheques')
+AgregarMarco(A:fac..C:fac, 0, 0, Exe('COLOR'))
+ifa
+ACT(A:fac,'Total Capital')
+ACT(B:fac,'Total Gastos')
+ACT(C:fac,'Total Debitado')
+AgregarMarco(A:fac..C:fac, 0, 0, Exe('COLOR2'))
+dfa
+ACT(G:fac,'Cheques Conciliados')
+AgregarMarco(F:fac..H:fac, 0, 0, Exe('COLOR'))
+ifa
+ACT(F:fac,'Total Capital')
+ACT(G:fac,'Total Intereses')
+ACT(H:fac,'Total Cobrado')
+
+AlinearCeldas(A:fac-1..H:fac,'C')
+SetFont(A:fac-1..H:fac, 2)
+AgregarMarco(F:fac..H:fac, 0, 0, Exe('COLOR2'))
+
+ifa
+ACN(A:fac,&TotalCapital)
+ACN(B:fac,&TotalGastos)
+ACN(C:fac,&TotalCapital + &TotalGastos)
+ACN(F:fac,&TotalCapitalConci)
+ACN(G:fac,&TotalInteresesConci)
+ACN(H:fac,&TotalCapitalConci + &TotalInteresesConci)
+AlinearCeldas(A:fac..H:fac,'C')
+AgregarMarco(A:fac..C:fac, 0, 0, Exe('COLOR7'))
+AgregarMarco(F:fac..H:fac, 0, 0, Exe('COLOR7'))
+
+ACO(1,10)
+ACO(2,10)
+ACO(3,10)
+ACO(4,10)
+ACO(5,3)
+ACO(6,10)
+ACO(7,10)
+ACO(8,10)
+ACO(9,10)
+ACO(12,10)
+ACO(13,10)
+ACO(14,10)
+ACO(15,10)
+ACO(16,10)
+ACO(17,10)
+ACO(18,10)
+ACO(19,10)
+ACO(20,10)
+ACO(21,10)
+ACO(22,10)
+ACO(23,10)
+ACO(24,10)
+ACO(25,10)
+ACO(26,10)
+ACO(27,12)
+ACO(28,10)
+ACO(30,10)
+ACO(31,10)
+ACO(32,18)
+ACO(35,7)
+ACO(36,12)
+ACO(37,12)
+ACO(38,12)
+ACO(43,10)
+ACO(46,10)
+ACO(47,10)
+ACO(48,10)
+ACO(49,8)
+ACO(50,10)
+ACO(51,12)
+
+
+SetFilaActual(FAC+2)
+ACT(a:FAC, 'FIN DEL INFORME')
+SetFont(a:FAC, 2)
+LimitesVision(AZ:fac)      

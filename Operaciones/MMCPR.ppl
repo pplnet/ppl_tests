@@ -1,0 +1,43 @@
+﻿CAMPOS:1;;3
+FechaOp         : 'Fecha Prov'                 ;1;1;;NO;;FECHAOP>=Fsys;'Fecha Incorrecta';NO;FSYS;FSYS
+@VEHITO
+Operador        :                              ;2;2;;;;NOVACIO(OPERADOR);'El Operador es Invalido';NO;USUARIOACTIVO;
+Cliente1        : 'Entidad'                    ;3;1;;NOT EV;;NOVACIO(CLIENTE1);'LA ENTIDAD CONTRATANTE NO ES VALIDA';NO;;
+TipoOp2         : 'Clase Op'                   ;5;1;;;;NOVACIO(TIPOOP2);'DEBE INGRESAR UNA CLASE DE OPERACION';NO;;;;SqlSet("Select Codigo from "~DBO~".TIPOSOPERACION Where Codigo like 'MM%'  and Codigo Not In ('MMCPRV','MMPCCM','MMPCCV','MMPV') ");NO
+Especie         : 'Moneda'                     ; ;1;;NOT EV;;NOVACIO(ESPECIE) y DESCIENDEDEESPECIE(ESPECIE,'MONEDA') y ESTERMINAL(ESPECIE, ESPECIE);'Debe Ingresar una Moneda';NO;;;;;;;;"Codigo In ("~Pipe2Comillas(Descendientes('ESPECIES','MONEDA' ))~") and Status = 'HAB'"
+Cantidad        : 'Importe'                    ;;;;;;NOT EV Y CANTIDAD>0;'IMPORTE INVALIDO';NO;;;;;;;'###,###,###,###,###.##'
+TablaFeriados1  : 'Feriados'                   ;;;;;;NOVACIO(TABLAFERIADOS1);'Se debe indicar feriados a utilizar';NO;;BuscarCampo('Feriados','Codigo','Codigo',BuscarCampo('Especies','PaisOrigen','Codigo',ESPECIE)) 
+MB3             : 'Tipo|Ingreso|Egreso'        ;;;;;;;;;0;
+OperacionRef    : 'Operac. Referencia'         ;;;;NO;NOVACIO(OPERACIONREF);
+RB3             : 'MOF'                        ;10;2;;NO;NO;;;;;IF(INSTANCIA=2,0,1)
+Impresa         : 'Modificado'                 ;10;3;;NO;NO;;;;0
+
+Cotizacion1     : 'TC_Concert.'                ;1;1;2;;Not Eqstr(ESPECIE,VAR('MONEEXTR'));Eqstr(ESPECIE,VAR('MONEEXTR')) O [COTIZACION1<=VPRE1*(1+VAR('RPRECIO2')/100) Y COTIZACION1>=VPRE1*(1-VAR('RPRECIO2')/100)];'Tipo de Cambio Concertacion Fuera de Rango: '~FSTR(VPRE1*(1-VAR('RPRECIO2')/100),1,7)~' y '~FSTR(VPRE1*(1+VAR('RPRECIO2')/100),1,7);NO;;IF(Eqstr(ESPECIE,VAR('MONEEXTR')),1)
+Cotizacion2     : 'TC_Vencim.'                 ;;;;COTIZACION2<>0;COTIZACION2<>0;;;;
+
+*VPRE5           : 'Cot.ESP/USD'                ;10;3;;NO;NO;;;;;IF(eqstr(QUERY(" Select Modo from "~DBO~".MODOESPECIES where Especie1='"~ESPECIE~"' and Especie2='"~VAR('MONEEXTR')~"' "),'INV'),COTIZACIONC(VAR('MONEEXTR'),,,,Fsys,1,SI,'ARP')/COTIZACIONC(ESPECIE,,,,Fsys,1,SI,'ARP')),COTIZACIONC(ESPECIE,,,,Fsys,1,SI,'ARP')/COTIZACIONC(VAR('MONEEXTR'),,,,Fsys,1,SI,'ARP'))
+VPRE5           : 'Cot.ESP/USD'                 ;10;3;;NO;NO;;;;;IF(eqstr(QUERY(" Select Modo from "~DBO~".MODOESPECIES where Especie1='"~ESPECIE~"' and Especie2='"~VAR('MONEEXTR')~"' "),'INV'),COTIZACIONC(VAR('MONEEXTR'),,,,Fsys,1,SI,'ARP')/COTIZACIONC(ESPECIE,,,,Fsys,1,SI,'ARP'),COTIZACIONC(ESPECIE,,,,Fsys,1,SI,'ARP')/COTIZACIONC(VAR('MONEEXTR'),,,,Fsys,1,SI,'ARP'))
+*VPRE6           : 'Cot.CONTESP/USD'            ;10;3;;NO;NO;;;;;IF(eqstr(QUERY(" Select Modo from "~DBO~".MODOESPECIES where Especie1='"~CONTRAESPECIE~"' and Especie2='"~VAR('MONEEXTR')~"' "),'INV'),COTIZACIONC(VAR('MONEEXTR'),,,,Fsys,1,SI,'ARP')/COTIZACIONC(CONTRAESPECIE,,,,Fsys,1,SI,'ARP')),COTIZACIONC(CONTRAESPECIE,,,,Fsys,1,SI,'ARP')/COTIZACIONC(VAR('MONEEXTR'),,,,Fsys,1,SI,'ARP'))
+VPRE6           : 'Cot.CONTESP/USD'             ;10;3;;NO;NO;;;;;IF(eqstr(QUERY(" Select Modo from "~DBO~".MODOESPECIES where Especie1='"~CONTRAESPECIE~"' and Especie2='"~VAR('MONEEXTR')~"' "),'INV'),COTIZACIONC(VAR('MONEEXTR'),,,,Fsys,1,SI,'ARP')/COTIZACIONC(CONTRAESPECIE,,,,Fsys,1,SI,'ARP'),COTIZACIONC(CONTRAESPECIE,,,,Fsys,1,SI,'ARP')/COTIZACIONC(VAR('MONEEXTR'),,,,Fsys,1,SI,'ARP'))
+VPRE1           : 'Cot.TC/USD'                 ;10;2;;NO;NO;;;;;COTIZACIONC(ESPECIE,,,,FECHAOP,1,SI,VAR('MONEEXTR'))^If(EqStr(Modo(ESPECIE,VAR('MONEEXTR')),'DIR'),1,-1)
+ 
+@CUENTAS
+
+
+CONDICIONES
+FECHAOP =Fsys;'La Fecha de Origen no coincide con la de Sistema';SI;SI;FSYS;'ORIGFVALOR'
+EqStr(Copy(TIPOOP2,1,2),'MM') y Not Incluido(TIPOOP2,'MMCPRV|MMPCCM|MMPCCV|MMPV');'El Tipo de Operacion a Asociar debe ser de Money Market Terceros';NO
+@CONDIOP
+
+EDICION
+EqStr(Operador, UsuarioActivo) o Incluido(UsuarioActivo, Var('ULMODI'));'No se puede modificar, Operador: '~Operador
+
+BAJA
+EqStr(Operador, UsuarioActivo) o Incluido(UsuarioActivo, Var('ULBAJA'));'No se puede dar de baja, Operador: '~Operador
+
+MOVIMIENTOS
+FechaOp ;Cliente1;Especie;;;;;Vehiculo1;11;if(MB3=0,-Cantidad,Cantidad);;'Carga Provisiones' ;SI;SI;;;;Cuenta1;;1;
+
+@INSTOPE
+@INST19MM
+@INST19BITS

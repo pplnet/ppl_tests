@@ -1,0 +1,39 @@
+﻿CAMPOS:1;;BuscarCampo('VEHICULOS','Alias1','Codigo',Vehiculo1)
+Especie       : 'Moneda'                         ;1;1;;  ;;NOVACIO(ESPECIE) Y DESCIENDEDEESPECIE(ESPECIE ,'MONEDA');'Debe ingresar una Moneda';NO;;;;;;;;" Codigo IN ("~Pipe2Comillas(Descendientes('ESPECIES','MONEDA'))~") and Status = 'HAB'"
+ContraEspecie : 'Moneda Liq.'                    ;1;2;;NO;;NOVACIO(CONTRAESPECIE) y DESCIENDEDEESPECIE(CONTRAESPECIE,'MONEDA') y ESTERMINAL(CONTRAESPECIE,ESPECIE);'Debe ingresar una Moneda Liquidacion';NO;VAR('MONELOCA');
+Cliente1      : 'Contraparte'                    ;2;1;;  ;;NoVacio(CLIENTE1) Y Not DESCIENDEDECLIENTE(CLIENTE2,'BANCOS');'La Contraparte no debe ser un Banco';NO;;;;;;;;"Status = 'HAB' and "~DBO~".DesciendeDeCliente(Codigo,'BANCOS')=0 and "~DBO~".DesciendeDeCliente(Codigo,'VINCULADOS')=0";;;;
+Cliente2      : 'Banco'                          ; ; ;;  ;;NoVacio(CLIENTE2) Y DESCIENDEDECLIENTE(CLIENTE2,'BANCOS');'Debe ingresar un Banco';NO;;;;;;;;"Status = 'HAB' and "~DBO~".DesciendeDeCliente(Codigo,'BANCOS')=1 and SUBSTRING(Jerarquia,4,3)<>'000'";;;;
+
+FechaOp       : 'Fecha Conc.'                    ;2;2;;VERIFICAACCESO('OPFVALOR');;FECHAOP<>0 Y ESHABIL(FECHAOP,'ARG');IF(FECHAOP=0,'Fecha Concertacion incorrecta','La Fecha Concertacion debe ser Habil');NO;FSYS;
+FechaVto      : 'Fecha Liq.'                     ; ; ;;;;ESHABIL(FECHAVTO,'ARG');'La Fecha de Liquidacion no es Habil';NO;FECHAOP+PLAZO2;FECHAOP+PLAZO2;
+Plazo2        : 'Plazo Liq.'                     ; ; ;;;;PLAZO2>=0;'El PLAZO debe ser Positivo';NO;0;IF(MODI,PLAZO2,FECHAVTO-FECHAOP)
+FechaVto2     : 'Fecha Vto.'                     ; ; ;;;;FECHAVTO2<>0 Y ESHABIL(FECHAVTO2,'ARG');'La Fecha Vto. no es Habil';NO;FSYS;FECHAOP+PLAZO;
+Plazo         : 'Plazo'                          ; ; ;;;;;;;;FECHAVTO2-FECHAOP
+TotalNetoCli2 : 'Total Debitado'                 ; ;2;;NO;;;;;;CANTIDAD+TOTALDERECHOS;;;;;'###,###,###,###.##';;
+
+Cantidad      : 'Capital'                        ;5;1;;  ;;CANTIDAD>0;'El Capital debe ser Positivo';NO;;;;;;;'###,###,###,###.##';;
+Precio1       : 'Tasa'                           ; ;1;;  ;;PRECIO1>0;'La Tasa debe ser Positiva';NO;;;;;;;'###,###.########';;
+TotalIntereses: 'Descuento'                      ; ;1;;  ;;TOTALINTERESES>0;'El Descuento debe ser Positivo';NO;;;;;;;'###,###,###,###.##';;
+TotalNetoCli1 : 'Monto'                          ; ;1;;NO;;TOTALNETOCLI1>0;'La Cantidad en Efectivo debe ser Positiva';NO;;CANTIDAD+TOTALINTERESES;;;;;'###,###,###,###.##';;
+Vehiculo1     : 'Vehiculo'                       ; ;1;1;;;NOVACIO(VEHICULO1) Y Incluido(VEHICULO1,SQLSet("Select Codigo from "~DBO~".VEHICULOS WHERE Codigo = '"~VEHICULO1~"' and Status ='HAB' "));'El VEHICULO es INVALIDO';NO;'BICEFI';
+Operador      :                                  ; ;1;;NO;;NOVACIO(OPERADOR);'El Operador es Invalido';NO;USUARIOACTIVO;
+RB1           : 'Tipo|Compa|Venta'               ;8;2;;;;;;;
+RB5           : 'Instrumento|ECHEQ|CPD|FCE'      ; ;2;;;;;;;    
+
+TotalAux1     : 'Subasta'                        ;1;1;2;;;;;;;;;;;;'######';;
+ObservacDoc   : 'Segmento'                       ; ; ;2;;;;;;;;;;;;'XXXXXXXXXXXXXXX'
+TotalAux2     : 'Reg.Oper.'                      ; ; ;2;;;;;;;;;;;;'######';;
+NrSucursal    : 'N. Sucursal'                    ; ; ;2;;;;;;
+RB3           : 'E.Pyme|NO|SI'                   ; ; ;2;;;;;;
+RB4           : 'Primera.Neg|NO|SI'              ; ; ;2;;;;;;
+TotalIVA      : 'Impuestos'                      ; ; ;2;;;;;;;;;;;;'###,###.##';;
+
+TotalAux3     : 'Id.Cheque'                      ;1;2;2;;;;;;;;;;;;'######';;
+TotalAux4     : 'Nro.Cheque'                     ; ; ;2;;;;;;;;;;;;'########';;
+FechaPago     : 'Fecha Acre.'                    ; ; ;2;;;FECHAPAGO<>0 Y ESHABIL(FECHAPAGO,'ARG');'La Fecha de Acreditacion no es Habil';NO;FSYS;
+TotalDerechos : 'Der.Mer.'                       ; ; ;2;;;TOTALDERECHOS>=0;'Derecho Mercado debe ser positivo';NO;;;;;;;'###,###,###,###.##';;
+MensajeChequeo: 'Cod.Ch.CVSA'                    ; ; ;2;;;;;;;;;;;;'XXXXXXXXXXXXXXX'
+TipoCambio    : 'Tipo de Cambio'                 ; ; ;2;;;;;;;;;;;;'###,###.##';;
+RB2           : 'No a la Orden|NO|SI'            ; ; ;2;;;;;;
+
+@INSTOPE

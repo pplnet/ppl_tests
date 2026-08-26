@@ -1,0 +1,28 @@
+﻿#*********************************************************************************
+#combos data sources.
+ 
+#*********************************************************************************
+def abm 'ArancelesCliente'
+   def grid
+       Arancel: , Cliente: 
+   end
+   def key
+       Arancel: , Cliente: 
+   end
+   def dialog
+       #**************************************************************************
+       tab 'General'
+          column
+          Arancel: ,          , autocomplete, 'ARANCELES', 'Codigo,Descripcion'
+          Cliente: , 'Cliente', autocomplete, 'CLIENTES', 'Codigo,RazonSocial'
+       #**************************************************************************
+       tab 'Valores'
+          column
+             Porcentaje: ,  , numeric, '#######0.000000000'
+             Minimo: , , numeric, '#######0.000000000'
+             Fijo: , , numeric, '#######0.000000000'
+             BasePorcentaje: , 'Base Porcentaje', numeric, '#######0.000000000'
+             Maximo: , 'Maximo', numeric, '#######0.000000000'
+   end
+   upper_case_fields: Arancel:
+end

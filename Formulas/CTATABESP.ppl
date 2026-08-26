@@ -1,0 +1,6 @@
+﻿RelacionCuenta('','','','',
+                '',
+                #ESPECIE,
+                '',
+                '',
+                Modelo.Alias1)

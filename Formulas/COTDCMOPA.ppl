@@ -1,0 +1,14 @@
+﻿IIF(EqStr(#MONELOCAVH,#MONEDAOP),
+    1,
+    IIF(EqStr(#MONELOCAVH,VAR('MONEEXTR')) Y EqStr(#MONEDAOP,VAR('MONELOCA')),
+        #TCCONTABLEVHP,
+        IIF(EqStr(#MONELOCAVH,VAR('MONELOCA')) Y EqStr(#MONEDAOP,VAR('MONEEXTR')),
+            1/#TCCONTABLEVHP,
+            IIF(EqStr(Modo(#MONELOCAVH, #MONEDAOP),'INV'),
+                1/#COTBNAMOLVP,
+                #COTBNAMOLVP
+            )
+        )
+    )
+)
+

@@ -1,0 +1,65 @@
+﻿* Este evento pasa una operacion de Instancia
+* A la Inst. Anterior (Precio1) le pone un 0 en la tabla Operaciones Bits
+* Si Precio1=0 entonces pone 0 a todas las instancias anteriores de la operaci¦n
+* A la Inst. Nueva (Precio2) le pone un 1 
+
+
+* HojaVisible(SI)
+CrearDialogo
+    NrOperacion1: '# Operacion :'
+    Precio1 :'Inst. Anterior';;;;;;Dialogo.Precio2<>0 o Dialogo.Precio1<>0 o NoVacio(Dialogo.NrOperacion1);'Debe indicar instancia o NrOperacion';NO;0
+    Precio2 :'Inst. Nueva';;;;;;Dialogo.Precio2<>0;'Instancia hasta incorrecta';NO
+FinDialogo
+
+If Not OK
+   Cancelar
+EndIf
+
+*- Control de vehiculo habilitado para el usuario
+*- vh1: vehiculo de la operacion o transaccion
+*- Cancela si el vehiculo no esta habilitado para el usuario activo
+
+ACT(vh1, BuscarCampo('OPERACIONES', 'Vehiculo1', 'NrOperacion', Dialogo.NrOperacion1))
+
+(.'CONTROLVH'.)
+
+
+SQL.ADD(" SELECT O.NrOperacion FROM "~DBO~".OPERACIONES O ,"~DBO~".OPERACIONESBITS B Where O.NrOperacion=B.NrOperacion ")
+If NoVacio(Dialogo.NrOperacion1)
+   SQL.ADD(" and O.NrOperacion='"~Dialogo.NrOperacion1~"' ")
+EndIf
+If Dialogo.Precio1<>0
+   SQL.ADD(" and B.NrBit = "~FStr(Dialogo.Precio1,1,0)~"  ")
+EndIf
+SQL.ADD(" Order By O.NrOperacion")
+
+Recorrer SQL
+
+   SQL.ADD(" Select NrOperacion, NrBit from "~DBO~".OPERACIONESBITS where NrOperacion = '"~fbn('NrOperacion')~"' and Valor = '1' ")
+   Recorrer SQL
+       DFA
+       IF fbn('NrBit') = 50
+           ***---Si esta en terminal verifico si estan las instancias
+           IF SQL(" Select Count(*) From "~DBO~".OPERACIONESBITS Where NrOperacion = '"~fbn('NrOperacion')~"' ") = 1
+               ***---No estan las otras instancias => las inserto
+               EjecutarEvento('INSBIT', String1 = 'OPERACIONES', Entero1 = 50, NrOperacion1=fbn('NrOperacion'))
+           ENDIF
+       ENDIF
+   Proximo
+
+   * Pone la/las instancia/s anterior/res en 'CERO'
+   SQL.ADD(" UPDATE "~DBO~".OPERACIONESBITS ")
+   SQL.ADD(" SET Valor = '0' ")
+   SQL.ADD(" Where NrOperacion = '"~FBN['NrOperacion']~"' ")
+   SQL.NEW
+   SQL.EXEC
+
+   * Pone la instancia siguiente en 'UNO'
+   SQL.ADD(" UPDATE "~DBO~".OPERACIONESBITS ")
+   SQL.ADD(" SET Valor = '1' ")
+   SQL.ADD(" Where (NrOperacion = '"~FBN['NrOperacion']~"') and (NrBit = "~FStr(Dialogo.Precio2,1,0)~" ) ")
+   SQL.NEW
+   SQL.EXEC
+Proximo
+
+

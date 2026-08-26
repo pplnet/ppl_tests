@@ -1,0 +1,28 @@
+﻿CAMPOS:2;;5
+FechaOp        : 'Fecha Op.'      ;2;2;1;VerificaAcceso('OPFVALOR') Y PASECB=0;;FECHAOP <= FSys y FechaOp >= Habiles(FSys,-4,'ARG');'Fecha incorrecta';NO;FSYS;
+Especie        : 'Especie'        ;1;1; ;  ;  ;NoVacio(ESPECIE) y DesciendeDeEspecie(ESPECIE,'TITULO');'Debe Ingresar una Especie Valida';NO;;;;Var('LE'~USUARIOACTIVO)
+Cliente1       : 'Cliente'        ; ; ; ;PASECB=0;  ;NOT DESCIENDEDECLIENTE(CLIENTE1,'OTROS') y EsTerminal(CLIENTE1,Cliente);'El Cliente no puede ser un CORREDOR'      ;NO;'RIO';;;Var('LISCLIENTE')
+Cantidad       : 'Cantidad'       ; ; ; ;PASECB=0;  ;;
+Precio1        : 'Precio (entero)'; ; ; ;PASECB=0;  ;;;;;IF(DESCIENDEDEESPECIE(ESPECIE, 'IEP'),1-(TIPOCAMBIO/100*(FechaMaduracion(ESPECIE)-FECHAVTO)/360),PRECIO1)
+Plazo          : 'Plazo'          ;1;2; ;NO   ;NO;(PLAZO DIV 24)*24=PLAZO;'El plazo debe ser multiplo de 24';NO;72;
+FechaVto       : 'Fecha Liq.'     ;3;2; ;NO   ;  ;;;;HABILES(FECHAOP,(PLAZO DIV 24),TABLAFERIADOS1);HABILES(FECHAOP,(PLAZO DIV 24),TABLAFERIADOS1)
+TotalIntereses : 'Interes'        ;5;1; ;NO   ;Eqstr(BuscarCampo('ESPECIES','InteresesC','Codigo',ESPECIE),'CLE');;;;;IF(Eqstr(BuscarCampo('ESPECIES','InteresesC','Codigo',ESPECIE),'CLE'),ValorTeorico(ESPECIE)*CANTIDAD*TASAINTERESESCUPON/DIASA(EspecieDiasAnio(ESPECIE),FSYS)/100*IF(EspecieDiasAnio(ESPECIE)=0 y EspecieDiasMes(ESPECIE)=0,Dif360(FECHAULTCUPON,FECHAVTO,2),DifDias(FECHAULTCUPON,FECHAVTO,'USA',NO)),0);
+TotalNetoCli1  : 'Total'          ; ; ; ;NO   ;Eqstr(BuscarCampo('ESPECIES','InteresesC','Codigo',ESPECIE),'CLE');;;;;TOTALBRUTOCLI1+TOTALINTERESES;
+TotalBrutoCli1 : 'Monto'          ;7;1; ;NO   ;  ;;;;;IF(DESCIENDEDEESPECIE(ESPECIE,'DEUDA'),PRECIO1*CANTIDAD*ValorTeorico(ESPECIE),PRECIO1*CANTIDAD);
+@VEHITO
+TasaInteresesCupon: 'Tasa (%)'    ;3;1;2;NO;Eqstr(BuscarCampo('ESPECIES','InteresesC','Codigo',ESPECIE),'CLE');;;;;IF(BuscarCampo('ESPECIES','FechaCambioTasa','Codigo',ESPECIE) > FECHAULTCUPON y BuscarCampo('ESPECIES','FechaCambioTasa','Codigo',ESPECIE) <= FECHAVTO,((BuscarCampo('ESPECIES','TasaIntVigente','Codigo',ESPECIE)*IF(EspecieDiasAnio(ESPECIE)=0 y EspecieDiasMes(ESPECIE)=0,Dif360(FECHAULTCUPON,BuscarCampo('ESPECIES','FechaCambioTasa','Codigo',ESPECIE)-1,2),DifDias(FECHAULTCUPON,BuscarCampo('ESPECIES','FechaCambioTasa','Codigo',ESPECIE)-1,'USA',NO)))+(BuscarCampo('ESPECIES','TasaIntAnterior','Codigo',ESPECIE)*(IF(EspecieDiasAnio(ESPECIE)=0 y EspecieDiasMes(ESPECIE)=0,Dif360(BuscarCampo('ESPECIES','FechaCambioTasa','Codigo',ESPECIE)-1,FECHAVTO,2),DifDias(BuscarCampo('ESPECIES','FechaCambioTasa','Codigo',Especie)-1,FECHAVTO,'USA',NO)))))/(IF(EspecieDiasAnio(ESPECIE)=0 y EspecieDiasMes(ESPECIE)=0,Dif360(FECHAULTCUPON,FECHAVTO,2),DifDias(FECHAULTCUPON,FECHAVTO,'USA',NO))),BuscarCampo('ESPECIES','TasaIntVigente','Codigo',ESPECIE))*100;
+FechaUltCupon  : 'Ult.Cupon'      ;3;2;2;NO;Eqstr(BuscarCampo('ESPECIES','InteresesC','Codigo',ESPECIE),'CLE');;;;;IF(EsHabil(UltCupon(ESPECIE,FECHAVTO),'USA'),UltCupon(ESPECIE,FECHAVTO),Habiles(UltCupon(ESPECIE,FECHAVTO),IF(EqStr(BuscarCampo('ESPECIES','CuponFeriado','Codigo',ESPECIE),'SIG'),1,IF(EqStr(BuscarCampo('ESPECIES','CuponFeriado','Codigo',ESPECIE),'ANT'),-1,0)),'USA'))
+TipoCambio     : 'Tipo Cambio'    ;;;;NO;NO;
+TablaFeriados1 : 'Feriados'       ;;;;NO;NO; 
+OperacionRef   : 'Operacion Ref'  ;;;;NO;NO;
+PaseCB         : 'Pase CB'        ;;;;NO;NO;
+
+MOVIMIENTOS
+FechaOp ;Vehiculo1;Especie      ;;;;;;1;       Cantidad;;'Compra de '~Especie;SI;SI;;;;;;;1
+
+POSICION
+FechaOp;'RIO';Especie;;;;Vehiculo1;;;;;101;Cantidad;Precio1;;;Book1;;'SEC'
+
+@INSTOPE
+@INST19GENE
+@INST19BITS

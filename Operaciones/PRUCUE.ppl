@@ -1,0 +1,11 @@
+﻿CAMPOS:1;;
+FechaOp       : 'Fecha Op.'              ; 1;1; ;;;;;NO;FSYS;
+TablaFeriados1: 'Feriados'               ;2;1;;;;NOVACIO(TABLAFERIADOS1);'Debe ingresar un feriado';NO
+
+CONDICIONES
+Vacio(TablaFeriados1);'Feriados no puede estar vacio"';NO
+
+
+INSTANCIA19
+CAMPOS:1;;;FW=1
+TablaFeriados1: 'Feriados'              ;2;1;;;;NOVACIO(TABLAFERIADOS1+19);'Debe ingresar un feriado';NO

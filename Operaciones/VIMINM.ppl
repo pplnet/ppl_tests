@@ -1,0 +1,73 @@
+﻿CAMPOS:1;;BuscarCampo('VEHICULOS','Alias1','Codigo',Vehiculo1)
+FechaOp         : 'Fecha Concertacion'     ;1;1;;NO;;EsHabil(FECHAOP,'ARG');'Fecha incorrecta';NO;FSYS;
+@VEHITO
+Plazo           : 'Plazo'                  ;3;2;;si;;PLAZO>=1;'El PLAZO no DEBE ser Inferior a 1 Dia';NO;0;
+FechaVto        : 'Fecha Vto'              ;2;1;;NO;;EsHabil(FECHAVTO,TABLAFERIADOS1);'No es un Dia Habil';NO;FECHAOP+PLAZO;FECHAOP+PLAZO
+Vehiculo2       : 'ContraParte'            ;;;;Si;;NOVACIO(VEHICULO2);'Debe ingresar un Vehiculo Contraparte';NO;;;;
+Especie         : 'Moneda'                 ;;;;Si;;NOVACIO(ESPECIE) y DESCIENDEDEESPECIE(ESPECIE,'MONEDA') y ESTERMINAL(ESPECIE, ESPECIE);'Debe Ingresar una Especie';NO;;;;;;;;"Codigo IN ("~Pipe2Comillas(Descendientes('ESPECIES','MONEDA'))~") and Status = 'HAB'";;;
+RB6             : 'Caso|Local|ClTe|CeTl|ExtIJ|ExtDJ'    ;;;;Si;;RB6>=0;'Indique Tipo de Caso';NO;;;
+MB3             : 'Tipo_Saldo|Activo|Pasivo'     ;;;;NO;;MB3>=0;'Indique Colocacion o Toma';NO;0;
+Cantidad        : 'Monto'                  ;;;;Si;;CANTIDAD>0;'El Valor Nominal DEBE SER POSITIVO';NO;
+
+Precio1         : 'Tasa %'                 ;4;2;;NO;PRECIO1<>0;;;
+Precio4         : 'Tasa_T_Neta'            ;;2;;NO;PRECIO4<>0;;;;;PRECIO1*(1+PRECIO2);
+Precio2         : 'Factor TTNeta'          ;;2;;NO;NO;;;;;
+
+TotalAux1       : 'Tasa WH'                ;16;1;;NO;RB6=2 y TotalAux1<>0;Incluido(Fstr(TOTALAUX1,2,4),VAR('TASAWH'));'El Valor de TASA WH es Erroneo: '~VAR('TASAWH')~' ...';NO;VAR('DEFWH1');IF(VACIO(OPERACIONREF),TOTALAUX1,OPREF.TOTALAUX1);;;;;'##.####'
+TotalAux3       : 'WH_a_Liquidar'          ;;;;NO;RB6=2 y MB3=1;;;;;IF(RB6=2 y MB3=1,CANTIDAD*TOTALAUX1/100,0)
+
+ImpGastos1      : 'Alicuota IVA'           ;8;1;;NO;RB6=0 o [RB6=2 y MB3=1];;;
+TotalIVA        : 'Imp.IVA'                ;;;;NO;RB6=0 o [RB6=2 y MB3=1]; ; ; ; ;;;;;;'###,###,###.##'
+TotalRetenciones: 'Retencion IVA'          ;;;;NOT [EQSTR(VEHICULO1,'CECORP') Y EQSTR (BuscarCampo('VEHICULOS','TipoVehiculo','Codigo',VEHICULO2),'DIV')] Y NOT [EQSTR(VEHICULO2,'CECORP') Y EQSTR (BuscarCampo('VEHICULOS','TipoVehiculo','Codigo',VEHICULO1),'DIV')];RB6=0 y TOTALRETENCIONES<>0;;;
+ImpGastos2      : '%Perc_Iva'              ;;;;;RB6=0 y ImpGastos2<>0 ;;;
+TotalImpuestos  : 'Imp_Perc_IVA'           ;;;;NO;RB6=0 y TotalImpuestos<>0; ; ;;;CANTIDAD*IMPGASTOS2/100
+
+TasaImp1        : '% Retencion'            ;13;1;;NO;TASAIMP1<>0;;;;;;;;;;'###,###.######'
+ImporteImp      : 'Imp.Retencion'          ;14;1;;;IMPORTEIMP <>0;;;;;IF(IMPORTEIMP<>0 y (CANTIDAD-VAR('RETMINIMO'))>0,(CANTIDAD-VAR('RETMINIMO'))*(TASAIMP1/100),0);;;;;'###,###,###,###,###.##'
+TotalGastos     : 'AutoRetencion'          ;14;1;;;TOTALGASTOS<>0;;;;;IF(TOTALGASTOS<>0 y (CANTIDAD-VAR('RETMINIMO'))>0,(CANTIDAD-VAR('RETMINIMO'))*(TASAIMP1/100),0);;;;;'###,###,###,###,###.##'
+
+TotalComisiones : 'Iva_Neto'               ;8;2;;NO;TOTALCOMISIONES<>0;;;;;TOTALIVA-TOTALRETENCIONES+TOTALIMPUESTOS
+TotalBrutoCli1  : 'Monto_Capit.'           ; ;2;;NO;TOTALBRUTOCLI1<>0 ;;;;;CANTIDAD+TOTALCOMISIONES-IMPORTEIMP
+TotalIntereses  : 'Interes'                ; ;2;;NO;TOTALINTERESES<>0;;;;;
+RB8             : 'UT_Tasa Int|360|365'    ; ;2;;NO;RB8>=0
+
+ContraEspecie   : 'Esp_Pago_Imp'           ;14;2;;NO;NO;[RB6<>3 y RB6<>4] O [RB6=3 Y NOVACIO(CONTRAESPECIE) y DESCIENDEDEESPECIE(CONTRAESPECIE,'MONEDA') y ESTERMINAL(CONTRAESPECIE, ESPECIE)] O [RB6=4 Y NOVACIO(CONTRAESPECIE) y DESCIENDEDEESPECIE(CONTRAESPECIE,'MONEDA') y ESTERMINAL(CONTRAESPECIE, ESPECIE)];'NO INGRESO LA ESPECIE DE PAGO IMPUESTO';NO;;;;;;;;"Codigo IN ("~Pipe2Comillas(Descendientes('ESPECIES','MONEDA'))~")and Status = 'HAB'";;
+TasaPrecan      : 'Alic Imp_Extr'          ;;2;;;[RB6=3 O RB6=4] y TasaPrecan<>0;[RB6<>3 y RB6<>4] O [RB6=3 Y TASAPRECAN<=30] O [RB6=4 Y TASAPRECAN<=30];'EL IMPUESTO EXTRANJERO DEBE SER <=30';NO;IF(VACIO(OPERACIONREF),VAR('ALICIMPU'),OPREF.TASAPRECAN)
+Comision        : 'Imp.Imp_Extr'           ;;2;;NO;RB6=3 O [RB6=4 y MB3=1];;;;;IF(RB6=3 O [RB6=4 y MB3=1],CANTIDAD*TASAPRECAN/100,0);
+
+NrOperacion3    : 'Op.Asoc'                ;;;;NO;NOVACIO(NROPERACION3);;;;;
+NrOperacion2    : 'VIMINM'                 ;13;2;;NO;NO;;;;;
+Operador        :                          ;12;2;;NO;;NOVACIO(OPERADOR);'El Operador es Invalido';NO;USUARIOACTIVO;
+Cliente1        : 'Cliente Tomador'        ;;;;NO;NO;;;;;VEHICULO2;;
+Impresa         : 'Modificado'             ;10;3;;NO;NO;;;;0
+CB6             : 'Original?'              ;10;2;;NO;NO;;;;1;;
+RB3             : 'MOF'                    ;10;2;;NO;NO;;;;;IF(INSTANCIA=2,0,1)
+
+OperacionRef    : 'Operacion Ref'          ;;;2;NO;NO;
+TablaFeriados1  : 'Feriados'               ;  ;;;NO;NO;NOVACIO(TABLAFERIADOS1);'Se debe indicar feriados a utilizar';NO; IF(NOT EQSTR('ARG',BuscarCampo('Clientes','PaisDir','Codigo',CLIENTE1)),'USA',IF(DESCIENDEDECLIENTE(CLIENTE1,'BANCOS') Y NOT EQSTR(ESPECIE,'ARP'),'USA','ARG'));IF(NOT EQSTR('ARG',BuscarCampo('Clientes','PaisDir','Codigo',CLIENTE1)),'USA',IF(DESCIENDEDECLIENTE(CLIENTE1,'BANCOS') Y NOT EQSTR(ESPECIE,'ARP'),'USA','ARG'))
+
+CONDICIONES
+Not EqStrI(Vehiculo1,Vehiculo2);'El Vehiculo Contraparte debe ser diferente al Vehiculo por el cual se ingresa la Operacion';NO;NO;FSYS;'VEHDUPL'
+ESTERMINAL(VEHICULO1,VEHICULO);'El Vehiculo debe ser Terminal';NO
+ESTERMINAL(CLIENTE1,CLIENTE);'El Cliente debe ser Terminal';NO
+ESTERMINAL(VEHICULO2,VEHICULO);'El Vehiculo ContraParte debe ser Terminal';NO
+FECHAOP =Fsys;'La Fecha de Concertaci¦n no coincide con la de Sistema';SI;SI;FSYS;'ORIGFVALOR'
+VACIO(BuscarCampo('USUARIOS','Perfil','Codigo',OPERADOR)) O  VERIFICAPERFIL(BuscarCampo('USUARIOS','Perfil','Codigo',OPERADOR),'TO'~TIPOOP);'Operador no habilitado para ingresar Operaciones del Tipo '~TIPOOP;NO
+[INSTANCIA=1 o INSTANCIA=2];'Instancia de Carga Incorrecta !!!';NO
+
+EDICION
+EqStr(Operador, UsuarioActivo) o Incluido(UsuarioActivo, Var('ULMODI'));'No se puede modificar, Operador: '~Operador
+
+BAJA
+NO;'Solo se puede dar de baja por Evento: Borrar Minuta Mensual Vinculadas '
+
+POSTEDICION
+EQSTR(ABM,'B') y FSYS=FECHAOP;'ANULAT';Radio1=2;NrOperacion1=NROPERACION
+
+MOVIMIENTOS
+FechaVto;Vehiculo2;Especie        ;;;;;Vehiculo1;1;IF(MB3=0,-TotalBrutoCli1,TotalBrutoCli1);;'Vinc.Minuta Mensual';SI;Incluido(Vehiculo1,Var('VLIQUIDAA'));;;;;;1;
+FechaVto;Vehiculo1;Especie        ;;;;;Vehiculo1;1;-TotalGastos;;'Autoretencion';SI;Incluido(Vehiculo1,Var('VLIQUIDAA'));;TotalGastos<>0;;;;2;
+
+@INSTOPE
+@INST19GENE
+@INST19BITS

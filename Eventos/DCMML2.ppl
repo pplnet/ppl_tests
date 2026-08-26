@@ -1,0 +1,35 @@
+﻿CrearDialogo
+  Radio1        : 'Calculo|Por Fecha|Por Operacion'    ;;;;;;;;;0
+  Fecha1        : 'Fecha Desde'        ;;;;SI;Radio1=0;(NoVacio(Dialogo.Fecha1) Y Dialogo.Fecha1<=Dialogo.Fecha2) o Dialogo.Radio1=1;'Debe Ingresar una Fecha Válida';NO;FSys
+  Fecha2        : 'Fecha Hasta'        ;;;;SI;Radio1=0;(NoVacio(Dialogo.Fecha2) Y Dialogo.Fecha1<=Dialogo.Fecha2 y Dialogo.Fecha2<Fsys) o Dialogo.Radio1=1;'Debe Ingresar una Fecha Válida';NO;FSys
+  Lista1        : 'TiposOp: '          ;;;;SI;Radio1=0;;;;;;SQLSet("SELECT Codigo FROM TIPOSOPERACION WHERE Codigo IN ("~Pipe2Comillas(Var('TIPOOPDCMM'))~")  ")
+  NrOperacion1  : 'Operacion: '        ;;;;SI;Radio1=1;(Incluido(BuscarCampo('OPERACIONES','TipoOp','NrOperacion',Dialogo.NrOperacion1),Var('TIPOOPDCMM')) Y BuscarCampo('OPERACIONES','Especie','NrOperacion',Dialogo.NrOperacion1)<>VAR('MONELOCA')) o Dialogo.Radio1=0;'La operación ingresada es inválida';NO;;;;;;"TipoOp IN ("~Pipe2Comillas(Var('TIPOOPDCMM'))~") and Especie<>'"~VAR('MONELOCA')~"' "
+  FinDialogo
+
+If Not Ok
+   Cancelar
+Endif
+
+
+**Variables
+If Dialogo.Radio1=0
+    **Cálculo para Rango de Fechas
+    let &nrOperacion ''
+    let &fechaIni Dialogo.Fecha1
+    let &fechaFin Dialogo.Fecha2
+    let &tiposOp  Dialogo.Lista1
+Else
+    **Cálculo para una operacion
+    let &nrOperacion Dialogo.NrOperacion1
+    let &fechaIni SQL("Select Min(Fecha) from "~DBO~".MOVDEVENGADOS Where NrOperacion='"~&NrOperacion~"' ")
+    let &hoy Fecha(FSYS)
+    let &fechaFin SQL("Select Max(Fecha) from "~DBO~".MOVDEVENGADOS Where NrOperacion='"~&NrOperacion~"' and Fecha< '"~IdxDate(&hoy)~"' ")
+    let &tiposOp  ''
+Endif 
+
+
+Recorrer&k &fechaIni, &fechaFin
+        EjecutarEvento('DCMM', Fecha1=&k, Lista1=&tiposOp, NrOperacion1=&nrOperacion)
+Proximo
+
+   

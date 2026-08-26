@@ -1,0 +1,2 @@
+﻿*-OPERACION SI LIMITE SI - NO CONTROLA MAS NADA-*
+CB11 = 1 Y NoVacio(QUERY("Select 1 FROM "~DBO~".LIMASIGNADOSBOOK where Codigo= '"~BOOK1~"' AND (TiposOperacion LIKE '"~TIPOOP~"|%' OR TiposOperacion LIKE '%|"~TIPOOP~"|%') AND CB1='SI'"))

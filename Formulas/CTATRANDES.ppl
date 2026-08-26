@@ -1,0 +1,2 @@
+﻿***---BuscarCampo('CUENTAS','CuentaContable1','Codigo', fbn('Cuenta1'))
+BuscarCampo('CUENTAS','CuentaContable1','Codigo', Val(CD:1))

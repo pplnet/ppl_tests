@@ -1,0 +1,107 @@
+﻿CAMPOS:1;;BuscarCampo('VEHICULOS','Alias1','Codigo',Vehiculo1)
+***Columna 1
+MB3          :'Tipo|Ctas.Propias|Intercompany' ;1;1;1;NO;;MB3 >= 0;'Tipo De Transferencia Invalida';NO;0;
+Cantidad     :'Cantidad'                       ;4;1;1;;;CANTIDAD>0 ;'Cantidad Invalida';NO
+Vehiculo2    :'a Vehiculo'                     ;7;2;1;;MB3=1;MB3<>1 o [Not Eqstr(VEHICULO2,VEHICULO1) Y Incluido(VEHICULO1,SqlSet("Select Codigo from "~DBO~".VEHICULOS WHERE Codigo = '"~Vehiculo1~"' and Status ='HAB' "))];'Vehiculo Destino Invalido';NO;;;;;;;;"Status ='HAB' ";
+TotalGastos  :'Gastos'                         ;8;2;1;NO;NO;TOTALGASTOS>=0 ;'Gastos Invalidos';NO
+
+%%ifdef BFSA
+    ***ORDENES 22-05-2025
+    Vehiculo1   :'Vehiculo'                    ;2;1;1;Not (RB4=0 Y Incluido(TIPOOP,Var('OPPROINV')));SI;NOVACIO(VEHICULO1) Y Incluido(VEHICULO1,SqlSet("Select Codigo from "~DBO~".VEHICULOS WHERE Codigo = '"~Vehiculo1~"' and Status ='HAB' "));'Vehiculo invalido';NO;BuscarCampo('USRVEHICULO','Vehiculo','Codigo',USUARIOACTIVO);IF[NoVacio(NRORDEN),BuscarCampo('ORDENES','Vehiculo','NrOrden',NRORDEN)];;;;;;;IF(Vacio(UsrVehiculos(UsuarioActivo)),  " Status ='HAB' " ,  " Codigo IN (Select Vehiculo from "~DBO~".USRVEHICULO where Codigo = '"~UsuarioActivo~"')")
+    Especie     :'Moneda'                      ;3;1;1;Not (RB4=0 Y Incluido(TIPOOP,Var('OPPROINV')));SI;NOVACIO(ESPECIE) y DESCIENDEDEESPECIE(ESPECIE,'MONEDA') y ESTERMINAL(ESPECIE, ESPECIE);'Moneda invalida';NO;;IF[NoVacio(NrOrden),BuscarCampo('ORDENES','Especie','NrOrden',NRORDEN)];;;;;;"Status = 'HAB' and Jerarquia Like '"~Jerarquia('ESPECIES','MONEDA')~"%' ";
+    Cliente1    :'Entidad Origen'               ;7;1;1;;;[Eqstr(BuscarCampo('CUENTAS','Comitente','Codigo', CUENTA1), CLIENTE1) y Eqstr(BuscarCampo('CLIENTES','Status','Codigo',CLIENTE1),'HAB')];'Entidad Origen invalido';NO;;IF[NoVacio(NRORDEN),BuscarCampo('ORDENES','Cliente','NrOrden',NRORDEN)];;;;;;"CategDepositante IN ('BAN','ALY','ABO','BRO') AND Status='HAB' ";;;;
+    Cuenta1     :'De Cuenta'                    ;8;1;1;;;[Eqstr(BuscarCampo('CUENTAS','Comitente','Codigo',CUENTA1), CLIENTE1) y EqSTr(BuscarCampo('CUENTAS','Estado','Codigo',CUENTA1),'HAB')];'Cuenta Origen invalida';NO;;IF[NoVacio(NRORDEN) , IF[(Incluido(TIPOOP,Var('OPPROINV')) Y Not Incluido(TIPOOP,VAR('OPCONTRESP'))),BuscarCampo('ORDENES','Cuenta1','NrOrden',NRORDEN),''] , QUERY("Select Codigo from "~DBO~".CUENTAS where Cliente='"~VEHICULO1~"' and Estado='HAB' and Comitente='"~CLIENTE1~"' AND (Especies LIKE '%"~ESPECIE~"%' or Especies LIKE '%MONEDA%')")];;;;;;IF(NoVacio(CLIENTE1), "Cliente='"~VEHICULO1~"' and Estado='HAB' and (Especies LIKE '%"~ESPECIE~"%' or Especies LIKE '%MONEDA%') AND Comitente = '"~CLIENTE1~"' ", "Cliente='"~VEHICULO1~"' and Estado='HAB' and (Especies LIKE '%"~ESPECIE~"%' or Especies LIKE '%MONEDA%')")
+    Cuenta2     :'A Cuenta'                     ;8;2;1;;;[Eqstr(BuscarCampo('CUENTAS','Comitente','Codigo',CUENTA2), CLIENTE2) y EqSTr(BuscarCampo('CUENTAS','Estado','Codigo',CUENTA2),'HAB')];'Cuenta Destino Invalida';NO;;IF[NoVacio(NRORDEN), IF[(Incluido(TIPOOP,Var('OPPROINV')) Y Incluido(TIPOOP,VAR('OPCONTRESP'))),BuscarCampo('ORDENES','Cuenta1','NrOrden',NRORDEN),''] , QUERY("Select Codigo from "~DBO~".CUENTAS where Cliente='"~IF(MB3=1,VEHICULO2,VEHICULO1)~"' and Estado='HAB' and Comitente='"~CLIENTE2~"' AND (Especies LIKE '%"~ESPECIE~"%' or Especies LIKE '%MONEDA%') ")];;;;;;IF(NoVacio(CLIENTE2), "Cliente='"~IF(MB3=1,VEHICULO2,VEHICULO1)~"' and Estado='HAB' and (Especies LIKE '%"~ESPECIE~"%' or Especies LIKE '%MONEDA%') AND Comitente = '"~CLIENTE2~"' " , "Cliente='"~IF(MB3=1,VEHICULO2,VEHICULO1)~"' and Estado='HAB' and (Especies LIKE '%"~ESPECIE~"%' or Especies LIKE '%MONEDA%') ")
+    Cliente2    :'Entidad Destino'              ;7;2;1;;;[Eqstr(BuscarCampo('CUENTAS','Comitente','Codigo', CUENTA2), CLIENTE2) y Eqstr(BuscarCampo('CLIENTES','Status','Codigo',CLIENTE2),'HAB')];'Entidad Destino invalido';NO;;BuscarCampo('CUENTAS','Comitente','Codigo',CUENTA2);;;;;;"CategDepositante IN ('BAN','ALY','ABO','BRO') AND Status='HAB' "
+    @ORIOPE
+    CB1        :'Consume'                      ;;;;;RB4=0 Y NoVacio(NRORDEN);;;;IF(RB4=0,1,0);IF(RB4=0,1,0);
+%%else
+    ***Campos originales, previos a órdenes
+    Vehiculo1   :'Vehiculo'                    ;2;1;1;;;NoVacio(VEHICULO1) Y Incluido(VEHICULO1,SqlSet("Select Codigo from "~DBO~".VEHICULOS WHERE Codigo = '"~Vehiculo1~"' and Status ='HAB' "));'Vehiculo invalido';NO;BuscarCampo('USRVEHICULO','Vehiculo','Codigo',USUARIOACTIVO);;;;;;;"Status ='HAB' ";
+    Especie     :'Moneda'                      ;3;1;1;;;NoVacio(ESPECIE) y DesciendeDeEspecie(ESPECIE,'MONEDA') y EsTerminal(ESPECIE,Especie);'Moneda invalida';NO;;;;;;;;"Status = 'HAB' and Jerarquia Like '"~Jerarquia('ESPECIES','MONEDA')~"%' ";
+    Cliente1    :'Entidad Origen'              ;5;1;1;;;[Eqstr(BuscarCampo('CUENTAS','Comitente','Codigo', CUENTA1), CLIENTE1) y Eqstr(BuscarCampo('CLIENTES','Status','Codigo',CLIENTE1), 'HAB')];'Entidad Origen invalido';NO;;BuscarCampo('CUENTAS','Comitente','Codigo',CUENTA1);;;;;;"CategDepositante IN ('BAN','ALY','ABO','BRO') AND Status='HAB' "
+    Cuenta1     :'De Cuenta'                   ;8;1;1;;;Eqstr(BuscarCampo('CUENTAS','Comitente','Codigo',CUENTA1), CLIENTE1);'Cuenta Origen invalida';NO;;QUERY("Select Codigo from "~DBO~".CUENTAS where Cliente='"~VEHICULO1~"' and Estado='HAB' and Comitente='"~CLIENTE1~"' AND (Especies LIKE '%"~ESPECIE~"%' or Especies LIKE '%MONEDA%') ");;;;;;IF(NoVacio(CLIENTE1), "Cliente='"~VEHICULO1~"' and Estado='HAB' and (Especies LIKE '%"~ESPECIE~"%' or Especies LIKE '%MONEDA%') AND Comitente = '"~CLIENTE1~"' ", "Cliente='"~VEHICULO1~"' and Estado='HAB' and (Especies LIKE '%"~ESPECIE~"%' or Especies LIKE '%MONEDA%')") 
+    Cuenta2     :'A Cuenta'                    ;8;2;1;;;Eqstr(BuscarCampo('CUENTAS','Comitente','Codigo',CUENTA2), CLIENTE2);'Cuenta Destino Invalida';NO;;QUERY("select Codigo from "~DBO~".CUENTAS where Cliente='"~IF(MB3=1,VEHICULO2,VEHICULO1)~"' and Estado='HAB' and Comitente='"~CLIENTE2~"' AND (Especies LIKE '%"~ESPECIE~"%' or Especies LIKE '%MONEDA%') ");;;;;;IF(NoVacio(CLIENTE2), "Cliente='"~IF(MB3=1,VEHICULO2,VEHICULO1)~"' and Estado='HAB' and (Especies LIKE '%"~ESPECIE~"%' or Especies LIKE '%MONEDA%') AND Comitente = '"~CLIENTE2~"' " , "Cliente='"~IF(MB3=1,VEHICULO2,VEHICULO1)~"' and Estado='HAB' and (Especies LIKE '%"~ESPECIE~"%' or Especies LIKE '%MONEDA%') ") 
+%%endif   
+Operador     :                                 ;9;1;1;NO;;NOVACIO(OPERADOR);'El Operador es Invalido';NO;USUARIOACTIVO;
+
+FechaOp      :'Fecha'                          ;2;2;1;VerificaAcceso('OPFVALOR');;FECHAOP<=FSYS y EsHabil(FECHAOP,'ARG');'Fecha invalida';NO;FSYS
+FechaVto     :'Fecha Acredit'                  ;3;2;1;;;EsHabil(FECHAVTO,'ARG');'Fecha de Acreditacion Invalida';NO;FSYS;
+
+
+PrecioMer    : 'Monto USD WF'                  ;10;2;2;NO;NO;;;;;CANTIDAD*COTIZACIONC(ESPECIE,,,,FECHAOP,1,SI,VAR('MONEEXTR'));
+VTXT40       : 'Moneda Loc. Veh.'              ;11;2;;NO;NO;NoVacio(VTXT40);'No se ha especificado moneda local para el vehiculo '~VEHICULO1;NO;;BuscarCampo('VEHICULOS', 'Alias4', 'Codigo', VEHICULO1);
+Sector2      : 'Perfil'                        ;16;2;2;NO;NO;;;;BuscarCampo('USUARIOS','Perfiles','Codigo',USUARIOACTIVO);BuscarCampo('USUARIOS','Perfiles','Codigo',USUARIOACTIVO);
+VCAN23       : 'Cant.Consumido'                ;;;;;NO;;;;CANTIDAD;CANTIDAD;;
+
+CONDICIONES
+Incluido(VEHICULO1, UsrVehiculos(USUARIOACTIVO))  o VACIO(UsrVehiculos(USUARIOACTIVO)); 'El usuario activo no esta habilitado para operar con el vehiculo '~VEHICULO1;NO
+Vacio(VEHICULO2) O Incluido(VEHICULO2, UsrVehiculos(USUARIOACTIVO))  o VACIO(UsrVehiculos(USUARIOACTIVO)); 'El usuario activo no esta habilitado para operar con el vehiculo '~VEHICULO2;NO
+EspecieCuenta(ESPECIE, CUENTA1) O VACIO(CUENTA1);'La Moneda No Corresponde con la Cuenta Origen';NO
+ClienteCuenta(VEHICULO1, CUENTA1) o VACIO(CUENTA1);'La Cuenta Origen no corresponde al Vehiculo';SI
+EspecieCuenta(ESPECIE, CUENTA2) o VACIO(CUENTA2);'La Moneda No Corresponde con la Cuenta Destino';NO
+MB3<>1 o ClienteCuenta(VEHICULO2, CUENTA2) o VACIO(CUENTA2);'La Cuenta Destino no corresponde al Vehiculo '~VEHICULO2;SI
+MB3<>0 o ClienteCuenta(VEHICULO1, CUENTA2) o VACIO(CUENTA2);'La Cuenta Destino no corresponde al Vehiculo '~VEHICULO1;SI
+SI O SaldoC(Vehiculo1,Especie,,,,,,Cuenta1,1,FSYS)>=CANTIDAD;'Cantidad a transferir es superior al saldo en la cuenta origen.';SI
+%%ifdef BFSA
+    *Cantidad Completada Órdenes
+    @ORCCCA
+%%endif      
+EDICION
+EqStr(Operador, UsuarioActivo) o Incluido(UsuarioActivo, Var('ULMODI'));'No se puede modificar, Operador: '~Operador
+
+BAJA
+EqStr(Operador, UsuarioActivo) o Incluido(UsuarioActivo, Var('ULBAJA'));'No se puede dar de baja, Operador: '~Operador
+
+
+MOVIMIENTOS
+FechaVto;Cliente1;Especie;;;;;Vehiculo1 ;1; Cantidad;;'Transferencia de '~Especie;SI;Incluido(Vehiculo1,Var('VLIQUIDAA'));;;;Cuenta1;;1;
+FechaVto;Cliente1;Especie;;;;;Vehiculo1 ;1; TotalGastos;;'Gastos por Transferencia de '~Especie;SI;Incluido(Vehiculo1,Var('VLIQUIDAA'));;;;Cuenta1;;2;
+
+FechaVto;Cliente2;Especie;;;;;Vehiculo1 ;1;  -Cantidad;;'Transferencia de '~Especie;SI;Incluido(Vehiculo1,Var('VLIQUIDAA'));;MB3=0;;Cuenta2;;3;
+FechaVto;Cliente2;Especie;;;;;Vehiculo2 ;1;  -Cantidad;;'Transferencia de '~Especie;SI;Incluido(Vehiculo1,Var('VLIQUIDAA'));;MB3=1;;Cuenta2;;3;
+
+FechaVto ;Vehiculo1;Especie;;;;;Vehiculo1;50;-Cantidad;;'Transferencia de '~ESPECIE;SI;SI;;Incluido(BuscarCampo('CUENTAS','TipoCuenta','Codigo', Cuenta1), 'CUS|INV') Y FechaVto>=Fecha(Var('FECHAMIGRA'));;Cuenta1;;10;;;;;;;;;;;;;;
+FechaVto ;Vehiculo1;Especie;;;;;Vehiculo1;50;Cantidad;;'Transferencia de '~ESPECIE;SI;SI;;Incluido(BuscarCampo('CUENTAS','TipoCuenta','Codigo', Cuenta2), 'CUS|INV') Y FechaVto>=Fecha(Var('FECHAMIGRA'));;Cuenta2;;11;;;;;;;;;;;;;;
+
+POSTEDICION
+%%ifdef BFSA
+    SI;'DETRIE';TipoOp = TIPOOP;Especie1=CONTRAESPECIE;Cantidad1=TOTALNETOCLI1;Book1=BOOK1;NrOperacion=NROPERACION;Fecha1=FechaOp
+    ***UPDATE ORDENES 22-05-2025
+    *Actualiza Ejecuciones cuando se da de alta la operación
+    NoVacio(NRORDEN) Y Not EqStr(ABM,'D') Y CB1=1;'ACTEJE';NrOrden=NRORDEN;NrOperacion1=NROPERACION;TipoOp1=TIPOOP;Cliente1=CLIENTE1;Fecha1=FECHAOP;Fecha2=FECHAVTO;Cantidad1=CANTIDAD;Radio1=0
+    *Actualiza ejecuciones cuando se da de baja la operación. NOTA: El campo cantidad se invierte el signo en el evento
+    NoVacio(NRORDEN) Y EqStr(ABM,'D') Y CB1=1;'ACTEJE';NrOrden=NRORDEN;NrOperacion1=NROPERACION;TipoOp1=TIPOOP;Cliente1=CLIENTE1;Fecha1=FECHAOP;Fecha2=FECHAVTO;Cantidad1=CANTIDAD;Radio1=1
+%%endif
+
+
+@INSTOPE
+INSTANCIA19
+CAMPOS:1;;BuscarCampo('VEHICULOS','Alias1','Codigo',Vehiculo1);FW=1
+MB3          :'Tipo|Ctas.Propias|Intercompany'  ;;;;NO;;;;;;
+Vehiculo2    :'a Vehiculo'                      ;2;1;;NO;MB3=1;;;;;;;;;;;
+Vehiculo1    :'Vehiculo'                        ;3;1;;NO;;;;;;;;;;;;;
+FechaOp      :'Fecha'                           ;2;2;;NO;;;;
+FechaVto     :'Fecha Acredit'                   ;3;2;;NO;;;;;;
+Especie      :'Moneda'                          ;4;1;;NO;;;;;;;;;;;;;
+Cantidad     :'Cantidad'                        ;5;1;;NO;;;;
+TotalGastos  :'Gastos'                          ;5;2;1;NO;NO;;;;;
+Cliente1     :'Entidad Origen'                  ;7;1;;NO;;;;;;;;;;;;
+Cuenta1      :'De Cuenta'                       ;8;1;;;;Eqstr(BuscarCampo('CUENTAS','Comitente','Codigo',CUENTA1), CLIENTE1);'Cuenta Origen invalida';NO;CUENTA1;QUERY("select Codigo from "~DBO~".CUENTAS where Cliente='"~VEHICULO1~"' and Estado='HAB' and Comitente='"~CLIENTE1~"' AND (Especies LIKE '%"~ESPECIE~"%' or Especies LIKE '%MONEDA%') ");;;;;;IF(NoVacio(CLIENTE1), "Cliente='"~VEHICULO1~"' and Estado='HAB' and (Especies LIKE '%"~ESPECIE~"%' or Especies LIKE '%MONEDA%') AND Comitente = '"~CLIENTE1~"' ", "Cliente='"~VEHICULO1~"' and Estado='HAB' and (Especies LIKE '%"~ESPECIE~"%' or Especies LIKE '%MONEDA%')") 
+Cliente2     :'Entidad Destino'                 ;7;2;;NO;;;;;;;;;;;;"CategDepositante IN ('BAN','ALY','ABO','BRO') AND Status='HAB' "
+Cuenta2      :'A Cuenta'                        ;8;2;;;;Eqstr(BuscarCampo('CUENTAS','Comitente','Codigo',CUENTA2), CLIENTE2);'Cuenta Destino Invalida';NO;CUENTA2;QUERY("select Codigo from "~DBO~".CUENTAS where Cliente='"~IF(MB3=1,VEHICULO2,VEHICULO1)~"' and Estado='HAB' and Comitente='"~CLIENTE2~"' AND (Especies LIKE '%"~ESPECIE~"%' or Especies LIKE '%MONEDA%') ");;;;;;IF(NoVacio(CLIENTE2), "Cliente='"~IF(MB3=1,VEHICULO2,VEHICULO1)~"' and Estado='HAB' and (Especies LIKE '%"~ESPECIE~"%' or Especies LIKE '%MONEDA%') AND Comitente = '"~CLIENTE2~"' " , "Cliente='"~IF(MB3=1,VEHICULO2,VEHICULO1)~"' and Estado='HAB' and (Especies LIKE '%"~ESPECIE~"%' or Especies LIKE '%MONEDA%') ") 
+Operador     :                                  ;;1;;NO;;;;;USUARIOACTIVO;
+
+
+POSTEDICION
+*@POSTERENT
+FW=1;'ACTI19';NrOperacion1=NROPERACION
+FW=1;'APROPE';NrOperacion1=NROPERACION;Radio1=0;
+%%ifdef BFSA
+    FW = 2;'APRUEB';String1=RIESGO;NrOperacion1=NROPERACION;String2=USUARIOACTIVO;Entero1=APROBACIONES;Entero2=FW
+    *Actualiza ejecuciones cuando se da de baja la operación. NOTA: El campo cantidad se invierte el signo en el evento
+    NoVacio(NRORDEN) Y EqStr(ABM,'D');'ACTEJE';NrOrden=NRORDEN;NrOperacion1=NROPERACION;TipoOp1=TIPOOP;Cliente1=CLIENTE1;Fecha1=FECHAOP;Fecha2=FECHAVTO;Cantidad1=CANTIDAD;Radio1=1
+%%endif
+
+
+@INST19BITS

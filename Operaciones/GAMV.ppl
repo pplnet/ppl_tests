@@ -1,0 +1,98 @@
+﻿CAMPOS:1;;BuscarCampo('VEHICULOS','Alias1','Codigo',Vehiculo1)
+FechaOp2       : 'Fecha_Conc.'                ;1;1;;VERIFICAACCESO('OPFVALOR');;FECHAOP2<=FECHAOP;'FECHA DE CONCERTACION INCORRECTA';NO;FSYS;
+FechaOp        : 'Fecha_Origen'               ;2;1;;NOT EV y VERIFICAACCESO('OPFVALOR');;ESHABIL(FECHAOP,TABLAFERIADOS1);'FECHA DE ORIGEN INCORRECTA';NO;FSYS;
+@VEHITO
+Operador       : '     Operador'              ;;2;;;;NOVACIO(OPERADOR);'El Operador es Invalido';NO;USUARIOACTIVO;
+RB6            : '     Urgente|Si|No'         ;4;2;;;;RB6>=0;'Indique el Caracter de la Operacion';NO;
+RB8            : '     U.Tiempo|360|365'      ;;;;;;RB8>=0;'Unidad de Tiempo Tasa Interes INVALIDA';NO;365
+RB7            : 'Clase|MO|FCC|CIA|FB|SBLC|CF|Otro'     ;3;1;;;;;;;0;
+Observac3      : 'Beneficiario'               ;;;;;;NOVACIO(OBSERVAC3);'El Beneficiario es Obligatorio';NO;
+Observac2      : 'Lugar Emision'              ;;;;;;NOVACIO(OBSERVAC2);'El Lugar de Emision es Obligatorio';NO;
+Observac4      : 'Clase Otro'                 ;;;;RB7=6;RB7=6;RB7<=5 O NOVACIO(OBSERVAC4);'Clase Otro';NO;
+ObservacDoc    : 'Obra_Concepto'              ;;;;;;NOVACIO(OBSERVACDOC);'Obra o Concepto Invalido';NO;;
+Especie        : 'Moneda'                     ;;;;NOT EV;;NOVACIO(ESPECIE) y DESCIENDEDEESPECIE(ESPECIE,'MONEDA') y ESTERMINAL(ESPECIE,ESPECIE);'Debe Ingresar una Moneda ';NO;;;;;;;;"Codigo In ("~Pipe2Comillas(Descendientes('ESPECIES','MONEDA' ))~") and Status = 'HAB'";;
+Pais           : 'Pais'                       ;;;;;;NOVACIO(PAIS);'Se debe indicar el Pais';NO;;
+Cantidad       : 'Monto'                      ;;;;;;CANTIDAD>0;'El Monto DEBE SER POSITIVO';NO;
+Cliente1       : 'Entidad'                    ;;;;NOT EV;;NOVACIO(CLIENTE1) y DESCIENDEDECLIENTE(CLIENTE1,'BANCOS');'Seleccione la Entidad Bancaria';NO;;
+FechaVto       : 'F_Solicitud'                ;;;;;;FECHAVTO>0 y FECHAVTO<=FECHAOP;'La Fecha de Solicitud debe ser Anterior al Origen';NO;;
+Plazo          : 'Pzo_Total'                  ;;;;;;PLAZO>0;'Debe INGRESAR el PLAZO Total de la Garantia';NO;;FECHAEX2-FECHAOP
+Precio1        : 'Tasa_Anual'                 ;8;2;;;;PRECIO1>=0;'La Tasa Debe ser positiva';NO;;IF(IMPCOMMER1>0,(IMPCOMMER1*IF(RB8=0,360,365))/(PLAZO*CANTIDAD),IF(PORCOMMER1>0,(PORCOMMER1/100)*IF(RB8=0,360,365)/PLAZO,0))*100
+ImpComMer1     : 'Comision'                   ;;;;;;;;;;IF(PRECIO1>0,(((PRECIO1/100)*PLAZO*CANTIDAD)/IF(RB8=0,360,365)),IF(PORCOMMER1>0,(PORCOMMER1/100)*CANTIDAD,0))
+ImpComMerEq1   : 'ContraValor'                ;;;;NO;NOT EQSTR(ESPECIE,CONTRAESPECIE2);;;;;IMPCOMMER1*IF(eqstr(QUERY(" Select Modo from "~DBO~".MODOESPECIES where Especie1='"~ESPECIE~"' and Especie2='"~CONTRAESPECIE2~"' "),'DIR'),TCCOMCOR1,IF(TCCOMCOR1<>0,1/TCCOMCOR1,0))
+PorComMer1     : 'Tasa_Flat'                  ;;;;NO;;;;;;IF(IMPCOMMER1>0,IMPCOMMER1/CANTIDAD,IF(PRECIO1>0,(PRECIO1/100)*PLAZO/IF(RB8=0,360,365),0))*100
+ContraEspecie2 : 'Mon_Gs'                     ;;;;;;NOVACIO(CONTRAESPECIE2) y DESCIENDEDEESPECIE(CONTRAESPECIE2,'MONEDA') y ESTERMINAL(CONTRAESPECIE2,ESPECIE);'Especie de Pago Gastos';NO;;IF(MODI,ESPECIE,CONTRAESPECIE2);;;;;;"Codigo In ("~Pipe2Comillas(Descendientes('ESPECIES','MONEDA' ))~") and Status = 'HAB'";;
+TCComCor1      : 'TC Gastos'                  ;;;;NOT EQSTR(ESPECIE,CONTRAESPECIE2);NOT EQSTR(ESPECIE,CONTRAESPECIE2);TCCOMCOR1>=0;'Tipo de Cambio del Gastos INVALIDO';NO;1;
+FechaEx2       : 'Vencimiento'                ;;;;;;;;;FECHAOP;FECHAOP+PLAZO
+TablaFeriados1 : 'Feriados'                   ;;;;;;NOVACIO(TABLAFERIADOS1);'Se debe indicar la Tabla de Feriados';NO;;
+Cuotas1        : 'Periodos'                   ;;;;;;CUOTAS1>=1;'Debe INGRESAR la Cantidad De Periodos';NO;;;
+ImpGastos2     : 'Gastos'                     ;15;1;;;;IMPGASTOS2>=0 Y IMPGASTOS2<=CANTIDAD*0.10;'El Importe de Gastos debe ser Inferior al 10% del Importe';NO;;IMPCOMCOREQ1*IF(eqstr(QUERY(" Select Modo from "~DBO~".MODOESPECIES where Especie1='"~ESPECIE~"' and Especie2='"~CONTRAESPECIE2~"' "),'DIR'),1/TCCOMCOR1,IF(TCCOMCOR1<>0,TCCOMCOR1,0))
+ImpComCorEq1   : 'ContraValor'                ;;;;;NOT EQSTR(ESPECIE,CONTRAESPECIE2);;;;;IMPGASTOS2*IF(eqstr(QUERY(" Select Modo from "~DBO~".MODOESPECIES where Especie1='"~ESPECIE~"' and Especie2='"~CONTRAESPECIE2~"' "),'DIR'),TCCOMCOR1,IF(TCCOMCOR1<>0,1/TCCOMCOR1,0))
+ImpGastos1     : 'Alicuota Imp.'              ;;;;;;INCLUIDO(Fstr(IMPGASTOS1,2,2),VAR('IVA'));"El Valor de TASA IVA es Erroneo: "~VAR('IVA');NO;VAR('TASAIVA');IF(Incluido(VEHICULO1,VAR('VEHIEXTRAN')),0,VAR('TASAIVA'));
+TotalRetenciones:'Impuesto'                   ;;;;;;;;;;(IMPCOMMEREQ1+IMPCOMCOREQ1)*IMPGASTOS1/100;
+Precio4        : 'Costo Total'                ;18;2;;NO;;;;;;IMPCOMMER1+IMPGASTOS2+TOTALAUX3;;;;;'###,###,###.##'
+TotalComisiones: 'Costo Contr'                ;;;;NO;;;;;;PRECIO4*IF(eqstr(QUERY(" Select Modo from "~DBO~".MODOESPECIES where Especie1='"~ESPECIE~"' and Especie2='"~CONTRAESPECIE2~"' "),'DIR'),TCCOMCOR1,IF(TCCOMCOR1<>0,1/TCCOMCOR1,0))
+MensajeChequeo : 'Contacto PC'                ;1;1;2;;;NOVACIO(MENSAJECHEQUEO);'Indique el Contacto PC';NO;;;
+Cliente2       : 'Bco_Corresponsal'           ;;;2;;;NOVACIO(CLIENTE2) y DESCIENDEDECLIENTE(CLIENTE2,'BANCOS');'Seleccione el Banco Corresponsal';NO;;
+TotalAux1      : 'Tasa WH'                    ;;;2;;;Incluido(Fstr(TotalAux1,2,4),VAR('TASAWH'));'El Valor de TASA WH es Erroneo: '~VAR('TASAWH')~' ...';NO;;;;;;;'##.####'
+TotalAux3      : 'Importe WH'                 ;;;2;NO;;;;;;(IMPCOMMER1+IMPGASTOS2)*TOTALAUX1/100
+ImpComCor1     : 'ContraValor'                ;;;2;NO;NOT EQSTR(ESPECIE,CONTRAESPECIE2);;;;;TOTALAUX3*IF(eqstr(QUERY(" Select Modo from "~DBO~".MODOESPECIES where Especie1='"~ESPECIE~"' and Especie2='"~CONTRAESPECIE2~"' "),'DIR'),TCCOMCOR1,IF(TCCOMCOR1<>0,1/TCCOMCOR1,0))
+Cotizacion1    : 'TC_Concert.'                ;;;2;;Not Eqstr(CONTRAESPECIE,VAR('MONEEXTR'));Eqstr(CONTRAESPECIE,VAR('MONEEXTR')) O [COTIZACION1<=VPRE1*(1+VAR('RPRECIO2')/100) Y COTIZACION1>=VPRE1*(1-VAR('RPRECIO2')/100)];'Tipo de Cambio Concertacion Fuera de Rango: '~FSTR(VPRE1*(1-VAR('RPRECIO2')/100),1,7)~' y '~FSTR(VPRE1*(1+VAR('RPRECIO2')/100),1,7);NO;;IF(Eqstr(CONTRAESPECIE,VAR('MONEEXTR')),1)
+Cotizacion2    : 'TC_Vencim.'                 ;;;2;COTIZACION2<>0;COTIZACION2<>0;;;;
+TipoCambio2    : 'Cot.Esp/Mon.GASTOS'         ;13;1;;NO;NO;;;;;IF(eqstr(QUERY(" Select Modo from "~DBO~".MODOESPECIES where Especie1='"~ESPECIE~"' and Especie2='"~CONTRAESPECIE2~"' "),'DIR'),COTIZACIONC(CONTRAESPECIE2,,,,FECHAOP,1,SI,'ARP')/COTIZACIONC(CONTRAESPECIE2,,,,FECHAOP,1,SI,'ARP'),COTIZACIONC(CONTRAESPECIE2,,,,FECHAOP,1,SI,'ARP')/COTIZACIONC(CONTRAESPECIE2,,,,FECHAOP,1,SI,'ARP'))
+RB3            : 'MOF'                        ;10;2;;NO;NO;;;;;IF(INSTANCIA=2,0,1)
+Impresa        : 'Modificado'                 ;10;3;;NO;NO;;;;0
+VPRE5          : 'Cot.ESP/USD'                ;10;3;;NO;NO;;;;;COTIZACIONC(ESPECIE,,,,Fsys,1,SI,VAR('MONEEXTR'))
+VPRE1          : 'Cot.TC/USD'                 ;10;2; ;NO;NO;;;;;COTIZACIONC(ESPECIE,,,,FECHAOP,1,SI,VAR('MONEEXTR'))^If(EqStr(Modo(ESPECIE,VAR('MONEEXTR')),'DIR'),1,-1)
+OperacionRef   : 'Operacion Ref'              ;;;;NO;NO;
+ContraEspecie  : 'ContraEspecie'              ;;;;NO;NO;
+
+LISTA:SI;IF(ESINICIO,100,CUOTAS1);
+  Fecha1   : 'F.Origen'        ;NO;;ESHABIL(CUOTASL.FECHA1[Fila],TABLAFERIADOS1) Y ESHABIL(CUOTASL.FECHA1[Fila],'ARG');'La Fecha Origen No es HABIL';IF(Fila=1,FECHAOP,CUOTASL.FECHA2[Fila-1]);IF(Fila=1,FECHAOP,CUOTASL.FECHA2[Fila-1]);90;;Fecha
+  Fecha2   : 'F.Vto'           ;;;ESHABIL(CUOTASL.FECHA2[Fila],TABLAFERIADOS1) Y ESHABIL(CUOTASL.FECHA2[Fila],'ARG');'El Vencimiento No es HABIL';IF(Fila=CUOTAS1,FECHAEX2,CUOTASL.FECHA1[Fila]+CUOTASL.PLAZO1[Fila]);IF(Fila=CUOTAS1,FECHAEX2,IF(EQSTR(CAMPOMODIFICADO,'CUOTASL.PLAZO1['~Fstr(Fila,1,0)~']'),CUOTASL.FECHA1[Fila]+CUOTASL.PLAZO1[Fila],CUOTASL.FECHA2[Fila]));90;;Fecha
+  Fecha3   : 'F.Pago Comis'    ;;;ESHABIL(CUOTASL.FECHA3[Fila],TABLAFERIADOS1) Y ESHABIL(CUOTASL.FECHA3[Fila],'ARG');'La Fecha Pago Comision No es HABIL';CUOTASL.FECHA2[Fila];CUOTASL.FECHA2[Fila];90;;Fecha;NO;NO
+  Plazo1   : 'Plazo'           ;;;CUOTASL.PLAZO1[Fila]>0;'El Plazo DEBE SER POSITIVO';IF(Fila=CUOTAS1 Y (PLAZO MOD CUOTAS1)<>0,(PLAZO DIV CUOTAS1)+(PLAZO MOD CUOTAS1),(PLAZO DIV CUOTAS1));IF(EQSTR(CAMPOMODIFICADO,'CUOTASL.FECHA2['~Fstr(Fila,1,0)~']'),CUOTASL.FECHA2[Fila]-CUOTASL.FECHA1[Fila],CUOTASL.PLAZO1[Fila]);60;;Numero;'####'
+  Cantidad1: 'Imp_Garantizado' ;NO;;;;;IF(Fila=1,CANTIDAD,CUOTASL.CANTIDAD3[Fila-1]);200;;Numero;'###,###,###.##'
+  Tasa1    : 'Tasa Amort'      ;;;CUOTASL.TASA1[Fila]>=0;'La Tasa de Amortizacion debe SER POSITIVA';100/CUOTAS1;IF(EQSTR(CAMPOMODIFICADO,'CUOTASL.TASA1['~Fstr(Fila,1,0)~']'),CUOTASL.TASA1[Fila],CUOTASL.CANTIDAD2[Fila]*100/CANTIDAD);100;;Numero;'###,###.######'
+  Cantidad2: 'Importe Amort'   ;;;;;;IF(EQSTR(CAMPOMODIFICADO,'CUOTASL.CANTIDAD2['~Fstr(Fila,1,0)~']'),CUOTASL.CANTIDAD2[Fila],CUOTASL.TASA1[Fila]*CANTIDAD/100);200;;Numero;'###,###,###.##'
+  Cantidad3: 'Saldo'           ;NO;;;;;CUOTASL.CANTIDAD1[Fila]-CUOTASL.CANTIDAD2[Fila];200;;Numero;'###,###,###.##'
+  Precio1  : 'Tasa Anual'      ;;;CUOTASL.PRECIO1[Fila]>=VAR('RTASA1') Y CUOTASL.PRECIO1[Fila]<=VAR('RTASA2');'La Tasa de Intereses ESTA FUERA DE RANGO:'~VAR('RTASA1')~' '~VAR('RTASA2');;IF(EQSTR(CAMPOMODIFICADO,'CUOTASL.PRECIO2['~Fstr(Fila,1,0)~']'),((CUOTASL.PRECIO2[Fila]*IF(RB8=0,360,365))/(CUOTASL.PLAZO1[Fila]*CUOTASL.CANTIDAD1[Fila]))*100,IF(EQSTR(CAMPOMODIFICADO,'CUOTASL.PRECIO3['~Fstr(Fila,1,0)~']'),((CUOTASL.PRECIO3[Fila]/100)*IF(RB8=0,360,365)/CUOTASL.PLAZO1[Fila])*100,CUOTASL.PRECIO1[Fila]));200;;Numero;'###,###.######'
+  Precio2  : 'Comision'        ;;;;;;IF(EQSTR(CAMPOMODIFICADO,'CUOTASL.PRECIO1['~Fstr(Fila,1,0)~']'),(((CUOTASL.PRECIO1[Fila]/100)*CUOTASL.PLAZO1[Fila]*CUOTASL.CANTIDAD1[Fila])/IF(RB8=0,360,365)),IF(EQSTR(CAMPOMODIFICADO,'CUOTASL.PRECIO3['~Fstr(Fila,1,0)~']'),(CUOTASL.PRECIO3[Fila]/100)*CUOTASL.CANTIDAD1[Fila],CUOTASL.PRECIO2[Fila]));200;;Numero;'###,###,###.##'
+  Total7   : 'ContraValor'     ;NO;NOT EQSTR(ESPECIE,CONTRAESPECIE2);;;;CUOTASL.PRECIO2[Fila]*IF(eqstr(QUERY(" Select Modo from "~DBO~".MODOESPECIES where Especie1='"~ESPECIE~"' and Especie2='"~CONTRAESPECIE2~"' "),'DIR'),CUOTASL.TOTAL1[Fila],IF(CUOTASL.TOTAL1[Fila]<>0,1/CUOTASL.TOTAL1[Fila],0));200;;Numero;'###,###,###.##'
+  Precio3  : 'Tasa_Flat'       ;NO;;;;;IF(EQSTR(CAMPOMODIFICADO,'CUOTASL.PRECIO2['~Fstr(Fila,1,0)~']'),CUOTASL.PRECIO2[Fila]/CUOTASL.CANTIDAD1[Fila],IF(EQSTR(CAMPOMODIFICADO,'CUOTASL.PRECIO1['~Fstr(Fila,1,0)~']'),(CUOTASL.PRECIO1[Fila])*CUOTASL.PLAZO1[Fila]/IF(RB8=0,360,365),CUOTASL.PRECIO3[Fila]));200;;Numero;'###,###.######'
+  Cantidad4: 'Gastos'          ;;;CUOTASL.CANTIDAD4[Fila]>=0 Y CUOTASL.CANTIDAD4[Fila]<=CANTIDAD*0.10;'El Importe de Gastos debe ser Inferior al 10% del Importe';;IF(EQSTR(CAMPOMODIFICADO,'CUOTASL.TOTAL6['~Fstr(Fila,1,0)~']'),CUOTASL.TOTAL6[Fila]*IF(eqstr(QUERY(" Select Modo from "~DBO~".MODOESPECIES where Especie1='"~ESPECIE~"' and Especie2='"~CONTRAESPECIE2~"' "),'DIR'),1/CUOTASL.TOTAL1[Fila],IF(CUOTASL.TOTAL1[Fila]<>0,CUOTASL.TOTAL1[Fila],0)),CUOTASL.CANTIDAD4[Fila]);200;;Numero;'###,###,###.##'
+  Total6   : 'ContraValor'     ;NO;NOT EQSTR(ESPECIE,CONTRAESPECIE2);;;;CUOTASL.CANTIDAD4[Fila]*IF(eqstr(QUERY(" Select Modo from "~DBO~".MODOESPECIES where Especie1='"~ESPECIE~"' and Especie2='"~CONTRAESPECIE2~"' "),'DIR'),CUOTASL.TOTAL1[Fila],IF(CUOTASL.TOTAL1[Fila]<>0,1/CUOTASL.TOTAL1[Fila],0));200;;Numero;'###,###,###.##'
+  Total1   : 'TC Gastos'       ;;NOT EQSTR(ESPECIE,CONTRAESPECIE2);CUOTASL.TOTAL1[Fila]>=0;'Tipo de Cambio del Gastos INVALIDO';1;;200;;Numero;'###,###.######'
+  Total2   : 'Costo Total'     ;NO;;;;;CUOTASL.CANTIDAD4[Fila]+CUOTASL.TOTAL4[Fila]+CUOTASL.PRECIO2[Fila];200;;Numero;'###,###,###.##'
+  Total3   : 'ContraValor'     ;NO;NOT EQSTR(ESPECIE,CONTRAESPECIE2);;;;CUOTASL.TOTAL2[Fila]*IF(eqstr(QUERY(" Select Modo from "~DBO~".MODOESPECIES where Especie1='"~ESPECIE~"' and Especie2='"~CONTRAESPECIE2~"' "),'DIR'),CUOTASL.TOTAL1[Fila],IF(CUOTASL.TOTAL1[Fila]<>0,1/CUOTASL.TOTAL1[Fila],0));200;;Numero;'###,###,###.##'
+  Total4   : 'Importe WH'      ;NO;;;;;(CUOTASL.PRECIO2[Fila]+CUOTASL.CANTIDAD4[Fila])*TOTALAUX1/100;200;;Numero;'###,###,###.##'
+  Plazo2   : 'ContraValor'     ;NO;NOT EQSTR(ESPECIE,CONTRAESPECIE2);;;;CUOTASL.TOTAL4[Fila]*IF(eqstr(QUERY(" Select Modo from "~DBO~".MODOESPECIES where Especie1='"~ESPECIE~"' and Especie2='"~CONTRAESPECIE2~"' "),'DIR'),CUOTASL.TOTAL1[Fila],IF(CUOTASL.TOTAL1[Fila]<>0,1/CUOTASL.TOTAL1[Fila],0));200;;Numero;'###,###,###.##'
+  Total5   : 'Impuesto  '      ;NO;;;;;(CUOTASL.PRECIO2[Fila]+CUOTASL.CANTIDAD4[Fila])*IMPGASTOS1/100;200;;Numero;'###,###,###.##'  
+  Total8   : 'ContraValor'     ;NO;NOT EQSTR(ESPECIE,CONTRAESPECIE2);;;;CUOTASL.TOTAL5[Fila]*IF(eqstr(QUERY(" Select Modo from "~DBO~".MODOESPECIES where Especie1='"~ESPECIE~"' and Especie2='"~CONTRAESPECIE2~"' "),'DIR'),CUOTASL.TOTAL1[Fila],IF(CUOTASL.TOTAL1[Fila]<>0,1/CUOTASL.TOTAL1[Fila],0));200;;Numero;'###,###,###.##'
+
+CONDICIONES
+SUM(CUOTASL,4)=PLAZO;'La Sumatoria del Plazo debe coincidir con el total';NO
+SUM(CUOTASL,6)=100;'La Sumatoria de la Tasa de Amortizaci¢n debe ser 100: Total '~Fstr(SUM(CUOTASL,6),0,2);NO
+[TCCOMCOR1<=TIPOCAMBIO2*(1+VAR('RPRECIO2')/100) Y TCCOMCOR1>=TIPOCAMBIO2*(1-VAR('RPRECIO2')/100)];'Cambio COMISION y GASTOS Fuera de Rango: '~FSTR(TIPOCAMBIO2*(1-VAR('RPRECIO2')/100),1,7)~' y '~FSTR(TIPOCAMBIO2*(1+VAR('RPRECIO2')/100),1,7);NO
+[TCCOMCOR1<=TIPOCAMBIO2*(1+VAR('RPRECIO') /100) Y TCCOMCOR1>=TIPOCAMBIO2*(1-VAR('RPRECIO') /100)];'Cambio COMISION y GASTOS FUERA DE RANGO: '~FSTR(TIPOCAMBIO2*(1-VAR('RPRECIO')/100),1,7)~' y '~FSTR(TIPOCAMBIO2*(1+VAR('RPRECIO')/100),1,7);SI;SI;FSYS;'RANGOPRECIO'
+PORCOMMER1<=VAR('RTASA2') Y PORCOMMER1>=VAR('RTASA1');'Tasa Flat Fuera de Rango:'~VAR('RTASA1')~" Y "~VAR('RTASA2');SI;SI;FSYS;'RTASA'
+PRECIO1=0 O PRECIO1<=VAR('RTASA2') Y PRECIO1>=VAR('RTASA1');'Tasa Anual Fuera de Rango:'~VAR('RTASA1')~" Y "~VAR('RTASA2');SI;SI;FSYS;'RTASA'
+Not EqStr('DES',BuscarCampo('Clientes','Status','Codigo',CLIENTE1));'La Entidad esta Deshabilitada';NO
+Not EqStr('CLIOBS',BuscarCampo('Clientes','Alias7','Codigo',CLIENTE1));'La Entidad esta Observada';SI;SI;FSYS;'CLIOBS'
+FECHAOP =Fsys;'La Fecha de Origen no coincide con la de Sistema';SI;SI;FSYS;'ORIGFVALOR'
+@CONDIOP
+
+EDICION
+EqStr(Operador, UsuarioActivo) o Incluido(UsuarioActivo, Var('ULMODI'));'No se puede modificar, Operador: '~Operador
+
+BAJA
+EqStr(Operador, UsuarioActivo) o Incluido(UsuarioActivo, Var('ULBAJA'));'No se puede dar de baja, Operador: '~Operador
+
+MOVCUOTAS
+CuotasL.Fecha3[Fila];Cliente1  ;Especie;;Vehiculo1;1;  CuotasL.Cantidad4[Fila];' Gastos '~TIPOOP~' '~ESPECIE  ;SI;Incluido(Vehiculo1,Var('VLIQUIDAA'));;CuotasL.Cantidad4[Fila]<>0;Fila;;;(Fila+500 );'CUOTAS'
+CuotasL.Fecha3[Fila];Cliente1  ;Especie;;Vehiculo1;1;  CuotasL.Total5[Fila]   ;' IVA '~TIPOOP~' '~ESPECIE     ;SI;Incluido(Vehiculo1,Var('VLIQUIDAA'));;CuotasL.Total5[Fila]<>0;Fila;;;(Fila+1000);'CUOTAS'
+CuotasL.Fecha3[Fila];Cliente1  ;Especie;;Vehiculo1;1;  CuotasL.Total4[Fila]   ;' WH '~TIPOOP~' '~ESPECIE      ;SI;Incluido(Vehiculo1,Var('VLIQUIDAA'));;CuotasL.Total4[Fila]<>0;Fila;;;(Fila+1500);'CUOTAS'
+CuotasL.Fecha3[Fila];Cliente1  ;Especie;;Vehiculo1;1;  CuotasL.Precio2[Fila]  ;' Comision '~TIPOOP~' '~ESPECIE;SI;Incluido(Vehiculo1,Var('VLIQUIDAA'));;CuotasL.Precio2[Fila]<>0 ;Fila;;;(Fila+2000);'CUOTAS'
+
+@INSTOPE
+@INST19GENE
+@INST19BITS

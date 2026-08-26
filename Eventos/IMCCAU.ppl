@@ -1,0 +1,54 @@
+﻿CrearDialogo
+   Directorio1 : 'Path '        ;2;1;1;SI;SI;;;;'G:\Corporate\PCR\Contabilidad'
+   String1     : 'Archivo '     ;3;1;1;SI;SI;;;;'Plan Cuentas PCR unificado_importacion.xlsx'
+FinDialogo
+
+If Not Ok
+   Cancelar
+Endif
+***Revisar si existe directorio/archivo
+If ExisteDirectorio(Dialogo.Directorio1)
+    If EqStr(Copy(Dialogo.Directorio1,Longitud(Dialogo.Directorio1),1),'\')
+        If Not ExisteArchivo(Dialogo.Directorio1~Dialogo.String1)
+            Cancelar('1.El Archivo '~Dialogo.String1~' no existe en el directorio: '~Dialogo.Directorio1)
+        EndIf
+    Else
+        If Not ExisteArchivo(Dialogo.Directorio1~'\'~Dialogo.String1)
+            Cancelar('2.El Archivo '~Dialogo.String1~' no existe en el directorio: '~Dialogo.Directorio1)
+        EndIf
+    Endif
+Else
+    Cancelar('El directorio '~Dialogo.Directorio1~' no existe')
+EndIf
+
+*** Corregir path
+let &pf ''
+If EqStr(Copy(Dialogo.Directorio1,Longitud(Dialogo.Directorio1),1),'\')
+    let &pf Dialogo.Directorio1~Dialogo.String1
+Else
+    let &pf Dialogo.Directorio1~'\'~Dialogo.String1
+Endif
+
+***Importar
+ImportarXLS(B:4..c:534, B:1..c:531, &pf)
+If Not Ok
+    Cancelar('Error al cargar el archivo '~&pf)
+Endif
+
+
+Recorrer &i 1, 550
+    If Vacio(Val(C:&i))
+        break   
+    Else
+        IF (Query("SELECT 1 FROM "~DBO~".CUENTACONTABLEAUX WHERE Codigo='"~Val(B:&i)~"' OR Nombre='"~Val(C:&i)~"'")) = 1 O (EqStr(Val(B:&i),'skip'))
+            
+        Else
+            SQL.ADD(" INSERT INTO "~DBO~".CUENTACONTABLEAUX ")
+            SQL.ADD(" (Codigo, Nombre) ")
+            SQL.ADD(" VALUES")
+            SQL.ADD(" ('"~Val(B:&i)~"', '"~Val(C:&i)~"')")
+            SQL.NEW()
+            SQL.EXEC()
+        Endif
+    EndIf
+Proximo

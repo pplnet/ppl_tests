@@ -1,0 +1,381 @@
+﻿CrearDialogo
+   Fecha1         :'Fecha Cierre:'             ;;;;;;Dialogo.Fecha1<>0;'Debe Ingresar la Fecha';NO;FSys
+FinDialogo
+
+If Not Ok
+   Cancelar
+Endif
+
+***+++Preparamos contadores por cada ejecucion de evento/informe con la misma Logica del Cierre, luego validaremos cantidad de ejecuciones en LOGINFORMES
+SQL.ADD(" Select Tipo,Codigo from  "~DBO~".CIERREDIARIO Where Habilitado='SI' Order By OrdenEjecucion")
+Recorrer SQL
+
+    If EqStr(FBN['Codigo'],'ACTCOT') Y EqStr(FBN['Tipo'],'E')
+        let &actcot &actcot+1
+    Endif
+    
+    If EqStr(FBN['Codigo'],'ACTBNA') Y EqStr(FBN['Tipo'],'E')
+        let &actbna &actbna+1
+    Endif
+    
+    If EqStr(FBN['Codigo'],'ACTTAS') Y EqStr(FBN['Tipo'],'E')
+        let &acttas &acttas+1
+    Endif
+
+    If EqStr(FBN['Codigo'],'REPTAX') Y EqStr(FBN['Tipo'],'E')
+        let &reptax &reptax+1 
+    Endif
+    
+    If EqStr(FBN['Codigo'],'TAVATI') Y EqStr(FBN['Tipo'],'E')
+        let &tavati &tavati+1
+    Endif
+    
+    If EqStr(FBN['Codigo'],'CUOTAP') Y EqStr(FBN['Tipo'],'E')
+        let &cuotap &cuotap+1
+    Endif
+    
+    ACN(x1, SQL("Select 1 from "~DBO~".VARIABLES where Codigo = 'DIASCONT' "))
+    if Val(x1)=1
+       ACN(x1, Trunc(Var('DIASCONT'),0))
+    else
+       ACN(x1, 1)
+    endif
+
+    If Val(x1) > 0
+        ACD(x2, Habiles(PriDeMes(Dialogo.Fecha1,SI)-1,Val(x1),'ARG'))
+    Else
+        ACD(x2, FinDeMes(Dialogo.Fecha1,NO))
+    Endif
+
+    IF Dialogo.Fecha1=Val(x2)
+        *Es fin de mes
+        If EqStr(FBN['Codigo'],'REPTAS') Y EqStr(FBN['Tipo'],'E')
+            let &reptas &reptas+1
+        Endif
+        
+        If EqStr(FBN['Codigo'],'AJLINK') Y EqStr(FBN['Tipo'],'E')        
+            let &ajlink &ajlink+1
+        Endif
+        
+        If EqStr(FBN['Codigo'],'AJUCAP') Y EqStr(FBN['Tipo'],'E')        
+            let &ajucap &ajucap+1
+        Endif
+        
+        If EqStr(FBN['Codigo'],'CPFUVA') Y EqStr(FBN['Tipo'],'E')        
+            let &cpfuva &cpfuva+1
+        Endif
+    ELSE
+        *Es ejecución diaria
+        If EqStr(FBN['Codigo'],'REPTAS') Y EqStr(FBN['Tipo'],'E')
+            let &reptas &reptas+1
+        Endif
+
+        If EqStr(FBN['Codigo'],'AJLINK') Y EqStr(FBN['Tipo'],'E')        
+            let &ajlink &ajlink+1
+        Endif        
+
+        If EqStr(FBN['Codigo'],'AJUCAP') Y EqStr(FBN['Tipo'],'E')        
+            let &ajucap &ajucap+1
+        Endif 
+        
+        If EqStr(FBN['Codigo'],'CPFUVA') Y EqStr(FBN['Tipo'],'E')        
+            let &cpfuva &cpfuva+1
+        Endif
+    ENDIF
+
+    #ifdef BFSA
+    #else
+        If EqStr(FBN['Codigo'],'AJULIM') Y EqStr(FBN['Tipo'],'E')        
+            let &ajulim &ajulim+1
+        Endif
+    #endif
+
+      
+    If EqStr(FBN['Codigo'],'RESET3') Y EqStr(FBN['Tipo'],'E')        
+        IF Var('DIASRESET')<=Var('DIASCONT')    
+            IF SQL("Select 1 from "~DBO~".VARIABLES where Codigo = 'DIASRESET' ")=1
+                let &diaRESET  Trunc(Var('DIASRESET'),0)
+            ELSE
+                let &diaRESET 1
+            ENDIF
+        ELSE
+            IF SQL("Select 1 from "~DBO~".VARIABLES where Codigo = 'DIASCONT' ")=1
+                let &diaRESET  Trunc(Var('DIASCONT'),0)
+            ELSE
+                let &diaRESET 1
+            ENDIF
+        ENDIF
+
+
+        IF &diaRESET = 0 Y FinDeMes(Dialogo.Fecha1,NO) = Dialogo.Fecha1    
+            let &diaEjecEvento Dialogo.Fecha1
+            let &fechaEjec Dialogo.Fecha1    
+        ELSE    
+            let &diaEjecEvento Habiles(PriDeMes(Dialogo.Fecha1,SI),-1,,NO) 
+            IF DiaSem(&diaEjecEvento)=1
+                let &diaEjecEvento Habiles(&diaEjecEvento,-2,,NO) 
+            ELSE
+                IF DiaSem(&diaEjecEvento)=7
+                    let &diaEjecEvento Habiles(&diaEjecEvento,-1,,NO)
+                ENDIF
+            ENDIF
+           
+            let &fechaEjec Habiles(PriDeMes(Dialogo.Fecha1,SI)-1,&diaRESET,'ARG')
+        ENDIF
+         
+
+        IF &fechaEjec = Dialogo.Fecha1
+            let &reset3 &reset3+1
+        ENDIF 
+    Endif   
+
+    If EqStr(FBN['Codigo'],'CONT0') Y EqStr(FBN['Tipo'],'E')        
+        let &cont0 &cont0+1
+    Endif
+
+    #ifdef BFSA
+        If EqStr(FBN['Codigo'],'INTCON') Y EqStr(FBN['Tipo'],'E')        
+            let &intcon &intcon+1
+        Endif
+    #else
+        #ifdef PCR
+          If EqStr(FBN['Codigo'],'INTCON') Y EqStr(FBN['Tipo'],'E')        
+              let &intcon &intcon+1
+          endif
+        #else
+            If EqStr(FBN['Codigo'],'INTCON') Y EqStr(FBN['Tipo'],'E')        
+                let &intcon &intcon+1
+            Endif
+        #endif
+    #endif
+
+    ACN(DS:1, DiaSem(Dialogo.Fecha1))
+    IF Val(DS:1) = 2 o Val(DS:1) = 3
+        ***---Lunes o Martes
+        If EqStr(FBN['Codigo'],'INT001') Y EqStr(FBN['Tipo'],'E')        
+            let &int001 &int001+3
+        Endif
+        
+        If EqStr(FBN['Codigo'],'COPPOS') Y EqStr(FBN['Tipo'],'E')                
+                Recorrer&i 1,Habiles(Dialogo.Fecha1,1,'ARG')-Dialogo.Fecha1
+                    IF DiaSem(Dialogo.Fecha1+&i) > 1 Y  DiaSem(Dialogo.Fecha1+&i) < 7
+                        let &coppos &coppos+1
+                    ENDIF
+                Proximo
+        Endif
+    ELSE
+        IF Val(DS:1) = 4
+            ***---Miercoles
+            If EqStr(FBN['Codigo'],'INT001') Y EqStr(FBN['Tipo'],'E')                    
+                let &int001 &int001+3
+            Endif
+            
+            If EqStr(FBN['Codigo'],'COPPOS') Y EqStr(FBN['Tipo'],'E')                            
+                Recorrer&i 1,Habiles(Dialogo.Fecha1,1,'ARG')-Dialogo.Fecha1
+                    IF DiaSem(Dialogo.Fecha1+&i) > 1 Y  DiaSem(Dialogo.Fecha1+&i) < 7
+                        let &coppos &coppos+1
+                    ENDIF
+                Proximo
+            Endif
+        ELSE
+            IF Val(DS:1) = 5
+                ***---Jueves
+                If EqStr(FBN['Codigo'],'INT001') Y EqStr(FBN['Tipo'],'E')                                    
+                    let &int001 &int001+3
+                Endif
+                
+                If EqStr(FBN['Codigo'],'COPPOS') Y EqStr(FBN['Tipo'],'E')                            
+                    Recorrer&i 1,Habiles(Dialogo.Fecha1,1,'ARG')-Dialogo.Fecha1
+                        IF DiaSem(Dialogo.Fecha1+&i) > 1 Y  DiaSem(Dialogo.Fecha1+&i) < 7
+                            let &coppos &coppos+1
+                        ENDIF
+                    Proximo
+                Endif
+            ELSE
+                IF Val(DS:1) = 6
+                    ***---Viernes
+                    If EqStr(FBN['Codigo'],'INT001') Y EqStr(FBN['Tipo'],'E')                                                            
+                        let &int001 &int001+3
+                    Endif
+                    
+                    If EqStr(FBN['Codigo'],'COPPOS') Y EqStr(FBN['Tipo'],'E')                                                
+                        Recorrer&i 1,Habiles(Dialogo.Fecha1,1,'ARG')-Dialogo.Fecha1
+                            IF DiaSem(Dialogo.Fecha1+&i) > 1 Y  DiaSem(Dialogo.Fecha1+&i) < 7
+                                let &coppos &coppos+1
+                            ENDIF
+                        Proximo
+                    Endif
+                ENDIF
+            ENDIF
+        ENDIF
+    ENDIF
+
+    
+    **tanto diferencia de cambio como rentabilidad se calcularán con un día de atraso (con el cierre de hoy se calcula lo de ayer)
+    
+    *Identifico la FechaValor mas antigua de las cotizaciones ingresadas en la fecha que se está cerrando    
+    let &FechaCotizFV SQL("Select Min(Fecha) from "~DBO~".COTIZACIONES where FechaActualizacion= '"~IdxDate(Dialogo.Fecha1)~"'")
+            
+    If EqStr(FBN['Codigo'],'DCMM') Y EqStr(FBN['Tipo'],'E')
+        ***+++Creamos nuevas funciones para contar las ejecuciones de cada evento segun logica correspondiente
+        (.'DCCIERRINF'.)
+        let &evento 0
+        (.'DCRECIEINF'.) 
+    Endif
+    
+    If EqStr(FBN['Codigo'],'RENTAB') Y EqStr(FBN['Tipo'],'E')
+        (.'RENTCIEINF'.)
+        let &evento 1
+        (.'DCRECIEINF'.) 
+    Endif
+
+    If EqStr(FBN['Codigo'],'ALIQUI') Y EqStr(FBN['Tipo'],'I') 
+        let &aliqui &aliqui+1
+    Endif
+
+    If EqStr(FBN['Codigo'],'ELIVIS') Y EqStr(FBN['Tipo'],'E') 
+        #ifdef BFSA
+            let &elivis &elivis+1
+        #endif    
+    Endif
+Proximo  
+
+CrearFont(1,"Arial,8,")
+CrearFont(2,"Arial,8,B")
+CrearFont(3,"Arial,10,B")
+SetFilaActual(1)
+ACT(a:FAC, "Ejecuciones del Cierre")
+SetFont(a:1,2)
+
+SetFilaActual(4)
+
+ACT(A:2,'Fecha de cierre: '~Dialogo.Fecha1)
+SetFont(a:2..a:2,2)
+
+SetFilaActual(FAC+2)
+ACT(a:FAC, 'Tipo')
+ACT(b:FAC, 'Codigo')
+ACT(c:FAC, 'Nombre')
+ACT(d:FAC, 'Ejecución')
+AlinearCeldas(a:FAC..d:FAC,'I')
+SetFont(a:fac..d:FAC,2)
+AgregarMarco(a:FAC..d:FAC,2,0,Exe('COLOR'))
+
+**Busco la fecha de PMAUDIT de la variable que indica cuándo empezó la ejecución del cierre del día solicitado
+ACD(ZZ:1, SQL(" Select Fecha from "~DBO~".PMAUDIT Where Codigo = 'FECHACIERR' and Tabla = 'VARIABLES' and ValorActual ='"~Dialogo.Fecha1~"' "))
+
+If Val(ZZ:1)<Fecha('01/01/2000')
+    Cancelar("No se ha ejecutado el Cierre para la fecha:"~Dialogo.Fecha1)
+Endif
+
+let &fechaHoraInicio Fstr(Anio(Val(ZZ:1)))~'-'~Fstr(Mes(Val(ZZ:1)))~'-'~Fstr(Dia(Val(ZZ:1)))~' '~Copy(Hora(Val(ZZ:1)),1,5)
+ACT(ZZ:3,Habiles(Dialogo.Fecha1,1))
+**Busco la fecha en que se abrió el dia siguiente al dia que estoy chequeando
+ACD(ZZ:2, SQL(" Select MIN(Fecha) from "~DBO~".PMAUDIT Where Codigo = 'FECHASYS' and Tabla = 'VARIABLES' and ValorActual = '"~Val(zz:3)~"' and Fecha>= '"~&fechaHoraInicio~"' "))
+
+**Si no se abrió el dia posteriormente al cierre solicitado, se informa.
+If Val(ZZ:2)<Fecha('01/01/2000')
+    Cancelar("Debe ejecutar la apertura para la fecha:"~Val(ZZ:3))
+Endif
+
+
+let &fechaHoraFin Fstr(Anio(Val(ZZ:2)))~'-'~Fstr(Mes(Val(ZZ:2)))~'-'~Fstr(Dia(Val(ZZ:2)))~' '~Copy(Hora(Val(ZZ:2)),1,5)
+SQL.ADD(" Select Tipo,Codigo,Nombre from  "~DBO~".CIERREDIARIO Where Habilitado='SI' Order By OrdenEjecucion")
+
+Recorrer SQL
+    If EqStr(FBN['Tipo'],'E')
+        ACT(A:FAC, 'EVENTO')
+    Else
+        ACT(A:FAC, 'INFORME')
+    Endif
+    ACT(B:FAC, FBN['Codigo'])
+    ACT(C:FAC, FBN['Nombre']) 
+    
+    SQL.ADD(" Select COUNT(Codigo) as Contador from "~DBO~".LOGINFORMES")
+    SQL.ADD(" Where Codigo = '"~Val(B:FAC)~"' AND ")
+    SQL.ADD(" Fecha Between '"~&fechaHoraInicio~"' AND '"~&fechaHoraFin~"' ")    
+    let &ejecutado 0
+    *watch(sql.batch)
+    Recorrer SQL 
+        DFA
+        If EqStr(Val(B:FAC),'ACTCOT') Y &actcot = FBN['Contador']
+            let &ejecutado 1  
+        Endif
+         If EqStr(Val(B:FAC),'ACTBNA') Y &actbna = FBN['Contador']
+            let &ejecutado 1  
+        Endif
+         If EqStr(Val(B:FAC),'ACTTAS') Y &acttas = FBN['Contador']
+            let &ejecutado 1  
+        Endif
+         If EqStr(Val(B:FAC),'REPTAX') Y &reptax = FBN['Contador']
+            let &ejecutado 1  
+        Endif
+         If EqStr(Val(B:FAC),'TAVATI') Y &tavati = FBN['Contador']
+            let &ejecutado 1  
+        Endif
+         If EqStr(Val(B:FAC),'REPTAS') Y &reptas = FBN['Contador']
+            let &ejecutado 1  
+        Endif
+         If EqStr(Val(B:FAC),'AJLINK') Y &ajlink = FBN['Contador']
+            let &ejecutado 1  
+        Endif
+         If EqStr(Val(B:FAC),'AJUCAP') Y &ajucap = FBN['Contador']
+            let &ejecutado 1  
+        Endif
+         If EqStr(Val(B:FAC),'CPFUVA') Y &cpfuva = FBN['Contador']
+            let &ejecutado 1  
+        Endif
+         If EqStr(Val(B:FAC),'AJULIM') Y &ajulim = FBN['Contador']
+            let &ejecutado 1  
+        Endif
+         If EqStr(Val(B:FAC),'RESET3') Y &reset3 = FBN['Contador']
+            let &ejecutado 1  
+        Endif
+         If EqStr(Val(B:FAC),'INT001') Y &int001 = FBN['Contador']
+            let &ejecutado 1  
+        Endif
+         If EqStr(Val(B:FAC),'COPPOS') Y &coppos = FBN['Contador']
+            let &ejecutado 1  
+        Endif
+         If EqStr(Val(B:FAC),'DCMM') Y &dcmm = FBN['Contador']
+            let &ejecutado 1  
+        Endif
+         If EqStr(Val(B:FAC),'RENTAB') Y &rentab = FBN['Contador']
+            let &ejecutado 1  
+        Endif
+         If EqStr(Val(B:FAC),'CONT0') Y &cont0 = FBN['Contador']
+            let &ejecutado 1  
+        Endif
+         If EqStr(Val(B:FAC),'INTCON') Y &intcon = FBN['Contador']
+            let &ejecutado 1  
+        Endif
+         If EqStr(Val(B:FAC),'ALIQUI') Y &aliqui = FBN['Contador']
+            let &ejecutado 1  
+        Endif
+         If EqStr(Val(B:FAC),'ELIVIS') Y &elivis = FBN['Contador']
+            let &ejecutado 1  
+        Endif
+         If EqStr(Val(B:FAC),'DCMMLT') Y &dcmmlt = FBN['Contador']
+            let &ejecutado 1  
+        Endif
+         If EqStr(Val(B:FAC),'RENTLO') Y &rentlo = FBN['Contador']
+            let &ejecutado 1  
+        Endif        
+        If &ejecutado = 1
+            ACT(D:FAC, 'Finalizo correctamente')
+            ColorCeldas(D:FAC, clGreen)
+        Else
+            ACT(D:FAC, 'No finalizo correctamente')
+            ColorCeldas(D:FAC, clRed)
+        Endif    
+    Proximo
+     
+Proximo
+
+ACO(3,25)
+ACO(4,18)
+SetFilaActual(FAC+2)
+ACT(a:FAC, 'FIN DE LISTADO')
+SetFont(a:FAC, 2)
+LimitesVision(E:FAC)
+

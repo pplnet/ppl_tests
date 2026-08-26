@@ -1,0 +1,201 @@
+﻿CrearDialogo
+    Fecha1:     'Fecha: '                           ;1;1;;;;;;;FSYS;;
+    Vehiculo1:  'Vehiculo: '                        ;2;1;;;;NoVacio(Dialogo.Vehiculo1);'Debe ingresar un Vehiculo';NO;Var('DDVEHDEF');;
+    Book1:      'Book: '                            ;3;1;;;;EqStr(Dialogo.Vehiculo1,BuscarCampo('BOOKS','Vehiculo','Codigo',Dialogo.Book1)) Y NoVacio(Dialogo.Book1);'El book ingresado no corresponde al Vehiculo';NO;Var('BOOKDDCHE');BuscarCampo('VEHICULOS','Alias5','Codigo',Dialogo.Vehiculo1);;;;" Vehiculo = '"~Dialogo.Vehiculo1~"'"
+    Especie1:   'Moneda '                           ;4;1;;NO;;;;;Var('MONELOCA');
+    Radio1:     'Entidad Garante: |AMBAS|SGR|FPG|'  ;5;1;;;;;;;;0
+FinDialogo
+
+If not ok
+    Cancelar
+Endif
+
+*DATOS PARA TEST
+*12/10/2023
+*Vehiculo C101
+*Book 66554 
+
+
+********
+*Fuentes
+********
+CrearFont(1, 'Arial,8,')
+CrearFont(2, 'Arial,8,B')
+CrearFont(3, 'Arial,16,B')
+**************
+*Logo y Título
+**************
+let &filaLogo 1
+@LOGO
+
+ACT(D:1, 'Límites Avalados')
+SetFont(D:1, 3)
+AlinearCeldas(D:1..D:1,'C')
+
+SetFilaActual(fac+6)
+*******
+*Header
+*******
+**Variables
+let &fi1 FAC
+
+ACT(A:fac,'Fecha: '~Dialogo.Fecha1)
+ifa
+ACT(A:fac,'Vehiculo: '~Dialogo.Vehiculo1)
+ifa
+ACT(A:fac,'Book: '~Dialogo.Book1)
+ifa
+ACT(A:fac,'Moneda: '~Dialogo.Especie1)
+ifa
+ACT(A:fac,'Tipo Entidad Garante: ')
+IF Dialogo.Radio1=0
+    ACT(A:fac,Val(A:FAC)~'SGR y FPG')
+ELSE
+    IF Dialogo.Radio1=1
+        ACT(A:fac,Val(A:FAC)~'SGR')
+    ELSE
+        IF Dialogo.Radio1=2
+            ACT(A:fac,Val(A:FAC)~'FPG')
+        ENDIF
+    ENDIF
+ENDIF
+*
+ifa
+*
+**********
+SetFont(A:&fi1..A:fac, 2)
+SetFont(B:&fi1..B:fac, 2)
+ifa
+******************************
+*Títulos de Columnas y Formato
+******************************
+ACT(A:FAC, 'Entidad Garante')
+ACT(B:FAC, 'Cupo admitido')
+ACT(C:FAC, 'Exposicion')
+ACT(D:FAC, 'Cupo disponible')
+ACT(E:FAC, 'Cumple')
+ 
+AlinearCeldas(A:fac..E:fac,'C')
+SetFont(A:fac..E:fac, 2)
+AgregarMarco(A:fac..E:fac, 0, 0, Exe('COLOR'))
+Let &filaInicial fac+1
+**************
+*SENTENCIA SQL
+**************
+SQL.ADD("SELECT D.EntidadGarante, D.FechaVigencia, D.Disponible ")
+SQL.ADD("FROM "~dbo~".DDCUPOSAVALADOS D ")
+SQL.ADD("WHERE")
+SQL.ADD("Moneda = '"~Dialogo.Especie1~"' ")
+SQL.ADD("AND FechaVigencia = ")
+    SQL.ADD("(SELECT MAX(FechaVigencia) FROM "~dbo~".DDCUPOSAVALADOS")
+    SQL.ADD(" WHERE Moneda = '"~Dialogo.Especie1~"' ")
+    SQL.ADD(" AND FechaVigencia <= '"~IdxDate(Dialogo.Fecha1)~"' ")
+    SQL.ADD(" AND Vehiculo = '"~Dialogo.Vehiculo1~"' ")
+    SQL.ADD(" AND Book = '"~Dialogo.Book1~"'  ")
+    SQL.ADD(" AND EntidadGarante = D.EntidadGarante) ")
+SQL.ADD("AND Vehiculo = '"~Dialogo.Vehiculo1~"' ")
+SQL.ADD("AND Book = '"~Dialogo.Book1~"' ")
+If Dialogo.Radio1 = 1
+    SQL.ADD("AND TipoEntidadGarante = 'SGR'")
+ELSE
+    IF Dialogo.Radio1 = 2
+        SQL.ADD("AND TipoEntidadGarante = 'FPG'")
+    Endif
+Endif
+
+WATCH(SQL.BATCH)
+let &entidadGarante ''
+*************
+Recorrer SQL
+*************
+    ***Col A: Entidad Garante** *Una línea para cada entidad garante
+    ACT(A:FAC,FBN['EntidadGarante'])
+
+    ***Col B: Cupo Admitido*** / Lim Asignado (Disponible del ABM)
+    ACN(B:FAC, FBN['Disponible'])
+
+    ***Col C: Exposición** *(lo que ya consumió a la fecha del reporte)
+    ACN(C:FAC, (LimConsumido(FBN['EntidadGarante'],'DDA',,0,Dialogo.Vehiculo1,,Dialogo.Book1,,Dialogo.Fecha1)))
+
+    ***COL D Cupo Disponible** *(Cupo Admitido - Exposición) - si está en nros negativos se pone en rojo
+    ACN(D:FAC, (FBN['Disponible']-Val(C:FAC)) )
+
+    ***Col E Cumple** *Si Cupo Disponible queda menor que cero - Excedido (en rojo) *Sino, OK
+    IF VAL(D:FAC) > 0
+        ACT(E:FAC, 'OK')
+    ELSE
+        ACT(E:FAC, 'EXCEDIDO')
+        ColorCeldas(E:FAC, clRED)
+    ENDIF
+    
+    IF Vacio(&entidadGarante)
+        let &entidadGarante '|'~FBN['EntidadGarante']~'|'
+    Else
+        let &entidadGarante &entidadGarante~FBN['EntidadGarante']~'|'
+    Endif
+    
+Proximo     
+
+*Para Entidad Garante que no tienen Cupo Cargado:
+
+SQL.ADD("SELECT DISTINCT C.Codigo ")
+SQL.ADD("FROM "~dbo~".CLIENTES C ")
+SQL.ADD("INNER JOIN dbo.OPERACIONES O")
+SQL.ADD("ON O.Cliente4 = C.Codigo")
+SQL.ADD("WHERE")
+SQL.ADD("C.Codigo NOT IN ("~Pipe2Comillas(&entidadGarante)~")")
+SQL.ADD("AND O.TipoOp ='DDC'")
+If Dialogo.Radio1 = 1
+    SQL.ADD("AND C.Alias4 = 'SGR'")
+ELSE
+    IF Dialogo.Radio1 = 2
+        SQL.ADD("AND C.Alias4 = 'FPG'")
+    Endif
+Endif
+SQL.ADD("ORDER BY C.Codigo")
+
+WATCH(SQL.BATCH)
+*************
+Recorrer SQL
+*************
+    IF EsTerminal(FBN['Codigo'], CLIENTES)
+        ***Col A: Entidad Garante** 
+        ACT(A:FAC,FBN['Codigo'])
+
+        ***Col B: Cupo Admitido queda establecido que son Cero
+        ACN(B:FAC, 0)
+
+        ***Col C: Exposición** *(lo que ya consumió a la fecha del reporte)
+        ACN(C:FAC, (LimConsumido(FBN['Codigo'],'DDA',,0,Dialogo.Vehiculo1,,Dialogo.Book1,,Dialogo.Fecha1)))
+
+        ***COL D Cupo Disponible** *(Cupo Admitido - Exposición) - si está en nros negativos se pone en rojo
+        ACN(D:FAC, ( Val(B:FAC)-Val(C:FAC) ) )
+
+        ***Col E Cumple** *Si Cupo Disponible queda menor que cero - Excedido (en rojo) *Sino, OK
+        IF VAL(D:FAC) > 0
+            ACT(E:FAC, 'OK')
+        Else
+            ACT(E:FAC, 'EXCEDIDO')
+            ColorCeldas(E:FAC, clRED)
+        EndIf
+    ENDIF
+Proximo
+**********************
+*Marco y Ancho Columna
+**********************
+AgregarMarco(A:&filaInicial..E:fac, 0, 0,  Exe('COLOR7'))
+AlinearCeldas(E:&filaInicial..E:fac,'C')
+FormatoCeldas(C:&filaInicial..D:fac, Exe('F2'))
+*FormatoCeldas(E:&filaInicial..E:fac, Exe('F2%'))
+SetFilaActual(fac+2)
+
+ACO(1,10)
+ACO(2,10)
+ACO(3,15)
+ACO(4,15)
+ACO(5,10)
+******************************
+SetFilaActual(FAC+1)
+ACT(a:FAC, 'FIN DEL INFORME')
+SetFont(a:FAC, 2)
+LimitesVision(F:fac)      

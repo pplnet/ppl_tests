@@ -1,0 +1,240 @@
+﻿* INS - Insert de Sindicadas
+CrearDialogo
+   NrOperacion1:'Op  Cabecera'
+   NrOperacion2:'Op. Participante'
+   String1     :'Condicion de Select Cuotas'
+FinDialogo
+
+If not Ok
+ Cancelar
+EndIf
+
+
+Message('Insertando Settlements')
+
+****Guardos datos de Op Hija, campos Total6 y Tasa2
+SQL.ADD("SELECT NrCuota,Total6, Tasa2 from "~DBO~".CUOTAS where NrOperacion = '"~Dialogo.NrOperacion2~"' ")
+Recorrer SQL
+    ACN(ZA:fbn('NrCuota'),fbn('NrCuota'))
+    ACN(ZB:fbn('NrCuota'),fbn('Total6'))
+    ACN(ZC:fbn('NrCuota'),fbn('Tasa2'))
+    let &cantCuotas fbn('NrCuota')
+Proximo
+
+****Elimio las cuotas de la Op Hija
+SQL.ADD("DELETE "~DBO~".CUOTAS where NrOperacion = '"~Dialogo.NrOperacion2~"' ")
+SQL.NEW
+SQL.EXEC
+
+****Inserto cuotas de la op Madre en la op Hija
+
+SQL.ADD("SELECT * INTO "~DBO~".CUOTASBIS ")
+SQL.ADD("FROM "~DBO~".CUOTAS WHERE NrOperacion='"~Dialogo.NrOperacion1~"' ")
+If NOVACIO(Dialogo.String1)   
+   SQL.ADD(" and "~Dialogo.String1~" ")
+EndIf
+SQL.NEW
+SQL.EXEC
+
+SQL.ADD("UPDATE "~DBO~".CUOTASBIS ")
+SQL.ADD("SET NrOperacion = '"~Dialogo.NrOperacion2~"' ")
+SQL.NEW
+SQL.EXEC
+
+SQL.ADD("INSERT INTO "~DBO~".CUOTAS ")
+SQL.ADD("SELECT * from  "~DBO~".CUOTASBIS")
+SQL.NEW
+SQL.EXEC
+
+SQL.ADD("DROP TABLE "~DBO~".CUOTASBIS ")
+SQL.NEW
+SQL.EXEC
+
+*SQL.ADD("INSERT INTO "~DBO~".CUOTAS ")
+*SQL.ADD(" (NrOperacion,C.NrCuota,Cliente1,Cliente2,")
+*SQL.ADD(" Vehiculo1,Vehiculo2,Especie1,Especie2,Especie3,Especie4,Check1,Check2,Check3,")
+*SQL.ADD(" Check4,Check5,Check6,Check7,Check8,Check9,Check10,Radio1,Radio2,Radio3,Radio4,")
+*SQL.ADD(" Radio5,Radio6,Radio7,Radio8,Radio9,Radio10,Fecha1,Fecha2,Fecha3,Fecha4,Fecha5,")
+*SQL.ADD(" Fecha6,Fecha7,Fecha8,Fecha9,Fecha10,Mercado1,Mercado2,Plazo1,Plazo2,Plazo3,Plazo4,")
+*SQL.ADD(" Cantidad1,Cantidad2,Cantidad3,Cantidad4,Precio1,Precio2,Precio3,Precio4,Total1,Total2,")
+*SQL.ADD(" Total3,Total4,Total5,Total6,Total7,Total8,Tasa1,Tasa2,PrecioRef1,PrecioRef2,")
+*SQL.ADD(" Cantidad5, Cantidad6,Precio5,Precio6,Precio7,Precio8,Tasa3,Total9,Cotizacion1,Cotizacion2,")
+*SQL.ADD(" Tasa4,Tasa5,")
+*SQL.ADD(" Cantidad7,Cantidad8,Coeficiente,Cantidad1Ori,Cantidad2Ori,Cantidad3Ori,ResultadoIndice) ")
+*SQL.ADD(" SELECT '"~Dialogo.NrOperacion2~"' As NrOperacion,NrCuota,Cliente1,Cliente2,")
+*SQL.ADD(" Vehiculo1,Vehiculo2,Especie1,Especie2,Especie3,Especie4,Check1,Check2,Check3,")
+*SQL.ADD(" Check4,Check5,Check6,Check7,Check8,Check9,Check10,Radio1,Radio2,Radio3,Radio4,")
+*SQL.ADD(" Radio5,Radio6,Radio7,Radio8,Radio9,Radio10,Fecha1,Fecha2,Fecha3,Fecha4,Fecha5,")
+*SQL.ADD(" Fecha6,Fecha7,Fecha8,Fecha9,Fecha10,Mercado1,Mercado2,Plazo1,Plazo2,Plazo3,Plazo4,")
+*SQL.ADD(" Cantidad1,Cantidad2,Cantidad3,Cantidad4,Precio1,Precio2,Precio3,Precio4,Total1,Total2,")
+*SQL.ADD(" Total3,Total4,Total5,Total6,Total7,Total8,Tasa1,Tasa2,PrecioRef1,PrecioRef2,")
+*SQL.ADD(" Cantidad5, Cantidad6,Precio5,Precio6,Precio7,Precio8,Tasa3,Total9,Cotizacion1,Cotizacion2,")
+*SQL.ADD(" Tasa4,Tasa5,")
+*SQL.ADD(" Cantidad7,Cantidad8,Coeficiente,Cantidad1Ori,Cantidad2Ori,Cantidad3Ori,ResultadoIndice ")
+*SQL.ADD(" FROM "~DBO~".CUOTAS WHERE NrOperacion='"~Dialogo.NrOperacion1~"' ")
+*If NOVACIO(Dialogo.String1)   
+*   SQL.ADD(" and "~Dialogo.String1~" ")
+*EndIf
+SQL.NEW
+SQL.EXEC
+
+****Actualizo campos Total6 y Tasa2 con los datos cargados en la operacion item
+Recorrer&i 1,&cantCuotas
+    SQL.ADD("UPDATE "~DBO~".CUOTAS ")
+    SQL.ADD("set Total6 = "~Fstr(VAL(ZB:&i),0,6)~", Tasa2 = "~Fstr(VAL(ZC:&i),0,6)~" ")
+    SQL.ADD("WHERE NrOperacion= '"~Dialogo.NrOperacion2~"' ")
+    SQL.ADD("AND NrCuota = "~FStr(&i,2,0)~" ")
+    SQL.NEW
+    SQL.EXEC
+Proximo
+
+****Depuro cuotas de la op hija
+SQL.ADD("DELETE "~DBO~".CUOTAS WHERE NrOperacion= '"~Dialogo.NrOperacion2~"' and Cantidad3=0 ")
+SQL.NEW
+SQL.EXEC
+
+
+*-- Datos de operacion participante
+SQL.ADD("SELECT TotalAux4,TotalAux2,CB10,TipoOp,RB8,Cantidad,")
+SQL.ADD("ImpGastos2,TotalAux1,TasaImp1,RB7,RB9,CB10 FROM "~DBO~".OPERACIONES WHERE ")
+SQL.ADD("NrOperacion='"~Dialogo.NrOperacion2~"' ")
+
+Recorrer SQL
+   dfa
+   *- A50: Local o extranjero de Operacion Item
+   ACN(A50,FBN['CB10'])
+
+   *- A60: Tipo de operacion Item
+   ACT(A60,FBN['TipoOp'])
+
+   *-- A10: Unidad de Tiempo Calculo de Intereses
+   ACN(A10,IIF(EqStr(FBN['RB8'],'0'),36000,36500))
+
+   *-- vn del periodo
+   ACN(A3,FBN['Cantidad'])
+
+   *-- TASA IVA A20 WH A21  Imp.Interes A40
+   ACN(A20,FBN['ImpGastos2'])
+   ACN(A21,FBN['TotalAux1'])
+   ACN(A40,FBN['TasaImp1'])
+
+   *-- UT IVA A24 WH A25  
+   ACT(A24,FBN['RB7'])
+   ACT(A25,FBN['RB9'])
+
+   *-- LOCAL O EXTRANJERO
+   ACT(A26,FBN['CB10'])
+Proximo
+
+*-- Calculo CUOTAS
+SQL.ADD("SELECT * FROM "~DBO~".CUOTAS WHERE ")
+SQL.ADD("NrOperacion='"~Dialogo.NrOperacion2~"' ORDER BY NrCuota ")
+
+Recorrer SQL
+  Message('Insertando Settlements '~Dialogo.NrOperacion2~' '~FStr(FBN['NrCuota'],2,0))
+
+  * A4 es el interes
+  * A11 es el interes total
+  * A5 es el monto
+  * A6 es el monto total
+  * A7 es el importe iva
+  * A8 es el importe wh
+  * A9 es el importe de amortizacion del periodo
+  * a41 : Importe de Impuesto Interes 
+
+  ACN(A7,0)
+  ACN(A8,0)
+
+  ACN(A30,FACTORDIAS(FBN['Fecha1'],FBN['Fecha2'],BuscarCampo('Operaciones','RB8','NrOperacion',Dialogo.NrOperacion1)+1))
+
+  * PARA LOCAL O EXTRANJERO
+  IF VAL(A20)<>0
+     * Si la Tasa de IVA ES Positiva 
+     ACN (A7, (val(a3)*FBN['Tasa2']/100*VAL(A30)*VAL(A20))/100)
+  EndIf
+  * Extranjero
+  IF EQSTR (val(A26), '1')
+     ACN (A8, (val(a3)*FBN['Total6']/100*VAL(A30)*VAL(A21))/100)
+  ENDIF
+
+  *** calcula el importe de amortizacion del periodo
+  acn(A9, BuscarCampo('Operaciones','Cantidad','NrOperacion',Dialogo.NrOperacion2) * FBN['Tasa1'] / 100)
+
+  *-- INTERES
+  acn (a4, val(a3) * ((FBN['Precio2']+FBN['Precio4'])/100) * VAL(A30))
+
+  ACN (A41, 0)
+
+  IF VAL(A40)<>0 y [[VAL(A50)=0 y EqStr(Val(A60), 'MMSIMV')] o [VAL(A50)=1 y EqStr(Val(A60), 'MMFIMV')]]
+     * Si la Tasa de Impuesto Extranjero es >0
+     ACN (A41, val(a4)*(VAL(A40)/100) )
+  EndIf
+
+  *-- INTERES TOTAL
+  acn (a11, val(a4) + val(a8) + val(a41) )
+
+  *-- MONTO
+  ACN (A5, val(a9) +VAL(A4))
+
+  *-- MONTO TOTAL
+  ACN (A6, val(a9) +VAL(A11))
+
+  SQL.ADD("Update "~DBO~".CUOTAS SET ")
+  SQL.ADD(" Cantidad2= "~Fstr(VAL(A3),0,2)~", ")
+  SQL.ADD(" Cantidad4= "~Fstr(VAL(A9),0,2)~", ")
+  SQL.ADD(" Cantidad5= "~Fstr(VAL(A11),0,2)~", ")
+  SQL.ADD(" Cantidad3= "~Fstr(VAL(A4),0,2)~", ")
+  SQL.ADD(" Precio1= "~Fstr(VAL(A7),0,2)~", ")
+  SQL.ADD(" Precio6= "~Fstr(VAL(A7),0,2)~", ")
+  SQL.ADD(" Precio3= "~Fstr(VAL(A8),0,2)~", ")
+  SQL.ADD(" Precio7= "~Fstr(VAL(A8),0,2)~", ")
+  SQL.ADD(" Total2= "~Fstr(VAL(A5),0,2)~", ")
+  SQL.ADD(" Total9= "~Fstr(VAL(A41),0,2)~", ")
+  SQL.ADD(" Total1= "~Fstr(VAL(A6),0,2)~", ")
+  SQL.ADD(" PrecioRef1= '"~Fstr(VAL(A41),0,2)~"', ")
+  SQL.ADD(" Cantidad1Ori= "~Fstr(VAL(A9),0,2)~", ")
+  SQL.ADD(" Cantidad2Ori= "~Fstr(VAL(A3),0,2)~" ")
+  SQL.ADD(" WHERE NrOperacion='"~Dialogo.NrOperacion2~"' ")
+  SQL.ADD(" AND NrCuota="~FStr(FBN['NrCuota'],2,0)~" ")
+  SQL.NEW
+  SQL.EXEC
+
+  *-- amortiza
+  ACN (A3, val(A3)-VAL(A9))
+
+  *** Actualiza movimientos y limites ****
+  SQL.ActualizarMovimientos(Dialogo.NrOperacion2,SI)
+  SQL.EXEC
+Proximo
+
+SQL.ADD(" SELECT C.NrCuota,Sum(C.Precio1) as Precio1,Sum(C.Precio3) as Precio3 ")
+SQL.ADD(" FROM "~DBO~".CUOTAS C, "~DBO~".OPERACIONES O WHERE ")
+SQL.ADD(" C.NrOperacion=O.NrOperacion and O.OperacionRef='"~Dialogo.NrOperacion1~"' ")
+SQL.ADD(" Group By C.NrCuota")
+
+Recorrer SQL
+   dfa 
+   *- Actualizo la suma de IVA y wh de la operacion cabecera
+   SQL.ADD("UPDATE "~DBO~".CUOTAS SET ")
+   SQL.ADD("Precio1="~Fstr(FBN['Precio1'],0,2)~", ")
+   SQL.ADD("Precio3="~Fstr(FBN['Precio3'],0,2)~"  ")
+   SQL.ADD("WHERE NrOperacion='"~Dialogo.NrOperacion1~"' ")
+   SQL.ADD("and NrCuota="~Fstr(FBN['NrCuota'],0,0)~" ")
+   SQL.NEW
+   SQL.EXEC
+Proximo
+
+***---Actualiza Movimientos Devengados
+SQL.ActualizarMovimientos3(Dialogo.NrOperacion2,NO,NO,NO,NO,SI)
+SQL.EXEC
+
+
+
+
+
+
+
+
+
+
+

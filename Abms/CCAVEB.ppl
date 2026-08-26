@@ -1,0 +1,28 @@
+﻿#*********************************************************************************
+#combos data sources.
+#*********************************************************************************
+def abm 'CTACONTAUXVHBKEMI'
+   def grid
+   Vehiculo:, Emisor:, Book:, CuentaContableAux: 
+   end
+   def key
+       Vehiculo:, Emisor:, Book:, CuentaContableAux: 
+   end
+   
+   def dialog
+       #**************************************************************************
+       tab 'General'
+          column
+          Vehiculo:  , 'Vehiculo' ,autocomplete , 'VEHICULOS', 'Codigo, Descripcion, Cliente'
+          Emisor:  , 'Emisor' ,autocomplete , 'CLIENTES', ' Codigo, Jerarquia, RazonSocial'
+          Book:  , 'Book' ,autocomplete , 'BOOKS', 'Codigo, Descripcion, Alias1'
+          CuentaContableAux:  , 'CuentaContableAux' ,autocomplete , 'CUENTACONTABLEAUX', 'Codigo,Nombre'
+
+       #**************************************************************************
+          
+   end
+   
+   required_fields: Vehiculo:, Emisor:, Book:, CuentaContableAux: 
+
+       
+end

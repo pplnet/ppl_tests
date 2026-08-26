@@ -1,0 +1,216 @@
+﻿CrearDialogo
+   NrOperacion1 : 'Operacion ON'                    ;;;;;;NoVacio(Dialogo.NrOperacion1);'Debe ingresar un numero de Op.';NO;;;;;;" TipoOp ='MMONM'"
+
+   Radio1       : 'Accion |Alta|Modif|Baja|Otro|'   ;;;;;;;;;0
+   *NrOperacion2 : 'Operacion ON Precan'             ;;;;;;
+   
+FinDialogo
+
+If Not Ok
+   Cancelar
+Endif
+
+let &accion Dialogo.Radio1
+let &tieneCanje BuscarCampo('OPERACIONES','RB1','NrOperacion',Dialogo.NrOperacion1)
+let &cantidadCanjes BuscarCampo('OPERACIONES','CUOTAS3','NrOperacion',Dialogo.NrOperacion1)
+If &cantidadCanjes = 0
+    If &accion=1 
+        ****EDITANDO ON
+        ****Elimino las secs de precancelacion asociadas, este caso es cuando venia de ser u canje y dejó de serlo
+        ****Tabla CANJES: NrOperacion = OPCanje, NrOperacion1 = OPSECS, NrOperacion2 = OpOn
+        SQL.ADD("select NrOperacion1 OpSecs, Fecha1, Cantidad1 VNCanje, NrOperacion2 OpOn FROM "~DBO~".CANJES where NrOperacion = '"~Dialogo.NrOperacion1~"'")
+        Recorrer SQL
+            SQL.ADD("Delete "~DBO~".OPERACIONES WHERE NrOperacion = '"~fbn('OpSecs')~"' ")
+            SQL.NEW
+            SQL.EXEC
+            ****Ejecuto PRECON como eliminacion ya que cuando Edito o Elimino la ON de canje, las SECS siempre se borran
+            EjecutarEvento('PRECON', NrOperacion1=fbn('OpOn'), NrOperacion2=fbn('OpSecs'), Fecha1=fbn('Fecha1'), Cantidad1=fbn('VNCanje'), Radio1=2)
+        Proximo
+    EndIf
+Else
+    If &accion=1 OR &accion=2 
+        ****EDITANDO Y ELIMINANDO ON
+        ****Elimino las secs de precancelacion asociadas
+        ****Tabla CANJES: NrOperacion = OPCanje, NrOperacion1 = OPSECS, NrOperacion2 = OpOn
+        SQL.ADD("select NrOperacion1 OpSecs, Fecha1, Cantidad1 VNCanje, NrOperacion2 OpOn FROM "~DBO~".CANJES where NrOperacion = '"~Dialogo.NrOperacion1~"'")
+        Recorrer SQL
+            SQL.ADD("Delete "~DBO~".OPERACIONES WHERE NrOperacion = '"~fbn('OpSecs')~"' ")
+            SQL.NEW
+            SQL.EXEC
+            ****Ejecuto PRECON como eliminacion ya que cuando Edito o Elimino la ON de canje, las SECS siempre se borran
+            EjecutarEvento('PRECON', NrOperacion1=fbn('OpOn'), NrOperacion2=fbn('OpSecs'), Fecha1=fbn('Fecha1'), Cantidad1=fbn('VNCanje'), Radio1=2)
+        Proximo
+    EndIf
+
+    If &accion=1
+        If &tieneCanje = 0 OR &cantidadCanjes = 0
+            ***Elimino los canjes porque en la edicion se sacaron canjes
+            SQL.ADD("DELETE "~DBO~".CANJES WHERE NrOperacion = '"~Dialogo.NrOperacion1~"'")
+            SQL.NEW
+            SQL.EXEC
+        EndIf
+        ***Elimino las SECS ya generadas para volver a generarlas porque se hizo modificacion en la ON
+        SQL.ADD("UPDATE "~DBO~".CANJES set NrOperacion1 = '' WHERE NrOperacion = '"~Dialogo.NrOperacion1~"'")
+        SQL.NEW
+        SQL.EXEC
+    Else
+        If &accion=2
+            ***Elimino los canjes porque se está eliminando la ON
+            SQL.ADD("DELETE "~DBO~".CANJES WHERE NrOperacion = '"~Dialogo.NrOperacion1~"'")
+            SQL.NEW
+            SQL.EXEC
+        EndIf
+    EndIf
+            
+    If &accion=0 OR &accion=1
+        ****ALTA o EDICION de ON
+        ****Inserto SECS en ambos casos
+        ****NoVacio(INDICE) Y Eqstr(TIPOGRACIA,'ULK')
+        SQL.ADD("SELECT C.Especie1 EspCanje, ")
+        SQL.ADD("C.Total1 PrecioCanje, C.Total2 MontoCanje, C.Cantidad1 VNCanje, ")
+        SQl.ADD("O.FechaOp, O.FechaVto, O.Vehiculo1, ")
+        SQL.ADD("O.Book1, O.TablaFeriados1, O.FechaCargaSys, ")
+        SQL.ADD("CASE WHEN O.Indice is not NULL AND O.TipoGracia ='ULK' THEN 'USD' ELSE O.ContraEspecie END ContraEspecie, ")
+        SQL.ADD("O.Cliente1, C.NrCanje, O.TipoOp, C.NrOperacion2 OnPrecan, ")
+        SQL.ADD("O.TipoGracia, O.Indice, O.Cuenta4 CuentaPuente, O.FechaCarga ")
+        SQl.ADD("from "~DBO~".CANJES C ")
+        SQL.ADD("JOIN "~DBO~".OPERACIONES O ")
+        SQL.ADD("ON C.NrOperacion = O.NrOperacion ")
+        SQL.ADD("where O.NrOperacion = '"~Dialogo.NrOperacion1~"' ")
+        SQL.ADD("AND dbo.DESCIENDEDEESPECIE(C.Especie1,'MONEDA') <> 1")
+        
+        Recorrer SQL
+            let &numerador BuscarCampo('VEHICULOS','Alias1','Codigo',fbn('Vehiculo1'))
+            let &numeroOp GetNumerador(&numerador)
+            let &nrOnPrecan fbn('OnPrecan')
+            let &fechaOpOn fbn('FechaOp')
+            let &FechaCargaSysOn fbn('FechaCargaSys')
+            let &fechaCarga fbn('FechaCarga')
+            
+            ****Inserto cada cuota como SECS de CANJE por los titulos, no la moneda
+            *If NOT DesciendeDeEspecie(fbn('EspCanje'),'MONEDA')
+                If Not Vacio(fbn('Indice')) AND EqStr(fbn('TipoGracia'),'ULK')
+                    let &contraEspecie fbn('ContraEspecie')
+                else
+                    let &contraEspecie COTIZAEN(fbn('EspCanje'))
+                EndIf
+                
+                let &tablaFeriados1 BuscarCampo('Feriados','Codigo','Codigo',BuscarCampo('Especies','PaisOrigen','Codigo',fbn('EspCanje'))) 
+                let &tablaFeriados2 BuscarCampo('Feriados','Codigo','Codigo',BuscarCampo('Especies','PaisOrigen','Codigo',&contraEspecie)) 
+                
+                let &plazoTitulo1 BuscarCampo('Especies','PlazoLiq','Codigo',fbn('EspCanje')) / 24
+                let &plazoTitulo2 IIF(&plazoTitulo1=0,0,IIF(&plazoTitulo1=1,24,IIF(&plazoTitulo1=2,48,72)))
+                let &fechaVto HABILES(&fechaOpOn,(&plazo / 24),&tablaFeriados1,SI)
+                let &plazoMoneda1 BuscarCampo('Especies','PlazoLiq','Codigo',fbn('EspCanje')) / 24
+                let &plazoMoneda2 IIF(&plazoMoneda1=0,0,IIF(&plazoMoneda1=1,24,IIF(&plazoMoneda1=2,48,72)))
+                let &fechaPago IIF(&plazoMoneda1<0,0,HABILES(&fechaOpOn,(&plazoMoneda2 DIV 24),&tablaFeriados1,SI))
+
+                let &cuenta1 CUENTACLIENTE(fbn('Vehiculo1'),fbn('EspCanje'),fbn('Cliente1'),,fbn('TipoOp'),'HAB')    
+                **let &cuenta2 CUENTACLIENTE(fbn('Vehiculo1'),&contraEspecie,fbn('Cliente1'),,fbn('TipoOp'),'HAB')
+                let &cuenta2 fbn('CuentaPuente')
+                
+                let &precio2 IIF(Eqstr(BuscarCampo('ESPECIES','InteresesC','Codigo',fbn('EspCanje')),'CLE'),ValorTeorico2(fbn('EspCanje'),&fechaVto),1)
+                let &precioMer fbn('MontoCanje')*CotizacionC(&contraEspecie,,,,&fechaOpOn,1,SI,VAR('MONEEXTR'))
+                let &fechaUltCupon IIF(EsHabil(UltCupon2(fbn('EspCanje'),&fechaVto),'USA'),UltCupon2(fbn('EspCanje'),&fechaVto),Habiles(UltCupon2(fbn('EspCanje'),&fechaVto),IIF(Eqstr(BuscarCampo('ESPECIES','CuponFeriado','Codigo',fbn('EspCanje')),'SIG'),1,IIF(Eqstr(BuscarCampo('ESPECIES','CuponFeriado','Codigo',fbn('EspCanje')),'ANT'),-1,0)),'USA'))
+                let &cotizacion IIF(Eqstr(Modo(COTIZAEN(fbn('EspCanje')), &contraEspecie), 'INV'), 1/COTIZACIONC(COTIZAEN(fbn('EspCanje')),,,,&fechaOpOn,1,SI,&contraEspecie), COTIZACIONC(COTIZAEN(fbn('EspCanje')),,,,&fechaOpOn,1,SI,&contraEspecie))
+                let &rb8 IIF(Incluido(BuscarCampo('ESPECIES', 'PIKs', 'Codigo', fbn('EspCanje')),'SIE|OPT'), 0, 1)
+                let &cb6 IIF(Eqstr(Query(" Select Modo from "~DBO~".MODOESPECIES where Especie1='"~fbn('EspCanje')~"' and Especie2='"~&contraEspecie~"' "),'INV'),0,1)
+                let &plazoRenovPredeter IIF(Eqstr(CotizaEn(fbn('EspCanje')), &contraEspecie),  IIF(Eqstr(CotizaEn(fbn('EspCanje')), VAR('MONELOCA') ), 1 , COTIZACIONBNA(&contraEspecie,&fechaOpOn,1,NO,NO)))
+     
+                ****Cupon
+                let &cuponActual FStr(NrCupon2(fbn('EspCanje'),&fechaVto),0,0)
+                let &cuponAnterior IIF(Eqstr(&cuponActual,'0'),'0',FStr(NrCupon2(fbn('EspCanje'),&fechaVto)-1,0,0))
+                let &exCupon 1
+                let &cupon IIF(&exCupon=0,&cuponAnterior,&cuponActual)
+
+                ****Precio Dirty y Clean
+                ****vcan11
+                let &diasAnio EspecieDiasAnio(fbn('EspCanje'))
+                ****vcan13
+                let &diasMes EspecieDiasMes(fbn('EspCanje'))
+                ****vcan14
+                let &dias IIF(&diasAnio=0 Y &diasMes=0, Dif360(&fechaUltCupon,&fechaVto, 4), DifDias(&fechaUltCupon,&fechaVto,'USA',NO))
+
+                ****vtxt8
+                let &clean BuscarCampo('ESPECIES','InteresesC','Codigo', fbn('EspCanje'))
+                ***vcan22
+                let &nominalCapitalizado fbn('VNCanje')+(fbn('VNCanje')*IntsCapitalizados2(fbn('EspCanje'),&fechaVto))
+                ***vcan20
+                let &intCapitalizado IIF(Eqstr(&clean,'CLE'),&nominalCapitalizado*fbn('PrecioCanje')*ValorTeorico2(fbn('EspCanje'),&fechaVto)*CampoAgenda(fbn('EspCanje'),&cupon,4)/100*&dias/IIF(&diasAnio=0, 360, IIF(&diasAnio=1, 365, DiasA(2, &fechaVto))),0)
+                ***vcan21
+                let &intCorrido IIF(Eqstr(&clean,'CLE'),IIF(&rb8=0, ValorTeorico2(fbn('EspCanje'),&fechaVto)*fbn('VNCanje')*(BuscarCampo('ESPECIES','TasaIntPIKsVigente','Codigo', fbn('EspCanje'))+(BuscarCampo('ESPECIES','TasaPIKsVigente','Codigo', fbn('EspCanje'))*fbn('PrecioCanje')))/DIASA(EspecieDiasAnio(fbn('EspCanje')),&fechaOpOn)*IIF(EspecieDiasAnio(fbn('EspCanje'))=0 y EspecieDiasMes(fbn('EspCanje'))=0,Dif360(&fechaUltCupon,&fechaVto,4),DifDias(&fechaUltCupon,&fechaVto,'USA',NO)), InteresEspecie(fbn('EspCanje'), &fechaVto, &nominalCapitalizado)),0)
+                ***vcan30
+                let &vt ValorTeorico2(fbn('EspCanje'),&fechaVto)
+                
+                ****TasaInteresesCupon
+                let &tasaInteresesCupon IIF(BuscarCampo('ESPECIES','FechaCambioTasa','Codigo',fbn('EspCanje')) > &fechaUltCupon y BuscarCampo('ESPECIES','FechaCambioTasa','Codigo',fbn('EspCanje')) <= &fechaVto,((BuscarCampo('ESPECIES','TasaIntAnterior','Codigo',fbn('EspCanje'))*IIF(EspecieDiasAnio(fbn('EspCanje'))=0 y EspecieDiasMes(fbn('EspCanje'))=0,Dif360(&fechaUltCupon,BuscarCampo('ESPECIES','FechaCambioTasa','Codigo',fbn('EspCanje'))-1,4),DifDias(&fechaUltCupon,BuscarCampo('ESPECIES','FechaCambioTasa','Codigo',fbn('EspCanje'))-1,'USA',NO)))+(BuscarCampo('ESPECIES','TasaIntVigente','Codigo',fbn('EspCanje'))*(IIF(EspecieDiasAnio(fbn('EspCanje'))=0 y EspecieDiasMes(fbn('EspCanje'))=0,Dif360(BuscarCampo('ESPECIES','FechaCambioTasa','Codigo',fbn('EspCanje'))-1,&fechaVto,4),DifDias(BuscarCampo('ESPECIES','FechaCambioTasa','Codigo',fbn('EspCanje'))-1,&fechaVto,'USA',NO)))))/(IIF(EspecieDiasAnio(fbn('EspCanje'))=0 y EspecieDiasMes(fbn('EspCanje'))=0,Dif360(&fechaUltCupon,&fechaVto,4),DifDias(&fechaUltCupon,&fechaVto,'USA',NO))),BuscarCampo('ESPECIES','TasaIntVigente','Codigo',fbn('EspCanje')))*100
+                ****totalinteres
+                let &totalInteres &intCapitalizado+&intCorrido * IIF(Eqstr(Modo(COTIZAEN(fbn('EspCanje')), &contraEspecie), 'INV'), 1/&cotizacion, &cotizacion)
+                *****TotalImpuesto1
+                let &totalImpuesto ValorTeorico2(fbn('EspCanje'),&fechaVto)*&nominalCapitalizado*&tasaInteresesCupon/DIASA(EspecieDiasAnio(fbn('EspCanje')),&fechaOpOn)/100*IIF(EspecieDiasAnio(fbn('EspCanje'))=0 y EspecieDiasMes(fbn('EspCanje'))=0,Dif360(&fechaUltCupon,&fechaVto,4),DifDias(&fechaUltCupon,&fechaVto,'USA',NO)) * IIF(Eqstr(Modo(COTIZAEN(fbn('EspCanje')), &contraEspecie), 'INV'), 1/&cotizacion, &cotizacion)
+                ****Spread
+                let &precioDirty IIF(Eqstr(&clean,'CLE'),(fbn('MontoCanje')+&totalInteres)/&nominalCapitalizado,fbn('PrecioCanje'))
+                ****Precio6
+                let &precioClean IIF(&totalImpuesto > 0, IIF(Eqstr(BuscarCampo('ESPECIES','InteresesC','Codigo',fbn('EspCanje')),'CLE'), fbn('PrecioCanje'), ((fbn('VNCanje') * fbn('PrecioCanje')) - &totalImpuesto) / fbn('VNCanje')), fbn('PrecioCanje')) * (IIF(&vt > 0 Y Eqstr(BuscarCampo('ESPECIES','InteresesC','Codigo',fbn('EspCanje')),'CLE'), &vt, 1))
+               
+                
+                SQL.ADD("INSERT INTO "~DBO~".OPERACIONES ")
+                SQL.ADD("(Especie, TipoOp, NrOperacion, Cantidad, ")
+                SQL.ADD("Precio1, Precio2, PrecioMer, ")
+                SQL.ADD("Mercado, Cliente1, Operador, ContraEspecie, ContraEspecie2, ")
+                SQL.ADD("FechaOp, FechaVto, FechaPago, Plazo, ")
+                SQL.ADD("NrOperacion2, TotalBrutoCli1, TotalNetoCli1, TotalIntereses, ")
+                SQL.ADD("RB1, UsrInput, FechaCarga, Numerador, ")
+                SQL.ADD("FechaCargaSys, Cuotas1, FechaUltCupon, ")
+                SQL.ADD("PaseCB, TablaFeriados1, TablaFeriados2, ")
+                SQL.ADD("FechaOp2, Plazo2, Cotizacion1, TotalIVA, RB5, RB6, ")
+                SQL.ADD("RB7, RB8, RB9, RB10, CB5, CB6, ")
+                SQL.ADD("Vehiculo1, Cartera, PlazoRenovPredeter, Cuenta1, Cuenta2, ")
+                SQL.ADD("Cotizacion2, Cupon1, ContraEspecie3, ")
+                SQL.ADD("PorComMer1, PorComCor1, ImpComMer1, ImpComCor1, ImpComMerEq1, ImpComCorEq1, ")
+                SQL.ADD("ImpGastos1, ImpGastos2, PrecioRef, Book1, RB12, RB13, ")
+                SQL.ADD("CB13, CB14, CB15, RB14, ")
+                SQL.ADD("RB15, RB17, TasaIVA1, TotalIVA2, ")
+                SQL.ADD("RB3, FormaLiquidacion1, ")
+                SQL.ADD("Spread,  Precio6, TotalImpuesto1, ")
+                SQL.ADD("TasaInteresesCupon) ")
+                SQL.ADD("VALUES ")
+                SQL.ADD("('"~fbn('EspCanje')~"', 'SECS', '"~&numeroOp~"', "~Fstr(fbn('VNCanje'),0,0)~", ")
+                SQL.ADD(" "~Fstr(fbn('PrecioCanje'),0,4)~", "~Fstr(&precio2,0,4)~", "~Fstr(&precioMer,0,4)~",  ")
+                SQL.ADD("'CV', '"~fbn('Cliente1')~"', '"~UsuarioActivo~"', '"~&contraEspecie~"', '"~&contraEspecie~"', ")
+                SQL.ADD("'"~IdxDate(&fechaOpOn)~"', '"~IdxDate(&fechaVto)~"', '"~IdxDate(&fechaPago)~"', '"~Fstr(&plazoTitulo2,0,0)~"', ")
+                SQL.ADD("'"~&nrOnPrecan~"', "~Fstr(fbn('MontoCanje'),0,0)~",  "~Fstr(fbn('MontoCanje'),0,0)~",  "~Fstr(&totalInteres,0,2)~", ") 
+                SQL.ADD("1, '"~UsuarioActivo~"', '"~IdxDate(&fechaCarga)~"', '"~Fstr(&numerador, 0, 0)~"', ")
+                SQL.ADD("'"~IdxDate(&FechaCargaSysOn)~"', 0, '"~IdxDate(&fechaUltCupon)~"', ")
+                SQL.ADD("0, '"~&tablaFeriados~"', '"~&tablaFeriados2~"', ")
+                SQL.ADD("'"~IdxDate(&fechaOpOn)~"', "~Fstr(&plazoMoneda2,0,0)~", "~FsTr(&cotizacion,0,8)~",0, "~FsTr(&plazoTitulo1,0,0)~", "~FsTr(&plazoMoneda1,0,0)~",  ")
+                SQL.ADD("1, "~FsTr(&rb8,0,0)~", 1, 1, 0, "~FsTr(&cb6,0,0)~", ")
+                SQL.ADD(" '"~fbn('Vehiculo1')~"','3', "~FsTr(&plazoRenovPredeter,0,0)~", '"~&cuenta1~"', '"~&cuenta2~"', ")
+                SQL.ADD("0, '"~FsTr(&cupon,0,0)~"', '"~&contraEspecie~"', ")
+                SQL.ADD("0, 0, 0, 0, 0, 0, ")
+                SQL.ADD("0, '"~Fstr(VAR('TASAIVA'),0,0)~"', '"~VAR('TASADEFA')~"', '"~fbn('Book1')~"', 0, 0, ")
+                SQL.ADD("0, 0, 0, -1, ")
+                SQL.ADD("0, 0, '"~Fstr(VAR('TASAIVA'),0,0)~"', 0, ")
+                SQL.ADD("1, 1, ")
+                SQL.ADD(" "~Fstr(&precioDirty,0,4)~",  "~Fstr(&precioClean,0,4)~", "~Fstr(&totalImpuesto,0,4)~", ")
+                SQL.ADD(" "~Fstr(&tasaInteresesCupon,0,4)~") ")
+                
+                SQL.NEW
+                SQL.EXEC
+                SQL.ADD("UPDATE "~DBO~".CANJES SET NrOperacion1 = '"~&numeroOp~"' ")
+                SQL.ADD("WHERE NrOperacion = '"~Dialogo.NrOperacion1~"' AND NrCanje = '"~fbn('NrCanje')~"' ")
+                SQL.NEW
+                SQL.EXEC
+            *EndIf
+            EjecutarEvento2('INSBIT', String1 = 'OPERACIONES', Entero1 = 15, NrOperacion1=&numeroOp)
+            ****Ejecuto PRECON como alta ya que cuando Edito o doy de Alta la ON de canje, las SECS siempre son nuevas
+            EjecutarEvento2('PRECON', NrOperacion1=&nrOnPrecan, NrOperacion2=&numeroOp, Fecha1=&fechaOpOn, Cantidad1=fbn('VNCanje'), Radio1=0)
+
+            SQL.EXEC
+
+            **Actualizo movimientos de la SECS
+            SQL.ActualizarMovimientos3(&numeroOp,SI,NO,NO,NO,NO)
+            SQL.EXEC
+        Proximo
+    EndIf
+EndIf

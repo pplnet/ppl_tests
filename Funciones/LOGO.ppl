@@ -1,0 +1,17 @@
+﻿If ExisteDirectorio(VAR('PATHLOGO'))
+    If EqStr(Copy(VAR('PATHLOGO'),Longitud(VAR('PATHLOGO')),1),'\')
+        If Not ExisteArchivo(VAR('PATHLOGO')~VAR('FILELOGO'))
+            MessageBox('El Archivo ' ~VAR('FILELOGO')~ ' no existe en el directorio '~VAR('PATHLOGO'))
+        Else
+            AgregarBMP(A:&filaLogo, VAR('PATHLOGO')~VAR('FILELOGO'), Exe('ESCALOGO'))
+        Endif
+    Else
+        If Not ExisteArchivo(VAR('PATHLOGO')~'\'~ VAR('FILELOGO'))
+            MessageBox('El Archivo ' ~VAR('FILELOGO')~ ' no existe en el directorio '~VAR('PATHLOGO')~'. El informe se emitirá sin logo')
+        Else
+            AgregarBMP(A:&filaLogo, VAR('PATHLOGO')~'\'~VAR('FILELOGO'), Exe('ESCALOGO'))
+        Endif
+    Endif
+Else
+    MessageBox('El directorio ' ~ VAR('PATHLOGO') ~'no existe. El informe se emitirá sin logo')
+EndIf

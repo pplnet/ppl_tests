@@ -1,0 +1,2 @@
+﻿***/// Busca si tiene otra operacion asociada que no afecte al saldo, lo cual indicaria que el prestamo devuelve en distinta especie
+[SQL("Select 1 from "~DBO~".OPERACIONES where NrOperacion5 = '"~FBN('NrOperacion5')~"' and TipoOp in ('FCVPV','SEVSV','FCCPV','SECSV') and NrOperacion <> '"~FBN('NrOperacion')~"' and CB14=0 ") = 1]

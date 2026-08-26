@@ -1,0 +1,3 @@
+﻿IIF(Eqstr(fbn('Tipo'), 'MON'), 
+    IIF(Eqstr(fbn('EspecieLiq'), Var('MONELOCA')), #IMPORTEGAR, #IMPORTEGAR * COTIZACIONBNA(fbn('EspecieLiq'),Val(FV:2),1,NO,NO)), 
+    IIF(Eqstr(fbn('Moneda'), Var('MONELOCA')), #IMPORTEGAR, #IMPORTEGAR*COTIZACIONBNA(fbn('Moneda'),Val(FV:2),1,NO,NO))))

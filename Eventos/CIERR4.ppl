@@ -1,0 +1,250 @@
+﻿CrearDialogo
+   Fecha1         :'Fecha :'             ;;;;NO;;;;;FSYS
+   Check1:        'TEST DE PROCESO'      ;;;;NO;NO;
+FinDialogo
+
+If Not Ok
+   Cancelar
+EndIf
+
+IF NO
+    **** El proceso de CIERRE se ejecuta solo si la Variable INTASIENTO esta en NO (Proceso SAP no Operativo) 
+    IF Eqstr(Var('INTASIENTO'), 'SI')
+        Cancelar
+    ELSE
+        SQL.ADD(" Update "~DBO~".VARIABLES Set Valor='NO' Where Codigo='ABIERTO' ")
+        SQL.NEW
+        SQL.EXEC
+    ENDIF
+ENDIF
+
+ACT(ls:1, SQLSet("Select Codigo From "~DBO~".VEHICULOS Where (Status='HAB' or Status Is Null or Status='') "))
+
+***---Cotizaciones de Mercado
+EjecutarEvento('ACTCOT')
+
+***---Cotizaciones BNA y BCU
+EjecutarEvento('ACTBNA')
+
+***/// La importacion y el seteo de tasas de hace desde el evento CIETAS
+
+***---Tasas Dia
+***---                                  COMENTAR ACTTAS CUANDO SE IMPLEMENTE PMCONSOLA
+EjecutarEvento('ACTTAS')
+
+
+***---Seteo de Tasas Variables SE
+EjecutarEvento('REPTAX', Fecha1=Dialogo.Fecha1, NrOperacion1='', Radio1=0, Radio2=0, Radio3=1, Lista2='', Lista1='')
+
+***---Impacta Tasas Variables Titulos
+EjecutarEvento('TAVATI', Fecha1=Dialogo.Fecha1)
+
+*EL REPTAS, AJLINK y el AJUCAP se ejecutan de forma diferente dependiendo de si es fin de mes
+ACN(x1, SQL("Select 1 from "~DBO~".VARIABLES where Codigo = 'DIASCONT' "))
+if Val(x1)=1
+   ACN(x1, Trunc(Var('DIASCONT'),0))
+else
+   ACN(x1, 1)
+endif
+
+If Val(x1) > 0
+    ACD(x2, Habiles(PriDeMes(Dialogo.Fecha1,SI)-1,Val(x1),'ARG'))
+Else
+    ACD(x2, FinDeMes(Dialogo.Fecha1,NO))
+Endif
+
+IF Dialogo.Fecha1=Val(x2)
+    *Es fin de mes
+    ***---Seteo de Tasas Variables MM
+    EjecutarEvento('REPTAS', Fecha1=Dialogo.Fecha1, NrOperacion1='', Radio3=1, Lista2='', Lista1='',Check1=1, Radio1=0, Radio2=0,Check2=1 )
+    ***---Ajuste USD Link
+    EjecutarEvento('AJLINK', Fecha1=Dialogo.Fecha1,Dialogo.Check2=1)
+    *Ajuste Indice Capitalizacion
+    EjecutarEvento('AJUCAP', Fecha1=Dialogo.Fecha1,Dialogo.Check1=1,Dialogo.Check2=1)
+    *Ajuste Indice Cuotas Partes - Si es mensual, se ejecuta automáticamente
+    EjecutarEvento('CPFUVA', Fecha1=Dialogo.Fecha1,Dialogo.Radio1=1,Dialogo.Check2=1)
+ELSE
+    *Ejecución diaria
+    ***---Seteo de Tasas Variables MM
+    EjecutarEvento('REPTAS', Fecha1=Dialogo.Fecha1, NrOperacion1='', Radio3=1, Lista2='', Lista1='',Check1=1, Radio1=0, Radio2=0,Check2=0 )
+    ***---Ajuste USD Link
+    EjecutarEvento('AJLINK', Fecha1=Dialogo.Fecha1,Dialogo.Check2=0)   
+    *Ajuste Indice Capitalizacion
+    EjecutarEvento('AJUCAP', Fecha1=Dialogo.Fecha1,Dialogo.Check1=1,Dialogo.Check2=0)
+    *Ajuste Indice Cuotas Partes - Si es diario, no se tiene que ejecutar en BICE
+    #ifndef BFSA
+        EjecutarEvento('CPFUVA', Fecha1=Dialogo.Fecha1,Dialogo.Radio1=1,Dialogo.Check2=0)
+    #endif
+ENDIF
+
+
+***---Ajuste Limites FCI
+#ifdef BFSA
+#else
+    EjecutarEvento('AJULIM', Fecha1=Dialogo.Fecha1)
+#endif
+
+**---IF FinDeMes(Dialogo.Fecha1, NO, 'ARG') = Dialogo.Fecha1
+*IF FinDeMes(Dialogo.Fecha1, NO) = Dialogo.Fecha1
+    **---Fin de Mes de Lunes a Viernes aunque sea feriado => Reseteo los Precios en Posiciones2
+    
+**-Pregunto si DIASRESET NO ES MAYOR A DIASCONT    
+IF Var('DIASRESET')<=Var('DIASCONT')    
+    *-Busco la variable DIASRESET y la asigno a una variable Local
+    IF SQL("Select 1 from "~DBO~".VARIABLES where Codigo = 'DIASRESET' ")=1
+        let &diaRESET  Trunc(Var('DIASRESET'),0)
+    ELSE
+        let &diaRESET 1
+    ENDIF
+ELSE
+    *-Como DIASRESET es MAYOR que DIASCONT tomo DIASCONT
+    IF SQL("Select 1 from "~DBO~".VARIABLES where Codigo = 'DIASCONT' ")=1
+        let &diaRESET  Trunc(Var('DIASCONT'),0)
+    ELSE
+        let &diaRESET 1
+    ENDIF
+ENDIF
+
+
+IF &diaRESET = 0 Y FinDeMes(Dialogo.Fecha1,NO) = Dialogo.Fecha1    
+    let &diaEjecEvento Dialogo.Fecha1
+   
+    ***---En este caso &diaRESET va a ser = 0 por ende debo pasarle la misma fecha que va a ser validada anteriormente, Fin De Mes.
+    let &fechaEjec Dialogo.Fecha1    
+ELSE    
+    let &diaEjecEvento Habiles(PriDeMes(Dialogo.Fecha1),-1,'ARG')    
+   
+    ***---Asigno a una variable el valor de DIASRESET/DIASCONT tomado y luego pregunto si es ese dia del mes para correr el RESET3.  
+    let &fechaEjec Habiles(PriDeMes(Dialogo.Fecha1,SI)-1,&diaRESET,'ARG') 
+ENDIF
+ 
+
+IF &fechaEjec = Dialogo.Fecha1
+    EjecutarEvento('RESET3', Fecha1=&diaEjecEvento, Vehiculo1='', Book1='', Especie1='', Radio1=0)
+ENDIF    
+
+
+***---Generacion de Asientos Contables
+EjecutarEvento('CONT0', Fecha1=Dialogo.Fecha1, Lista1=Val(ls:1))
+
+***---Llamado evento INTCON
+#ifdef BFSA
+    EjecutarEvento('INTCON',Directorio1=VAR('INTCONPATH'), Check3=0,Fecha1=fsys, Check1=0, Check2=0, NrUnicoAsiento1='', NrOperacion1='', Lista1='' )
+    *Check3='Filtra F.Valor'
+    *Check1='Filtra Asiento'
+    *Check2='Filtra Oper.'
+#else
+    EjecutarEvento('INTCON', Radio1=0, String1='', Directorio2='', Directorio3='', NrUnicoAsiento1='', NrOperacion1='',TipoOp1='',Fecha3=Fecha(VAR('FEVAINI')),Fecha4=fsys, Lista1='' )
+    *Radio1: 'Proceso' 0 = default
+    *No filtra Asiento, ni NrOperacion, ni rango de fecha valor, ni TipoOp,
+#endif
+
+***---Intereses Corridos para los proximos 3 dias, pero solo de lunes a viernes
+ACN(DS:1, DiaSem(Dialogo.Fecha1))
+IF Val(DS:1) = 2 o Val(DS:1) = 3
+    ***---Lunes o Martes
+    EjecutarEvento('INT001', Fecha1=Dialogo.Fecha1+1, Especie1='')
+    EjecutarEvento('INT001', Fecha1=Dialogo.Fecha1+2, Especie1='')
+    EjecutarEvento('INT001', Fecha1=Dialogo.Fecha1+3, Especie1='')
+    ***---Copiar Posiciones Inicio del dia siguiente
+    EjecutarEvento('COPPOS', Fecha1=Dialogo.Fecha1+1, Especie1='')
+ELSE
+    IF Val(DS:1) = 4
+        ***---Miercoles
+        EjecutarEvento('INT001', Fecha1=Dialogo.Fecha1+1, Especie1='')
+        EjecutarEvento('INT001', Fecha1=Dialogo.Fecha1+2, Especie1='')
+        EjecutarEvento('INT001', Fecha1=Dialogo.Fecha1+5, Especie1='')
+        ***---Copiar Posiciones Inicio del dia siguiente
+        EjecutarEvento('COPPOS', Fecha1=Dialogo.Fecha1+1, Especie1='')
+    ELSE
+        IF Val(DS:1) = 5
+            ***---Jueves
+            EjecutarEvento('INT001', Fecha1=Dialogo.Fecha1+1, Especie1='')
+            EjecutarEvento('INT001', Fecha1=Dialogo.Fecha1+4, Especie1='')
+            EjecutarEvento('INT001', Fecha1=Dialogo.Fecha1+5, Especie1='')
+            ***---Copiar Posiciones Inicio del dia siguiente
+            EjecutarEvento('COPPOS', Fecha1=Dialogo.Fecha1+1, Especie1='')
+        ELSE
+            IF Val(DS:1) = 6
+                ***---Viernes
+                EjecutarEvento('INT001', Fecha1=Dialogo.Fecha1+3, Especie1='')
+                EjecutarEvento('INT001', Fecha1=Dialogo.Fecha1+4, Especie1='')
+                EjecutarEvento('INT001', Fecha1=Dialogo.Fecha1+5, Especie1='')
+                ***---Copiar Posiciones Inicio del dia siguiente
+                EjecutarEvento('COPPOS', Fecha1=Dialogo.Fecha1+3, Especie1='')
+            ENDIF
+        ENDIF
+    ENDIF
+ENDIF
+
+
+*
+***CINTIA 250823 tanto diferencia de cambio como rentabilidad se calcularán con un día de atraso (con el cierre de hoy se calcula lo de ayer)
+
+EjecutarEvento('DCMM', Fecha1=Habiles(Dialogo.Fecha1,-1,'ARG'), Lista1='',NrOperacion1='')
+***
+****Cálculo de rentabilidad 5-4-23 Cintia
+***CINTIA AUG2023
+*Identifico la FechaValor mas antigua de las cotizaciones ingresadas en la fecha que se está cerrando
+let &FechaCotizFV SQL("Select Min(Fecha) from "~DBO~".COTIZACIONES where FechaActualizacion= '"~IdxDate(Dialogo.Fecha1)~"'")
+**Ejecuto la rentabilidad desde la fechaValor mas antigua ingresada el dia del cierre hasta el dia anterior al cierre 
+*(siempre y cuando FechaCotizFV sea menor a la fecha del cierre)
+If &FechaCotizFV<Dialogo.Fecha1
+    EjecutarEvento('RENTLO', Fecha1=Fecha(&FechaCotizFV),Fecha2=Habiles(Dialogo.Fecha1,-1,'ARG'), Radio1=1 ,Lista1='',Vehiculo1='',Lista2='')
+Else
+    EjecutarEvento('RENTAB', Fecha1=Habiles(Dialogo.Fecha1,-1,'ARG'), Lista1='',Lista2='',Vehiculo1='',Radio1=1)
+Endif
+
+*********
+
+***---Vencimiento de Cupones
+***---LinkearHoja('VTOCUP', 1, Fecha1=Dialogo.Fecha1, Radio1=2)
+
+***---Movimientos pendientes de liquidar
+LinkearHoja('ALIQUI', 2, Cliente1='', Especie1='', Vehiculo1='', Fecha1=Fsys, Check1=1, Lista1='')
+
+
+IF NO
+***---Reseteo Anual de Precios
+ACT(y1, 'Fin de Mes')
+ACT(y2, 'OK')
+ACT(y4, 'Mes Inicio')
+ACT(y5, 'Mes Cierre')
+
+* Fin de mes del mes actual
+ACD(z:1, FinDeMes(Dialogo.Fecha1,NO,'ARG'))
+
+ACT(z:2, 'SI')
+if Val(z:1)<>Dialogo.Fecha1
+  * La fecha no es fin de mes
+  ACT(z:2, 'NO')
+endif
+
+IF EqStr(Val(z:2),'SI')
+  ACN(z:4, 0)
+  ACN(z:4, SQL("Select 1 from "~DBO~".VARIABLES where Codigo='MESINIEJE' "))
+  if Val(z:4)=0
+    ACN(z:5, 12)
+  else
+    ACN(z:5, VAR('MESINIEJE')-1)
+  endif
+  if Val(z:5)<1 or Val(z:5)>12
+    ACN(z:5, 12)
+  endif
+  if Mes(Dialogo.Fecha1)<>Val(z:5)
+    * El mes no es el ultimo del ejercicio
+    ACT(z:2, 'NO')
+  endif
+endif
+
+if EqStr(Val(z:2),'SI')
+  EjecutarEvento('RESET1', Fecha1=Dialogo.Fecha1, Especie1='', Check1=1)
+endif
+
+***---Recalculo Precios MovPosPen de Monedas
+***---EjecutarEvento('RPREMM', Fecha1=Dialogo.Fecha1, Check1=1)
+
+HojaVisible(NO)
+
+
+ENDIF

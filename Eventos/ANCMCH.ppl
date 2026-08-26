@@ -1,0 +1,46 @@
+﻿CrearDialogo
+    ObservacDoc:'Cod. Cheque' ;;;;;;NoVacio(Dialogo.ObservacDoc) y BuscarCampo('OPERACIONES','RB1','ObservacDoc',Dialogo.ObservacDoc)=2;'Debe ingresar un Cod. Cheque que esté conciliado manualmente';NO;;;;;;"TipoOp='DDC' AND RB1='2'"
+FinDialogo
+
+If Not Ok
+    Cancelar
+Endif
+
+let &nrOperacion BuscarCampo('OPERACIONES','NrOperacion','ObservacDoc',Dialogo.ObservacDoc)
+let &IDCheque BuscarCampo('OPERACIONES','NrOperacion4','NrOperacion',&nrOperacion)
+let &cobranza BuscarCampo('DDCOBRANZAS','Comprobante','IDCheque',&IDCheque)
+
+
+Message('Anulando conciliacion de cheque '~Dialogo.ObservacDoc)
+
+**Cobranza
+SQL.ADD(" UPDATE "~DBO~".DDCOBRANZAS ")
+SQL.ADD(" Set FechaConciliada=null, ")
+SQL.ADD(" OperadorConc =null, ")
+SQL.ADD(" Conciliada =null, ")
+SQL.ADD(" IDCheque =null, ")
+SQL.ADD(" FechaConciliadaSys=null ")
+SQL.ADD(" Where Comprobante= '"~&cobranza~"'")
+SQL.ADD(" AND IDCheque= '"~&IDCheque~"' ")
+SQL.NEW
+SQL.EXEC
+
+**Operacion
+SQL.ADD(" UPDATE "~DBO~".OPERACIONES ")
+SQL.ADD(" Set RB1='0', ")
+SQL.ADD(" Observac3 =null, ")
+SQL.ADD(" ContraEspecie2 =null, ")
+SQL.ADD(" FechaEj =null, ")
+SQL.ADD(" FechaEx1 =null, ")
+SQL.ADD(" Cuenta2 =null, ")
+SQL.ADD(" Cuenta3 =null, ")
+SQL.ADD(" TotalAux1 =null, ")
+SQL.ADD(" TotalAux2 =null, ")
+SQL.ADD(" Fecha2 =null ")
+SQL.ADD(" ,TotalAux3 =null ")    
+SQL.ADD(" Where NrOperacion= '"~&nrOperacion~"'")
+SQL.NEW
+SQL.EXEC
+
+SQL.ActualizarMovimientos2(&nrOperacion,NO,SI,NO,NO)
+SQL.EXEC

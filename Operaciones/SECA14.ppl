@@ -1,0 +1,160 @@
+﻿CAMPOS:1;;BuscarCampo('VEHICULOS','Alias1','Codigo',Vehiculo1);
+FechaOp                : 'FechaOp'           ;;;;;;FECHAOP > 0;'FechaOp Invalida';NO;FSys
+Plazo                  : 'Plazo'             ;;;;;;PLAZO > 0;'Plazo Invalido';NO;0;FECHAVTO-FECHAOP;;;;;'###';
+FechaVto               : 'FechaVto'          ;;;;;;FECHAVTO > FECHAOP Y EsHabil(FECHAVTO,TABLAFERIADOS1);'FechaVto Invalida';NO;;FECHAOP + PLAZO;
+Mercado                : 'Mercado'           ;4;2;;;;;;;;'CV';
+Cliente1               : 'ContraParte'       ;6;1;;;;[NoVacio(CLIENTE1)] Y [Eqstr(BuscarCampo('CLIENTES','Status','Codigo',CLIENTE1), 'HAB')];'Cliente invalido';NO;;;;;;;;" Status='HAB' ";
+Cantidad               : 'Capital'           ;;;;;;CANTIDAD > 0;'Ingrese el Importe a Tomar';NO;;;
+Cuotas1                : 'Cant.Esp.Gtia'     ;;;;;NO;CUOTAS1 >= 0;'Debe Ingresar Cantidad de Especies en Garantía';NO;0;;
+*TotalNetoCli1          : 'Imp. a Cobrar'     ;;;;NO;;;;;;SUM(CUOTASL,6);
+Especie                : 'Moneda'            ;6;2;;;;NoVacio(ESPECIE) y DesciendeDeEspecie(ESPECIE,'MONEDA');'Debe Ingresar una Moneda';NO;;Var('MONELOCA');;;;;;"Status='HAB' and Jerarquia LIKE '"~Jerarquia('ESPECIES','MONEDA')~"%' "
+@VEHITO
+***---DerechoBolsa           : 'Der.Bolsa'         ;12;1; ;NO;;;;;MontoGastos('CBC',ESPECIE,VEHICULO,'DBOLSA',CANTIDAD,4);MontoGastos('CBC',ESPECIE,VEHICULO,'DBOLSA',CANTIDAD,4);;;;;'###.#######';
+***---DerechoMercado         : 'Der.Mercado'       ;  ; ; ;NO;;;;;MontoGastos('CBC',ESPECIE,VEHICULO,'DMERC',CANTIDAD,4);MontoGastos('CBC',ESPECIE,VEHICULO,'DMERC',CANTIDAD,4);;;;;'###.#######';
+***---Aranceles              : 'Arancel'           ;  ; ; ;  ;;;;;MontoArancelC('CBC',CLIENTE1,ESPECIE,VEHICULO,'AOPER',CANTIDAD,4,,VTXT1);MontoArancelC('CBC',CLIENTE1,ESPECIE,VEHICULO,'AOPER',CANTIDAD,4,,VTXT1);;;;;'###.#######';
+RB8                    : 'U.Tiempo|360|365'  ;7;;;;;RB8>=0;'Unidad de Tiempo Tasa Interes INVALIDA';NO;IF(EQSTR('ARG',BuscarCampo('Clientes','PaisDir','Codigo',CLIENTE1)),1,0);IF(EQSTR('ARG',BuscarCampo('Clientes','PaisDir','Codigo',CLIENTE1)),1,0)
+Precio1                : 'Tasa'              ;9; ;1;;;PRECIO1 > 0;'Tasa Invalida';NO;;;;;;;'###,###.########'
+TotalIntereses         : 'Interes'           ;;2;;;;TOTALINTERESES<=TotalAux4 y TOTALINTERESES>=TotalAux3;'El interes esta fuera de rango';NO;CANTIDAD*PRECIO1*PLAZO/IF(RB8=0, 36000, 36500);CANTIDAD*PRECIO1*PLAZO/IF(RB8=0, 36000, 36500);;;;;;;
+TotalAux1              : 'Tasa Min.'         ;;2;;NO;;;;;;PRECIO1-(PRECIO1*VAR('DESTACAU')/100);PRECIO1-(PRECIO1*VAR('DESTACAU')/100);;;;'###,###.########'
+TotalAux2              : 'Tasa Max.'         ;;2;;NO;;;;;;PRECIO1+(PRECIO1*VAR('DESTACAU')/100);PRECIO1+(PRECIO1*VAR('DESTACAU')/100);;;;'###,###.########'
+TotalAux3              : 'Interes Min.'      ;;2;;NO;;;;;;CANTIDAD*TotalAux1*PLAZO/IF(RB8=0, 36000, 36500);CANTIDAD*TotalAux1*PLAZO/IF(RB8=0, 36000, 36500)
+TotalAux4              : 'Interes Max.'      ;;2;;NO;;;;;;CANTIDAD*TotalAux2*PLAZO/IF(RB8=0, 36000, 36500);CANTIDAD*TotalAux2*PLAZO/IF(RB8=0, 36000, 36500)
+ImpGastos1             : '%Ret.Gan'          ;12;1;;;;ImpGastos1>=0;'El porcentaje de Ret. Gan. no puede ser negativo';NO;0;
+TotalRetenciones       : 'Ret.Gan'           ;13;1;;NO;;;;;;TOTALINTERESES*(IMPGASTOS1/100);;;;;;'###,###,###,###,###.##'
+TotalNetoCli2          : 'Total a Cobrar'    ;10;1;;NO;;;;;;CANTIDAD + TOTALINTERESES - TOTALGASTOS;
+*Precio3                : 'Pr.Futuro'        ;10;2; ;  ;;PRECIO3<>0;'Precio Futuro invalido';SI;;PRECIO1 * PRECIO2
+
+TablaFeriados1         : 'Feriado'           ;16;1; ;;;NoVacio(TABLAFERIADOS1);'Se debe indicar feriados a utilizar';NO;;BuscarCampo('Feriados','Codigo','Codigo',BuscarCampo('Clientes','PaisDir','Codigo',CLIENTE1))
+Operador               : 'Operador'          ;17;1; ;NO;;;;;USUARIOACTIVO;
+
+*VTXT13                 : 'Cupon Anterior'    ;9;2;2;NO;NO;;;;IF(Eqstr(VTXT14,'0'),'0',FStr(NrCupon2(ESPECIE,FECHAVTO)-1,0,0));IF(Eqstr(VTXT14,'0'),'0',FStr(NrCupon2(ESPECIE,FECHAVTO)-1,0,0));;;;;'XXX';
+*VTXT14            : 'Cupon Actual'          ;10;2;2;NO;NO;;;;FStr(NrCupon2(ESPECIE,FECHAVTO),0,0);FStr(NrCupon2(ESPECIE,FECHAVTO),0,0);;;;;'XXX';
+*RB9               : 'ExCupon|Si|No'         ; 9;1;2;;;;;;1
+*Cupon1                 : 'Cupon'             ;16;2;1;RB9=0;;[RB9=0 y Eqstr(CUPON1,VTXT13)] o RB9=1 ;'Cupon Incorrecto';NO;IF(RB9=0,VTXT13,VTXT14);IF(RB9=0,VTXT13,VTXT14);;;;;'###'
+
+CodComitente           : 'Codigo Comitente'  ;  ; ;2;NO;NO;;;;BUSCARCAMPO('CLIENTES','CodComitente','Codigo',CLIENTE1);BUSCARCAMPO('CLIENTES','CodComitente','Codigo',CLIENTE1)
+CB10                   :                     ;  ; ;2;NO;NO;;;;;0 
+***---Vtxt1                  : 'TipoCliente'       ; 1;1;2;NO;NO;;;;;BUSCARCAMPO('CLIENTES','TipoCliente','Codigo',CLIENTE1)
+***---Vtxt2                  : 'TipoEspecie'       ; 2;1;2;NO;NO;NoVacio(VTXT2);'La Especie no posee un Tipo definido';NO;;BUSCARCAMPO('ESPECIES','Tipo','Codigo',ESPECIE)
+
+***---VCan3                  : 'SaldoContraEspecie';  ; ;2;NO;NO;;;;;SaldoC(CLIENTE1, ESPECIE,,,,,,,1, FECHAOP);NO
+VTxt12                 : 'Ascend. ContraE'   ;;;;NO;NO;;;;Ascendientes('ESPECIES',ESPECIE);Ascendientes('ESPECIES',ESPECIE)
+Cuenta1                : 'Credito a'         ;18;1;2;;;NoVacio(CUENTA1) Y ClienteCuenta(VEHICULO1,CUENTA1) y EspecieCuenta(ESPECIE,CUENTA1) y Eqstr(BuscarCampo('CUENTAS','Estado','Codigo',CUENTA1),'HAB');'Error en Cuenta Credito a '~ESPECIE;SI;;IF(Eqstr(ABM, 'A'), CuentaCliente(VEHICULO1,ESPECIE,CLIENTE1,,TIPOOP,'HAB'), CUENTA1);;;;;;"Cliente='"~VEHICULO1~"' and Estado = 'HAB' and (Especies Like '%"~Especie~"%' or Especies Like '%"~ItemLista(VTXT11,Elementos(VTXT12))~"%')"     
+*******Campos para gastos
+Label1                 : ''                  ;1;1;2;;;;;;'Gastos'
+ContraEspecie3         : 'Moneda gastos'     ;;;2;;;EqStr(BuscarCampo('ESPECIES','Tipo','Codigo',CONTRAESPECIE3),'MON') y (NoVacio(CONTRAESPECIE3) O TOTALGASTOS=0);'Debe ingresar una especie MONEDA para los gastos';NO;ESPECIE;ESPECIE;;;;;'####.#0';"Status='HAB' and Tipo='MON' "
+Arancel1               : 'Arancel'           ;;;2;;;ARANCEL1>=0;;;;;;;;;'###,###,###,###,###.##'
+TotalDerechos          : 'Der. Mercado'      ;;;2;;;TOTALDERECHOS>=0;;;;;;;;;'###,###,###,###,###.##'
+TotalIVA               : 'IVA'               ;;;2;;;TOTALIVA>=0;;;;;;;;;'###,###,###,###,###.##'
+TotalGastos            : 'Total Gastos'      ;;;2;NO;;;;;TOTALIVA+TOTALDERECHOS+ARANCEL1;TOTALIVA+TOTALDERECHOS+ARANCEL1;;;;;'###,###,###,###,###.##'
+******Campos por Workflow BFSA
+%%ifdef BFSA
+    Riesgo       : 'Riesgo'          ;20;1;2;NO;NoVacio(RIESGO);;;;;;;;;;;;;;;;;;;
+    Aprobaciones : 'Aprobaciones'    ;21;1;2;NO;NoVacio(APROBACIONES) o APROBACIONES<>0;;;;;;;;;;;;;;;;;;;;;;;;;;;
+    Aprobador1   : 'Aprobador1'      ;20;2;2;NO;NoVacio(APROBADOR1);;;;;;;;;;;;;;;;;;;;;;
+    Aprobador2   : 'Aprobador2'      ;21;2;2;NO;NoVacio(APROBADOR2);;;;;;;;;;;;;;;;;;;;;;
+%%endif
+
+
+    
+
+LISTA:CUOTAS1 > 0;IF(ESINICIO,10,CUOTAS1);
+  Especie1   : 'Especie'        ;;;NoVacio(CUOTASL.ESPECIE1[Fila]) O CUOTAS1=0;'Especie Invalida';;;90;NO;Tabla;'Especies';'Codigo';'Codigo;Nombre';NO;NO;
+  Cantidad1  : 'Cantidad'       ;;;CUOTASL.CANTIDAD1[Fila]> 0 O CUOTAS1=0;'Cantidad Invalida'    ;;;150;;Numero;'###,###,###,###,###';NO;NO;;
+  Precio1    : 'Precio'         ;;;CUOTASL.PRECIO1[Fila] > 0 O CUOTAS1=0;'Precio Invalido';;CotizacionC(CUOTASL.ESPECIE1[Fila],,,,FECHAOP,1,SI,ESPECIE);100;;Numero;'###,###.########';NO;NO;;
+  Precio2    : '%Aforo'         ;;;CUOTASL.PRECIO2[Fila] > 0 O CUOTAS1=0;'Aforo Invalido';;;100;;Numero;'###.##';NO;NO;;
+  Precio3    : 'Pr.Aforado'     ;NO;;;;;CUOTASL.PRECIO1[Fila]*CUOTASL.PRECIO2[Fila]/100;100;;Numero;'###,###.########';NO;NO;;
+  Cantidad2  : 'Imp.Cobrar'     ;NO;;;;;CUOTASL.CANTIDAD1[Fila] * CUOTASL.PRECIO3[Fila];150;;Numero;'###,###,###,###,###.##';NO;NO;;
+  Cuenta1    : 'Debito en'      ;;;NoVacio(CuotasL.CUENTA1[Fila])  O CUOTAS1=0;'Cuenta Debito Invalida';;IF(Eqstr(ABM, 'A'), CuentaCliente(VEHICULO1,CUOTASL.ESPECIE1[Fila],CLIENTE1,,TIPOOP,'HAB'), CUOTASL.CUENTA1[Fila]);150;NO;Tabla;'Cuentas';'Codigo';'Codigo;Nombre';NO;NO;
+
+CONDICIONES
+EsTerminal(Especie,Especie);'La Moneda No puede ser una Jerarquia';NO
+***---EqStr(BuscarCampo('Especies','Status','Codigo',Especie),'HAB');'La Especie No esta Habilitada';NO
+EqStr(BuscarCampo('Especies','Status','Codigo',Especie),'HAB');'La Moneda No esta Habilitada';NO
+FechaOp > Fecha(Var('FECHAVALOR'));'La Fecha Valor Debe Superar el '~Var('FECHAVALOR');NO
+***---(Cantidad Mod BuscarCampo('ESPECIES','LaminaMinima','Codigo',Especie))=0;'La Cantidad No es un Valor Operable';NO
+
+SI O [VCan3 >= (Cantidad * if(Precio1<>0,Precio1,Precio1))];'Monto Operacion Supera Saldo';SI;SI;FSys;'POSICINSUF';'Monto Operacion:'~Fstr((Cantidad * if(Precio1<>0,Precio1,Precio4)),8,2)~' Supera Saldo:'~Fstr(VCan3,8,2);
+***---SI O [Not EqStr(VTXT3, 'CLI')] o [CANTIDAD <= PosicionEspecie(ESPECIE, VEHICULO1, 1, FECHAOP, CLIENTE1)];'Posicion de '~ESPECIE~' insuficiente al '~FECHAOP~' ('~FStr(PosicionEspecie(ESPECIE, VEHICULO1, 1, FECHAOP, CLIENTE1),1,0)~')';SI;SI;FSys;'POSICINSUF';'Posici¾n de '~ESPECIE~' insuficiente al '~FECHAOP~' ('~FStr(PosicionEspecie(ESPECIE, VEHICULO1, 1, FECHAOP, CLIENTE1),1,0)~')'
+***---SI O [((Cantidad * if(Precio1<>0,Precio1,Precio4)) + DerechoBolsa + DerechoMercado + Aranceles) <= ((VAR('MAXOPER') * CarteraValorizada('', Vehiculo1, 1, FechaOp, Cliente1,,,,,,,,,ContraEspecie )) / 100)];'Volumen Permitido para Operar Excedido';SI;SI;FSys;'CTRLVALOR';'Max Volumen Permitido = '~Fstr((VAR('MAXOPER') * CarteraValorizada('', Vehiculo1, 1, FechaOp, Cliente1,,,,,,,,,ContraEspecie )) / 100,1,2)
+
+MOVIMIENTOS
+FechaOp;Cliente1;Especie;;;;;Vehiculo1;1;Cantidad;;'Alta Caucion Colocadora de Titulo';SI; Incluido(Vehiculo1,Var('VLIQUIDAA'));;;;Cuenta1;;1;
+FechaVto;Cliente1;Especie;;;;;Vehiculo1;1;-Cantidad;;'Vto Caucion Colocadora de Titulo';SI; Incluido(Vehiculo1,Var('VLIQUIDAA'));;;;Cuenta1;;2;
+FechaVto;Cliente1;Especie;;;;;Vehiculo1;1;-TotalIntereses;;'Intereses Caucion Colocadora de Titulo';SI;Incluido(Vehiculo1,Var('VLIQUIDAA'));;;;Cuenta1;;3;
+*FechaVto ;Vehiculo1;Especie;;;;;;10;Cantidad ;;'Compra de Titulo';;SI;;PaseCB=0;;Cuenta1;;6;;;Cupon1;;;;Book1;
+*FechaOp2 ;Vehiculo1;Especie;;;;;Vehiculo1;2;Cantidad ;;'Compra de Titulo';;SI;;PaseCB=0;;Cuenta1;;7;;;Cupon1;;;;Book1;
+*FechaVto ;Vehiculo1;Especie;;;;;;3;Cantidad ;;'Compra de Titulo';;SI;;PaseCB=0;;Cuenta1;;8;;;Cupon1;;;;Book1
+FechaOp;Vehiculo1;Especie;;;;;Vehiculo1;50;-Cantidad;;'Caucion colocadora de '~ESPECIE;SI;SI;;Eqstr(BuscarCampo('CUENTAS','TipoCuenta','Codigo', Cuenta1), 'CUS');;Cuenta1;;10;;;;;;;;;;;;;;
+FechaVto;Vehiculo1;Especie;;;;;Vehiculo1;50;+Cantidad+TotalIntereses;;'Caucion colocadora de '~ESPECIE;SI;SI;;Eqstr(BuscarCampo('CUENTAS','TipoCuenta','Codigo', Cuenta1), 'CUS');;Cuenta1;;11;;;;;;;;;;;;;;
+**Movimientos por gastos
+FechaVto;Cliente1;ContraEspecie3;;;;;Vehiculo1;1;Arancel1;;'Arancel Caucion Colocadora de Titulo';SI;;;;;Cuenta1;;30;
+FechaVto;Cliente1;ContraEspecie3 ;;;;;Vehiculo1;1;TotalDerechos;;'Der. Mercado Caucion Colocadora de Titulo';SI;;;;;Cuenta1;;40;
+FechaVto;Cliente1;ContraEspecie3 ;;;;;Vehiculo1;1;TotalIVA;;'IVA Caucion Colocadora de Titulo';SI;;;;;Cuenta1;;50;
+FechaVto;Cliente1;Especie ;;;;;Vehiculo1;1;TotalRetenciones;;'Ret Ganancias Caucion Colocadora Titulo';SI;;;;;Cuenta1;;60;
+*Movimientos por Gastos que afectan saldos de Ctas Comitentes
+FechaVto;Vehiculo1;ContraEspecie3;;;;;Vehiculo1;50;-Arancel1;;'Gastos Arancel Caucion Colocadora Titulo';SI;SI;;;;Cuenta1;;100
+FechaVto;Vehiculo1;ContraEspecie3;;;;;Vehiculo1;50;-TotalDerechos;;'Gastos Der. Merc Caucion Colocadora Titulo';SI;SI;;;;Cuenta1;;110;
+FechaVto;Vehiculo1;ContraEspecie3;;;;;Vehiculo1;50;-TotalIVA;;'Gastos IVA Caucion Colocadora Titulo';SI;SI;;;;Cuenta1;;120;
+FechaVto;Vehiculo1;Especie;;;;;Vehiculo1;50;-TotalRetenciones;;'Gastos Ret Gan Caucion Colocadora Titulo';SI;SI;;;;Cuenta1;;130;
+
+MOVCUOTAS
+FechaOp;Cliente1;CuotasL.Especie1[Fila];;Vehiculo1;1;-CuotasL.Cantidad1[Fila];'Alta Caucion Colocadora de Titulo';SI;Incluido(Vehiculo1,Var('VLIQUIDAA'));;;(Fila+500);CuotasL.Cuenta1[Fila];;(Fila+500);'CUOTAS'
+FechaVto;Cliente1;CuotasL.Especie1[Fila];;Vehiculo1;1;CuotasL.Cantidad1[Fila];'Vto Caucion Colocadora de Titulo';SI;Incluido(Vehiculo1,Var('VLIQUIDAA'));;;(Fila+600);CuotasL.Cuenta1[Fila];;(Fila+600);'CUOTAS'
+***---SOLUCIONAR: EL CORTE DE CUPON LO COBRA EL DUEÑO DE LOS BONOS, POR LO TANTO SI CORTA MIENTRAS ESTÁN EN GARANTIA
+***---DEBEN TOMARSE EN EL CORTE DE CUPON, Y EL CORTE ESTÁ LEVANTANDO SALDOS, POR LO QUE NO LOS VA A TOMAR
+
+DEVENGADOS
+FechaOp+1;FechaVto;SI;SI;NO;TablaFeriados1;SI;SI;'INTLEN';TotalIntereses;140;Vehiculo1;Vehiculo1;;;;;;TipoOp;;Especie;;;;;;Book1;Operador;'SE';;;Especie;
+
+POSTEDICION
+%%ifdef BFSA
+    SI;'DETRIE';TipoOp = TIPOOP;Especie1=ESPECIE;Cantidad1=CANTIDAD;Book1=BOOK1;NrOperacion=NROPERACION;Fecha1=FechaOp
+%%endif
+
+@INSTOPE
+***---@INST19SE
+INSTANCIA19
+CAMPOS:1;;BuscarCampo('VEHICULOS','Alias1','Codigo',Vehiculo1);FW=1
+FechaOp                : 'FechaOp'           ;;;;NO;;FECHAOP > 0;'FechaOp Invalida';NO;FSys
+Plazo                  : 'Plazo'             ;;;;NO;;PLAZO > 0;'Plazo Invalido';NO;;;;;;;'###';
+FechaVto               : 'FechaVto'          ;;;;NO;;FECHAVTO > FECHAOP Y EsHabil(FECHAVTO,TABLAFERIADOS1);'FechaVto Invalida';NO;;FECHAOP + PLAZO;
+Mercado                : 'Mercado'           ;4;2;;NO;;;;;;'CV';
+Cliente1               : 'ContraParte'       ;6;1;;NO;;[NoVacio(CLIENTE1)] Y [Eqstr(BuscarCampo('CLIENTES','Status','Codigo',CLIENTE1), 'HAB')];'Cliente invalido';NO;;;;;;;;" Status='HAB' ";
+Cantidad               : 'Capital'           ;;;;NO;;CANTIDAD > 0;'Ingrese el Importe a Tomar';NO;;;
+*Cuotas1                : 'Cant.Especies'     ;;;;NO;;CUOTAS1 >= 1;'Debe Ingresar Cantidad de Especies';NO;0;;
+*TotalNetoCli1          : 'Imp. a Cobrar'     ;;;;NO;;;;;;SUM(CUOTASL,6);
+Especie                : 'Moneda'            ;6;2;;NO;;NoVacio(ESPECIE) y DesciendeDeEspecie(ESPECIE,'MONEDA');'Debe Ingresar una Moneda';NO;;Var('MONELOCA');;;;;;"Status='HAB' and Jerarquia LIKE '"~Jerarquia('ESPECIES','MONEDA')~"%' "
+Vehiculo1              : 'Vehiculo'          ;1;2;;NO
+Book1                  : 'Book'              ;2;2;;NO 
+Precio1                : 'Tasa'              ;8;;;NO;;;;;;
+RB8                    : 'U.Tiempo|360|365'  ;;;;NO;;;;;;;
+TotalIntereses         : 'Interes'           ;;2;;NO;;;;;;;;;
+ImpGastos1             : '%Ret.Gan'          ;;2;;NO;;;
+TotalRetenciones       : 'Ret.Gan'           ;;2;;NO;;;;;;;;;;;;'###,###,###,###,###.##'
+TotalNetoCli2          : 'Total a Cobrar'    ;10;1;;NO;;;;;;;;
+TablaFeriados1         : 'Feriado'           ;14;1;;NO;;;;;;;
+Operador               : 'Operador'          ;15;1;;NO;;;;;;;;
+Cuenta1                : 'Credito a'         ;18;1;2;;;NoVacio(CUENTA1) Y ClienteCuenta(VEHICULO1,CUENTA1) y EspecieCuenta(ESPECIE,CUENTA1) y Eqstr(BuscarCampo('CUENTAS','Estado','Codigo',CUENTA1),'HAB');'Error en Cuenta Credito a '~ESPECIE;SI;;IF(Eqstr(ABM, 'A'), CuentaCliente(VEHICULO1,ESPECIE,CLIENTE1,,TIPOOP,'HAB'), CUENTA1);;;;;;"Cliente='"~VEHICULO1~"' and Estado = 'HAB' and (Especies Like '%"~Especie~"%' or Especies Like '%"~ItemLista(VTXT11,Elementos(VTXT12))~"%')"     
+*******Campos para gastos
+Label1                 : ''                  ;1;1;2;;;;;;'Gastos'
+ContraEspecie3         : 'Moneda gastos'     ;;;2;NO;;
+Arancel1               : 'Arancel'           ;;;2;NO;;;;;;;;;;;'###,###,###,###,###.##'
+TotalDerechos          : 'Der. Mercado'      ;;;2;NO;;;;;;;;;;;'###,###,###,###,###.##'
+TotalIVA               : 'IVA'               ;;;2;NO;;;;;;;;;;;'###,###,###,###,###.##'
+TotalGastos          : 'Total Gastos'      ;;;2;NO;;;;;;;;;;'###,###,###,###,###.##'
+LISTA:SI;CUOTAS1;
+  Especie1   : 'Especie'        ;NO;;NoVacio(CUOTASL.ESPECIE1[Fila]);'Especie Invalida';;;90;NO;Tabla;'Especies';'Codigo';'Codigo;Nombre';NO;NO;
+  Cantidad1  : 'Cantidad'       ;NO;;CUOTASL.CANTIDAD1[Fila]> 0;'Cantidad Invalida'    ;;;150;;Numero;'###,###,###,###,###';NO;NO;;
+  Precio1    : 'Precio'         ;NO;;CUOTASL.PRECIO1[Fila] > 0;'Precio Invalido';;CotizacionC(CUOTASL.ESPECIE1[Fila],,,,FECHAOP,1,SI,ESPECIE);100;;Numero;'###,###.########';NO;NO;;
+  Precio2    : '%Aforo'         ;NO;;CUOTASL.PRECIO2[Fila] > 0;'Aforo Invalido';;;100;;Numero;'###.##';NO;NO;;
+  Precio3    : 'Pr.Aforado'     ;NO;;;;;CUOTASL.PRECIO1[Fila]*CUOTASL.PRECIO2[Fila]/100;100;;Numero;'###,###.########';NO;NO;;
+  Cantidad2  : 'Imp.Cobrar'     ;NO;;;;;CUOTASL.CANTIDAD1[Fila] * CUOTASL.PRECIO3[Fila];150;;Numero;'###,###,###,###,###.##';NO;NO;;
+  Cuenta1    : 'Debito en'      ;SI;;NoVacio(CuotasL.CUENTA1[Fila]) ;'Cuenta Debito Invalida';;IF(Eqstr(ABM, 'A'), CuentaCliente(VEHICULO1,CUOTASL.ESPECIE1[Fila],CLIENTE1,,TIPOOP,'HAB'), CUOTASL.CUENTA1[Fila]);150;NO;Tabla;'Cuentas';'Codigo';'Codigo;Nombre';NO;NO;
+
+POSTEDICION
+%%ifdef BFSA
+    FW = 2;'APRUEB';String1=RIESGO;NrOperacion1=NROPERACION;String2=USUARIOACTIVO;Entero1=APROBACIONES;Entero2=FW
+%%endif
+
+@INST19BITS

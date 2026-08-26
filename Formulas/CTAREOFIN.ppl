@@ -1,0 +1,1 @@
+﻿IIF(fbn('CtaRem') = 1, Val(CE:1), #CTACOLFIN)

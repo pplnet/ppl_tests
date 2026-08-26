@@ -1,0 +1,10 @@
+﻿IIF(EqStr(#MONELOCAVH,#MONEGRUPO),
+    1,
+    IIF(EqStr(#MONELOCAVH,VAR('MONELOCA')),
+        1/#TCCONTABLEVHP,
+        IIF(EqStr(Modo(#MONELOCAVH, #MONEGRUPO),'INV'),
+            1/#COTBNAMOLVP,
+            #COTBNAMOLVP
+        )
+    )
+)

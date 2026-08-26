@@ -1,0 +1,47 @@
+﻿If vacio(&FechaCotizFV) o &FechaCotizFV=Dialogo.Fecha1
+    If &evento=0
+        *CINTIA 261023 Se utiliza un recorrer para el cálculo de DCMM para contemplar el cálculo en dias no hábiles ya que no se corre el cierre. 
+        let &anteriorHabil Habiles(Dialogo.Fecha1,-1,'ARG')
+        let &anteriorReal  Habiles(Dialogo.Fecha1,-1,,NO)
+        Recorrer&j &anteriorHabil, &anteriorReal
+            *let &dcmm &dcmm+1
+            ACN(AB:FAC,Val(AB:FAC)+1)
+        Proximo
+    Else
+        *let &rentab &rentab+1
+        ACN(AB:FAC,Val(AB:FAC)+1)
+    Endif
+Else
+    If &evento=0
+        *let &dcmmlt &dcmmlt+1
+        let &diasDCMM DifDias(Habiles(Dialogo.Fecha1,-1,'ARG'),Fecha(&FechaCotizFV),,NO)+1
+        ACN(AB:FAC,Val(AB:FAC)+&diasDCMM)
+        ACN(AB:FAC+1,Val(AB:FAC+1)+1)
+    Else
+        *let &rentlo &rentlo+1
+        let &diasRENT DifDias(Habiles(Dialogo.Fecha1,-1,'ARG'),Fecha(&FechaCotizFV),'ARG',SI)+1
+        ACN(AB:FAC,Val(AB:FAC)+&diasRENT)
+        ACN(AB:FAC+1,Val(AB:FAC+1)+1)
+    Endif 
+EndIf
+
+**Busco si se cargaron SECS de precancelacion 
+SQL.ADD(" Select NrOperacion,FechaOp from "~DBO~".OPERACIONES Where TipoOp='SECS' AND RB10=1 ")
+SQL.ADD(" AND FechaCargaSys='"~IdxDate(Dialogo.Fecha1)~"' ")
+Recorrer SQL
+   DFA
+   let &nrOpPrecan fbn('NrOperacion')
+   **Busco la fechaIni de la cuota vigente para la fecha de la precancelación cargada
+   SQL.ADD(" Select C.Fecha1 'FechaIni',O.NrOperacion from "~DBO~".CUOTAS C,"~DBO~".OPERACIONES O,"~DBO~".PRECANCELACION P ")
+   SQL.ADD(" Where O.NrOperacion=C.NrOperacion and O.NrOperacion=P.NrOperacion ")
+   SQL.ADD(" AND O.TipoOp='MMONM' AND P.NrOperacion1= '"~&nrOpPrecan~"' ")
+   SQL.ADD(" and (C.Fecha1<='"~IdxDate(fbn('FechaOp'))~"' and C.Fecha2>='"~IdxDate(fbn('FechaOp'))~"'  ) ")
+    
+   **Ejecuto DC desde FechaIni hasta Fecha1-2 ya que Fecha1-1 es la que calcula en el cierre de ese dia
+   Recorrer SQL
+    *let &dcmmlt &dcmmlt+1
+    let &diasDCMM DifDias(Habiles(Dialogo.Fecha1,-2,'ARG'),Habiles(fbn('FechaIni'),+1,'ARG',NO),,NO)+1
+    ACN(AB:FAC,Val(AB:FAC)+&diasDCMM)
+    ACN(AB:FAC+1,Val(AB:FAC+1)+1)
+   Proximo
+Proximo

@@ -1,0 +1,47 @@
+﻿MostrarCuadroDeMensajes
+CrearDialogo
+  Fecha1    : 'Fecha'   ;;;;;;Dialogo.Fecha1 = FinDeMes(Dialogo.Fecha1, SI);'Debe ser Fin de Mes';;FinDeMes(PriDeMes(Fsys, SI)-1, SI);
+  Cuenta1   : 'Cuenta'  ;;;;;;NoVacio(Dialogo.Cuenta1);'Cuenta Invalida';NO;'C101ALLAACAR01';;;;;;;;;;;
+  Vehiculo1 : 'Vehiculo';;;;;;NoVacio(Dialogo.Vehiculo1);;;'C101'
+  Especie1  : 'Moneda'  ;;;;;;NoVacio(Dialogo.Especie1);;;'ARP'
+  Entero1   : 'Saldo Ini' ;;;;;;;;;-100000;;;
+  Entero2   : 'Incrementa';;;;;;;;;10000;
+FinDialogo
+
+If Not OK
+  Cancelar
+EndIf
+
+        ACT(CT:1, Dialogo.Cuenta1)
+        ACT(VH:1, Dialogo.Vehiculo1)
+        ACT(MN:1, Dialogo.Especie1)
+
+let &desde PriDeMes(Dialogo.Fecha1, SI)
+let &hasta Dialogo.Fecha1
+let &saldoIni Dialogo.Entero1
+let &incrementa Dialogo.Entero2
+let &bandera 0
+Recorrer&k &desde, &hasta
+    IF EsHabil(&k, 'ARG')
+        IF &bandera = 0
+            let &saldo &saldoIni
+        ELSE
+            let &saldo &saldo + &incrementa
+        ENDIF
+        CrearDialogo
+           Fecha2  : 'Fecha' ;;;;NO;;;;;Fecha(&k);;;
+           Entero1 : 'Saldo' ;;;;;;;;;&saldo;;;;'###,###,###.##'
+        FinDialogo
+        IF Not OK
+            Cancelar
+        ENDIF
+        ACT(NR:1, GetNumerador(99))
+        SQL.ADD(" INSERT INTO "~DBO~".OPSEVENTUALES ")
+        SQL.ADD(" ( TipoOp,      FechaOp,           Cantidad,              Cuenta1,       Especie,          Vehiculo1,      NrOperacion,    Observac3 )")
+        SQL.ADD(" VALUES ")
+        SQL.ADD(" ( 'MMEVDE', '"~IdxDate(Dialogo.Fecha2)~"', '"~Dialogo.Entero1~"', '"~Val(CT:1)~"', '"~Val(MN:1)~"', '"~Val(VH:1)~"', '"~Val(NR:1)~"', 'PRUEBA' )") 
+        SQL.NEW
+        let &bandera 1
+    ENDIF
+Proximo
+SQL.EXEC

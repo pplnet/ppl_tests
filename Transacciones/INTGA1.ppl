@@ -1,0 +1,56 @@
+﻿CAMPOS:1;;BuscarCampo('VEHICULOS','Alias3','Codigo',Vehiculo1)
+NrOperacionRef1  : 'Op Referencia'      ;1;1;;;;;;;;;;;;;;" TipoOp = 'SECAT' ";
+Especie          : 'Moneda a Integrar'  ;;;;;;NoVacio(ESPECIE) y DesciendeDeEspecie(ESPECIE,'MONEDA');'Debe Ingresar una Moneda';NO;;Var('MONELOCA');;;;;;"Status='HAB' and Jerarquia LIKE '"~Jerarquia('ESPECIES','MONEDA')~"%' "
+Cantidad1        : 'Imp a Integrar'     ;;;;;;CANTIDAD1 > 0;'Importa a Integrar Invalido';NO;
+Cantidad3        : 'Imp. a Pagar'       ;;;;NO;;;;;;SUM(CUOTASL,6);
+Fecha1           : 'Fecha Integracion'  ;1;2;;;;FECHA1 > 0;'Fecha de Integracion Invalida';NO;Fsys;;;;;
+Cantidad2        : 'Cant.Especies'      ;;;;;;CANTIDAD2 >= 1;'Debe Ingresar Cantidad de Especies';NO;0;;
+Cliente1         : 'ContraParte'        ;;;;NO;;;;;;BuscarCampo('OPERACIONES','Cliente1','NrOperacion',NROPERACIONREF1);
+Vehiculo1        : 'Vehiculo'           ;;;;NO;;;;;;BuscarCampo('OPERACIONES','Vehiculo1','NrOperacion',NROPERACIONREF1);
+Fecha2           : 'FechaVto'           ;;;;NO;;;;;;BuscarCampo('OPERACIONES','FechaVto','NrOperacion',NROPERACIONREF1);
+
+LISTA:SI;IF(ESINICIO,3,CANTIDAD2);
+  Especie1   : 'Especie'        ;;;NoVacio(CUOTASL.ESPECIE1[Fila]);'Especie Invalida';;;90;NO;Tabla;'Especies';'Codigo';'Codigo;Nombre';NO;NO;
+  Cantidad1  : 'Cantidad'       ;;;CUOTASL.CANTIDAD1[Fila]> 0;'Cantidad Invalida'    ;;;150;;Numero;'###,###,###,###,###';NO;NO;;
+  Precio1    : 'Precio'         ;;;CUOTASL.PRECIO1[Fila] > 0;'Precio Invalido';;CotizacionC(CUOTASL.ESPECIE1[Fila],,,,FECHA1,1,SI,ESPECIE);100;;Numero;'###,###.########';NO;NO;;
+  Precio2    : '%Aforo'         ;;;CUOTASL.PRECIO2[Fila] > 0;'Aforo Invalido';;;100;;Numero;'###.##';NO;NO;;
+  Precio3    : 'Pr.Aforado'     ;NO;;;;;CUOTASL.PRECIO1[Fila]*CUOTASL.PRECIO2[Fila]/100;100;;Numero;'###,###.########';NO;NO;;
+  Cantidad2  : 'Imp.Cobrar'     ;NO;;;;;CUOTASL.CANTIDAD1[Fila] * CUOTASL.PRECIO3[Fila];150;;Numero;'###,###,###,###,###.##';NO;NO;;
+  Cuenta1    : 'Debito en'      ;;;NoVacio(CuotasL.CUENTA1[Fila]) ;'Cuenta Debito Invalida';;IF(Eqstr(ABM, 'A'), CuentaCliente(VEHICULO1,CUOTASL.ESPECIE1[Fila],CLIENTE1,,TIPOTR2,'HAB'), CUOTASL.CUENTA1[Fila]);150;NO;Tabla;'Cuentas';'Codigo';'Codigo;Nombre';NO;NO;
+
+
+MOVIMIENTOS  
+MOVCUOTAS
+Fecha1;Cliente1;CuotasL.Especie1[Fila];;Vehiculo1;1;CuotasL.Cantidad1[Fila];'Alta Integracion Caucion Tomadora';SI;Not Incluido(Vehiculo1,Var('VLIQUIDA')~Var('VLIQUIDA2'));;;(Fila+500);CuotasL.Cuenta1[Fila];;(Fila+500);'CUOTAS'
+Fecha2;Cliente1;CuotasL.Especie1[Fila];;Vehiculo1;1;-CuotasL.Cantidad1[Fila];'Vto Caucion Tomadora de Titulo';SI;Not Incluido(Vehiculo1,Var('VLIQUIDA')~Var('VLIQUIDA2'));;;(Fila+600);CuotasL.Cuenta1[Fila];;(Fila+600);'CUOTAS'
+
+
+*
+*Cliente1       : 'Cliente'        ;2;1; ;NO;
+*Fecha1         : 'Fecha Carga'    ; ; ; ;NO;
+*Fecha2         : 'Fecha Liquid.'  ; ; ; ;NO;
+*Cantidad1      : 'Cantidad'       ; ; ; ;NO;
+*Vehiculo1      : 'Vehiculo '      ; ; ; ;NO;
+*Cuenta1        : 'De Cta. Cliente'; ; ; ;
+*Cuenta2        : 'A Cta. Propia'  ; ; ; ;
+*
+*ConceptoPago   : 'Concepto'    ;1;1;;;;NOVACIO(CONCEPTOPAGO) y Eqstr(BuscarCampo('CNCONCEPTOSPAGOCOBRO','TipoConcepto','Codigo',CONCEPTOPAGO),'DEP');'Concepto invalido';NO;'DEPOSI';;;;;;;" TipoConcepto='DEP'  ";
+*Fecha1         : 'FechaOp'     ;1;2;;VerificaAcceso('OPFVALOR');;FECHA1<=FSYS y EsHabil(FECHA1,'ARG');'Fecha Incorrecta';NO;FSYS;
+*Fecha2         : 'FechaAcredit';2;2;1;;;;;;FECHA1;FECHA1
+*Fecha3         : 'FechaAcredit';2;2;;NO;NO;;;;FECHA2;FECHA2
+*CodigoDatanet1 : 'Cod.Datanet' ;3;2;1;NO;
+*
+*Vehiculo1      : 'Vehiculo '   ;3;1;;;;NoVacio(VEHICULO1);'Vehiculo Invalido';NO;BuscarCampo('USRVEHICULO','Vehiculo','Codigo',USUARIOACTIVO)
+*Especie        : 'Moneda '     ;4;1;1;;;NoVacio(ESPECIE) y DesciendeDeEspecie(ESPECIE,'MONEDA');'Moneda Invalida';NO;;;;;;;;"Status = 'HAB' and Jerarquia Like '"~Jerarquia('ESPECIES','MONEDA')~"%' ";
+*Cantidad1      : 'Cantidad'    ;5;1;;;;CANTIDAD1>0;'Cantidad Invalida';NO;
+*CNFormaPago    : 'Forma Cobro' ;5;2;;;;NOVACIO(CNFORMAPAGO);'Forma de Pago Invalida';NO;
+*Cantidad3      : 'Ajuste'      ;6;1;1;NO;CANTIDAD3<>0;
+*
+*Cliente2       : 'Banco'       ;7;1;;;;Eqstr(BuscarCampo('CLIENTES','Sector','Codigo',CLIENTE2),'BAN');'Banco invalido' ;NO;;;;;;;;"Sector='BAN' "
+*Cuenta2        : 'Cuenta'      ;8;1;;;;NoVacio(CUENTA2) ;'Cuenta Invalida';NO;;Query(" SELECT Codigo FROM "~DBO~".CUENTAS WHERE Cliente='"~VEHICULO1~"' AND (Especies Like '%"~ESPECIE~"%' OR Especies LIKE '%MONEDA%') and Estado='HAB' AND Comitente='"~CLIENTE2~"'");;;;;;"Cliente = '"~VEHICULO1~"' AND (Especies Like '%"~ESPECIE~"%' OR Especies LIKE '%MONEDA%') and Estado='HAB' AND Comitente = '"~CLIENTE2~"'";
+*VTXT2          : '#'           ;8;2;;NO;;;;;;BuscarCampo('CUENTAS','Numero','Codigo',CUENTA2);;;;;'XXXXXXXXXXXXXXXXXXXXXX'
+*
+*Cambio1        : 'Nro.Boleta'   ;9;1;1;;;;;;;;;;;;"###,###,###,###,###"
+*CB1            : 'Cobranza'     ;9;2;1;;;;;;0
+*CB3            : 'Conc.Datanet' ;10;1;1;;;;;;0
+*CB4            : 'Ev.CargaAut.' ;11;1;1;NO;;;;;0

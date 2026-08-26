@@ -1,0 +1,12 @@
+﻿IIF(Eqstr(#MONEDA, #MONELOCAVH),
+   #IMPORTE,
+   IIF(Eqstr(#MONELOCAVH, #MONELOCAL),
+      #IMPORTE*#COTBNAMONV,
+      IIF(Eqstr(#MONELOCAVH, #MONEURU),
+         IIF(Eqstr(#MONEDA, #MONELOCAL),
+            #IMPORTE*#CBNABCUSDV,
+            #IMPORTE*#COTBCUMONV),
+         1
+      )
+   )
+)

@@ -1,0 +1,38 @@
+﻿#*********************************************************************************
+#combos data sources.
+set ds_AfectaPosicion          = "SI:Si|NO:No|SIE:Si (Editable)|NOE:No (Editable)"
+set ds_AfectaLavado            = "SI:Si|NO:No"
+set ds_NoContabiliza           = "SI:Si|NO:No"
+#*********************************************************************************
+def abm 'CNConceptosPagoCobro'
+    def grid
+        Codigo:, Descripcion:
+    end
+    def key
+        Codigo:
+    end
+    def dialog_size
+        600,400
+    end
+    def dialog
+        tab 'General'
+            column
+                Codigo:         , 'Codigo'          , small_text
+                Descripcion:    , 'Descripcion'     , large_text
+                TipoConcepto:   ,                   , autocomplete, 'CNTIPOSCONCEPTOSPAGO', 'Codigo,Descripcion'
+                CuentaContable: , 'Cuenta Contable' , autocomplete, 'CONTABILIDAD', 'Codigo,Nombre'
+                Alias1:         , 'Alias 1'         , 
+                EstadosCustodia:, 'Estados de Gtia.', autocomplete, 'ESTADOSCUSTODIA', 'Codigo,Descripcion'
+                AfectaPosicion: , 'Afecta posicion' , combo, ds_AfectaPosicion
+                AfectaLavado:   , 'Afecta lavado'   , combo, ds_AfectaLavado
+                NoCont:         , 'No Contabiliza'  , combo, ds_NoContabiliza
+    end
+    upper_case_fields: Codigo:
+    validates_max_length_of:
+        Codigo:         , 6,true;
+        Descripcion:    , 50,true;
+        TipoConcepto:   , 6,true;
+        CuentaContable: , 20,true;
+        Alias1:         , 20,true;
+        EstadosCustodia:, 6,true;
+end

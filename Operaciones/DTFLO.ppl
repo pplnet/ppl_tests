@@ -1,0 +1,16 @@
+﻿CAMPOS:1;;BuscarCampo('VEHICULOS','Alias1','Codigo',Vehiculo1)
+
+MB1            : 'Tipo|CAP|FLOOR'             ;4;3;;NO;NO;;;;1;
+
+@DTCAPFLOR
+
+MOVIMIENTOS
+FechaVto ;Cliente1;ContraEspecie;;;;;Vehiculo1;1;IF(MB3=0,1,-1)*TotalNetoCli1;;'Monto de Prima';SI;Incluido(Vehiculo1,Var('VLIQUIDAA'));;TotalNetoCli1<>0;;Cuenta2;;1;
+
+
+MOVCUOTAS
+CuotasL.Fecha7[Fila];Cliente1 ;Especie;;Vehiculo1;1;IF(MB3=0 y MB1=1,-1,1)*CuotasL.Total2[Fila];'Resultado por Modificacion '~TIPOOP;SI;Incluido(Vehiculo1,Var('VLIQUIDAA'));;;;Cuenta1;;(Fila+CUOTAS1*4)+4;
+
+@INSTOPE
+@INST19DT
+@INST19BITS

@@ -1,0 +1,10 @@
+﻿CAMPOS:2; ;5
+Cliente1     : "Contraparte"              ;;;;;;;;;;
+FechaOp      : "Fecha"                    ;;;;;;;;;Fsys;
+Especie      : "Especie"                  ;;;;;;;;;;
+Cantidad     : "Importe"                  ;;;;;;Cantidad>0;'EL IMPORTE DEBE SER >0';NO;0;
+
+
+MOVIMIENTOS
+FechaOp ;Cliente1;Especie;;;;;;1; Cantidad        ;;'Margenes MR '~ESPECIE;SI;;;;;;;1;
+

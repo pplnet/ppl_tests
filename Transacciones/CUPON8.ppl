@@ -1,0 +1,75 @@
+﻿CAMPOS:1;;BuscarCampo('VEHICULOS','Alias3','Codigo',Vehiculo1)
+Especie        : 'E.Origen'     ;2;1;;NO;;
+Especie2       : 'Cupon'        ; ;1;;NO;;
+Fecha1         : 'F.Corte'      ;2;2;;NO;;
+Fecha2         : 'F.Pago/Vto'   ; ;2;;NO;;
+Cliente1       : 'Cliente'      ;4;1;;NO;;
+Cantidad1      : 'Cantidad'     ;5;1;;NO;;
+Precio1        : '% Amort.'     ;6;1;;NO;;
+Precio2        : '% Renta'      ; ; ;;NO;;
+Precio3        : '% Ints.Capit.'; ; ;;NO;;
+Precio4        : '% PIK'        ; ; ;;NO;;
+Cupon1         : 'Nr.Cupon'     ;5;2;;NO;;;;;;;;;;;'###'
+Cambio1        : 'V.Teor.Ant'   ;7;2;;NO;;
+Cambio2        : 'V.Teor.Act'   ;8;2;;NO;;
+Cupon2         : 'NrCupon Nuevo' ;8;2;;NO;NO;;;;;;;;;;'###'
+Vehiculo1      : 'Vehiculo'     ;10;1;;NO;;
+Cantidad4      : 'NrSaldo'      ;11;1;;NO;;;;;;;;;;;'###'
+Cantidad5      : 'Cant.Pikeo'   ;10;2;;NO;CANTIDAD5 > 0;;;;TRUNC(CANTIDAD5);;;;;;
+Mercado1       : 'Mercado'      ;12;1;;NO 
+CB2            : 'Pendiente'    ;13;1;;NO 
+CB3            : 'Opcion'       ;13;1;;NO;NO
+CB4            : 'Sin Saldo'    ;13;1;;NO;NO
+CB5            : 'Rescate'      ;11;2;;NO;NO
+NrOperacionRef1: 'OpAsoc'       ; ; ;2;NO;NOVACIO(NROPERACIONREF1);
+Cantidad2      : 'PosiHM'       ;14;1;2;NO;CANTIDAD2>0;
+Cantidad3      : 'PosiOtras'    ;14;2;2;NO;CANTIDAD3>0;
+Cambio3        : 'Coef_Indice'  ;15;2;2;NO;NOVACIO(CAMBIO3);
+Book1           : 'Book'         ;2;1;2;NO;
+Cuenta2        : 'Cuenta'       ;16;2;1;NO;;
+
+MOVIMIENTOS
+Fecha1;Vehiculo1;Especie;;;;;IF(Cantidad4<>10 Y Cantidad4<>3,Vehiculo1);Cantidad4;-Cantidad1;;'Corte de Cupon de '~Especie ~' Cup. '~Cupon1;SI;SI;1;Not Eqstr(CB2,'1') y VACIO(NROPERACIONREF1) Y CANTIDAD4 <> 1;;CUENTA2;;1;;;Cupon1;;;;Book1;
+Fecha1;Vehiculo1;Especie;;;;;IF(Cantidad4<>10 Y Cantidad4<>3,Vehiculo1);Cantidad4;Cantidad1;;'Corte de Cupon de '~Especie ~' Cup. '~Cupon1;SI;SI;2;Not Eqstr(CB2,'1') y Not Eqstr(CB5,'1')  y VACIO(NROPERACIONREF1) y Cambio2>0 Y CANTIDAD4 <> 1;;CUENTA2;;2;;;Cupon2;;;;Book1;
+Fecha1;Vehiculo1;Especie2;;;;;IF(Cantidad4<>10 Y Cantidad4<>3,Vehiculo1);Cantidad4;Cantidad1;;'Corte de Cupon de '~Especie2~' Cup. '~Cupon1;SI;SI;2;Not Eqstr(CB2,'1') y (PRECIO2+PRECIO1+PRECIO4)<>0 y Cantidad4=1;;CUENTA2;;3;;;Cupon1;;;;;
+Fecha1;Vehiculo1;Especie;;;;;IF(Cantidad4<>10 Y Cantidad4<>3,Vehiculo1);Cantidad4; Cantidad5;;'Corte de Cupon de '~Especie ~' Cup. '~Cupon1;SI;SI;2;Not Eqstr(CB2,'1') y Not Eqstr(CB5,'1')  y VACIO(NROPERACIONREF1) y Cambio2>0 Y CANTIDAD4 <> 1;;CUENTA2;;4;;;Cupon2;;;;Book1;
+
+Fecha1;Vehiculo1;Especie;;;;;IF(Cantidad4<>10 Y Cantidad4<>3,Vehiculo1);Cantidad4;-Cantidad1;;'Corte de Cupon de '~Especie ~' Cup. '~Cupon1;SI;NO;1;Eqstr(CB2,'1') Y CANTIDAD4 <> 1;;CUENTA2;;1;;;Cupon1;;;;Book1;
+Fecha1;Vehiculo1;Especie;;;;;IF(Cantidad4<>10 Y Cantidad4<>3,Vehiculo1);Cantidad4;Cantidad1;;'Corte de Cupon de '~Especie ~' Cup. '~Cupon1;SI;NO;2;Eqstr(CB2,'1') y Not Eqstr(CB5,'1') y Cambio2>0 Y CANTIDAD4 <> 1;;CUENTA2;;2;;;Cupon2;;;;Book1;
+Fecha1;Vehiculo1;Especie2;;;;;IF(Cantidad4<>10 Y Cantidad4<>3,Vehiculo1);Cantidad4;Cantidad1;;'Corte de Cupon de '~Especie2~' Cup. '~Cupon1;SI;NO;2;Eqstr(CB2,'1') y (PRECIO2+PRECIO1+PRECIO4)<>0 y Cantidad4=1;;CUENTA2;;3;;;Cupon1;;;;;
+Fecha1;Vehiculo1;Especie;;;;;IF(Cantidad4<>10 Y Cantidad4<>3,Vehiculo1);Cantidad4;Cantidad5;;'Corte de Cupon de '~Especie ~' Cup. '~Cupon1;SI;NO;2;Eqstr(CB2,'1') y Not Eqstr(CB5,'1') y Cambio2>0 Y CANTIDAD4 <> 1;;CUENTA2;;4;;;Cupon2;;;;Book1;
+
+Fecha1;Vehiculo1;Especie;;;;;IF(Cantidad4<>10 Y Cantidad4<>3,Vehiculo1);Cantidad4;-Cantidad1;;'Corte de Cupon de '~Especie ~' Cup. '~Cupon1;SI;SI;1;Not Eqstr(CB2,'1') y VACIO(NROPERACIONREF1) Y CANTIDAD4 = 1;;CUENTA2;;1;;;Cupon1;;;;;
+Fecha1;Vehiculo1;Especie;;;;;IF(Cantidad4<>10 Y Cantidad4<>3,Vehiculo1);Cantidad4;Cantidad1;;'Corte de Cupon de '~Especie ~' Cup. '~Cupon1;SI;SI;2;Not Eqstr(CB2,'1') y Not Eqstr(CB5,'1')  y VACIO(NROPERACIONREF1) y Cambio2>0 Y CANTIDAD4 = 1;;CUENTA2;;2;;;Cupon2;;;;;
+Fecha1;Vehiculo1;Especie;;;;;IF(Cantidad4<>10 Y Cantidad4<>3,Vehiculo1);Cantidad4; Cantidad5;;'Corte de Cupon de '~Especie ~' Cup. '~Cupon1;SI;SI;2;Not Eqstr(CB2,'1') y Not Eqstr(CB5,'1')  y VACIO(NROPERACIONREF1) y Cambio2>0 Y CANTIDAD4 = 1;;CUENTA2;;4;;;Cupon2;;;;;
+
+Fecha1;Vehiculo1;Especie;;;;;IF(Cantidad4<>10 Y Cantidad4<>3,Vehiculo1);Cantidad4;-Cantidad1;;'Corte de Cupon de '~Especie ~' Cup. '~Cupon1;SI;NO;1;Eqstr(CB2,'1') Y CANTIDAD4 = 1;;CUENTA2;;1;;;Cupon1;;;;;
+Fecha1;Vehiculo1;Especie;;;;;IF(Cantidad4<>10 Y Cantidad4<>3,Vehiculo1);Cantidad4;Cantidad1;;'Corte de Cupon de '~Especie ~' Cup. '~Cupon1;SI;NO;2;Eqstr(CB2,'1') y Not Eqstr(CB5,'1') y Cambio2>0 Y CANTIDAD4 = 1;;CUENTA2;;2;;;Cupon2;;;;;
+Fecha1;Vehiculo1;Especie;;;;;IF(Cantidad4<>10 Y Cantidad4<>3,Vehiculo1);Cantidad4;Cantidad5;;'Corte de Cupon de '~Especie ~' Cup. '~Cupon1;SI;NO;2;Eqstr(CB2,'1') y Not Eqstr(CB5,'1') y Cambio2>0 Y CANTIDAD4 = 1;;CUENTA2;;4;;;Cupon2;;;;;
+
+*Fecha1;Vehiculo1;Especie;;;;Mercado1;IF(Cantidad4<>10 Y Cantidad4<>3,Vehiculo1);Cantidad4;-Cantidad1;;'Corte de Cupon de '~Especie ~' Cup. '~Cupon1;SI;SI;1;Not Eqstr(CB2,'1') y VACIO(NROPERACIONREF1);;CUENTA2;;1;;;Cupon1;;;;Book1;
+*Fecha1;Vehiculo1;Especie;;;;Mercado1;IF(Cantidad4<>10 Y Cantidad4<>3,Vehiculo1);Cantidad4;Cantidad1;;'Corte de Cupon de '~Especie ~' Cup. '~Cupon1;SI;SI;2;Not Eqstr(CB2,'1') y Not Eqstr(CB5,'1')  y VACIO(NROPERACIONREF1) y Cambio2>0;;CUENTA2;;2;;;Cupon2;;;;Book1;
+*Fecha1;Vehiculo1;Especie2;;;;Mercado1;IF(Cantidad4<>10 Y Cantidad4<>3,Vehiculo1);Cantidad4;Cantidad1;;'Corte de Cupon de '~Especie2~' Cup. '~Cupon1;SI;SI;2;Not Eqstr(CB2,'1') y (PRECIO2+PRECIO1+PRECIO4)<>0 y Cantidad4=1;;CUENTA2;;3;;;Cupon1;;;;Book1;
+*Fecha1;Vehiculo1;Especie;;;;Mercado1;IF(Cantidad4<>10 Y Cantidad4<>3,Vehiculo1);Cantidad4; Cantidad5;;'Corte de Cupon de '~Especie ~' Cup. '~Cupon1;SI;SI;2;Not Eqstr(CB2,'1') y Not Eqstr(CB5,'1')  y VACIO(NROPERACIONREF1) y Cambio2>0;;CUENTA2;;4;;;Cupon2;;;;Book1;
+*
+*Fecha1;Vehiculo1;Especie;;;;Mercado1;IF(Cantidad4<>10 Y Cantidad4<>3,Vehiculo1);Cantidad4;-Cantidad1;;'Corte de Cupon de '~Especie ~' Cup. '~Cupon1;SI;NO;1;Eqstr(CB2,'1');;CUENTA2;;1;;;Cupon1;;;;Book1;
+*Fecha1;Vehiculo1;Especie;;;;Mercado1;IF(Cantidad4<>10 Y Cantidad4<>3,Vehiculo1);Cantidad4;Cantidad1;;'Corte de Cupon de '~Especie ~' Cup. '~Cupon1;SI;NO;2;Eqstr(CB2,'1') y Not Eqstr(CB5,'1') y Cambio2>0;;CUENTA2;;2;;;Cupon2;;;;Book1;
+*Fecha1;Vehiculo1;Especie2;;;;Mercado1;IF(Cantidad4<>10 Y Cantidad4<>3,Vehiculo1);Cantidad4;Cantidad1;;'Corte de Cupon de '~Especie2~' Cup. '~Cupon1;SI;NO;2;Eqstr(CB2,'1') y (PRECIO2+PRECIO1+PRECIO4)<>0 y Cantidad4=1;;CUENTA2;;3;;;Cupon1;;;;Book1;
+*Fecha1;Vehiculo1;Especie;;;;Mercado1;IF(Cantidad4<>10 Y Cantidad4<>3,Vehiculo1);Cantidad4;Cantidad5;;'Corte de Cupon de '~Especie ~' Cup. '~Cupon1;SI;NO;2;Eqstr(CB2,'1') y Not Eqstr(CB5,'1') y Cambio2>0;;CUENTA2;;4;;;Cupon2;;;;Book1;
+*
+
+
+POSICION2
+IF(EsHabil(Fecha1, 'ARG'), Fecha1, Habiles(Fecha1, -1, 'ARG'));Vehiculo1;Book1;'SEC';Especie;Cupon1;1;CotizaEn(Especie); Cantidad1;Cambio2;0;'4';Cantidad4=3 Y Not Eqstr(CUPON1, '0')
+IF(EsHabil(Fecha1, 'ARG'), Fecha1, Habiles(Fecha1, -1, 'ARG'));Vehiculo1;Book1;'SEC';Especie;Cupon2;1;CotizaEn(Especie); Cantidad1;Cambio2;0;'2';Cantidad4=3 Y Not Eqstr(CUPON1, '0') Y NO
+*IF(EsHabil(Fecha1, 'ARG'), Fecha1, Habiles(Fecha1, -1, 'ARG'));Vehiculo1;Book1;'SEC';Especie;Cupon1;1;CotizaEn(Especie);-Cantidad1;1;0;'1';Cantidad4=3 Y Eqstr(CUPON1, '0')
+*x BFSA 8194
+IF(EsHabil(Fecha1, 'ARG'), Fecha1, Habiles(Fecha1, -1, 'ARG'));Vehiculo1;Book1;'SEC';Especie;Cupon1;1;CotizaEn(Especie);-Cantidad1;IF(Not EqStr(BuscarCampo('ESPECIES','MonedaEmision','Codigo',ESPECIE),CotizaEn(ESPECIE)),Cotizacion(Especie,,,,Fecha1,1,SI,NO),1);0;'1';Cantidad4=3 Y Eqstr(CUPON1, '0')
+IF(EsHabil(Fecha2, 'ARG'), Fecha2, Habiles(Fecha2, -1, 'ARG'));Vehiculo1;Book1;'SEC';Especie;Cupon1;1;CotizaEn(Especie);-Cantidad1;Cotizacion(Especie,,,,Fecha1,1,SI,NO);0;'2';Cantidad4=3 Y Not Eqstr(CUPON1, '0') Y Cambio2=0
+IF(EsHabil(Fecha2, 'ARG'), Fecha2, Habiles(Fecha2, -1, 'ARG'));Vehiculo1;Book1;'SEC';Especie;Cupon1;2;CotizaEn(Especie);Cantidad1;Precio1;0;'3';Cantidad4=3 Y Not Eqstr(CUPON1, '0') Y Precio1 > 0
+IF(EsHabil(Fecha2, 'ARG'), Fecha2, Habiles(Fecha2, -1, 'ARG'));Vehiculo1;Book1;'SEC';Especie;Cupon1;2;CotizaEn(Especie);Cantidad1;(Precio2+Precio4)*Cambio1;0;'4';Cantidad4=3 Y Not Eqstr(CUPON1, '0') Y (Precio2 + Precio4) > 0
+*IF(EsHabil(Fecha1, 'ARG'), Fecha1, Habiles(Fecha1, -1, 'ARG'));Vehiculo1;Book1;'SEC';Especie;Cupon1;2;CotizaEn(Especie);-Cantidad1;1;0;'1';Cantidad4=3 Y Eqstr(CUPON1, '0')
+*x BFSA 8194
+IF(EsHabil(Fecha1, 'ARG'), Fecha1, Habiles(Fecha1, -1, 'ARG'));Vehiculo1;Book1;'SEC';Especie;Cupon1;2;CotizaEn(Especie);-Cantidad1;IF(Not EqStr(BuscarCampo('ESPECIES','MonedaEmision','Codigo',ESPECIE),CotizaEn(ESPECIE)),Cotizacion(Especie,,,,Fecha1,1,SI,NO),1);0;'1';Cantidad4=3 Y Eqstr(CUPON1, '0')
+IF(EsHabil(Fecha2, 'ARG'), Fecha2, Habiles(Fecha2, -1, 'ARG'));Vehiculo1;Book1;'SEC';Especie;Cupon1;2;CotizaEn(Especie);Cantidad5;1*Cambio1;0;'2';Cantidad4=3 Y Not Eqstr(CUPON1, '0') Y Cantidad5 > 0
+IF(EsHabil(Fecha2, 'ARG'), Fecha2, Habiles(Fecha2, -1, 'ARG'));Vehiculo1;Book1;'SEC';Especie;Cupon1;2;CotizaEn(Especie);-Cantidad1;Cotizacion(Especie,,,,Fecha1,1,SI,NO);0;'2';Cantidad4=3 Y Not Eqstr(CUPON1, '0') Y Cambio2=0

@@ -1,0 +1,57 @@
+﻿CAMPOS:1;;BuscarCampo('VEHICULOS','Alias1','Codigo',Vehiculo1)
+FechaOp        : 'Fecha Movimiento'   ;1;1;;NOT EV y VERIFICAACCESO('OPFVALOR');;EsHabil(FECHAOP,'ARG');'FECHA MOVIMIENTO NO ES HABIL EN ARGENTINA';NO;FSYS;
+OperacionRef   : 'Op_Ref.'            ;2;1;;;;VACIO(OPERACIONREF) O INCLUIDO(BuscarCampo('OPERACIONES','TipoOp','NrOperacion',OperacionRef),Var('MODOPE'));'DEBE INGRESAR UNA OPERACION DE MONEY MARKETS';NO;;;;;;;;" TipoOp Like '%MM%' ";
+@VEHITO
+Cliente1       : 'Contraparte'        ;3;2;;NO;;;;;OPREF.CLIENTE1;OPREF.CLIENTE1
+
+Especie        : 'Moneda'             ;4;1;;NOT EV;;NOVACIO(ESPECIE);'DEBE INGRESAR UNA ESPECIE';NO;;;;LeerObjeto('Monedas')
+Sector1        : 'Concepto'           ;4;2;;;;;;;;;;
+Cantidad       : 'Importe'            ;5;1;;NOT EV;;VACIO(ESPECIE) o Cantidad<>0;'IMPORTE NO PUEDE SER CERO';NO;
+RB1            : 'Mod.Futura'         ;5;2;;;;;;;0;
+TotalNetoCli1  : 'Imp.Futuro'         ;6;1;;NOT EV y RB1=1;RB1=1;RB1=0 o TOTALNETOCLI1<>0;'IMPORTE FUTURO NO PUEDE SER CERO';NO;-CANTIDAD;-CANTIDAD
+FechaOp2       : 'Fecha Futuro'       ;6;2;;NOT EV y VERIFICAACCESO('OPFVALOR');RB1=1;RB1=0 o EsHabil(FECHAOP2,'ARG');'FECHA MOVIMIENTO FUTURO NO ES HABIL EN ARGENTINA';NO;FECHAOP;IF(RB1=0,0,FECHAOP2)
+
+ContraEspecie  : 'Moneda'             ;8;1;;NOT EV;;;;;;;;LeerObjeto('Monedas')
+Sector3        : 'Concepto'           ;8;2;;;;;;;;;;
+TotalBrutoCli1 : 'Importe'            ;9;1;;NOT EV;;VACIO(CONTRAESPECIE) o TOTALBRUTOCLI1<>0;'IMPORTE NO PUEDE SER CERO';NO;
+RB2            : 'Mod.Futura'         ;9;2;;;;;;;0;
+TotalNetoCli2  : 'Imp.Futuro'         ;10;1;;NOT EV y RB2=1;RB2=1;RB2=0 o TOTALNETOCLI2<>0;'IMPORTE FUTURO NO PUEDE SER CERO';NO;-TOTALBRUTOCLI1;-TOTALBRUTOCLI1
+FechaVto       : 'Fecha Futuro'       ;10;2;;NOT EV y VERIFICAACCESO('OPFVALOR');RB2=1;RB2=0 o EsHabil(FECHAVTO,'ARG');'FECHA MOVIMIENTO FUTURO NO ES HABIL EN ARGENTINA';NO;FECHAOP;IF(RB1=0,0,FECHAVTO)
+
+Operador       :                      ;12;1;;NO;;NOVACIO(OPERADOR);'EL OPERADOR ES INVALIDO';NO;USUARIOACTIVO;
+Observac2      : 'Descripcion'        ;;;;;;;;;;;;
+
+RB3            : 'MOF'                ;10;2;;NO;NO;;;;;IF(INSTANCIA=2,0,1)
+Impresa        : 'Modificado'         ;10;3;;NO;NO;;;;0
+
+CONDICIONES
+VACIO(SECTOR1) Y VACIO(SECTOR3) O NOT EQSTR(SECTOR1,SECTOR3);'DEBE INGRESAR CONCEPTOS DIFERENTES';NO
+FECHAOP =Fsys;'LA FECHA DE ORIGEN NO COINCIDE CON LA FECHA DEL SISTEMA';SI;SI;FSYS;'ORIGFVALOR'
+VACIO(BuscarCampo('USUARIOS','Perfil','Codigo',OPERADOR)) O  VERIFICAPERFIL(BuscarCampo('USUARIOS','Perfil','Codigo',OPERADOR),'TO'~TIPOOP);'Operador no habilitado para ingresar Operaciones del Tipo '~TIPOOP;NO
+@CONDIOP
+
+EDICION
+EqStr(Operador, UsuarioActivo) o Incluido(UsuarioActivo, Var('ULMODI'));'No se puede modificar, Operador: '~Operador
+
+BAJA
+EqStr(Operador, UsuarioActivo) o Incluido(UsuarioActivo, Var('ULBAJA'));'No se puede dar de baja, Operador: '~Operador
+
+MOVIMIENTOS
+FechaOp ;IF(VACIO(OPERACIONREF),VEHICULO1,CLIENTE1);Especie      ;;;;;Vehiculo1;1;      Cantidad*-1;;IF(Vacio(SECTOR1) y Vacio(OBSERVAC2) y Cantidad<>0,'Modif', IF(Vacio(SECTOR1) y NoVacio(OBSERVAC2) y Cantidad<>0,OBSERVAC2,IF(VACIO(OPERACIONREF),'Modif-'~SECTOR1,'Modif-'~OPERACIONREF~'-'~SECTOR1)))            ;SI;SI;;CANTIDAD<>0;;;;1;
+FechaOp2;IF(VACIO(OPERACIONREF),VEHICULO1,CLIENTE1);Especie      ;;;;;Vehiculo1;1; TotalNetoCli1*-1;;IF(Vacio(SECTOR1) y Vacio(OBSERVAC2) y TotalNetoCli1<>0,'Modif', IF(Vacio(SECTOR1) y NoVacio(OBSERVAC2) y TotalNetoCli1<>0,OBSERVAC2,IF(VACIO(OPERACIONREF),'Modif-'~SECTOR1,'Modif-'~OPERACIONREF~'-'~SECTOR1)))  ;SI;SI;;RB1=1;;;;2;
+FechaOp ;IF(VACIO(OPERACIONREF),VEHICULO1,CLIENTE1);ContraEspecie;;;;;Vehiculo1;1;TotalBrutoCli1*-1;;IF(Vacio(SECTOR3) y Vacio(OBSERVAC2) y TotalBrutoCli1<>0,'Modif', IF(Vacio(SECTOR3) y NoVacio(OBSERVAC2) y TotalBrutoCli1<>0,OBSERVAC2,IF(VACIO(OPERACIONREF),'Modif-'~SECTOR3,'Modif-'~OPERACIONREF~'-'~SECTOR3)));SI;SI;;TOTALBRUTOCLI1<>0;;;;3;
+FechaVto;IF(VACIO(OPERACIONREF),VEHICULO1,CLIENTE1);ContraEspecie;;;;;Vehiculo1;1; TotalNetoCli2*-1;;IF(Vacio(SECTOR3) y Vacio(OBSERVAC2) y TotalNetoCli2<>0,'Modif', IF(Vacio(SECTOR3) y NoVacio(OBSERVAC2) y TotalNetoCli2<>0,OBSERVAC2,IF(VACIO(OPERACIONREF),'Modif-'~SECTOR3,'Modif-'~OPERACIONREF~'-'~SECTOR3)))  ;SI;SI;;RB2=1;;;;4;
+
+BITS
+1;1
+50;0
+
+INSTANCIA1
+BITS
+1 ;0;FW=1
+50;1;FW=1
+
+INSTANCIA50
+BITS
+50;0;FW=2
+1 ;1;FW=2

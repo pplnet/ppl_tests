@@ -1,0 +1,30 @@
+﻿CAMPOS:1;;2
+
+Operador       : 'Operador'     ;2;1;;INCLUIDO(USUARIOACTIVO,VAR('USRDISOPE'));;NOVACIO(OPERADOR);'El Operador es Invalido';NO;USUARIOACTIVO;
+Especie        : 'Moneda'       ; ;1;;NO;;;;NO;;'USD';;
+RB6            : 'Cliente|Terceros|Vinculados' ; 5;1;;;;RB6>=0;'Indique el Tipo de Cliente';NO;0;
+RB7            : 'Origen|Activas|Pasivas' ; ;1;;;;RB7>=0;'Indique el Tipo de Origen';NO;0;
+RB8            : IF(RB6<=0 Y RB7<=0,'Tipo|Dep.Pla|T.Publ|T.Priva|Cta.Cte|SubTot|Acc',IF(RB6<=0 y RB7=1,'Tipo|Ob.Neg|Com.Ext|Fin.Loc|Fin.Ext|Cta.Cte',IF(RB6=1 y RB7<=0,'Tipo|Cta.Cte.Vinc|Cta.Cte.Div|Coloc.Vinc|Coloc.Div','Tipo|Cta.Cte.Vinc|Cta.Cte.Div|Prest.Vinc|Prest.Div'))); ;1;;;;;;NO;0
+Cantidad       : 'Monto'        ; ;1;;;;CANTIDAD<>0;'La Cantidad debe ser distinta de cero';NO;0;
+Precio1        : 'Tasa (%)'     ; ;1;;;;;;;;;;;;;'###,###.######'
+Precio2        : 'Plazo'        ; ;1;;;;PRECIO2>0;'Debe INGRESAR el Plazo';NO;0;;;;;;'###,###.##'
+Observac2      : 'Concepto'     ; ;1;;;;;;;
+
+@VEHITO
+FechaOp        : 'Fec.Desde'    ;2;2;;;;NoVacio(FECHAOP) y FECHAOP < FECHAVTO;'Fecha Desde Invalida';NO;FSYS;;
+FechaVto       : 'Fec.Hasta'    ; ;2;;;;NoVacio(FECHAVTO) y FECHAOP < FECHAVTO;'Fecha Hasta Invalida';NO;FSYS;
+FechaOp2       : 'Fec.Proceso'  ; ;2;;NO;;;;;;FSYS;
+RB3            : 'MOF'          ; ;2;;NO;NO;;;;;IF(INSTANCIA=2,0,1)
+
+CONDICIONES
+@CONDIOP
+
+EDICION
+EqStr(Operador, UsuarioActivo) o Incluido(UsuarioActivo, Var('ULMODI'));'No se puede modificar, Operador: '~Operador
+
+BAJA
+EqStr(Operador, UsuarioActivo) o Incluido(UsuarioActivo, Var('ULBAJA'));'No se puede dar de baja, Operador: '~Operador
+
+@INSTOPE
+@INST19GENE
+@INST19BITS

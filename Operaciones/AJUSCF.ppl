@@ -1,0 +1,12 @@
+﻿CAMPOS:1;;2
+@VEHITO
+Operador       : 'Operador'     ;2;1;;INCLUIDO(USUARIOACTIVO,VAR('USRDISOPE'));;NOVACIO(OPERADOR);'El Operador es Invalido';NO;USUARIOACTIVO;
+Especie        : 'Moneda'       ;;1;;;;NOVACIO(ESPECIE) y DESCIENDEDEESPECIE(ESPECIE,'MONEDA') y ESTERMINAL(ESPECIE,ESPECIE);'Debe Ingresar una Moneda ';NO;;;;;;;;" Codigo IN ("~Pipe2Comillas(Descendientes('ESPECIES', 'MONEDA'))~") and Status = 'HAB' ";;;;;;;;
+FechaOp        : 'F.Flujo'      ;2;2;;;;;;;FSYS;
+FechaOp2       : 'F.Proceso'    ;3;2;;NO;;;;;FSYS;
+Cantidad       : 'Monto'        ;4;1;;;;;;;0;
+Cliente1       : 'Cliente'      ;5;1;;;;;;;;VEHICULO1
+
+@INSTOPE
+@INST19GENE
+@INST19BITS

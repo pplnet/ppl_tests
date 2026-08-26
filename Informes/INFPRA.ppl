@@ -1,0 +1,142 @@
+﻿*Primero va el CrearDialogo + Campos + Fin Dialogo
+*Inmediatamente después, If NOT OK + Cancelar + Endif
+CrearDialogo
+* - default: 1er día hábil del mes al mes anterior de FSYS * - default: el fin de mes (hábil) al mes anterior de FSYS
+Fecha1: 'Fecha desde'   ;;;;;;;;;PriDeMes(SumarMeses(FSYS,-1,0), NO, 'ARG') 
+Fecha2: 'Fecha Hasta'   ;;;;;;;;;FinDeMes(SumarMeses(FSYS,-1,0), NO, 'ARG')
+Cliente1: 'Entidad'     ;;;;;;
+Cliente2: 'Imputación'  ;;;;;;
+FinDialogo
+
+if Not Ok
+  Cancelar
+endif
+
+*Crear Tipos de fuentes para título y columnas
+CrearFont(1,"Arial,8,")
+CrearFont(2,"Arial,8,B")
+CrearFont(3,"Arial,10,B")
+*Guardar la fila en que inicia la cabecera para hacer fácil aplicar los formatos y fuentes
+let &inicioCabecera FAC
+SetFilaActual(fac+1)
+ACT(D:FAC, "Operaciones Tipo VD y VCX de AFIP")
+SetFont(D:fac..D:fac,3)
+ifa
+
+ACT(a:FAC, 'Fecha Desde: '~Dialogo.Fecha1)
+ifa
+ACT(a:FAC, 'Fecha Hasta: '~Dialogo.Fecha2)
+ifa
+
+ACT(a:FAC,  'Entidad: ')
+If NoVacio(Cliente1)
+    ACT(a:FAC, Val(a:fac)~Dialogo.Cliente1)
+else
+    ACT(a:FAC, Val(a:fac)~'Todos')
+EndIf
+
+ifa
+ACT(a:FAC,  'Imputación: ')
+If NoVacio(Cliente2)
+    ACT(a:FAC, Val(a:fac)~Dialogo.Cliente2)
+else
+    ACT(a:FAC, Val(a:fac)~'Todos')
+EndIf
+
+SetFont(A:&inicioCabecera..A:fac,2)
+
+*Columnas
+SetFilaActual(FAC+3)
+act(a:fac,'Nro Operacion')
+act(b:fac,'TipoOp')
+act(c:fac,'Entidad')
+act(d:fac,'Imputación')
+act(e:fac,'FechaOp')
+act(f:fac,'FechaVto')
+act(g:fac,'Especie')
+act(h:fac,'ContraEspecie')
+act(i:fac,'Cantidad')
+act(j:fac,'Precio')
+*Formato de Títulos de Columnas
+SetFont(a:fac..J:fac,2)
+AgregarMarco(a:fac..J:fac,2,0,Exe('COLOR'))
+ifa
+*Guardar variable al principio de los datos para aplicar formato fácilmente
+let &filaInicialFormato FAC
+
+*********************SENTENCIA SQL********************************
+SQL.ADD("SELECT O.NrOperacion, O.TipoOp, O.Cliente1 as Entidad, O.Cliente2 as Imputacion, O.FechaOp, O.FechaVto, O.Especie, O.ContraEspecie, O.Cantidad, O.Precio1")
+SQL.ADD("FROM "~DBO~".OPERACIONES O")
+SQL.ADD("WHERE O.CB6 = 1")
+SQL.ADD("AND O.FechaOp Between '"~IdxDate(Dialogo.Fecha1)~"' AND '"~IdxDate(Dialogo.Fecha2)~"'")
+*SQL.ADD("AND O.TipoOp IN ('VCX', 'VD')")
+If NoVacio(Cliente1)
+    SQL.ADD("AND O.Cliente1 = '"~(Dialogo.Cliente1)~"'")
+EndIf
+If NoVacio(Cliente2)
+    SQL.ADD("AND O.Cliente2 = '"~(Dialogo.Cliente2)~"'")
+EndIf
+SQL.ADD("ORDER BY O.Cliente1, O.Cliente2, FechaOp")
+watch(SQL.batch)
+
+Recorrer SQL
+    ******************
+    *CORTES DE CONTROL
+    ******************
+
+    
+    *********
+    *COLUMNAS
+    *********
+    ACT(A:Fac, FBN['NrOperacion'])
+    ACLO(A:FAC, FBN['NrOperacion'])
+    ACT(B:Fac, FBN['TipoOp'])
+    ACT(C:Fac, FBN['Entidad'])
+    ACT(D:Fac, FBN['Imputacion'])
+    ACD(E:Fac, FBN['FechaOp'])
+    ACD(F:Fac, FBN['FechaVto'])
+    ACT(G:Fac, FBN['Especie'])
+    ACT(H:Fac, FBN['ContraEspecie'])
+    ACN(I:Fac, FBN['Cantidad'])
+    ACN(J:Fac, FBN['Precio1'])
+    **********
+    *VARIABLES
+    **********
+    *Agregar totales, subtotales, contadores, etc
+    
+    ******
+    *FLAGS
+    ******
+    *Agregar flags para book, vehiculo, especie. Se toma el actual y se compara con el próximo registro
+    *para realizar los cortes de control.
+proximo
+
+****************
+*ÚLTIMOS TOTALES
+****************
+*El último registro siempre va a quedar afuera del próximo, y no va a ser procesado.
+*Por lo general se repite algo del código por fuera del loop para procesarlo correctamente.
+
+***Formato Celdas datos
+FormatoCeldas(I:&filaInicialFormato..I:fac, Exe('F2'))
+FormatoCeldas(J:&filaInicialFormato..J:fac, Exe('F2'))
+AgregarMarco(A:&filaInicialFormato ..J:fac, 1 )
+
+*Ancho de columnas
+ACO(1, 10)
+ACO(2, 10)
+ACO(3, 10)
+ACO(4, 10)
+ACO(5, 10)
+ACO(6, 10)
+ACO(7, 10)
+ACO(8, 10)
+ACO(9, 10)
+ACO(10, 10)
+
+*Cierre del informe
+SetFilaActual(fac+2)
+ACT(a:FAC, 'FIN DE LISTADO')
+SetFont(a:FAC, 2)
+LimitesVision(j:fac)
+RangoTitulo(a1..j:fac,13)

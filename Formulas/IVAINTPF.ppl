@@ -1,0 +1,1 @@
+﻿SQL(" Select Cantidad5 FROM "~DBO~".CUOTAS WHERE NrOperacion = '"~FBN('NrOperacion')~"' and NrCuota = "~FBN('NrMov')~"-500 ")

@@ -1,0 +1,33 @@
+﻿CrearDialogo
+    Especie1   :'Especie'      ;1;1;;;;NoVacio(Dialogo.Especie1) y DesciendeDeEspecie(Dialogo.Especie1,'TITULO') y Not DesciendeDeEspecie(Dialogo.Especie1,'CUPON');'Especie Invalida';NO;;;;;;"Status = 'HAB' "
+    Entero1    :'Nr.Cupon'     ;3;1;;NO;;Dialogo.Entero1>=0;'Nro de Cupon Invalido';NO;0;BuscarCampo('ESPECIES','Cupon','Codigo',Dialogo.Especie1)
+    String1    :'Nombre'       ;4;1;;NO;;NoVacio(Dialogo.String1);'Nombre';NO;;BuscarCampo('ESPECIES','Nombre','Codigo',Dialogo.Especie1)
+*   Fecha1         :'Fecha :'             ;;;;NO;;;;;FSYS
+*   Check1:        'TEST DE PROCESO'      ;;;;NO;NO;
+*   Radio1:     'Vehiculos|Todos|Algunos' ;;;;;;;;;0;;
+*   Lista1       : "Vehiculo"             ;;2;;;;Elementos(Dialogo.Lista1)>0;'Debe seleccionar al menos un elemento en la lista de vehiculos';NO;;IIF(Dialogo.Radio1=0,IIF(Vacio(UsrVehiculos(UsuarioActivo)), SQLSet(" Select Codigo From "~DBO~".VEHICULOS Where (Status='HAB' or Status Is Null or Status='') "), SQLSET(" Select U.Vehiculo From "~DBO~".USRVEHICULO U, "~DBO~".VEHICULOS V Where U.Codigo = '"~UsuarioActivo~"' AND U.Vehiculo = V.Codigo AND (Status='HAB' or Status Is Null or Status='') ")),'');IIF(Dialogo.Radio1=0,'',IIF(Vacio(UsrVehiculos(UsuarioActivo)), SQLSet(" Select Codigo From "~DBO~".VEHICULOS Where (Status='HAB' or Status Is Null or Status='') "), SQLSET(" Select U.Vehiculo From "~DBO~".USRVEHICULO U, "~DBO~".VEHICULOS V Where U.Codigo = '"~UsuarioActivo~"' AND U.Vehiculo = V.Codigo AND (Status='HAB' or Status Is Null or Status='') ")));   
+FinDialogo
+
+IF Not OK
+    Cancelar
+ENDIF
+*HojaVisible(SI)
+*CrearDialogo
+*  String1        : 'Path'       ;;;;NO;;;;;'C:\Bloomberg\'
+*  String2        : 'Archivo'    ;;;;;;;;;
+*FinDialogo
+*
+*IF Not Ok
+*    Cancelar
+*ENDIF
+*
+*ImportarXLS(A:2..B:1000,A:2..B:1000,Dialogo.String1~Dialogo.String2)
+*
+*If Not Ok
+*    Cancelar('No se pudo importar el excel')
+*EndIf
+*
+*Recorrer&I 2,1000
+*MessageBox(Val(A:&I)) 
+*MessageBox(Val(B:&I)) 
+*Proximo

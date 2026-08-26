@@ -1,0 +1,24 @@
+﻿def abm 'Mercados2'       
+    def grid
+    Codigo:, Descripcion:, Observaciones:, PorComision:
+    end
+    def key
+        Codigo:
+    end
+    def dialog
+        #**************************************************************************
+        tab 'General'       
+            column          
+                Codigo: ,, small_text
+                Descripcion: ,,large_text
+                Observaciones: ,, extra_large_text  
+                PorComision: ,, numeric
+    end
+    upper_case_fields: Codigo:
+    
+    validates_max_length_of:
+       Codigo:, 6,true;
+       Descripcion:, 40,true;
+       Observaciones:, 255,true;
+    validates_uniqueness_of: Codigo:
+end

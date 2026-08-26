@@ -1,0 +1,12 @@
+﻿IIF (#ESUSDLINK,
+    #TCLINK,
+    IIF((Incluido(FBN['TipoOp'],VAR('TOPASTCLIQ')) O (#ESCANJE Y EqStr(fbn('TipoOp'),'SECS') Y DesciendeDeEspecie(FBN['Moneda'],'MONEDA')))
+        y #MONEDA<>VAR('MONELOCA'),
+   IIF(#TCLIQ>0,
+    #TCLIQ,
+    #TCCONTABLEVHP
+   ),
+   #TCCONTABLEVHP
+)
+)
+

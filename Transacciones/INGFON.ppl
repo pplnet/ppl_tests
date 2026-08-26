@@ -1,0 +1,122 @@
+﻿CAMPOS:3;;BuscarCampo('VEHICULOS','Alias3','Codigo',Vehiculo1)
+*ConceptoPago   : 'Concepto'    ;1;1;;;;NOVACIO(CONCEPTOPAGO) y Eqstr(BuscarCampo('CNCONCEPTOSPAGOCOBRO','TipoConcepto','Codigo',CONCEPTOPAGO),'DEP');'Concepto invalido';NO;'DEPOSI';;;;;;;" TipoConcepto='DEP'  ";
+Fecha1         : 'FechaOp'     ;1;2;;VerificaAcceso('OPFVALOR');;FECHA1<=FSYS y EsHabil(FECHA1,'ARG');'Fecha Incorrecta';NO;FSYS;
+Fecha2         : 'FechaAcredit';3;2;;;;;;;FECHA1;FECHA1
+Vehiculo1      : 'Vehiculo'    ;2;1;;;;NoVacio(VEHICULO1) Y  Incluido(VEHICULO1,SqlSet("Select Codigo from "~DBO~".VEHICULOS WHERE Codigo = '"~Vehiculo1~"' and Status ='HAB' ")) y [Vacio(UsrVehiculos(UsuarioActivo)) o Incluido(VEHICULO1,SqlSet("Select Vehiculo From "~DBO~".USRVEHICULO Where Codigo = '"~UsuarioActivo~"'"))];'El VEHICULO es INVALIDO';NO;         ;IIF([Incluido(TIPOOP,'MMPRCO|MMPREC') o [Incluido(TIPOOP,'SECS|SEVS|SECSV|SEVSV|FXCS|FXVS|FXCSV|FXVSV|FCCPV|FCVPV') y CB13=1]] THEN BuscarCampo('OPERACIONES','Vehiculo1','NrOperacion', NROPERACION5) ELSE IF(Incluido(TIPOOP, 'MMONRE'), OPREF.VEHICULO1) ENDIF);;;;;;IF(Vacio(UsrVehiculos(UsuarioActivo)),  " Status ='HAB' " ,  " Codigo IN (Select Vehiculo from "~DBO~".USRVEHICULO where Codigo = '"~UsuarioActivo~"')")
+Especie        : 'Moneda '     ;4;1;1;;;NoVacio(ESPECIE) y DesciendeDeEspecie(ESPECIE,'MONEDA');'Moneda Invalida';NO;;;;;;;;"Status = 'HAB' and Jerarquia Like '"~Jerarquia('ESPECIES','MONEDA')~"%' ";
+Cantidad1      : 'Cantidad'    ;6;1;;;;CANTIDAD1>0;'Cantidad Invalida';NO;
+*CNFormaPago    : 'Forma Cobro' ;5;2;;;;NOVACIO(CNFORMAPAGO);'Forma de Pago Invalida';NO;
+*Cliente2       : 'Banco'       ;7;1;;;;Eqstr(BuscarCampo('CLIENTES','Sector','Codigo',CLIENTE2),'BAN');'Banco invalido' ;NO;;;;;;;;"Sector='BAN' "
+*Cuenta2        : 'Cuenta'      ;8;1;;;;NoVacio(CUENTA2) ;'Cuenta Invalida';NO;;Query(" SELECT Codigo FROM "~DBO~".CUENTAS WHERE Cliente='"~VEHICULO1~"' AND (Especies Like '%"~ESPECIE~"%' OR Especies LIKE '%MONEDA%') and Estado='HAB' AND Comitente='"~CLIENTE2~"'");;;;;;"Cliente = '"~VEHICULO1~"' AND (Especies Like '%"~ESPECIE~"%' OR Especies LIKE '%MONEDA%') and Estado='HAB' AND Comitente = '"~CLIENTE2~"'";
+*VTXT2          : '#'           ;8;2;;NO;;;;;;BuscarCampo('CUENTAS','Numero','Codigo',CUENTA2);;;;;'XXXXXXXXXXXXXXXXXXXXXX'
+
+
+CONDICIONES
+Incluido(VEHICULO1, UsrVehiculos(USUARIOACTIVO)) o VACIO(UsrVehiculos(USUARIOACTIVO)); 'El usuario activo no esta habilitado para operar con el vehiculo '~VEHICULO1;NO
+*EspecieCuenta(ESPECIE, CUENTA2) o VACIO(CUENTA2)  ;'La Moneda No Corresponde a Cuenta';NO
+*ClienteCuenta(VEHICULO1, CUENTA2) o VACIO(CUENTA2);'La Cuenta no corresponde al Vehiculo';NO
+
+MOVIMIENTOS
+*Fecha2;Vehiculo1;Especie;;;;;Vehiculo1;1; Cantidad1;;'Credito de '~Especie;SI;NO;;;;Cuenta2;;1;
+
+
+
+BITS
+11;1
+14;0
+16;0
+17;0
+18;0
+20;0
+25;0
+
+INSTANCIA11
+BITS
+11;0;FW=1
+14;1;FW=1
+
+
+*INSTANCIA14
+*CAMPOS:1;FW=1
+*ConceptoPago   : 'Concepto'    ;1;1;;NO
+*Fecha1         : 'FechaOp'     ;1;2;;NO
+*Fecha2         : 'FechaVto'    ;2;2;;NO;Eqstr(BuscarCampo('CNFORMASPAGOCOBRO','Tipo','Codigo',CNFORMAPAGO),'CHE')
+*NrTransRef1    : 'Fact.a Canc.';2;1;;NO;Eqstr(CONCEPTOPAGO, 'CANADE')
+*
+*Especie        : 'Moneda '     ;3;1;;NO
+*Cantidad1      : 'Cantidad'    ;4;1;;NO
+*CNFormaPago    : 'Forma Pago'  ;4;2;;NO
+*
+*Cliente2       : 'Banco'       ;6;1;;NO
+*Cuenta2        : 'Cuenta'      ;7;1;;NO
+*VTXT2          : '#'           ;7;2;;NO;;;;;;BuscarCampo('CUENTAS','Numero','Codigo',CUENTA2);;;;;'XXXXXXXXXXXXXXXXXXXXXX'
+*
+*Cambio1        : 'Nro.Boleta'  ;8;1;;NO;;;;;;;;;;;"###,###,###,###,###"
+*Vehiculo1      : 'Vehiculo '    ;10;2;;NO
+*CB3            : 'Conc.Datanet' ;10;1;1;NO
+*
+*VCAN6: 'Boleta/Cuenta'; ; ;2;NO;NO;;;;;IIF(CAMBIO1<>0 THEN Query("SELECT /*+first_rows*/ 1 FROM "~DBO~".TRANSACCIONES2 WHERE TipoTr2 IN ('CRVM') AND Cuenta2 = '"~CUENTA2~"' AND Cambio1 = "~fstr(CAMBIO1,1,0)~" ") ELSE 0 ENDIF)
+*VCAN8: 'Monto en ARP' ; ; ;1;NO;NO;;;;;IF(Eqstr(ESPECIE,'ARP'),CANTIDAD1,CANTIDAD1*CotizacionC(ESPECIE,,,,FECHA1,1,SI,'ARP'))
+*
+*
+*BITS
+*14;0;FW=1 o FW=2
+*11;1;FW=2
+*20;1;FW=1 y CB3=0 y VCAN8 <VAR('NIVEL2')
+*18;1;FW=1 y CB3=1 y VCAN8 <VAR('NIVEL2')
+*16;1;FW=1 y VCAN8 >=VAR('NIVEL2')
+*
+*SQL
+*" INSERT INTO "~DBO~".MOVEJECUTADOS SELECT * FROM "~DBO~".MOVPENDIENTES WHERE NrOperacion = '"~NRTRANS~"' ";FW=1 y CB3=0 y VCAN8 < VAR('NIVEL2')
+*" DELETE FROM "~DBO~".MOVPENDIENTES WHERE NrOperacion = '"~NRTRANS~"' ";FW=1 y CB3=0 y VCAN8 < VAR('NIVEL2')
+*
+*
+*INSTANCIA16
+*CAMPOS:1;FW=1
+*ConceptoPago   : 'Concepto'    ;1;1;;NO
+*Fecha1         : 'FechaOp'     ;1;2;;NO
+*Fecha2         : 'FechaVto'    ;2;2;;NO;Eqstr(BuscarCampo('CNFORMASPAGOCOBRO','Tipo','Codigo',CNFORMAPAGO),'CHE')
+*NrTransRef1    : 'Fact.a Canc.';2;1;;NO;Eqstr(CONCEPTOPAGO, 'CANADE')
+*
+*Especie        : 'Moneda '     ;3;1;;NO
+*Cantidad1      : 'Cantidad'    ;4;1;;NO
+*CNFormaPago    : 'Forma Pago'  ;4;2;;NO
+*
+*Cliente2       : 'Banco'       ;6;1;;NO
+*Cuenta2        : 'Cuenta'      ;7;1;;NO
+*VTXT2          : '#'           ;7;2;;NO;;;;;;BuscarCampo('CUENTAS','Numero','Codigo',CUENTA2);;;;;'XXXXXXXXXXXXXXXXXXXXXX'
+*
+*Cambio1        : 'Nro.Boleta'  ;8;1;;NO;;;;;;;;;;;"###,###,###,###,###"
+*Vehiculo1      : 'Vehiculo '    ;10;2;;NO
+*CB3            : 'Conc.Datanet' ;10;1;1;NO
+*
+*VCAN6: 'Boleta/Cuenta'; ; ;2;NO;NO;;;;;IIF(CAMBIO1<>0 THEN Query("SELECT /*+first_rows*/ 1 FROM "~DBO~".TRANSACCIONES2 WHERE TipoTr2 IN ('CRVM') AND Cuenta2 = '"~CUENTA2~"' AND Cambio1 = "~fstr(CAMBIO1,1,0)~" ") ELSE 0 ENDIF)
+*
+*
+*BITS
+*16;0;FW=1 o FW=2
+*11;1;FW=2
+*20;1;FW=1 y CB3=0 
+*18;1;FW=1 y CB3=1 
+*
+*SQL
+*" INSERT INTO "~DBO~".MOVEJECUTADOS SELECT * FROM "~DBO~".MOVPENDIENTES WHERE NrOperacion = '"~NRTRANS~"' ";FW=1 y CB3=0 
+*" DELETE FROM "~DBO~".MOVPENDIENTES WHERE NrOperacion = '"~NRTRANS~"' ";FW=1 y CB3=0 
+*
+*
+*INSTANCIA18
+*BITS
+*18;0;FW=2
+*11;1;FW=2
+*
+*
+*INSTANCIA20
+*SQL
+*" INSERT INTO "~DBO~".MOVPENDIENTES SELECT * FROM "~DBO~".MOVEJECUTADOS WHERE NrOperacion = '"~NRTRANS~"' ";FW=2
+*" DELETE FROM "~DBO~".MOVEJECUTADOS WHERE NrOperacion = '"~NRTRANS~"' ";FW=2
+*
+*BITS
+*20;0;FW=2
+*
+*POSTEDICION
+*FW=2;'INSBIT';String1='TRANSACCIONES2';Entero1=11;NrOperacion1=NrTrans

@@ -1,0 +1,6 @@
+﻿RelacionCuenta('','','','',
+                #TIPOOP,
+                #CONTRAESP,
+                #CENTROBEN,
+                '',
+                Modelo.Alias1)

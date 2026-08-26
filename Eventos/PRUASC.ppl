@@ -1,0 +1,38 @@
+﻿CrearDialogo
+    Fecha1      : 'Fecha'        ;1;1;1;SI;SI;;;;FSYS
+    Directorio1 : 'Path '        ;2;1;1;SI;SI;;;;'C:\Users\AVALDEZ\Desktop\PruebaASCII'
+FinDialogo
+
+If Not Ok
+   Cancelar
+Endif
+CerrarASCII
+*guardo ruta de donde se importó el excel + nombre base de log
+let &ruta Dialogo.Directorio1~Var('FILELOGCOB')
+ACT(AR:1,&ruta~'.txt')
+
+*contador de éxitos
+let &contadorExito 5
+*contador de errores
+let &contadorErrores 1
+
+*hago un recorrer para asegurarme que el archivo no existe previamente
+IF ExisteArchivo(Val(AR:1))
+**Si el nombre del archivo del comprobante es el mismo, le agrega una enumeración al final del nombre del archivo.
+    Recorrer&k 1,9999
+    *ACT(AR:1, &ruta~'_'~Fstr(&k,10,0)~'.txt')
+    ACT(AR:1, &ruta~'_'~idxDate(FSYS)~'_'~Fstr(&k,10,0)~'.txt')
+        IF Not ExisteArchivo(Val(AR:1))
+            Break
+        Endif
+    Proximo 
+ENDIF
+    
+*Mensajes del Log
+AbrirASCII(Val(AR:1), 0, NO, 1)
+EscribirASCII('Cantidad de Registros importados con éxito: '~FStr(&contadorExito, 0, 0))
+If &contadorErrores >= 1
+    EscribirASCII('Cantidad de Registros fallidos: '~FStr(&contadorErrores, 0, 0))
+Endif
+CerrarASCII
+*

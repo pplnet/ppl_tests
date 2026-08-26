@@ -1,0 +1,3 @@
+﻿IIF(Eqstr(fbn('ContraEspecie'), Var('MONELOCA')),
+   fbn('TotalIntereses'),
+   fbn('TotalIntereses')*COTIZACIONC(fbn('ContraEspecie'),,,,Val(FV:2),1,SI,VAR('MONELOCA')))

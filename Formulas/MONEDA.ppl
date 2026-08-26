@@ -1,0 +1,5 @@
+﻿fbn('Moneda')
+*IIF(#ESUSDLINK,
+*     &monedaOp,
+*     fbn('Moneda')
+*   )

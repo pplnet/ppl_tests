@@ -1,0 +1,3 @@
+﻿IIF(Incluido(fbn('Moneda'), Val(US:1)), #CANTIDAD, 
+#CANTIDAD * 
+COTIZACIONC(fbn('Moneda'),,,,Val(FV:2),1,SI,'USD'))

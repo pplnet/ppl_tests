@@ -1,0 +1,14 @@
+﻿CAMPOS:1;;2
+FechaOp        : 'Fecha Ajuste' ;1;1;;VERIFICAACCESO('OPFVALOR');;ESHABIL(FECHAOP,'ARG');'FECHA DE ORIGEN INCORRECTA';NO;Habiles(FSYS,-1,'ARG');
+
+@VEHITO
+Cliente1       : 'Cliente'      ;2;1;;;;NOVACIO(CLIENTE1) ;'El Cliente es Invalido';NO;
+Especie        : 'Moneda'       ;;;;SI;;;;;;'USD';
+Cantidad       : 'Importe'      ;;;;;;;;;
+RB5            : 'Plazo|Corto|Largo';;;;;;;;;0
+RB6            : 'Tipo|Tasas|Commodities|Currencies';;;;;;;;;0
+Operador       : 'Operador'     ;;;;NO;;;;;USUARIOACTIVO;
+
+@INSTOPE
+@INST19GENE
+@INST19BITS

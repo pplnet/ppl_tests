@@ -1,0 +1,33 @@
+﻿CrearFont(1,"Arial,8,")
+CrearFont(2,"Arial,8,B")
+
+SetFilaActual(4)
+ACT(a4, 'Tablas de Feriados')
+ACT(a6,'Codigo')
+ACT(b6,'Nombre')
+ACT(c6,'Feriados')
+AgregarMarco(a6..c6,1,0,Exe('COLOR'))
+SetFont(a1..z6,2)
+
+SetFilaActual(6)
+SQL.ADD("Select * from "~DBO~".FERIADOS order by Codigo")
+recorrer SQL
+  ACT(a:FAC, FBN('Codigo'))
+  ACT(b:FAC, FBN('Descripcion'))
+  recorrer&i 1, 100
+    if NoVacio(FBN('Fecha'~Pad0(FStr(&i,1,0),2))) 
+      ACT(c:FAC, FBN('Fecha'~Pad0(FStr(&i,1,0),2)))
+      ifa
+    endif
+  proximo
+proximo
+
+*AgregarMarco(a:Val(w1)+3..d:FAC,1)
+SetFont(a7..z:FAC,1)
+
+ACO(2,10)
+ACO(3,6)
+
+Impresion(1,1)
+LimitesVision(d:fac+1)
+RangoTitulo(a1..d:fac,6)

@@ -1,0 +1,3 @@
+﻿*Esta formula guarda el importe de los Gastos. 
+*Transaccion CCUPON es el campo Cambio2.
+fbn('Gastos')

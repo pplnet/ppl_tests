@@ -1,0 +1,7 @@
+﻿CAMPOS:1;;BuscarCampo('VEHICULOS','Alias1','Codigo',Vehiculo1)
+
+Book1     : 'Book'        
+CB11      : 'Inst del Fiduciante'
+
+CONDICIONES
+@ELIPRUEBA

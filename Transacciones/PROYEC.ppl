@@ -1,0 +1,24 @@
+﻿CAMPOS:1; ;10104
+ConceptoPago   : 'Concepto'     ;1;1;;NO;;;;;'PROYEC';
+Fecha1         : 'FechaOp'      ;1;2;;VerificaAcceso('OPFVALOR');;FECHA1<=FSYS y EsHabil(FECHA1,'ARG');'Fecha Incorrecta';NO;FSYS;
+Fecha2         : 'FechaAcredit.';2;2;1;;;;;;FECHA1;FECHA1
+
+Especie        : 'Moneda '     ;3;1;1;;;NoVacio(ESPECIE) y DesciendeDeEspecie(ESPECIE,'MONEDA');'Moneda Invalida';NO;;;;;;;;"Status = 'HAB' and Jerarquia Like '"~Jerarquia('ESPECIES','MONEDA')~"%' ";
+Cantidad1      : 'Cantidad'    ;4;1;;;;CANTIDAD1>0;'Cantidad Invalida';NO;
+
+Cliente2       : 'Banco'       ;6;1;;;;Eqstr(BuscarCampo('CLIENTES','Sector','Codigo',CLIENTE2),'BAN');'Banco invalido' ;NO;;;;;;;;"Sector='BAN' "
+Cuenta2        : 'Cuenta'      ;7;1;;;;NoVacio(CUENTA2) ;'Cuenta Invalida';NO;;Query(" SELECT Codigo FROM "~DBO~".CUENTAS WHERE Cliente='"~VEHICULO1~"' AND (Especies Like '%"~ESPECIE~"%' OR Especies LIKE '%MONEDA%') and Estado='HAB' AND Comitente='"~CLIENTE2~"'");;;;;;"Cliente = '"~VEHICULO1~"' AND (Especies Like '%"~ESPECIE~"%' OR Especies LIKE '%MONEDA%') and Estado='HAB' AND Comitente = '"~CLIENTE2~"'";
+VTXT2          : '#'           ;7;2;;NO;;;;;;BuscarCampo('CUENTAS','Numero','Codigo',CUENTA2);;;;;'XXXXXXXXXXXXXXXXXXXXXX'
+
+RB1: 'Columna|Ingresos|Egresos|Ing.OPF|Eg.OPF|Ing.PI|Eg.PE';8;1;;NO;
+
+Vehiculo1      : 'Vehiculo '   ;9;1;;;;NoVacio(VEHICULO1);'Vehiculo Invalido';NO;
+
+
+CONDICIONES
+Incluido(VEHICULO1, UsrVehiculos(USUARIOACTIVO))  o VACIO(UsrVehiculos(USUARIOACTIVO)); 'El usuario activo no esta habilitado para operar con el vehiculo '~VEHICULO1
+EspecieCuenta(ESPECIE, CUENTA2) o VACIO(CUENTA2)  ;'La Moneda No Corresponde a Cuenta';NO
+ClienteCuenta(VEHICULO1, CUENTA2) o VACIO(CUENTA2);'La Cuenta no corresponde al Vehiculo';NO
+
+BITS
+40;1

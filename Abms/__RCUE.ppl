@@ -1,0 +1,39 @@
+﻿#*********************************************************************************
+#combos data sources.
+set ds_Sector              = "PUB:Publico|PRI:Privado|FIN:Financiero|STA:Staff|"
+set ds_CategDepositante    = "CLI:Cliente|BAN:Banco|ALY:ALYC|ABO:Ag.Bolsa|AME:Ag.Mercado|CFI:Cia. Fin.|FON:Fondo|BRO:Broker en el exterior|CSE:Cia. Seguros|ART:ART|EGA:Entidad Garante|OTR:Otro|"
+#*********************************************************************************
+def abm 'RelacionCuenta'
+   def grid
+   Codigo:, Cuenta:, Tabla: as 'Tipo Cuenta', TiposOperacion:, Especies: ,Moneda:, Book: 
+   end
+   def key
+       Codigo: 
+   end
+   def dialog_size
+     1100,600
+   end
+   def dialog
+       #**************************************************************************
+       tab 'General'
+          column
+             Codigo: , 'Codigo', small_text
+             TipoImporte: , 'Tipo Importe', autocomplete, 'TIPOSIMPORTE', 'Codigo,Descripcion'
+             CentroCosto: , 'Centro Costo', autocomplete, 'CENTROSCOSTO', 'Codigo,Descripcion'
+             Cuenta: , 'Cuenta Contable', autocomplete, 'CONTABILIDAD', 'Codigo,Nombre'
+             Tabla: , 'Tipo Cuenta', autocomplete, 'TIPOCTACONT', 'Codigo,Nombre'
+             Sector: , 'Categoria', combo, ds_CategDepositante
+             Residente: ,  , check
+             Vinculado: ,  , check
+             TiposOperacion: ,    , autocomplete_ar_list, 'TIPOSOPERACION', 'Codigo,Nombre'
+          column
+             Especies: ,          , autocomplete_ar_list, 'ESPECIES', 'Codigo,Nombre'
+             Vehiculos: ,          , autocomplete_ar_list, 'VEHICULOS', 'Codigo,Descripcion'
+          column
+             Moneda: ,    , autocomplete_ar_list, 'ESPECIES', 'Codigo,Nombre',''," Tipo='MON'"
+             Book: ,    , autocomplete_ar_list, 'BOOKS', 'Codigo,Descripcion','',
+       #**************************************************************************
+   end
+   validates_uniqueness_of: Codigo:
+   upper_case_fields: Codigo:, Tabla:
+end

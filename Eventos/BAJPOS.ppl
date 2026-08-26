@@ -1,0 +1,309 @@
+﻿CrearDialogo
+  Fecha1   : 'Fecha'    ;1;1;;;;Dialogo.Fecha1<>0;'Fecha invalida';NO;Fsys
+  Especie1 : 'Especie'  ;2;1;;;;Vacio(Dialogo.Especie1) o DesciendeDeEspecie(Dialogo.Especie1, 'FONDOS');'Especie invalida';NO;;;;;;" Codigo in ("~Pipe2Comillas(Descendientes('ESPECIES','FONDOS'))~") and Status = 'HAB'"
+  Vehiculo1: 'Vehiculo' ;3;1;;;;Vacio(Dialogo.Vehiculo1) o Incluido(Dialogo.Vehiculo1, IIF(NoVacio(UsrVehiculos(UsuarioActivo)), UsrVehiculos(UsuarioActivo), SQLSet(" Select Codigo From "~DBO~".VEHICULOS ")));'Debe Ingresar un Vehiculo Valido';NO;;;iif(Vacio(UsrVehiculos(UsuarioActivo)),SQLSET("Select Codigo from "~DBO~".VEHICULOS Where (Status='HAB' or Status Is Null or Status='')"),SQLSET("Select U.Vehiculo from "~DBO~".USRVEHICULO U,"~DBO~".VEHICULOS V where U.Codigo='"~UsuarioActivo~"' and U.Vehiculo=V.Codigo and (Status='HAB' or Status Is Null or Status='') "))
+FinDialogo
+
+If Not OK
+  Cancelar
+EndIf
+
+If NoVacio(Dialogo.Vehiculo1)
+   ACT(az:6, Dialogo.Vehiculo1)
+Else
+   If NoVacio(UsrVehiculos(UsuarioActivo))
+      ACT(az:6,SQLSET("Select U.Vehiculo from "~DBO~".USRVEHICULO U,"~DBO~".VEHICULOS V where U.Codigo='"~UsuarioActivo~"' and U.Vehiculo=V.Codigo and (Status='HAB' or Status Is Null or Status='') "))
+   Else
+      ACT(az:6,SQLSET("Select V.Codigo FROM "~DBO~".VEHICULOS V where (Status='HAB' or Status Is Null or Status='') ") )
+   EndIf
+Endif
+
+SQL.ADD("Select P.Vehiculo, P.Especie, P.CantidadFin Cantidad, 'N/A' Cuenta, P.Fecha, 'Posicion' Tipo, P.NrSaldo, P.Book, P.PrecioFin Precio, P.Cupon, '' EnteCustodia, ")
+SQL.ADD(" CASE WHEN Cupon IS NULL THEN 1 ELSE 0 END CuponNull, CASE WHEN Book IS NULL THEN 1 ELSE 0 END BookNull ")
+SQL.ADD(" From "~DBO~".POSICIONES P ")
+SQL.ADD("Where P.NrSaldo = 101 ")
+SQL.ADD("  and P.TipoNegocio =  'FC' ")
+SQL.ADD("  and P.Vehiculo in ("~Pipe2Comillas(val(az6))~") ")
+If NoVacio(Dialogo.Especie1)
+   SQL.ADD(" and P.Especie = '"~Dialogo.Especie1~"' ")
+EndIf
+SQL.ADD("  and P.Fecha = (Select Max(P1.Fecha) ")
+SQL.ADD("                   From  "~DBO~".POSICIONES P1 ")
+SQL.ADD("                  Where P1.Especie = P.Especie ")
+SQL.ADD("                    and ((P1.Cupon = P.Cupon) OR (P1.Cupon is Null AND P.Cupon is Null) OR (P1.Cupon = '' AND P.Cupon = '') OR (P1.Cupon = ' ' AND P.Cupon = ' ')) ")
+SQL.ADD("                    and  P1.Vehiculo =  P.Vehiculo ")
+SQL.ADD("                    and  ((P1.Book = P.Book) OR (P1.Book is Null and P.Book is Null) OR (P1.Book = '' and P.Book = '') OR (P1.Book = ' ' and P.Book = ' ')) ")
+SQL.ADD("                    and  P1.NrSaldo =  P.NrSaldo ")
+SQL.ADD("                    and  ((P1.TipoNegocio = P.TipoNegocio) OR (P1.TipoNegocio is Null and P.TipoNegocio is Null) OR (P1.TipoNegocio = '' and P.TipoNegocio = '') OR (P1.TipoNegocio = ' ' and P.TipoNegocio = ' ' )) ")
+SQL.ADD("                    and  P1.Fecha <= "~IdxDate2(Dialogo.Fecha1)~") ")
+
+SQL.ADD(" Union All ")
+
+SQL.ADD("Select S.Cliente Vehiculo, S.Especie, S.Saldo Cantidad, S.Cuenta, S.Fecha, 'Saldo' Tipo, S.NrSaldo, S.Book, 0 Precio, '' Cupon, S.EnteCustodia, ")
+SQL.ADD(" CASE WHEN Cupon IS NULL THEN 1 ELSE 0 END CuponNull, CASE WHEN Book IS NULL THEN 1 ELSE 0 END BookNull ")
+SQL.ADD(" From  "~DBO~".SALDOSDIA S ")
+SQL.ADD("Where S.NrSaldo = 1 ")
+If NoVacio(Dialogo.Especie1)
+   SQL.ADD(" and S.Especie = '"~Dialogo.Especie1~"' ")
+Else
+   SQL.ADD(" and S.Especie in ("~Pipe2Comillas(Descendientes('ESPECIES','FONDOS'))~") ")
+EndIf
+SQL.ADD(" And ((S.EnteCustodia In ("~Pipe2Comillas(val(az6))~") AND S.EnteCustodia is not Null AND S.EnteCustodia<> '' AND S.EnteCustodia<> ' ' ) OR (S.Cliente In ("~Pipe2Comillas(val(az6))~") )) ")
+SQL.ADD(" and S.Fecha = (Select Max(S1.Fecha) ")
+SQL.ADD("                  From  "~DBO~".SALDOSDIA S1 ")
+SQL.ADD("                 Where S1.Especie = S.Especie ")
+SQL.ADD("                   and S1.Cliente = S.Cliente ")
+SQL.ADD("                   and S1.NrSaldo = S.NrSaldo ")
+SQL.ADD("                   and (S1.Mercado = S.Mercado or (S1.Mercado is Null and S.Mercado is Null) or (S1.Mercado = '' and S.Mercado = '') or (S1.Mercado = ' ' and S.Mercado = ' ')) ")
+SQL.ADD("                   and (S1.Cuenta  = S.Cuenta  or (S1.Cuenta  is Null and S.Cuenta is Null)) ")
+SQL.ADD("                   and (S1.Cupon   = S.Cupon   or (S1.Cupon   is Null and S.Cupon is Null))  ")
+SQL.ADD("                   and (S1.Book = S.Book or (S1.Book is Null and S.Book is Null) or (S1.Book = '' and S.Book = '') or (S1.Book = ' ' and S.Book = ' ')) ")
+SQL.ADD("                   and (S1.EnteCustodia = S.EnteCustodia OR (S1.EnteCustodia is Null and S.EnteCustodia is Null))  ")
+SQL.ADD("                   and S1.Fecha <= "~IdxDate2(Dialogo.Fecha1)~") ")
+
+SQL.ADD(" Order by 1, 2 ")
+
+Recorrer SQL
+  If [FBN['Cantidad']<=Var('BAJPOS') Y FBN['Cantidad']>=-Var('BAJPOS')] Y FBN['Cantidad']<>0
+     ACN(ZZ:1,1)
+     ACT(A:FAC,FBN['Vehiculo'])
+     ACT(B:FAC,FBN['Especie'])
+     ACT(C:FAC,FBN['Tipo'])
+     ACN(D:FAC,FBN['Cantidad'])
+     ACT(E:FAC,FBN['Cuenta'])
+     ACT(F:FAC,FBN['Fecha'])
+     ACN(NS:FAC,FBN['Nrsaldo'])
+     ACT(BK:FAC,FBN['Book'])
+     ACN(PR:FAC,FBN['Precio'])
+     IF Vacio(FBN['Cupon'])
+         ACT(CU:FAC,FBN['Cupon'])
+     ELSE
+         ACN(CU:FAC,FBN['Cupon'])
+     ENDIF
+     ACT(EC:FAC,FBN['EnteCustodia'])
+     ACN(DD:FAC,1-FBN['Cantidad'])
+     ACN(BN:FAC,FBN['BookNull'])
+     ACN(CN:FAC,FBN['CuponNull'])
+     ACT(NM:FAC,FBN['Cantidad'])
+  Else
+     DFA
+  EndIf
+  ACN(Z:FAC,0)
+Proximo
+
+If Val(ZZ:1)=1
+   CrearListBox;'Arial,8,B'; 'Baja de Posiciones y Saldos por Redondeo a Fecha: '~Dialogo.Fecha1
+      'Ok?'       ;Z:1..Z:FAC;SI;;;35;CHECK;Exe('COLOR6')
+      'Vehiculo'  ;A:1..A:FAC;NO;;;80;STRING;
+      'Especie'   ;B:1..B:FAC;NO;;;80;STRING;
+      'Tipo'      ;C:1..C:FAC;NO;;;80;STRING;
+      'Saldo'     ;D:1..D:FAC;NO;;;150;NUMERO;'###,###,###,###.#########################'
+      'Cuenta'    ;E:1..E:FAC;NO;;;80;STRING;
+   FinListBox
+   
+   If Not OK
+      Cancelar
+   EndIf
+   
+   If OK
+      Recorrer&I 1,FAC
+        If Val(Z:&I)=1                      
+           ACN(AL:1, BuscarCampo('VEHICULOS','Alias3','Codigo',Val(A:&I)))
+           ACT(NU:&I, GetNumerador(Val(AL:1)))
+           
+           If EqStr(Val(C:&I),'Posicion')
+              ACN(RB:1,0)
+           Else
+              ACN(RB:1,1)
+           EndIf
+           
+           If Val(D:&I)>0
+              ACN(RB:2,0)
+           Else
+              ACN(RB:2,1)
+           EndIf
+           
+           IF Longitud(Copy(Val(NM:&I),Posicion('.',Val(NM:&I),1,Longitud(Val(NM:&I)))+1,Longitud(Val(NM:&I)))) > 6
+               ACN(RB:3,0) 
+           Else
+               ACN(RB:3,1)
+           ENDif
+           
+           ** Creo transaccion BAJPSF
+           SQL.ADD(" Insert into "~DBO~".TRANSACCIONES2 ")
+           SQL.ADD(" (NrTrans, TipoTr2, Cliente1, Especie, Cantidad1, Vehiculo1, ")
+           SQL.ADD("  FechaCargaSys, Numerador, UsrInput, FechaCarga, Fecha1, ")
+           SQL.ADD("  Especie2, Cantidad2, RB1, ")
+           SQL.ADD("  RB2, Ley1, Precio1, Cupon1, Cuenta1, RB3) ")
+           SQL.ADD(" Values ")
+           SQL.ADD(" ('"~Val(NU:&I)~"', 'BAJPSF', '"~Val(A:&I)~"', '"~Val(B:&I)~"', "~Fstr(Abs(Val(D:&I)),0,25)~", '"~Val(A:&I)~"', ")
+           SQL.ADD("  '"~IdxDate(FSys)~"', "~Fstr(Val(AL:1),0,0)~", '"~UsuarioActivo~"', "~SqlAhora~", '"~IdxDate(Fecha(Val(F:&I)))~"', ")
+           SQL.ADD("  '"~CotizaEn(Val(B:&I))~"', "~Fstr(Val(NS:&I),0,0)~", "~Fstr(Val(RB:1),1,0)~", ")
+           SQL.ADD("  "~Fstr(Val(RB:2),1,0)~", '"~Val(BK:&I)~"', "~Fstr(Val(PR:&I),0,8)~", '"~FStr(Val(CU:&I),0,0)~"', '"~Val(E:&I)~"', "~Fstr(Val(RB:3),1,0)~") ")
+           SQL.NEW
+           SQL.EXEC
+           
+           ** La transaccion se genera en Terminal
+           SQL.ADD(" Insert into "~DBO~".OPERACIONESBITS (NrOperacion, NrBit,Valor) ")
+           SQL.ADD(" Values ('"~Val(NU:&I)~"', 20, '1') ")
+           SQL.NEW
+           SQL.EXEC
+           
+
+           If EqStr(Val(C:&I),'Posicion')
+              ** Inserto MOVPOSEJE de la BAJPSF
+              
+              If EqStr(CotizaEn(Val(B:&I)),Var('MONELOCA'))
+                 ACN(ZZ:1,1)
+              Else
+                 ACN(ZZ:1,COTIZACIONC(CotizaEn(Val(B:&I)),,,,Fecha(Val(F:&I))-1,1,SI,Var('MONELOCA')))
+              EndIf
+              
+              If EqStr(CotizaEn(Val(B:&I)),Var('MONEEXTR'))
+                 ACN(ZZ:2,1)
+              Else
+                 ACN(ZZ:2,COTIZACIONC(CotizaEn(Val(B:&I)),,,,Fecha(Val(F:&I))-1,1,SI,Var('MONEEXTR')))
+              EndIf
+              
+              ** Saldo 101
+              IF Val(NS:&I) = 101
+                  SQL.ADD(" Insert into "~DBO~".MOVPOSEJE ")
+                  SQL.ADD(" (NrOperacion, FechaMov, Cliente, Vehiculo, NrSaldo, ")
+                  SQL.ADD("  Especie, Cantidad, Precio,   ")
+                  IF Val(BN:&I) = 0
+                      SQL.ADD(" Book, ")
+                  ENDIF
+                  IF Val(CN:&I) = 0
+                      SQL.ADD(" Cupon, ")
+                  ENDIF
+                  SQL.ADD(" TipoNegocio) ")
+                  SQL.ADD(" Values ")
+                  SQL.ADD(" ('"~Val(NU:&I)~"', '"~IdxDate(Fecha(Val(F:&I)))~"', '"~Val(A:&I)~"', '"~Val(A:&I)~"', '101', ")
+                  SQL.ADD("  '"~Val(B:&I)~"', "~IIF(Val(RB:2)=0,Fstr(-Abs(Val(D:&I)),0,25),Fstr(Abs(Val(D:&I)),0,25))~", "~Fstr(Val(PR:&I),0,8)~",   ")
+                  IF Val(BN:&I) = 0
+                      SQL.ADD(" '"~Val(BK:&I)~"', ")   
+                  ENDIF
+                  IF Val(CN:&I) = 0
+                      SQL.ADD(" '"~Val(CU:&I)~"', ")
+                  ENDIF
+                  SQL.ADD(" 'FC') ")
+                  SQL.NEW
+                  SQL.EXEC
+              ENDIF
+              ** Saldo 121
+              IF Val(NS:&I) = 121
+                  SQL.ADD(" Insert into "~DBO~".MOVPOSEJE ")
+                  SQL.ADD(" (NrOperacion, FechaMov, Cliente, Vehiculo, NrSaldo, ")
+                  SQL.ADD("  Especie, Cantidad, Precio,   ")
+                  IF Val(BN:&I) = 0
+                      SQL.ADD(" Book, ")
+                  ENDIF
+                  IF Val(CN:&I) = 0
+                      SQL.ADD(" Cupon, ")
+                  ENDIF
+                  SQL.ADD(" TipoNegocio) ")
+                  SQL.ADD(" Values ")
+                  SQL.ADD(" ('"~Val(NU:&I)~"', '"~IdxDate(Fecha(Val(F:&I)))~"', '"~Val(A:&I)~"', '"~Val(A:&I)~"', '121', ")
+                  SQL.ADD("  '"~Val(B:&I)~"', "~IIF(Val(RB:2)=0,Fstr(-Abs(Val(D:&I)),0,25),Fstr(Abs(Val(D:&I)),0,25))~", "~Fstr(Val(PR:&I)*Val(ZZ:1),0,8)~", ")
+                  IF Val(BN:&I) = 0
+                      SQL.ADD(" '"~Val(BK:&I)~"', ")   
+                  ENDIF
+                  IF Val(CN:&I) = 0
+                      SQL.ADD(" '"~Val(CU:&I)~"', ")
+                  ENDIF
+                  SQL.ADD(" 'FC') ")
+                  SQL.NEW
+                  SQL.EXEC
+              ENDIF
+              ** Saldo 131
+              IF Val(NS:&I) = 131
+                  SQL.ADD(" Insert into "~DBO~".MOVPOSEJE ")
+                  SQL.ADD(" (NrOperacion, FechaMov, Cliente, Vehiculo, NrSaldo, ")
+                  SQL.ADD("  Especie, Cantidad, Precio,   ")
+                  IF Val(BN:&I) = 0
+                      SQL.ADD(" Book, ")
+                  ENDIF
+                  IF Val(CN:&I) = 0
+                      SQL.ADD(" Cupon, ")
+                  ENDIF
+                  SQL.ADD(" TipoNegocio) ")
+                  SQL.ADD(" Values ")
+                  SQL.ADD(" ('"~Val(NU:&I)~"', '"~IdxDate(Fecha(Val(F:&I)))~"', '"~Val(A:&I)~"', '"~Val(A:&I)~"', '131', ")
+                  SQL.ADD("  '"~Val(B:&I)~"', "~IIF(Val(RB:2)=0,Fstr(-Abs(Val(D:&I)),0,25),Fstr(Abs(Val(D:&I)),0,25))~", "~Fstr(Val(PR:&I)*Val(ZZ:2),0,8)~", ")
+                  IF Val(BN:&I) = 0
+                      SQL.ADD(" '"~Val(BK:&I)~"', ")   
+                  ENDIF
+                  IF Val(CN:&I) = 0
+                      SQL.ADD(" '"~Val(CU:&I)~"', ")
+                  ENDIF
+                  SQL.ADD(" 'FC') ")
+                  SQL.NEW
+                  SQL.EXEC
+              ENDIF
+           Else
+              ** Actualizo Saldos
+              *SQL.ActualizarMovimientosT2(Val(NU:&I),SI,NO,NO,NO)
+              *SQL.EXEC
+              
+              *Reviso si inserto el movimiento o convierto el saldo en 0
+              IF Val(RB:3) = 0
+                  SQL.ADD(" UPDATE "~DBO~".SALDOSDIA ")
+                  SQL.ADD(" SET Saldo = 0 ")
+                  SQL.ADD(" WHERE Especie = '"~Val(B:&I)~"' ")
+                  SQL.ADD(" AND EnteCustodia = '"~Val(EC:&I)~"' ")
+                  SQL.ADD(" AND Cliente = '"~Val(A:&I)~"' ")
+                  SQL.ADD(" AND Cuenta = '"~Val(E:&I)~"' ")
+                  IF Val(BN:&I) = 1
+                      SQL.ADD(" AND Book IS NULL ")
+                  ELSE
+                      SQL.ADD(" AND Book = '"~Val(BK:&I)~"' ")
+                  ENDIF
+                  IF Val(CN:&I) = 1
+                      SQL.ADD(" AND Cupon IS NULL ")
+                  ELSE
+                      IF Vacio(Val(CU:&I))
+                          SQL.ADD(" AND Cupon = '' ")
+                      ELSE
+                          SQL.ADD(" AND Cupon = "~Fstr(Val(CN:&I),0,0)~" ")
+                      ENDIF
+                  ENDIF
+                  SQL.ADD(" AND NrSaldo = "~Fstr(Val(NS:&I),0,0)~" ")
+                  SQL.ADD(" AND Fecha = '"~IdxDate(Fecha(Val(F:&I)))~"' ")
+                  SQL.NEW
+                  SQL.EXEC
+              ELSE
+                  *Vamos a insertar los movimientos a mano como los de Posiciones
+                  SQL.ADD(" INSERT INTO "~DBO~".MOVEJECUTADOS ")
+                  SQL.ADD(" (NrOperacion, FechaMov, Cliente, Especie, ")
+                  SQL.ADD("  EnteCustodia, NrSaldo, Cantidad, Leyenda,  ")
+                  IF Val(NS:&I)=2 Y Val(BN:&I) = 0
+                      SQL.ADD("  Bits, FechaEje, Cuenta, Book,  ")
+                  ELSE
+                      SQL.ADD("  Bits, FechaEje, Cuenta, ")
+                  ENDIF
+                  IF Val(CN:&I) = 0
+                      SQL.ADD(" Cupon, ")
+                  ENDIF
+                  SQL.ADD("  NrMov) ")
+                  SQL.ADD(" VALUES ")
+                  SQL.ADD(" ('"~Val(NU:&I)~"', '"~IdxDate(Fecha(Val(F:&I)))~"', '"~Val(A:&I)~"', '"~Val(B:&I)~"', ")
+                  SQL.ADD("  '"~Val(EC:&I)~"', "~Val(NS:&I)~" , "~IIF(Val(RB:2)=0,Fstr(-Abs(Val(D:&I)),0,25),Fstr(Abs(Val(D:&I)),0,25))~", 'Baja Posicion Cuotasparte', ")
+                  IF Val(NS:&I)=2 Y Val(BN:&I) = 0
+                      SQL.ADD("  'AV', '"~IdxDate(Fecha(Val(F:&I)))~"', '"~Val(E:&I)~"', '"~Val(BK:&I)~"', ")
+                  ELSE
+                      SQL.ADD("  'AV', '"~IdxDate(Fecha(Val(F:&I)))~"', '"~Val(E:&I)~"', ")
+                  ENDIF
+                  IF Val(CN:&I) = 0
+                      SQL.ADD(" '"~Val(CU:&I)~"', ")
+                  ENDIF
+                  SQL.ADD("  "~Fstr(IIF(Val(NS:&I)=1,1,4),0,0)~") ")
+                  SQL.NEW
+                  SQL.EXEC
+              ENDIF
+           EndIf
+        EndIf
+      Proximo
+   EndIf
+Else
+   MessageBox('No hay Posiciones ni Saldos de Fondos para Redondear')
+EndIf

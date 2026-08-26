@@ -1,0 +1,32 @@
+﻿** ALTAINSTAN
+** Inserta las Instancias para las Operaciones que 
+** se dan de alta en los eventos.
+** z3: Debe estar el Nro. de La Operacion a ingresar
+* Insert de Instancias: Se genera en Supervici¦n Especial MOF o FC. Instancias 11 o 12
+
+Message('Ingresando Instancias Operaci¦n '~VAL(Z3)~' ...')
+
+ACN(i1,11)
+*If EqStr(BuscarCampo('Operaciones','RB3','NrOperacion',VAL(z3)),'0')       
+*   ACN(i1,13)
+*EndIf
+
+SQL.ADD("SELECT * FROM "~DBO~".INSTANCIAS Where Tabla='OPERACIONES' ")
+SQL.ADD("ORDER BY NrInstancia ")
+Recorrer SQL
+  SQL.ADD("INSERT INTO "~DBO~".OPERACIONESBITS ( ")
+  SQL.ADD(" NrOperacion, NrBit, Valor ")
+  SQL.ADD(" ) Values ( ")
+  SQL.ADD(" '"~Val(z3)~"', ")
+  SQL.ADD(" "~Fstr(FBN['NrInstancia'],2,0)~", ")
+  SQL.ADD(" '"~IIF(VAL(i1)=FBN['NrInstancia'],'1','0')~"' ")
+  SQL.ADD(" ) ")
+  SQL.NEW
+  SQL.EXEC
+Proximo
+
+SQL.ADD("UPDATE "~DBO~".OPERACIONES ")
+SQL.ADD("   Set Observaciones = Observaciones+'"~BuscarCampo('EVENTOS','Nombre','Codigo',CodigoInforme)~"' ")
+SQL.ADD(" Where NrOperacion   = '"~Val(z3)~"' ")
+SQL.NEW
+SQL.EXEC

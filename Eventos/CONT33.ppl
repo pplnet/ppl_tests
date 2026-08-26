@@ -1,0 +1,681 @@
+﻿MostrarCuadroDeMensajes
+CrearDialogo
+  Fecha1     : 'Fecha'       ;;;;;;Dialogo.Fecha1>0;'Fecha Invalida';NO;fsys
+  ListaTabla1: 'Operaciones' ;;;;NO;NO;;;;;;;;;;'NrOperacion'; 'NrOperacion;Cliente1;FechaOp;Especie;FechaVto'; 'OPERACIONES'
+  TipoOp1    : 'TipoOp'      ;;;;NO;NO;;
+  Lista1     : 'Vehiculos'       ;;;;SI;SI;;;;;;iif(Vacio(UsrVehiculos(UsuarioActivo)),SQLSET("Select Codigo from "~DBO~".VEHICULOS"),SQLSET("Select Vehiculo from "~DBO~".USRVEHICULO where Codigo = '"~UsuarioActivo~"'"))
+  Check1     : 'Contab.Procesada';;;;NO;NO;
+  Radio1     : 'Criterio Devengado|Sin Reversa|Con Reversa';;;;;;;;;Var('DEVCONTCRE')
+FinDialogo
+
+If Not Ok
+   Cancelar
+Endif
+
+
+****Tomamos el evento CONT3 al Vto generar todos los modelos de DC al vto
+****la tabla DCMM se llena al cierre con los datos del dia anterior.
+
+* Fecha Proceso
+ACD(v:1, Dialogo.Fecha1)
+* Ultimo Dia Habil mes anterior
+***///ACD(v:2, Habiles(PriDeMes(Dialogo.Fecha1),-1,'ARG'))
+ACD(v:2, FinDeMes(PriDeMes(Dialogo.Fecha1,SI)-1, NO))
+* Primer Dia Mes Anterior
+ACD(v:3, PriDeMes(Val(v:2),SI))
+* Primer Dia del Mes
+ACD(v:4, PriDeMes(Val(v:1),SI))
+***---Ultimo Dia del Mes anterior
+ACD(v:5, Val(v:4)-1)
+***---Obtengo el sabado si hoy es lunes. Sino V:6 = Dialogo.Fecha1
+ACD(V:6, Habiles(Dialogo.Fecha1, -1, 'ARG') + 1)
+****ACD(V:6, Habiles(Dialogo.Fecha1, -1) + 1)
+
+ACT(US:1, Var('MONEEXTR'))
+ACT(LS:1, Var('OPEIMPUEST'))
+ACT(ME:1, Var('MONEEXTR'))
+ACT(ML:1, Var('MONELOCA'))
+ACT(MU:1, Var('MONEURU'))
+
+message('--- Asientos de Diferencia Cambio al Vto ---')
+
+***---Diferencia Cambio al Vto
+
+SQL.ADD(" Select O.TipoOp, O.Vehiculo1, MD.Especie, V.Valor1, V.Valor2, M.Codigo CodAsi, Sum(MD.Monto) Devengado, ")
+SQL.ADD(" MD.Especie Moneda, C.Fecha2 FechaVto, O.NrOperacion, O.Cliente1, MD.TipoDevengado, O.Observaciones, O.Precio1, ")
+SQL.ADD(" O.Plazo, O.Cantidad, O.MB3, '' Alias8, O.CB5, C.Cantidad2, C.Fecha1, V.Alias4 MonLocalVeh, O.FechaEj, O.TotalNetoCli1, ")
+SQL.ADD(" O.FechaVto2, C.Cantidad2Ori CantOri, O.Indice, O.RB10, O.Indice, O.Precio5, O.TipoGracia , O.TipoDoc  Instrumento, O.TipoTasa, ")
+SQL.ADD(" O.RB16, 'MV' Tipo, C.NrCuota,O.Book1 AS Book,O.Especie as MonedaOp,O.Cuenta1, O.CuentaContableAux1 as 'ctaContAuxOp',C.Cantidad17  as 'PrecioVto' ")
+SQL.ADD(" From "~DBO~".OPERACIONES O, "~DBO~".MOVDEVENGADOS MD, "~DBO~".VEHICULOS V, "~DBO~".MODELOSASIENTO M, ")
+SQL.ADD(" "~DBO~".CUOTAS C ")
+SQL.ADD(" Where C.Fecha2 <= '"~IdxDate(Dialogo.Fecha1)~"' AND C.Fecha2 >= '"~IdxDate(Val(V:6))~"' ")
+SQL.ADD("   and ( (O.TipoOp  like  'MM%' AND O.TipoOp <> 'MMDPAC' ) OR O.TipoOp in ('DTSFVM','DTSFFM','SEPVMV','SEPTMV') ) ")
+SQL.ADD("   and O.NrOperacion =  MD.NrOperacion ")
+SQL.ADD("   and O.NrOperacion =  C.NrOperacion ")
+IF Dialogo.Radio1 = 0
+    **// Si la cuota vence durante el fin de semana y se produce un fin de mes en el medio... 
+    **// Entonces tomo los devengados a partir del 1er dia del mes en que vencio la cuota... Y no V:4 que contiene el primer dia del nuevo mes.
+    SQL.ADD("   and MD.Fecha      >= DATEADD(mm, DATEDIFF(mm,0,C.Fecha2), 0) ")
+    SQL.ADD("   and MD.Fecha      <=  C.Fecha2 ")
+    ***---Devengados del mes y de la cuota que vence
+    SQL.ADD("   AND (MD.Fecha > (Select Max(C1.Fecha2) From "~DBO~".CUOTAS C1 ")
+    SQL.ADD("                   Where C.NrOperacion = C1.NrOperacion ")
+    SQL.ADD("                   AND C1.Fecha2 < '"~IdxDate(Val(V:6))~"') ")
+    SQL.ADD("        OR (Select Max(C1.Fecha2) From "~DBO~".CUOTAS C1 ")
+    SQL.ADD("            Where C.NrOperacion = C1.NrOperacion ")
+    SQL.ADD("            AND C1.Fecha2 < '"~IdxDate(Val(V:6))~"') Is Null) ")
+ELSE
+    *Devengados desde el inicio de la cuota al vencimiento de la cuota 
+    SQL.ADD(" AND MD.Fecha > C.Fecha1 ")
+    SQL.ADD(" AND MD.Fecha <= C.Fecha2 ")
+ENDIF
+SQL.ADD("   and O.Vehiculo1 Not IN ("~Pipe2Comillas(Var('VLIQUIDAA'))~") ")
+SQL.ADD(" AND M.Habilitado = 'SI' ")
+SQL.ADD(" AND '|'+rtrim(M.Entorno)+'|' like '%|"~SIGLA~"|%' ")
+If NoVAcio(Dialogo.Lista1)
+   SQL.ADD(" AND O.Vehiculo1 IN ("~Pipe2Comillas(Dialogo.Lista1)~") AND (( ")
+   Recorrer&i 1,Elementos(Dialogo.Lista1)
+        SQL.ADD(" '|'+rtrim(M.Vehiculo)+'|' like '%|"~ItemLista(Dialogo.Lista1,&i)~"|%' ")
+        If NOT Elementos(Dialogo.Lista1)=&i
+            SQL.ADD(" OR ")
+        EndIf
+   proximo
+   SQL.ADD(") OR M.Vehiculo is null OR M.Vehiculo = '' OR M.Vehiculo = ' ' )")    
+Else
+   If NoVacio(UsrVehiculos(UsuarioActivo))
+      SQL.ADD(" AND O.Vehiculo1 IN (Select Vehiculo from "~DBO~".USRVEHICULO where Codigo = '"~UsuarioActivo~"') ")
+   Endif
+Endif
+SQL.ADD("   and O.Vehiculo1   =  V.Codigo ")
+SQL.ADD("   and (((M.TipoAsiento IN ("~Pipe2Comillas(Var('TIPASDCVTO'))~")))  ) ") 
+SQL.ADD("   and M.TipoOp      = O.TipoOp ")
+SQL.ADD(" AND (O.FechaVto >= '"~IdxDate(Fecha(Var('FECHAMIGRA')))~"') ") 
+SQL.ADD(" group by O.TipoOp, O.Vehiculo1, MD.Especie, V.Valor1, V.Valor2, M.Codigo, C.Fecha2, O.NrOperacion, ")
+SQL.ADD(" O.Cliente1, MD.TipoDevengado, O.Observaciones, O.Precio1, O.Plazo, O.Cantidad, O.MB3, O.CB5, C.Cantidad2, ")
+SQL.ADD(" C.Fecha1, V.Alias4, O.FechaEj, O.TotalNetoCli1, O.FechaVto2, C.Cantidad2Ori, O.Indice, O.RB10, O.Indice, O.Precio5, ")
+SQL.ADD(" O.TipoGracia , O.TipoDoc, O.TipoTasa, O.RB16, C.NrCuota,O.Book1,O.Especie,O.Cuenta1,O.CuentaContableAux1,C.Cantidad17 ")
+
+SQL.ADD(" UNION ")
+
+SQL.ADD(" Select O.TipoOp, O.Vehiculo1, MD.Especie, V.Valor1, V.Valor2, MA.Codigo CodAsi, Sum(MD.Monto) Devengado, ")
+SQL.ADD(" MD.Especie Moneda, O.FechaVto, O.NrOperacion, O.Cliente1, MD.TipoDevengado, O.Observaciones, O.Precio1, ")
+SQL.ADD(" O.Plazo, O.Cantidad, O.MB3, '' Alias8, O.CB5, O.Cantidad Cantidad2, O.FechaOp Fecha1, V.Alias4 MonLocalVeh, O.FechaEj, ")
+SQL.ADD(" O.TotalNetoCli1, O.FechaVto2, O.CantidadOri CantOri, O.Indice, O.RB10, O.Indice, O.Precio5, O.TipoGracia,  O.TipoDoc  Instrumento, ")
+SQL.ADD(" O.TipoTasa, O.RB16, 'UV' Tipo, 0 NrCuota,O.Book1 AS Book,O.Especie as MonedaOp,O.Cuenta1, O.CuentaContableAux1 as 'ctaContAuxOp',0 AS 'PrecioVto' ")
+SQL.ADD(" From "~DBO~".OPERACIONES O, "~DBO~".MOVDEVENGADOS MD, "~DBO~".VEHICULOS V, "~DBO~".MODELOSASIENTO MA ")
+SQL.ADD(" Where  ( O.TipoOp IN  ('MMO','MMCAUA','MMCAUP','MMCCR','DTSFV','DTSFF','SERP','SERA','MMDC','SECAC','SECAT','DDC') OR    ")
+SQL.ADD("          (O.TipoOp = 'MMDPAC' AND O.RB10 =1 )   )  ")
+**// Para MM y Prest en Especies tomo FechaVto
+SQL.ADD(" AND (  (O.FechaVto  <= '"~IdxDate(Dialogo.Fecha1)~"' AND O.FechaVto  >= '"~IdxDate(Val(V:6))~"' AND  O.TipoOp IN ('MMO','MMCAUA','MMCAUP','MMCCR','MMDPAC','MMDC','SECAC','SECAT','DDC') )")
+**// Para REPO tomo FechaVto2
+SQL.ADD("     OR (O.FechaVto2 <= '"~IdxDate(Dialogo.Fecha1)~"' AND O.FechaVto2 >= '"~IdxDate(Val(V:6))~"' AND O.TipoOp IN ('SERP','SERA','DDC')  )")
+**// Para los SWAPS se toma FechaEj
+SQL.ADD("     OR (O.FechaEj   <= '"~IdxDate(Dialogo.Fecha1)~"' AND O.FechaEj   >= '"~IdxDate(Val(V:6))~"' AND O.TipoOp in ('DTSFV','DTSFF')  )")
+SQL.ADD("  )  ")
+SQL.ADD("   and O.NrOperacion =  MD.NrOperacion ")
+IF Dialogo.Radio1 = 0
+    SQL.ADD("   and MD.Fecha   >= "~IdxDate2(Val(v:4))~" ")
+    ELSE
+    *Devengados desde el inicio de la Operacion hasta el vencimiento de la Operacion
+    SQL.ADD(" AND MD.Fecha >= O.FechaOp ")
+    SQL.ADD(" AND (MD.Fecha < CASE WHEN O.TipoOp in ('SERP','SERA','DDC') THEN O.FechaVto2   ")
+    SQL.ADD(" ELSE CASE WHEN O.TipoOp in ('DTSFV','DTSFF') THEN O.FechaEj ELSE O.FechaVto END END) ")
+ENDIF
+SQL.ADD("   and O.Vehiculo1 Not IN ("~Pipe2Comillas(Var('VLIQUIDAA'))~") ")
+SQL.ADD(" AND MA.Habilitado = 'SI' ")
+SQL.ADD(" AND '|'+rtrim(MA.Entorno)+'|' like '%|"~SIGLA~"|%' ")
+If NoVAcio(Dialogo.Lista1)
+   SQL.ADD(" AND O.Vehiculo1 IN ("~Pipe2Comillas(Dialogo.Lista1)~") AND (( ")
+   Recorrer&i 1,Elementos(Dialogo.Lista1)
+        SQL.ADD(" '|'+rtrim(MA.Vehiculo)+'|' like '%|"~ItemLista(Dialogo.Lista1,&i)~"|%' ")
+        If NOT Elementos(Dialogo.Lista1)=&i
+            SQL.ADD(" OR ")
+        EndIf
+   proximo
+   SQL.ADD(") OR MA.Vehiculo is null OR MA.Vehiculo = '' OR MA.Vehiculo = ' ' ) ")       
+Else
+   If NoVacio(UsrVehiculos(UsuarioActivo))
+      SQL.ADD(" AND O.Vehiculo1 IN (Select Vehiculo from "~DBO~".USRVEHICULO where Codigo = '"~UsuarioActivo~"') ")
+   Endif
+Endif
+SQL.ADD("   and O.Vehiculo1   =  V.Codigo ")
+SQL.ADD("   and (((MA.TipoAsiento IN ("~Pipe2Comillas(Var('TIPASDCVTO'))~")))  ) ") 
+SQL.ADD("   and MA.TipoOp      = O.TipoOp ")
+SQL.ADD(" AND ((O.Cuotas1 Is Null OR O.Cuotas1 = '' OR O.Cuotas1 = 0)  or (O.TipoOp='SECAT' and O.CB1=0)) ")
+SQL.ADD(" AND (O.FechaVto >= '"~IdxDate(Fecha(Var('FECHAMIGRA')))~"') ") 
+SQL.ADD(" group by O.TipoOp, O.Vehiculo1, MD.Especie, V.Valor1, V.Valor2, MA.Codigo, O.FechaVto, O.NrOperacion, ")
+SQL.ADD(" O.Cliente1, MD.TipoDevengado, O.Observaciones, O.Precio1, O.Plazo, O.Cantidad, O.MB3, O.CB5, ")
+SQL.ADD(" O.Cantidad, O.FechaOp, V.Alias4, O.FechaEj, O.TotalNetoCli1, O.FechaVto2, O.CantidadOri, O.Indice, ")
+SQL.ADD(" O.RB10, O.Indice, O.Precio5, O.TipoGracia , O.TipoDoc, O.TipoTasa, O.RB16,O.Book1,O.Especie,O.Cuenta1,O.CuentaContableAux1 ")
+***/// Select para las levantar las operaciones sin Interes (Para generar asientos con DC Capital)
+*05/10/2023 - Agustin
+*Se saca el último bloque. El backup para verlo es CONTC5
+Watch(sql.batch)
+Recorrer SQL
+    *Cintia 271223
+    let &tcLink fbn['PrecioVto']
+    *Cintia 26122023
+    let &tcLiq 0 
+    *Cintia 21122023
+    let &fechaFin FBN['FechaVto']
+    **Cintia 301123 por préstamos PCR
+    let &ctaContAuxOp fbn('ctaContAuxOp')
+    let &sector BuscarCampo('CLIENTES','CategDepositante','Codigo',fbn('Cliente1'))
+    **
+    *091023 - Cintia - Nuevas variables para cuentaAuxiliar por Conta PCR
+    let &ctaContAuxCue BuscarCampo('CLIENTES','CuentaContableAux','Codigo',FBN['Cliente1'])
+    let &ctaContAuxCli BuscarCampo('CUENTAS','CuentaContableAux','Codigo',FBN['Cuenta1'])
+    *05/10/2023 - Agustin - Nuevas variables para Diferencia cambio Interes y Capital
+    let &DCIntMonedaLocalVehiculo 0
+    let &DCCapMonedaLocalVehiculoNoCte 0
+    let &DCCapMonedaLocalVehiculoCte 0
+    let &DComCteMonedaLocalVehiculo 0
+    let &DComNoCteMonedaLocalVehiculo 0
+    let &DCPriCteMonedaLocalVehiculo 0
+    let &DCPriNoCteMonedaLocalVehiculo 0
+    let &monedaOp fbn['MonedaOp']
+    message(fbn('NrOperacion')~' - Modelo: '~fbn('CodAsi'))
+    ACN(CK:1, 0)
+    **// Para los SWAPS unico vto. se toma FechaEj como Fecha de vencimiento
+    let &book fbn('Book')
+    If Incluido(FBN('TipoOp'),'DTSFV|DTSFF|')
+       ACD(FV:1, fbn('FechaEj'))
+       ACD(FH:1, fbn('FechaEj'))
+    Else
+       **// Para los REPOS, se toma FechaVto2 como Fecha de vencimiento
+       If Incluido(FBN('TipoOp'),'SERA|SERP|')
+          ACD(FV:1, fbn('FechaVto2'))
+          ACD(FH:1, fbn('FechaVto2'))
+       Else
+          ACD(FV:1, fbn('FechaVto')) 
+          ACD(FH:1, fbn('FechaVto'))
+       Endif
+    Endif
+    ACD(FO:1, val(FV:1))
+    ACD(FO:2, Habiles(FinDeMes(val(FO:1),NO,'ARG')))
+    ACD(FV:2, Val(FV:1))
+    (.'FECHAVALOR'.)
+    let &fechaContable Val(FV:1)
+    ACT(VH:1, fbn('Vehiculo1'))
+    ACN(CO:1, FBN('CantOri'))
+    **//(.'FECHAVALOR'.)
+    IF Dialogo.Check1 = 1 O Dialogo.Fecha1 < Fsys
+        ACN(CK:1, 1)
+        IF Vacio(SQL(" Select NrUnicoAsiento From "~DBO~".ASIENTOSCON Where NrOperacion = '"~fbn('NrOperacion')~"' AND Modelo = '"~fbn('CodAsi')~"' AND Estado = 'E' AND (NrAsiento Is Null OR NrAsiento = '' OR NrAsiento = ' ') AND (FechaValor > '"~IdxDate(Val(FO:2))~"' OR FechaValor =  '"~IdxDate(Val(FO:1))~"') AND Vehiculo = '"~fbn('Vehiculo1')~"' "))
+            ACN(CK:1, 0)
+        ENDIF
+    ENDIF
+    IF Val(CK:1) = 0
+        ACT(aa:FAC, fbn('TipoOp'))
+        ACT(ab:FAC, fbn('Vehiculo1'))
+        ACN(ac:FAC, fbn('Valor1'))
+        ACN(ad:FAC, fbn('Valor2'))
+        ACT(ae:FAC, fbn('Especie'))
+        ACN(af:FAC, fbn('Devengado'))
+        ACT(ag:FAC, fbn('CodAsi'))
+        ACN(DV:1, fbn('Devengado'))
+        let &intDeveng Val(DV:1)
+        ACD(FC:99, PriDeMes(FBN('FechaVto'),SI)-1)
+        **// Calculos De Diferencia de Cambio
+        If Incluido(FBN('TipoOp'),'SERA|SERP|')
+           ACN(CP:1, FBN('TotalNetoCli1'))
+           ACD(FC:9, FBN('FechaVto'))
+           ACD(FD:1, FBN('FechaVto'))
+           ACD(FD:2, FBN('FechaVto'))
+        Else
+           ACN(CP:1, FBN('Cantidad2'))
+           ACD(FC:9, FBN('Fecha1'))
+           ACD(FD:1, FBN('Fecha1'))
+           ACD(FD:2, FBN('Fecha1'))
+           ACD(FC:10, fbn('Fecha1'))
+           IF Val(FC:10) < Val(V:5)
+               ***---ACD(FC:10, Val(V:5))
+           ENDIF
+        Endif 
+        ACD(FC:1, Val(FC:99))
+        ACD(FC:2, Val(FV:1))
+        **Messagebox('Fecha inicio: '~Fecha(Val(FC:9)))
+        **/IF Val(FD:1) < Val(V:4)
+        **/   ACD(FD:1, Val(V:4))
+        **/ENDIF
+        IF Val(FD:1) < Val(FC:99)
+           ACD(FD:1, Val(FC:99))
+        ENDIF
+        ***/// Inicializar
+        ACN(CP:2, 0)
+        ACN(DN:1, 0)
+        ACN(DN:2, 0)
+        ACN(DN:3, 0)
+        ACN(DI:1, 0)
+        ACN(DI:2, 0)
+        ACN(DI:3, 0)
+        ACN(DK:1, 0)
+        ACN(DK:2, 0)
+        ACN(DK:3, 0)
+        ACN(DP:1, 0)
+        ACN(DP:2, 0)
+        ACN(DP:3, 0)
+        ACN(CR:1, 0)
+        ACN(DV:2, 0)
+        ACN(VR:1, 0)
+        ACN(VR:2, 0)
+        ACN(IV:1, 0)
+        ACN(IV:2, 0)
+        ACN(IV:3, 0)
+        ***---IF #DEVINT Y #ESMONEXTR
+        let &dolContableVh IIF( Incluido(fbn('Vehiculo1'), Var('VEHDOLBI')), Var('DOLBILLETE'), Var('MONEEXTR'))
+            IF #DEVINT O #DEVCOM O #DEVPRI
+               **Cintia 160224 x ONs
+               **Cintia 160224 x ONs
+               If #OBLIGNEG
+               let &tiposDC ('INT|CTE|NCT|PCT|PNC|CCT|CNC')
+               Else
+                   let &tiposDC ('INT|CTE|NCT')
+               Endif
+               **
+               *(.'DC-CAPINT'.)
+               **Cintia 21122023 Se abre DCCap en Cte y No Cte.
+               *let &DCCapMonedaLocalVehiculo SQL(" SELECT Sum(DC) FROM "~DBO~".DCMM WHERE NrOperacion = '"~fbn('NrOperacion')~"' AND TipoDC = 'CAP' AND Fecha >= '"~IdxDate(Val(V:3))~"' AND Fecha <= '"~IdxDate(Val(V:5))~"' ")
+               ***Fin de Mes con reversa:
+               **desde el inicio de la cuota u Op (lo mas reciente) hasta el fin de mes
+               ***Fin de mes Sin Reversa
+                **desde pri de mes en proceso o desde FechaIni (lo mas reciente) hasta el fin de mes
+                let &fechaIniCuotaVig FBN('Fecha1')
+                If Dialogo.Radio1=0
+                    **Sin Reversa
+                    **Declaro fechas desde 
+                    let &priMes Val(V:3)
+                    If &fechaIniCuotaVig>&priMes
+                        let &fechaIniSR &fechaIniCuotaVig
+                    Else
+                        let &fechaIniSR &priMes
+                    Endif 
+                    **Seteo fecha para funcion CONVTCINTD
+                    let &fechaIniCONVTC &fechaIniSR
+                    let &fechaIni &fechaIniSR
+                Else 
+                    **Con Reversa
+                    **Declaro fechas desde 
+
+                    let &fechaIniCR &fechaIniCuotaVig
+                     **Seteo fecha para funcion CONVTCINTD
+                     let &fechaIniCONVTC &fechaIniCR
+                     let &fechaIni &fechaIniCR
+                Endif
+                
+                SQL.ADD("Select TipoDC,Sum(DC) as DC FROM "~DBO~".DCMM WHERE NrOperacion = '"~fbn('NrOperacion')~"' AND TipoDC IN("~Pipe2Comillas(&tiposDC)~") AND Fecha <= '"~IdxDate(&fechaFin)~"' AND Fecha > '"~IdxDate(&fechaIni)~"' GROUP BY TipoDC")
+                Recorrer SQL
+                    DFA
+                    If EqStr(FBN['TipoDC'],'CTE')
+                        let &DCCapMonedaLocalVehiculoCte FBN['DC']
+                    Else
+                        If EqStr(FBN['TipoDC'],'NCT')
+                            let &DCCapMonedaLocalVehiculoNoCte FBN['DC']
+                        Else
+                            If EqStr(FBN['TipoDC'],'INT')
+                                let &DCIntMonedaLocalVehiculo FBN['DC']
+                            Else
+                                If EqStr(FBN['TipoDC'],'PCT')
+                                    let &DCPriCteMonedaLocalVehiculo FBN['DC']
+                                Else
+                                    If EqStr(FBN['TipoDC'],'PNC')
+                                        let &DCPriNoCteMonedaLocalVehiculo FBN['DC']
+                                    Else
+                                        If EqStr(FBN['TipoDC'],'CCT')
+                                            let &DComCteMonedaLocalVehiculo FBN['DC']
+                                        Else                                        
+                                            let &DComNoCteMonedaLocalVehiculo FBN['DC']
+                                        Endif
+                                    Endif
+                                Endif
+                            Endif
+                        Endif
+                    Endif
+                Proximo
+                
+                **Seteo fecha para funcion CONVTCINTD
+                let &fechaFinCONVTC &fechaFin
+                
+                (.'CONVTCINTD'.)
+                
+                IF Vacio(&DCCapMonedaLocalVehiculoCte)
+                    let &DCCapMonedaLocalVehiculoCte 0
+                ENDIF
+                IF Vacio(&DCCapMonedaLocalVehiculoNoCte)
+                    let &DCCapMonedaLocalVehiculoNoCte 0
+                ENDIF
+                IF Vacio(&DCIntMonedaLocalVehiculo)
+                    let &DCIntMonedaLocalVehiculo 0
+                ENDIF 
+                IF Vacio(&DCPriCteMonedaLocalVehiculo)
+                    let &DCPriCteMonedaLocalVehiculo 0
+                ENDIF
+                IF Vacio(&DCPriNoCteMonedaLocalVehiculo)
+                    let &DCPriNoCteMonedaLocalVehiculo 0
+                ENDIF                
+                IF Vacio(&DComCteMonedaLocalVehiculo)
+                    let &DComCteMonedaLocalVehiculo 0
+                ENDIF
+                IF Vacio(&DComNoCteMonedaLocalVehiculo)
+                    let &DComNoCteMonedaLocalVehiculo 0
+                ENDIF                
+                **Cintia 091123
+            Endif
+            
+            ***Cintia 230224 Se comenta ya que la DC se calcula en la tabla DCMM con el evento DCMM
+        ***/// Para ON se calcula DC de Prima y Gastos
+        ***---IF [#DEVPRI O #DEVCOM] Y #ESMONEXTR Y #OBLIGNEG
+*        IF [#DEVPRI O #DEVCOM] Y #OBLIGNEG
+*           (.'DC-PRICOM'.)
+*        Endif
+*        ***/// Si es con tasa variable, calculo la diferencia que sufrio el interes respecto a los devengados anteriores.
+        If [Not Eqstr(FBN('TipoTasa'), 'FIJA') Y Eqstr(FBN('RB16'),'1')] Y #DEVINT Y Dialogo.Radio1=0
+           (.'DIFINTVAR'.)
+           let &difIntTasaVar Val(DV:2)
+        Else
+            **Cintia 261023 En este caso (Con reversa) será 0
+           let &difIntTasaVar Val(DV:2) 
+        Endif
+        
+        let &modeloContable fbn('CodAsi')
+        SQL.GenerarAsientoOp(&modeloContable,fbn('NrOperacion'),'','',810,Val(FV:1),fbn('Vehiculo1'),,,,,,fbn('TipoOp'),,,,,,,fsys,Habiles(Dialogo.Fecha1,1,'ARG'))
+        SQL.EXEC
+        IF Eqstr(fbn('Tipo'), 'MV')
+            ***---Marco la Cuota como contabilizada para el modulo de abajo que contabiliza Fin de Mes
+            SQL.ADD(" Update "~DBO~".CUOTAS ")
+            SQL.ADD(" Set Check8 = 1 ")
+            SQL.ADD(" Where NrOperacion = '"~fbn('NrOperacion')~"' ")
+            SQL.ADD(" AND NrCuota = "~Fstr(fbn('NrCuota'), 0, 0)~" ")
+            SQL.NEW
+            SQL.EXEC
+        ENDIF
+
+    ENDIF
+Proximo
+
+****Tomamos el evento CONT2 liquidacion de fondos para buscar las SECS de precancelacion liquidadas ayer
+****la tabla DCMM se llena al cierre con los datos del dia anterior.
+****Hoy genero Resultado de recompra de SECS y Dc de ON al mismo tiempo.
+
+message('--- DC de Precancelacion ---')
+
+***---ACT(US:1, Descendientes('ESPECIES', 'U$S'))
+ACT(US:1, Var('MONEEXTR'))
+ACT(LS:1, Var('OPEIMPUEST'))
+ACT(ME:1, Var('MONEEXTR'))
+ACT(ML:1, Var('MONELOCA'))
+ACT(MU:1, Var('MONEURU'))
+
+
+SQL.ADD(" SELECT T.NrTrans, T.Cantidad1, T.Especie Moneda, O.NrOperacion, O.Especie, O.ContraEspecie, ")
+SQL.ADD(" O.TipoOp, O.TotalNetoCli1, O.TotalBrutoCli1, MA.Codigo CodAsi, C.CUIT, V.Valor1, V.Valor2, ")
+SQL.ADD(" O.FechaVto, O.Vehiculo1, O.Cantidad, CU.Comitente, O.CB9, O.CB10, O.Precio3, E.Tipo, ")
+SQL.ADD(" O.TotalNetoCli2, T.Fecha2, T.Fecha1, O.FechaVto2, O.PrecioMer, O.FechaPago, O.TotalIVA, ")
+SQL.ADD(" O.TotalIntereses, O.FechaOp, O.TotalBrutoCli2, O.TotalDerechos, O.Cliente1, T.Cuenta2, ")
+SQL.ADD(" CU.CuentaContable1, C.Valor1 CtaRem, E.Issuer Cliente, T.TipoTr2, O.CB7, O.TipoTasa, O.MB2, O.FechaEx4, ")
+SQL.ADD(" O.MB3, O.Observaciones, O.Precio1, O.Plazo, M.NrMov, M.NrGrupo2 MovConcepto, M.Status TipoImpuesto, E.Alias8, E.Alias5, ")
+SQL.ADD(" E.Cotiza, O.PlazoRenovPredeter, O.ImpComCor1, O.ImpComMer1, V.Alias4 MonLocalVeh, O.MB4, O.CB13, O.CB14, MA.Libro, ")
+SQL.ADD(" O.NrOperacion5, '' TipoDevengado, O.ImpGastos2, T.CNFormaPago, O.CantidadOri,C.CategDepositante, O.Book1 Book, CU.TipoCuenta, ")
+SQL.ADD(" O.Arancel1,O.TotalNetoCli3,O.TotalRetenciones,O.CB1,O.TotalGastos,O.ContraEspecie3 MonedaGastos,")
+SQL.ADD(" O.ContraEspecie2, O.ImpComCor1, O.ContraEspecie3, O.ImpComMer1, O.TotalIVA2, O.TotalIVA, ")
+SQL.ADD(" C.CuentaContableAux as CtaContAuxCli,CU.CuentaContableAux as CtaContAuxCue, O.RB10, O.Indice, O.TipoGracia ")
+SQL.ADD(" FROM "~DBO~".TRANSACCIONES2 T, "~DBO~".OPERACIONES O, "~DBO~".MODELOSASIENTO MA, ")
+SQL.ADD(" "~DBO~".CLIENTES C, "~DBO~".VEHICULOS V, "~DBO~".CUENTAS CU, "~DBO~".ESPECIES E,  ")
+SQL.ADD(" "~DBO~".MOVEJECUTADOS M ")
+SQL.ADD(" WHERE T.NrOperacionRef1 = O.NrOperacion ")
+SQL.ADD(" AND ((O.Cliente1    =  C.Codigo AND O.TipoOp <> 'TRANSF') OR (T.Cliente1 = C.Codigo AND O.TipoOp = 'TRANSF')) ")
+SQL.ADD(" AND O.Vehiculo1   =  V.Codigo  ")
+SQL.ADD(" AND  O.Especie     =  E.Codigo ")
+SQL.ADD(" AND   T.Especie  IN ("~Pipe2Comillas(Descendientes('ESPECIES', 'MONEDA'))~")  ")
+SQL.ADD(" AND   T.NrTrans     =  M.NrTrans2 ")
+SQL.ADD(" AND O.TipoOp = 'SECS' ")
+SQL.ADD(" and T.TipoTr2 in ('DEP','RET') ")
+SQL.ADD(" AND M.NrOperacion = O.NrOperacion ")
+SQL.ADD(" AND M.NrSaldo = 1 ")
+SQL.ADD(" AND T.Cantidad1 > 0 ")
+SQL.ADD(" AND T.Cuenta2 = CU.Codigo ")
+SQL.ADD(" AND MA.TipoAsiento IN ("~Pipe2Comillas(Var('TIPASDCVTO'))~") ")
+SQL.ADD(" AND MA.TipoOp = O.TipoOp ")
+SQL.ADD(" AND T.Vehiculo1 Not IN ("~Pipe2Comillas(Var('VLIQUIDAA'))~") ")
+SQL.ADD(" AND MA.Habilitado = 'SI' ")
+****SOLO PRECANCELACION
+SQL.ADD(" AND O.RB10 = 1 ")
+
+SQL.ADD(" AND '|'+rtrim(MA.Entorno)+'|' like '%|"~SIGLA~"|%' ")
+If NoVacio(Dialogo.ListaTabla1)
+   SQL.ADD(" AND T.NrTrans IN ("~Pipe2Comillas(Dialogo.ListaTabla1)~") ")
+Else
+   SQL.ADD(" AND T.Fecha1 = "~IdxDate2(Dialogo.Fecha1)~" ")
+   If NoVAcio(Dialogo.Lista1)
+       SQL.ADD(" AND T.Vehiculo1 IN ("~Pipe2Comillas(Dialogo.Lista1)~") AND (( ")
+       Recorrer&i 1,Elementos(Dialogo.Lista1)
+            SQL.ADD(" '|'+rtrim(MA.Vehiculo)+'|' like '%|"~ItemLista(Dialogo.Lista1,&i)~"|%' ")
+            If NOT Elementos(Dialogo.Lista1)=&i
+                SQL.ADD(" OR ")
+            EndIf
+       proximo
+       SQL.ADD(") OR MA.Vehiculo is null OR MA.Vehiculo = '' OR MA.Vehiculo = ' ' )")        
+   Else
+      If NoVacio(UsrVehiculos(UsuarioActivo))
+         SQL.ADD(" AND T.Vehiculo1 IN (Select Vehiculo from "~DBO~".USRVEHICULO where Codigo = '"~UsuarioActivo~"') ")
+      Endif
+   Endif
+Endif
+SQL.ADD(" AND (T.Fecha2 >= '"~IdxDate(Fecha(Var('FECHAMIGRA')))~"') ") 
+SQL.ADD(" ORDER By O.NrOperacion, MA.Codigo ")
+Watch(sql.batch)
+Recorrer SQL
+    let &monedaOp fbn('Moneda')
+    IF Incluido(fbn('TipoOp'), 'MRO|MRF')
+        ACD(FV:1, fbn('FechaEx4'))
+    ELSE
+        IF Incluido(fbn('CodAsi'), 'FCS2|FCR3|')
+           ACD(FV:1, fbn('FechaOp'))
+        ELSE
+           ACD(FV:1, fbn('Fecha2'))
+        ENDIF
+    ENDIF   
+    ***---Ultimo Dia Habil mes anterior
+    ACD(FE:43, Habiles(PriDeMes(Val(FV:1)),-1))
+    ACT(VH:1, fbn('Vehiculo1'))
+    ACD(FO:1, val(FV:1))
+    ACD(FO:2, Habiles(FinDeMes(val(FO:1),NO,'ARG')))
+    **//(.'FECHAVALOR'.)     
+    (.'FECHAVALO2'.)
+    ACD(FV:2, Val(FV:1))
+    (.'FECHAVALOR'.)
+    let &fechaContable Val(FV:1)    
+    let &MonedaComisionCorredor fbn('ContraEspecie2')
+    let &ImporteComisionCorredor fbn('ImpComCor1')
+    let &MonedaComisionMercado fbn('ContraEspecie3')
+    let &ImporteComisionMercado fbn('ImpComMer1')
+    let &ImporteIVACorredor fbn('TotalIVA2')
+    let &ImporteIVAMercado fbn('TotalIVA')
+    let &book fbn('Book')
+    let &ctaContAuxCli fbn('CtaContAuxCli')
+    let &ctaContAuxCue FBN('CtaContAuxCue')
+    let &esPrecancelacion fbn('RB10')
+    ACN(CK:1, 0)
+    let &cantidad   0
+    let &interes    0
+    *let &difCambio  0
+    If #ESPRECANCELACION
+        let &cantPrecancelacion fbn('TotalBrutoCli1')
+        
+        let &fechaFin FBN['FechaVto']
+        
+        ****Seteo fecha para funcion CONVTCINTD
+        let &fechaFinCONVTC &fechaFin
+
+        let &nrOperacionOn BuscarCampo('OPERACIONES','NrOperacion2','NrOperacion',fbn('NrOperacion'))
+      
+        ****Cuenta Auxiliar de la ON
+        let &ctaContAuxOp BuscarCampo('OPERACIONES','CuentaContableAux1','NrOperacion',&nrOperacionOn)
+
+        ****Moneda de la ON
+        let &monedaOn BuscarCampo('OPERACIONES','Especie','NrOperacion',&nrOperacionOn)
+        
+        ****Importe y cuenta item PRESTAMOS        
+        ACD(FF:1,fbn('FechaOp'))
+
+        SQL.ADD("SELECT NrOperacion1,NrCuota, 'INTLEN' as TipoDevengado, '"~&monedaOn~"' Moneda, '"~fbn('MonLocalVeh')~"' MonLocalVeh, ")
+        SQL.ADD(" 'MMONM' TipoOp, '"~&nrOperacionOn~"' NrOperacion, Fecha1, NrCuota1 ")
+        SQL.ADD("FROM "~DBO~".PRECANCELACION WHERE NrOperacion1 = '"~fbn('NrOperacion')~"' AND NrOperacion = '"~&nrOperacionOn~"' ")
+        SQL.ADD("Group By NrOperacion1, NrCuota, Fecha1, NrCuota1 ")
+        Recorrer Sql
+            let &fechaIniCuotaVig FBN('Fecha1')
+            *let &interesDev 0          
+            (.'CONVTCINTD'.)
+            *let &intDevDiaMF1 &intDevDiaMF1+&intDevDiaMF
+            *let &intDevDiaML1 &intDevDiaML1+&intDevDiaML
+            *let &intDevDiaMG1 &intDevDiaMG1+&intDevDiaMG
+*            SQL.ADD(" Select Sum(Monto) Monto ")
+*            SQL.ADD(" From "~DBO~".MOVDEVENGADOS ")
+*            SQL.ADD(" Where NrOperacion = '"~&nrOperacionOn~"' ")
+*            SQL.ADD(" and TipoDevengado = '"~FBN('TipoDevengado')~"' ")
+*            SQL.ADD(" and FechaEj = '"~IdxDate(val(FF:1))~"' ")
+*            SQL.ADD(" and Cupon = '"~FsTr(fbn('NrCuota'),0,0)~"' ")
+*            SQL.ADD(" And Fecha <= '"~IdxDate(val(FF:1))~"' ")
+*            *SQL.ADD(" Order by Fecha ")
+*            Recorrer SQL
+*                let &interesDev fbn('Monto')
+*            Proximo
+        Proximo
+        let &difCambio        0
+        let &montoCorriente   0
+        let &montoNoCorriente 0
+        let &impAControlar  &cantPrecancelacion
+        let &cuotaAfectada SQL("Select Min(NrCuota1) from "~DBO~".PRECANCELACION WHERE NrOperacion1 = '"~fbn('NrOperacion')~"' AND NrOperacion = '"~&nrOperacionOn~"'")
+       
+        ****Fecha Pago del Ultimo Cupon
+        let &fechaUltCupon SQL("Select Fecha3 from "~DBO~".PRECANCELACION WHERE NrOperacion1 = '"~fbn('NrOperacion')~"' AND NrOperacion = '"~&nrOperacionOn~"' AND NrCuota1 = '"~&cuotaAfectada~"'")
+  
+       ****Si es Dolar Link uso Cantidad13, si no Cantidad4
+        let &tasaAmort 0
+        If #ESUSDLINKON
+            SQL.ADD("Select Cantidad13 ImpAmort, ")
+        Else
+            SQL.ADD("Select Cantidad4 ImpAmort, ")
+        EndIf
+        SQL.ADD("Fecha2 FechaVto, Tasa1 TasaAmort ")
+        SQL.ADD("from CUOTAS where NrOperacion = '"~&nrOperacionOn~"' and NrCuota >= '"~FsTr(&cuotaAfectada,0,0)~"' ")
+        Recorrer SQL
+            let &tasaAmort &tasaAmort+fbn('TasaAmort')
+            
+            If (fbn('ImpAmort')>= &cantAControlar Y #ESUSDLINKON) O (fbn('ImpAmort')>= &impAControlar)
+                **Controlo si no me paso de importe para ver si es Corriente o no Corriente
+                If fbn('FechaVto') <= Val(FV:2)+VAR('PLCAPCORR')
+                    let &montoCorriente   &montoCorriente + &impAControlar
+                    If #ESUSDLINKON
+                        let &cantidadCorrientePrecan &cantidadCorrientePrecan + &cantAControlar
+                    EndIf
+                Else
+                    let &montoNoCorriente &montoNoCorriente + &impAControlar
+                    If #ESUSDLINKON
+                        let &cantidadNoCorriente &cantidadNoCorriente + &impAControlar
+                    EndIf
+                EndIf
+                **Si me alcanza con esa cuota no sigo controlando el resto de las cuotas
+                Break
+            Else
+                **Controlo cuando me paso de importe para ver si es Corriente o no Corriente
+                If fbn('FechaVto') <= Val(FV:2)+VAR('PLCAPCORR')
+                    let &montoCorriente   &montoCorriente + fbn('ImpAmort')
+                    If #ESUSDLINKON
+                        let &cantidadCorrientePrecan &cantidadCorrientePrecan + fbn('ImpAmort')
+                    EndIf
+                Else
+                    let &montoNoCorriente &montoNoCorriente + &impAControlar
+                    If #ESUSDLINKON
+                        let &cantidadNoCorriente &cantidadNoCorriente + &impAControlar  
+                    EndIf
+                EndIf 
+                
+                let &impAControlar &impAControlar-fbn('ImpAmort')             
+            EndIf           
+        Proximo
+        let &cantidadPrecanRemanente #CANTIDAD * &tasaAmort /100
+        
+        ****Cuando es una SECS de precancelacion tengo que generar tambien el asiento MMONMDCPREC
+        ****para obtener diferencia de cambio asociada a la ON
+        let &monedaOpOn BuscarCampo('OPERACIONES','Especie','NrOperacion',&nrOperacionOn)
+        If EqStr(&monedaOpOn,val(ME:1))
+            ****La on solo va a tener DC cuando es en USD
+            let &fechaIniCuota SQL("Select TOP 1 Fecha3 from "~DBO~".PRECANCELACION WHERE NrOperacion1 = '"~fbn('NrOperacion')~"' AND NrOperacion = '"~&nrOperacionOn~"' order by NrCuota1 ")
+            let &fechaPrecan   SQL("Select TOP 1 Fecha1 from "~DBO~".PRECANCELACION WHERE NrOperacion1 = '"~fbn('NrOperacion')~"' AND NrOperacion = '"~&nrOperacionOn~"' order by NrCuota1 ")
+            let &porcentajePrecan SQL("Select TOP 1 Tasa1 from "~DBO~".PRECANCELACION WHERE NrOperacion1 = '"~fbn('NrOperacion')~"' AND NrOperacion = '"~&nrOperacionOn~"' order by NrCuota1 ")
+            let &porcentajeTotalPrecan  SQL("Select Sum(Tasa1) from "~DBO~".PRECANCELACION WHERE NrOperacion = '"~&nrOperacionOn~"' ")
+            (.'DCPRECAN'.)
+        EndIf
+        *let &difCambio #DCCAP + #DCINTERES
+
+    EndIf
+    IF Dialogo.Check1 = 1 O Dialogo.Fecha1 < Fsys
+        ACN(CK:1, 1)
+        **// Asientos de concert. atados a voucher. No manda NrTrans
+        IF Incluido(fbn('CodAsi'),'FCS1|FCR1')
+        IF Vacio(SQL(" Select NrUnicoAsiento From "~DBO~".ASIENTOSCON Where NrOperacion = '"~fbn('NrOperacion')~"' AND Modelo = '"~fbn('CodAsi')~"' AND Estado = 'E' AND (NrAsiento Is Null OR NrAsiento = '' OR NrAsiento = ' ') AND (FechaValor > '"~IdxDate(Val(FO:2))~"' OR FechaValor =  '"~IdxDate(Val(FO:1))~"') AND Vehiculo = '"~fbn('Vehiculo1')~"' "))
+               ACN(CK:1, 0)
+           ENDIF
+        ELSE
+            IF Vacio(SQL(" Select NrUnicoAsiento From "~DBO~".ASIENTOSCON Where NrOperacion = '"~fbn('NrOperacion')~"' AND Modelo = '"~fbn('CodAsi')~"' AND Estado = 'E' AND NrTrans2 = '"~fbn('NrTrans')~"' AND (NrAsiento Is Null OR NrAsiento = '' OR NrAsiento = ' ') AND (FechaValor > '"~IdxDate(Val(FO:2))~"' OR FechaValor =  '"~IdxDate(Val(FO:1))~"') AND Vehiculo = '"~fbn('Vehiculo1')~"' "))
+               ACN(CK:1, 0)
+           ENDIF
+        ENDIF
+    ENDIF
+    IF Val(CK:1) = 0
+        SQL.ADD(" SELECT Cantidad, Especie, NrOperacion FROM "~DBO~".MOVPENDIENTES ")
+        SQL.ADD(" WHERE  NrOperacion = '"~fbn('NrOperacion')~"' ")
+        IF Eqstr(fbn('Moneda'),fbn('Especie'))
+           SQL.ADD(" AND  Especie = '"~fbn('ContraEspecie')~"' ")
+        Else
+           SQL.ADD(" AND  Especie = '"~fbn('Especie')~"' ")
+        Endif
+        SQL.ADD(" UNION ")
+        SQL.ADD(" SELECT Cantidad, Especie, NrOperacion FROM "~DBO~".MOVEJECUTADOS ")
+        SQL.ADD(" WHERE NrOperacion = '"~fbn('NrOperacion')~"' ") 
+        IF Eqstr(fbn('Moneda'),fbn('Especie'))
+           SQL.ADD(" AND  Especie = '"~fbn('ContraEspecie')~"' ")
+        Else
+           SQL.ADD(" AND  Especie = '"~fbn('Especie')~"' ")
+        Endif
+        SQL.ADD(" ORDER BY 3 ")
+        Recorrer SQL
+           dfa
+           SCN(mc:1, fbn('Cantidad'))
+           ACT(mo:1, fbn('Especie'))
+        Proximo
+        ***---DC entre Fecha de liquidacion y FechaOp
+        IF Incluido(fbn('TipoOp'), 'SECS|SEVS|SECT|SEVT|SECSV|SEVSV|SECTV|SEVTV')
+            ACN(CP:1, fbn('TotalNetoCli1'))
+            IF Val(FE:43) > fbn('FechaOp')
+                ACD(FD:1, Val(FE:43))
+            ELSE
+                ACD(FD:1, fbn('FechaOp'))
+            ENDIF
+            ACD(FH:1, Val(FV:1))
+            (.'DC-CAPINT'.)
+        ENDIF
+        **// Asientos de concert. atados a voucher. No manda NrTrans
+        IF Incluido(fbn('CodAsi'),'FCS1|FCR1')
+           ACT(NT:1, '')
+        Else
+           ACT(NT:1, fbn('NrTrans'))
+        Endif
+        let &modeloContable fbn('CodAsi')
+        let &Moneda fbn('Moneda')
+*        messagebox(fbn('NrOperacion'))
+*        messagebox('Monto bruto '~fstr(#MONTOBRUTOMF,0,2))
+*        messagebox('Cantidad Recompra '~fstr(#CANTIDADRECOMPMF,0,2))
+*        messagebox('Devengado '~fstr(#IMPDEVFMF,0,2))
+*        messagebox('DC '~fstr(#DCCAPINTERES,0,2))
+        
+        SQL.GenerarAsientoOp(&modeloContable,fbn('NrOperacion'),'','',810,Val(fv:1),fbn('Vehiculo1'),,,,,,fbn('TipoOp'),,Val(NT:1),,,,,fsys,Habiles(Dialogo.Fecha1,1,'ARG'))
+        SQL.EXEC
+        If #ESPRECANCELACION and EqStr(&modeloContable,'SECSRECPRECON')
+            let &modeloContable 'MMONMDCPREC'
+            SQL.GenerarAsientoOp(&modeloContable,&nrOperacionOn,'','',810,Val(fv:1),fbn('Vehiculo1'),,,,,,'MMONM',,,,,,,fsys,Habiles(Dialogo.Fecha1,1,'ARG'))
+            SQL.EXEC
+        EndIf
+    ENDIF
+Proximo

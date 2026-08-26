@@ -1,0 +1,68 @@
+﻿CAMPOS:1;;BuscarCampo('VEHICULOS','Alias3','Codigo',Vehiculo1)
+
+Vehiculo1       :'Vehiculo'            ;2;1;;;;NoVacio(VEHICULO1);'Vehiculo invalido';NO;BuscarCampo('USRVEHICULO','Vehiculo','Codigo',USUARIOACTIVO);
+Especie         :'Especie'             ;3;1;;;;NoVacio(ESPECIE) y DesciendeDeEspecie(ESPECIE,'TITULO') y EsTerminal(ESPECIE, Especie);'Titulo Invalido';NO;;;;;;;;"Status = 'HAB' and Jerarquia Like '"~Jerarquia('ESPECIES','TITULO')~"%' ";
+
+Fecha1          :'Fecha'               ;2;2;;VerificaAcceso('OPFVALOR');;FECHA1<=FSYS y EsHabil(FECHA1,'ARG');'Fecha invalida';NO;FSYS
+Fecha2          :'Fecha Acredit'       ;3;2;;;;EsHabil(FECHA2,'ARG');'Fecha de Acreditacion Invalida';NO;FSYS;
+
+Cantidad1       :'V_Nominal'           ;5;1;;NOT EV;;CANTIDAD1>0;'El Valor Nominal DEBE SER POSITIVO';NO;
+
+VTXT14          :'Cupon Actual'        ;4;2;;NO;NO;;;;FStr(NrCupon2(ESPECIE,FECHA2),0,0);FStr(NrCupon2(ESPECIE,FECHA2),0,0);
+Cupon1          :'Cupon'               ;5;2;;;;EqStr(CUPON1,VTXT14);'Cupon Incorrecto';NO;VTXT14;VTXT14;;;;;'###'
+
+Cliente1        :'De Banco'            ;9;1;;;;[Eqstr(BuscarCampo('CUENTAS','Comitente','Codigo', CUENTA4), CLIENTE1) y Eqstr(BuscarCampo('CLIENTES','Status','Codigo',CLIENTE1), 'HAB')];'Banco Origen invalido';NO;;BuscarCampo('CUENTAS','Comitente','Codigo',CUENTA4);;;;;; " (Codigo = '"~Var('CASACUSDEF')~"' ) OR  Codigo IN ("~Pipe2Comillas(Descendientes('CLIENTES','BANCOS'))~") and Status = 'HAB'";
+Cuenta4         :'De Cuenta'           ;10;1;;;;Eqstr(BuscarCampo('CUENTAS','Comitente','Codigo',CUENTA4), CLIENTE1);'Cuenta Origen invalida';NO;;QUERY("select Codigo from "~DBO~".CUENTAS where Cliente='"~VEHICULO1~"' and Estado='HAB' and Comitente='"~CLIENTE1~"' AND (Especies LIKE '%"~ESPECIE~"%' or Especies LIKE '%TITULO%') ");;;;;;IF(NoVacio(CLIENTE1), "Cliente='"~VEHICULO1~"' and Estado='HAB' and (Especies LIKE '%"~ESPECIE~"%' or Especies LIKE '%TITULO%') AND Comitente = '"~CLIENTE1~"' ", "Cliente='"~VEHICULO1~"' and Estado='HAB' and (Especies LIKE '%"~ESPECIE~"%' or Especies LIKE '%TITULO%')") 
+Book1           :'De Book'             ;11;1;;;;[SI O [BookValido(BOOK1, TIPOOP, ESPECIE, VEHICULO1, OPERADOR,'') o [BookValido(BOOK1, TIPOOP, ESPECIE, '', OPERADOR,'') y Vacio(Query("Select Vehiculo from "~DBO~".BOOKS where Codigo = '"~BOOK1~"'"))] ]] y NoVacio(BOOK1);'El Book seleccionado no corresponde a la Especie, Tipo de Operacion, Operador, Vehiculo';NO;;;;;;;;" (Vehiculo='"~VEHICULO1~"' OR Vehiculo is null) AND (TiposOperacion='' OR TiposOperacion Is Null OR TiposOperacion Like '%"~TIPOOP~"|%') ";
+
+Cliente2        :'A Banco'             ;9;2;;;;[Eqstr(BuscarCampo('CUENTAS','Comitente','Codigo', CUENTA1), CLIENTE2) y Eqstr(BuscarCampo('CLIENTES','Status','Codigo',CLIENTE2), 'HAB')];'Banco Destino invalido';NO;;BuscarCampo('CUENTAS','Comitente','Codigo',CUENTA1);;;;;;" (Codigo = '"~Var('CASACUSDEF')~"' ) OR  Codigo IN ("~Pipe2Comillas(Descendientes('CLIENTES','BANCOS'))~") and Status = 'HAB'";
+Cuenta1         :'A Cuenta'            ;10;2;;;;Eqstr(BuscarCampo('CUENTAS','Comitente','Codigo',CUENTA1), CLIENTE2);'Cuenta Destino Invalida';NO;;QUERY("select Codigo from "~DBO~".CUENTAS where Cliente= '"~VEHICULO1~"' and Estado='HAB' and Comitente='"~CLIENTE2~"' AND (Especies LIKE '%"~ESPECIE~"%' or Especies LIKE '%TITULO%') ");;;;;;IF(NoVacio(CLIENTE2), "Cliente='"~VEHICULO1~"' and Estado='HAB' and (Especies LIKE '%"~ESPECIE~"%' or Especies LIKE '%TITULO%') AND Comitente = '"~CLIENTE2~"' " , "Cliente='"~VEHICULO1~"' and Estado='HAB' and (Especies LIKE '%"~ESPECIE~"%' or Especies LIKE '%TITULO%') ")
+Book2           :'A Book'              ;11;2;;;;[SI O [BookValido(BOOK2, TIPOOP, ESPECIE, VEHICULO1, OPERADOR,'') o [BookValido(BOOK2, TIPOOP, ESPECIE, '', OPERADOR,'') y Vacio(Query("Select Vehiculo from "~DBO~".BOOKS where Codigo = '"~BOOK2~"'"))] ]] y NoVacio(BOOK2);'El Book seleccionado no corresponde a la Especie, Tipo de Operacion, Operador, Vehiculo';NO;;;;;;;;" (Vehiculo='"~VEHICULO1~"' OR Vehiculo is null) AND (TiposOperacion='' OR TiposOperacion Is Null OR TiposOperacion Like '%"~TIPOOP~"|%') ";
+
+UsrInput        :'Operador'            ;12;1;;NO;;NOVACIO(USRINPUT);'El Operador es Invalido';NO;USUARIOACTIVO;
+
+CB4                : 'Supervisado'      ;15;2; ;NO;NO;;;;
+
+
+CONDICIONES
+Incluido(VEHICULO1, UsrVehiculos(USUARIOACTIVO))  o VACIO(UsrVehiculos(USUARIOACTIVO)); 'El usuario activo no esta habilitado para operar con el vehiculo '~VEHICULO1;NO
+EspecieCuenta(ESPECIE, CUENTA4) O VACIO(CUENTA4);'El Titulo No Corresponde con la Cuenta Origen';NO
+ClienteCuenta(VEHICULO1, CUENTA4) o VACIO(CUENTA4);'La Cuenta Origen no corresponde al Vehiculo';NO
+EspecieCuenta(ESPECIE, CUENTA1) o VACIO(CUENTA1);'El Titulo No Corresponde con la Cuenta Destino';NO
+SI O SaldoC(Vehiculo1,Especie,,,,,,Cuenta4,1,FSYS)>=CANTIDAD1;'Cantidad a transferir es superior al saldo en la cuenta origen.';SI
+
+EDICION
+[EqStr(usrInput, UsuarioActivo) o Incluido(UsuarioActivo, Var('ULMODI'))];'No se puede modificar, Operador: '~Operador
+
+BAJA
+EqStr(UsrInput, UsuarioActivo) o Incluido(UsuarioActivo, Var('ULBAJA'));'No se puede dar de baja, Operador: '~Operador
+
+MOVIMIENTOS
+Fecha2;Cliente1 ;Especie;;;;;Vehiculo1; 1; -Cantidad1;;'Transferencia de '~Especie;SI;SI;;CB4=1;;Cuenta4;;1;;;Cupon1
+Fecha2;Cliente2 ;Especie;;;;;Vehiculo1; 1;  Cantidad1;;'Transferencia de '~Especie;SI;SI;;CB4=1;;Cuenta1;;2;;;Cupon1
+
+Fecha2;Vehiculo1;Especie;;;;;         ;10; Cantidad1;;'Transferencia de '~Especie;SI;SI;;CB4=1;;Cuenta1;;5;;;Cupon1;;;;Book2;
+Fecha1;Vehiculo1;Especie;;;;;Vehiculo1; 2; Cantidad1;;'Transferencia de '~Especie;SI;SI;;CB4=1;;Cuenta1;;6;;;Cupon1;;;;Book2;
+Fecha2;Vehiculo1;Especie;;;;;         ; 3; Cantidad1;;'Transferencia de '~Especie;SI;SI;;CB4=1;;Cuenta1;;7;;;Cupon1;;;;Book2;
+
+Fecha2;Vehiculo1;Especie;;;;;         ;10;-Cantidad1;;'Transferencia de '~Especie;SI;SI;;CB4=1;;Cuenta4;;8;;;Cupon1;;;;Book1;
+Fecha1;Vehiculo1;Especie;;;;;Vehiculo1; 2;-Cantidad1;;'Transferencia de '~Especie;SI;SI;;CB4=1;;Cuenta4;;9;;;Cupon1;;;;Book1;
+Fecha2;Vehiculo1;Especie;;;;;         ; 3;-Cantidad1;;'Transferencia de '~Especie;SI;SI;;CB4=1;;Cuenta4;;10;;;Cupon1;;;;Book1;
+
+BITS
+1;1
+20;0
+
+INSTANCIA1
+BITS
+1;0;FW=1
+20;1;FW=1
+
+POSTEDICION
+FW=1;'SUPTRA';NrTrans1=NRTRANS;Radio1=0
+
+INSTANCIA20
+BITS
+1;1;FW=2
+20;0;FW=2
+

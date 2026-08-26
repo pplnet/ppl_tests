@@ -1,0 +1,45 @@
+﻿CAMPOS:1;;BuscarCampo('VEHICULOS','Alias1','Codigo',Vehiculo1)
+FechaOp        : 'Fecha Concertacion'     ;1;1;;NO;;EsHabil(FECHAOP,'ARG');'Fecha incorrecta';NO;FSYS;
+@VEHITO
+Cliente1       : 'ContraParte'            ;2;1;;NO;;;;;;;;
+Especie        : 'Moneda'                 ;;;;;;NOVACIO(ESPECIE) y DESCIENDEDEESPECIE(ESPECIE,'MONEDA') y ESTERMINAL(ESPECIE, ESPECIE);'Debe Ingresar una Especie';NO;;;;;;;;"Codigo IN ("~Pipe2Comillas(Descendientes('ESPECIES','MONEDA'))~") and Status = 'HAB' ";
+FechaVto       : 'Vto.Saldo'              ;;;;NO;;EsHabil(FECHAVTO,TABLAFERIADOS1);'No es un Dia Habil';NO;FECHAOP+PLAZO;FECHAOP+PLAZO
+Plazo          : 'Plazo'                  ;5;2;;;;PLAZO>=1;'El PLAZO de la MONEDA EXTRANJERA NO DEBE SER INFERIOR a 1 Dia';NO;0;
+Cantidad       : 'Saldo'                  ;6;1;;NO;;CANTIDAD>0;'El Valor Nominal DEBE SER POSITIVO';NO;
+RB6            : 'Caso|Local|ClTe|CeTl|ExtIJ|ExtDJ'    ;;;;NO;;RB6>=0;'Indique Tipo de Caso';NO;;;
+MB3            : 'Tipo_Saldo|Activo|Pasivo'     ;6;2;;NO;;MB3>=0;'Indique Colocacion o Toma';NO;0;
+TotalIntereses : 'Interes'                ;8;1;;NO;;;;;;CANTIDAD*(PRECIO1+SPREAD)*PLAZO/IF(RB8=1,36500,36000);
+MB4            : 'Tipo_Interes|Activo|Pasivo'  ;8;2;;NO;NO;MB4>=0;'Indique Colocacion o Toma';NO;0;
+Precio1        : 'Tasa %'                 ;10;1;;NO;;PRECIO1>0;'La TASA DE INTERES debe ser POSITIVA'; NO;;
+RB8            : 'UT_Tasa Int|360|365'    ;;;;NO;;RB8=0 o RB8=1; 'UNIDAD DE TIEMPO TASA DE INTERES INVALIDA'; NO;;IF(MODI,RB8,IF(EQSTR('ARG',BuscarCampo('Clientes','PaisDir','Codigo',CLIENTE1)),1,0))
+NrOperacion3   : 'Op.Asoc'                ;;;;NO;NOVACIO(NROPERACION3);;;;;
+Precio4        : 'Tasa_T_Neta'            ;10;2;;NO;;;;;;(PRECIO1*(1+PRECIO2)/IF(RB8=0,360,365))*365;
+TotalAux1      : 'Tasa WH'                ;11;2;;NO;TOTALAUX1<>0;;;;;;;;;;'##.####'
+TasaPrecan     : 'Alic Imp_Extr'          ;11;2;;NO;TASAPRECAN<>0;;;;
+Precio2        : 'Factor TTNeta'          ;12;2;;NO;NO;;;;;
+Operador       :                          ;12;2;;NO;;NOVACIO(OPERADOR);'El Operador es Invalido';NO;USUARIOACTIVO;
+Impresa        : 'Modificado'             ;10;3;;NO;NO;;;;0
+CB6            : 'Original?'              ;10;2;;NO;NO;;;;1;;
+NrOperacion2   : 'TEMINM'                 ;13;2;;NO;NOVACIO(NROPERACION2);;;;;
+RB3            : 'MOF'                    ;10;2;;NO;NO;;;;;IF(INSTANCIA=2,0,1)
+OperacionRef   : ''                       ;;;;NO;NO;
+Spread         : 'Spread'                 ;;;;NO;NO;
+TablaFeriados1 : 'Feriados'               ;;;;NO;NO;
+
+CONDICIONES
+ESTERMINAL(VEHICULO1,VEHICULO);'El Vehiculo debe ser Terminal';NO
+ESTERMINAL(CLIENTE1,CLIENTE);'El Cliente debe ser Terminal';NO
+FECHAOP =Fsys;'La Fecha de Concertacion no coincide con la de Sistema';SI;SI;FSYS;'ORIGFVALOR'
+VACIO(BuscarCampo('USUARIOS','Perfil','Codigo',OPERADOR)) O  VERIFICAPERFIL(BuscarCampo('USUARIOS','Perfil','Codigo',OPERADOR),'TO'~TIPOOP);'Operador no habilitado para ingresar Operaciones del Tipo '~TIPOOP;NO
+[INSTANCIA=1 o INSTANCIA=2];'Instancia de Carga Incorrecta !!!';NO
+
+EDICION
+EqStr(Operador, UsuarioActivo) o Incluido(UsuarioActivo, Var('ULMODI'));'No se puede modificar, Operador: '~Operador
+
+BAJA
+[EqStr(Operador, UsuarioActivo) o Incluido(UsuarioActivo, Var('ULBAJA'))];'No se puede dar de baja, Operador: '~Operador
+[FECHAOP=FSYS y FECHAOP=BuscarCampo('OPERACIONES','FechaCarga','NrOperacion',NROPERACION)] o FECHAVTO=FSYS;'La Minuta solo podra ser Eliminada el Dia de Concertacion !! '~FECHAOP~' '
+
+@INSTOPE
+@INST19GENE
+@INST19BITS

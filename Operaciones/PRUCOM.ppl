@@ -1,0 +1,27 @@
+﻿CAMPOS:1;;
+Vehiculo1       : 'Vehiculo'     ;;;;;;;;;'C101';
+Cantidad        : 'Cantidad'     ;;;;;;;;;
+
+@PRUCOM
+
+BITS
+1;1
+19;0
+50;0
+
+INSTANCIA1
+BITS
+19;1;FW=1
+1;0;FW=1 
+
+INSTANCIA19
+CAMPOS:1;;BuscarCampo('VEHICULOS','Alias1','Codigo',Vehiculo1)
+Vehiculo1       : 'Vehiculo'     ;;;;NO;;;;;;
+Cantidad        : 'Capital'                    ;  ; ; ;
+@PRUCOM
+
+BITS
+19;0;FW=1
+50;1;FW=1
+
+

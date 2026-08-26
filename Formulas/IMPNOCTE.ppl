@@ -1,0 +1,5 @@
+﻿IIF(Incluido(fbn('TipoOp'), 'MMSCMV|MMONM|'), 
+   SQL(" Select Sum(Cantidad4) From "~DBO~".CUOTAS Where NrOperacion = '"~fbn('NrOperacion')~"' AND Fecha2 > '"~IdxDate(Val(FV:2)+VAR('PLCAPCORR'))~"' "),
+   IIF(Incluido(fbn('TipoOp'), 'MMPCLM|MMPOSM|'), 
+       SQL(" Select Sum(Cantidad1) From "~DBO~".CUOTAS Where NrOperacion = '"~fbn('NrOperacion')~"' AND Fecha2 > '"~IdxDate(Val(FV:2)+VAR('PLCAPCORR'))~"' "),
+       SQL(" Select Sum(Cantidad1) From "~DBO~".CUOTAS Where NrOperacion = '"~fbn('NrOperacion')~"' AND Fecha2 > '"~IdxDate(Val(FV:2)+VAR('PLCAPCORR'))~"' ")))

@@ -1,0 +1,128 @@
+﻿*ModoReproceso(ConDialogo)
+CrearDialogo
+  Fecha1     : "F.Op.Desde" ;1;1;;;;Dialogo.Fecha1<>0;'Debe Ingresar una Fecha';NO;       ;Fsys
+  Fecha2     : "F.Vigencia" ;5;1;;;;Dialogo.Fecha1<>0;'Debe Ingresar una Fecha';NO;FSys-30;Fsys
+ *Cliente1 : 'Cliente'    ;;;;;;;;;'RIO';;;;;;;;;;;;
+ *Especie1 : 'Moneda'     ;;;;;;;;;'UYU';;;;;;;;;;;;
+ *Vehiculo1 : 'Vehiculo'  ;;;;;;;;;'IRSA';;;;;;;;;;;;
+ **Fecha1: 'Desde' ;;;;;;;;;Fsys;;
+ *Fecha2: 'Hasta' ;;;;;;;;;Fsys;;
+FinDialogo
+
+
+*ACT(A:1, Dialogo.Cliente1)
+*ACT(A:2, Dialogo.Especie1)
+
+If no ok
+   Cancelar
+EndIf
+
+IF Incluido (Var('INSTALACIO'), #ifdef STD_CORP
+    MessageBox('1')
+#else
+    MessageBox('2')
+#endif
+
+Cancelar
+
+SetFilaActual(1)
+
+
+*[<TipoOp>], <Cliente>, [<Especie>], [<Vehiculo>], [<TipoArancel>], <Monto> [, <Numero>] , Cód.Arancel ,TipoCliente, UsaCero, TipoTransaccion2, Mercado, EstadoCustodia, Movimiento, UsaMaximo, UsaMinimo,TipoOrden
+
+*ACN(A:1, MontoArancelC('FXCF','CITI','ARP','TELECOM','AOPER',,1,,,,,,,,,,))
+ACN(A:2, MontoArancelC('FXCF','GALICIA','ARP',,'AOPER',0,1,,,SI,,,,,SI,SI,,SI))
+*MontoArancelC        ('TIC',CLIENTE1,ESPECIE,VEHICULO1,'AOPER',TOTALBRUTOCLI1*if(Eqstr(VAR('LIQCOMMO'),'SI'),1,PORDERECHOMERCADO),4,,BUSCARCAMPO('CLIENTES','TipoCliente','Codigo',CLIENTE1),SI,,,,,SI,SI,,SI)
+
+if no
+
+ACN(A:1, FactorDias(Dialogo.Fecha1, Dialogo.Fecha2, 1))
+ACN(A:2, FactorDias(Dialogo.Fecha1, Dialogo.Fecha2, 2))
+ACN(A:3, FactorDias(Dialogo.Fecha1, Dialogo.Fecha2, 3))
+ACN(A:4, FactorDias(Dialogo.Fecha1, Dialogo.Fecha2, 4))
+ACN(A:5, FactorDias(Dialogo.Fecha1, Dialogo.Fecha2, 5))
+
+
+
+ACD(A:fac, FinDeMes(Dialogo.Fecha1, NO, 'ARG'))
+ACD(B:fac, FinDeMes(Dialogo.Fecha1, SI, 'ARG'))
+ACD(C:fac, FinDeMes(Dialogo.Fecha1, NO))
+ACD(D:fac, FinDeMes(Dialogo.Fecha1, SI))
+
+endif
+
+if no
+
+ACD(A:fac, FinDeMes(Dialogo.Fecha1, NO, 'ARG'))
+ACD(B:fac, FinDeMes(Dialogo.Fecha1, SI, 'ARG'))
+ACD(C:fac, FinDeMes(Dialogo.Fecha1, NO))
+ACD(D:fac, FinDeMes(Dialogo.Fecha1, SI))
+
+ACD(A:fac+1, Habiles(Val(A:fac), -1, 'ARG', NO))
+ACD(B:fac+1, Habiles(Val(B:fac), -1, 'ARG', NO))
+*ACD(C:fac+1, Habiles(Val(C:fac), -1, 'ARG', NO))
+*ACD(D:fac+1, Habiles(Val(D:fac), -1, 'ARG', SI))
+
+
+
+ACD(A:1, Habiles(Dialogo.Fecha1, 36, 'ARG', SI))
+ACD(A:2, Habiles(Dialogo.Fecha1, 36, 'ARG', NO))
+ACD(A:3, Habiles(Dialogo.Fecha1, 36, '', NO))
+ACD(A:4, Habiles(Dialogo.Fecha1, 36, '', SI))
+ACD(A:fac, FinDeMes(Dialogo.Fecha1, NO, 'ARG'))
+ACD(B:fac, FinDeMes(Dialogo.Fecha1, SI, 'ARG'))
+ACD(C:fac, FinDeMes(Dialogo.Fecha1, NO))
+ACD(D:fac, FinDeMes(Dialogo.Fecha1, SI))
+
+Recorrer&k Dialogo.Fecha1, Dialogo.Fecha2
+    ACD(A:fac, &k)
+    ACN(B:fac, Dif360(Dialogo.Fecha1, Val(A:fac), 4))
+    ifa
+Proximo
+
+ifa
+ifa
+
+SaltarHoja
+
+ACD(A:fac, FinDeMes(Dialogo.Fecha1, NO, 'ARG'))
+ACD(B:fac, FinDeMes(Dialogo.Fecha1, SI, 'ARG'))
+ACD(C:fac, FinDeMes(Dialogo.Fecha1, NO))
+ACD(D:fac, FinDeMes(Dialogo.Fecha1, SI))
+
+
+*ACN(A:1, CotizacionBNABCU('USD',Dialogo.Fecha1,1,NO,NO))
+*ACN(A:2, CotizacionBNABCU('USD',Dialogo.Fecha2,1,NO,NO))
+endif
+
+if no
+ACT(A:1, 'BNABCU')
+ACT(B:1, 'BNA')
+ACT(C:1, 'BCU')
+
+ACN(A:2, CotizacionBNABCU('USD',Dialogo.Fecha1,1,NO,NO))
+ACN(B:2, CotizacionBNA('USD',Dialogo.Fecha1,1,NO,NO))
+ACN(C:2, CotizacionBCU('USD',Dialogo.Fecha1,1,NO,NO))
+
+ACN(C:5, CotizacionBCU('USD',Fecha('02/11/2011'),1,NO,NO))
+
+ACT(A:10..A:20, 'A')
+ACT(A:1, 'Sin VH')
+ACT(B:1, 'Con VH')
+ACN(A:2, LimAsignado(Dialogo.Cliente1,'COTOR', Dialogo.Especie1))
+ACN(B:2, LimAsignado(Dialogo.Cliente1,'COTOR', Dialogo.Especie1, Dialogo.Vehiculo1))
+Repetir
+ MessageBox('1')
+ Repetir
+    MessageBox('2')
+    Break
+ Proximo
+ Break
+Proximo
+
+
+ACD(A:1, Habiles(Dialogo.Fecha1, 1, 'ARG', SI))
+ACD(A:2, Habiles(Dialogo.Fecha1, 1, 'ARG', NO))
+ACD(A:3, Habiles(Dialogo.Fecha1, 1, '', NO))
+ACD(A:4, Habiles(Dialogo.Fecha1, 1, '', SI))
+ENDIF

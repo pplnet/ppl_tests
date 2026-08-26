@@ -1,0 +1,123 @@
+﻿#*********************************************************************************
+#
+#*********************************************************************************
+def abm 'CIERREDIARIO'
+   def grid
+   Codigo:, Tipo:, Nombre:, Habilitado:, OrdenEjecucion: 
+   end
+   def filter
+   '1=1 order by OrdenEjecucion --'
+   end
+   def key
+   Codigo:
+   end
+   def dialog
+       #**************************************************************************
+       tab 'General'
+          column
+            Tipo:       ,'Tipo'             , combo         , "I:Informes|E:Eventos|"
+            Habilitado: ,'Habilitado'       , combo         , "SI:Habilitado|NO:Deshabilitado|"
+            CodigoInf:  ,'Informe: '   , autocomplete  , 'INFORMES','Codigo,Nombre'
+            CodigoEve:  ,'Evento: '    , autocomplete  , 'EVENTOS','Codigo,Nombre'
+          column
+            Nombre:     ,'Nombre'           , text
+            Codigo:     ,'Codigo'           , small_text
+            OrdenEjecucion:     ,'Orden Ejecucion'           , numeric,'##0'
+   end
+   #-------------------------------------------------------------------------
+   #Habilito Aux1 o Aux2 según si el Tipo es para INFORMES o EVENTOS
+   do_not_map: CodigoInf:,CodigoEve:;      
+   #Deshabilito el campo Nombre, escondo el campo Código
+   before_show_dialog: do
+        $.disable(CodigoInf:)
+        $.disable(CodigoEve:)
+        $.disable(Nombre:)
+        $.disable(Codigo:)
+        $.Show(CodigoInf:)
+        $.Show(CodigoEve:)
+     If $.Alta()
+        $.enable(CodigoInf:)
+        $.set_field Tipo:, 'I'
+        $.set_field(OrdenEjecucion:, ppl.SQL("Select Max(OrdenEjecucion)+1 FROM CIERREDIARIO "))
+     endif
+     If $.Baja()
+        $.Hide(CodigoInf:)
+        $.Hide(CodigoEve:)
+     endif
+    #endif
+   end
+    #Cuando se selecciona un Tipo, Muestro un campo o el otro según sea necesario
+    when_change: Tipo: do
+        if $.val Tipo: = 'I'
+            $.enable(CodigoInf:)
+            $.disable(CodigoEve:)
+            $.set_field Nombre:, null
+            $.set_field CodigoEve:, null
+        else
+            true
+        endif
+        if $.val Tipo: = 'E'
+            $.disable(CodigoInf:)
+            $.enable(CodigoEve:)
+            $.set_field Nombre:, null
+            $.set_field CodigoInf:, null
+        else
+            true       
+        endif
+    end
+    when_change: CodigoInf: do
+        #copio el código del informe
+        $.Set_field Codigo:, $.val(CodigoInf:)
+        #busco nombre de informe
+        If ppl.NoVacio($.val CodigoInf:)
+            $.set_field(Nombre:, ppl.SQL("Select Nombre FROM INFORMES WHERE Codigo = '"+$.val(CodigoInf:)+"' "))
+        else
+            true
+        endif
+    end
+    when_change: CodigoEve: do
+        #copio el código del informe
+        $.Set_field Codigo:, $.val(CodigoEve:)
+        #busco nombre de informe
+        If ppl.NoVacio($.val CodigoEve:)
+            $.set_field(Nombre:, ppl.SQL("Select Nombre FROM EVENTOS WHERE Codigo = '"+$.val(CodigoEve:)+"' "))
+        else
+            true
+        endif
+    end
+    #Modificacion
+    before_show_dialog: do
+        if $.Modificacion()
+            if $.val Tipo: = 'I'
+                $.enable(CodigoInf:)
+                $.disable(CodigoEve:)
+                $.set_field CodigoInf:, $.val(Codigo:)
+            else
+                true
+            endif
+            if $.val Tipo: = 'E'
+                $.disable(CodigoInf:)
+                $.enable(CodigoEve:)
+                $.set_field CodigoEve:, $.val(Codigo:)
+            else
+                true       
+            endif
+        else
+            true
+        endif
+    end
+    validations:
+        #CodigoInf:, $.val Tipo: = 'I' AND ppl.NoVacio($.val(CodigoInf:)), 'Debe seleccionar un código de Informe','error';
+        #CodigoEve:, $.val Tipo: = 'E' AND ppl.NoVacio($.val(CodigoEve:)), 'Debe seleccionar un código de Evento','error';
+        Codigo:     , ppl.NoVacio($.val(Codigo:))       , 'Debe seleccionar un Informe o Evento','error';
+        Habilitado: , ppl.NoVacio($.val(Habilitado:))   , 'Debe especificar si está habilitado' ,'error';
+        Tipo:       , ppl.NoVacio($.val(Tipo:))         , 'Debe especificar un Tipo'            ,'error';
+        OrdenEjecucion:      , $.val(OrdenEjecucion:)>0       , 'Debe indicar un Orden de ejecución mayor a 0 para el Evento/Informe','error';
+    validates_max_length_of:
+        Codigo:, 6 ,true;
+        Nombre:, 40,true;
+        Tipo:, 1,true;
+    validates_uniqueness_of: OrdenEjecucion:
+    validates_uniqueness_of_set: Tipo:, Codigo:
+    
+ end

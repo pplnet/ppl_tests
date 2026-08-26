@@ -1,0 +1,173 @@
+﻿CrearDialogo
+   Check1     : 'Titulos'   ;1;1;;  ;  ;;;;1
+   Check7     : 'Anula'     ;1;2;;  ;Dialogo.Check1=1;;;;1
+   Check2     : 'Fondos'    ;2;1;;  ;  ;;;;0
+   Check8     : 'Anula'     ;2;2;;  ;Dialogo.Check2=1;;;;1
+   Check3     : 'Mon.Spot'  ;3;1;;  ;  ;;;;0
+   Check9     : 'Anula'     ;3;2;;  ;Dialogo.Check3=1;;;;1
+   Check4     : 'Mon.FWD'   ;4;1;;  ;  ;;;;0
+   Check10    : 'Anula'     ;4;2;;  ;Dialogo.Check4=1;;;;1
+   Check5     : 'Reset'     ;5;1;;  ;  ;;;;1
+   Fecha1     : 'Fec.Reset' ;5;2;;Dialogo.Check5=1;Dialogo.Check5=1;;;;FSys
+   Check6     : 'Procesa'   ;6;1;;NO;NO;;;;1
+FinDialogo
+
+If not Ok
+  Cancelar
+Endif
+
+if Dialogo.Check1=1 y Dialogo.Check6=1
+  if Dialogo.Check7=1
+    SQL.ADD("Delete "~DBO~".MOVPOSPEN ")
+    SQL.ADD(" where NrSaldo in (120,130) ")
+    SQL.NEW
+    SQL.EXEC
+
+    SQL.ADD("Delete "~DBO~".MOVPOSEJE ")
+    SQL.ADD(" where NrSaldo in (120,130) ")
+    SQL.NEW
+    SQL.EXEC
+
+    SQL.ADD("Delete "~DBO~".POSICIONES ")
+    SQL.ADD(" where NrSaldo in (120,130) ")
+    SQL.NEW
+    SQL.EXEC
+
+    SQL.ADD("Delete "~DBO~".RESULTADOS ")
+    SQL.ADD(" where NrSaldo in (120,130) ")
+    SQL.NEW
+    SQL.EXEC
+  endif
+
+  EjecutarEvento('ACTMOV',Vehiculo1='',Fecha1=FSys,Fecha2=FSys,NrOperacion1='',TipoOp1='SECS',Especie1='',Radio1=4,Radio2=1)
+  EjecutarEvento('ACTMOV',Vehiculo1='',Fecha1=FSys,Fecha2=FSys,NrOperacion1='',TipoOp1='SEVS',Especie1='',Radio1=4,Radio2=1)
+
+endif
+
+if Dialogo.Check2=1 y Dialogo.Check6=1
+  if Dialogo.Check8=1
+    SQL.ADD("Delete "~DBO~".MOVPOSPEN ")
+    SQL.ADD(" where NrSaldo in (121,131) ")
+    SQL.NEW
+    SQL.EXEC
+
+    SQL.ADD("Delete "~DBO~".MOVPOSEJE ")
+    SQL.ADD(" where NrSaldo in (121,131) ")
+    SQL.NEW
+    SQL.EXEC
+
+    SQL.ADD("Delete "~DBO~".POSICIONES ")
+    SQL.ADD(" where NrSaldo in (121,131) ")
+    SQL.NEW
+    SQL.EXEC
+
+    SQL.ADD("Delete "~DBO~".RESULTADOS ")
+    SQL.ADD(" where NrSaldo in (121,131) ")
+    SQL.NEW
+    SQL.EXEC
+  endif
+
+  EjecutarEvento('ACTMOV',Vehiculo1='',Fecha1=FSys,Fecha2=FSys,NrOperacion1='',TipoOp1='FCS',Especie1='',Radio1=5,Radio2=1)
+  EjecutarEvento('ACTMOV',Vehiculo1='',Fecha1=FSys,Fecha2=FSys,NrOperacion1='',TipoOp1='FCR',Especie1='',Radio1=5,Radio2=1)
+
+endif
+
+if Dialogo.Check3=1 y Dialogo.Check6=1
+  if Dialogo.Check9=1
+    SQL.ADD("Delete "~DBO~".MOVPOSPEN ")
+    SQL.ADD(" where NrSaldo in (122,132) ")
+    SQL.NEW
+    SQL.EXEC
+
+    SQL.ADD("Delete "~DBO~".MOVPOSEJE ")
+    SQL.ADD(" where NrSaldo in (122,132) ")
+    SQL.NEW
+    SQL.EXEC
+
+    SQL.ADD("Delete "~DBO~".POSICIONES ")
+    SQL.ADD(" where NrSaldo in (122,132) ")
+    SQL.NEW
+    SQL.EXEC
+
+    SQL.ADD("Delete "~DBO~".RESULTADOS ")
+    SQL.ADD(" where NrSaldo in (122,132) ")
+    SQL.NEW
+    SQL.EXEC
+  endif
+
+  EjecutarEvento('ACTMOV',Vehiculo1='',Fecha1=FSys,Fecha2=FSys,NrOperacion1='',TipoOp1='FXAS',Especie1='',Radio1=0,Radio2=1)
+  EjecutarEvento('ACTMOV',Vehiculo1='',Fecha1=FSys,Fecha2=FSys,NrOperacion1='',TipoOp1='FXCS',Especie1='',Radio1=0,Radio2=1)
+  EjecutarEvento('ACTMOV',Vehiculo1='',Fecha1=FSys,Fecha2=FSys,NrOperacion1='',TipoOp1='FXVS',Especie1='',Radio1=0,Radio2=1)
+
+endif
+
+if Dialogo.Check4=1 y Dialogo.Check6=1
+  if Dialogo.Check10=1
+    SQL.ADD("Delete "~DBO~".MOVPOSPEN ")
+    SQL.ADD(" where NrSaldo in (123,133) ")
+    SQL.NEW
+    SQL.EXEC
+
+    SQL.ADD("Delete "~DBO~".MOVPOSEJE ")
+    SQL.ADD(" where NrSaldo in (123,133) ")
+    SQL.NEW
+    SQL.EXEC
+
+    SQL.ADD("Delete "~DBO~".POSICIONES ")
+    SQL.ADD(" where NrSaldo in (123,133) ")
+    SQL.NEW
+    SQL.EXEC
+
+    SQL.ADD("Delete "~DBO~".RESULTADOS ")
+    SQL.ADD(" where NrSaldo in (123,133) ")
+    SQL.NEW
+    SQL.EXEC
+  endif
+
+*  EjecutarEvento('ACTMOV',Vehiculo1='',Fecha1=FSys,Fecha2=FSys,NrOperacion1='',TipoOp1='FXAT',Especie1='',Radio1=0,Radio2=1)
+  EjecutarEvento('ACTMOV',Vehiculo1='',Fecha1=FSys,Fecha2=FSys,NrOperacion1='',TipoOp1='FXCT',Especie1='',Radio1=0,Radio2=1)
+  EjecutarEvento('ACTMOV',Vehiculo1='',Fecha1=FSys,Fecha2=FSys,NrOperacion1='',TipoOp1='FXVT',Especie1='',Radio1=0,Radio2=1)
+
+endif
+
+if Dialogo.Check5=1
+  ACT(y1, 'Fin de Mes')
+  ACT(y2, 'OK')
+  ACT(y4, 'Mes Inicio')
+  ACT(y5, 'Mes Cierre')
+
+  * Fin de mes del mes actual
+  ACD(z:1, FinDeMes(Dialogo.Fecha1,NO,'ARG'))
+
+  ACT(z:2, 'SI')
+  if Val(z:1)<>Dialogo.Fecha1
+    MessageBox('La fecha indicada no es fin de mes')
+    ACT(z:2, 'NO')
+  endif
+
+  IF EqStr(Val(z:2),'SI')
+    ACN(z:4, 0)
+    ACN(z:4, SQL("Select 1 from "~DBO~".VARIABLES where Codigo='MESINIEJE' "))
+    if Val(z:4)=0
+      ACN(z:5, 12)
+    else
+      ACN(z:5, VAR('MESINIEJE')-1)
+    endif
+    if Val(z:5)<1 or Val(z:5)>12
+      ACN(z:5, 12)
+    endif
+    if Mes(Dialogo.Fecha1)<>Val(z:5)
+      MessageBox('La fecha indicada no es fin de Ejercicio')
+      ACT(z:2, 'NO')
+    endif
+  endif
+
+  if EqStr(Val(z:2),'NO')
+    MessageBox('No es posible Resetear Posicion en esta Fecha: '~Dialogo.Fecha1)
+  endif
+
+  iF EqStr(Val(z:2),'SI')
+    EjecutarEvento('RESET1',Fecha1=Dialogo.Fecha1,Especie1='',Check1=Dialogo.Check6)
+  endif
+
+endif

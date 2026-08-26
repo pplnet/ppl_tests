@@ -1,0 +1,8 @@
+﻿        IF fbn('FechaOp') = &fecha2 O fbn('FechaVto') = &fecha2
+            ACT(F:fac, 'INi o Vto')
+            ACN(G:fac, CotizacionC('USD',,,,&fecha2,1,SI,'ARP'))
+        ELSE
+            ACT(F:fac, 'Intermedio')
+            ACN(G:fac, CotizacionC('ARP',,,,&fecha2,1,SI,'USD'))
+        ENDIF
+        

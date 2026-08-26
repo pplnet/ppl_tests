@@ -1,0 +1,54 @@
+﻿SQL.ADD("SELECT Min(FechaOp) FechaMinOp,Vehiculo1,Book1 from "~DBO~".OPERACIONES ")
+SQL.ADD("WHERE FechaCargaSys = '"~IdxDate(Dialogo.Fecha1)~"' AND FechaOp < FechaCargaSys ")
+SQL.ADD("AND TipoOp in ("~Pipe2Comillas(VAR('OPRENTAB'))~") ")
+SQL.ADD("Group By Vehiculo1, Book1 ")
+Recorrer SQL
+    let &opFechaValor 1
+    If NoVacio(&FechaCotizFV)
+        If fbn('FechaMinOp') < &FechaCotizFV
+            **//21-11-23 Eliana - CASO2
+            let &vehiculo fbn('vehiculo1')
+            **Siempre será uno solo
+            let &listaBooks fbn('book1')~ '|'
+            If &evento=0
+                EjecutarEvento('DCMMLT', Radio1=0, Fecha1=Habiles(Fecha(fbn('FechaMinOp')),1,'ARG',NO),Fecha2=Habiles(&FechaCotizFV,-1,'ARG'),Radio2=0, Lista2= '', Vehiculo1=&vehiculo, Lista3=&listaBooks, Lista1=Var('TIPOOPDCMM'))
+            Else
+                EjecutarEvento('RENTLO', Fecha1=Fecha(fbn('FechaMinOp')),Fecha2=Habiles(&FechaCotizFV,-1,'ARG'), Radio1=1 ,Lista1='',Vehiculo1=&vehiculo,Lista2=&listaBooks)
+            Endif
+        EndIf
+    Else
+        **//21-11-23 Eliana - CASO3
+        let &vehiculo fbn('vehiculo1')
+        **Siempre será uno solo
+        let &listaBooks fbn('book1')~ '|'
+        If &evento=0
+            EjecutarEvento('DCMMLT', Radio1=0, Fecha1=Habiles(Fecha(fbn('FechaMinOp')),1,'ARG',NO),Fecha2=Habiles(Dialogo.Fecha1,-1,'ARG'),Radio2=0, Lista2= '', Vehiculo1=&vehiculo, Lista3=&listaBooks,Lista1=Var('TIPOOPDCMM'))
+        Else
+            EjecutarEvento('RENTLO', Fecha1=Fecha(fbn('FechaMinOp')),Fecha2=Habiles(Dialogo.Fecha1,-1,'ARG'), Radio1=1 ,Lista1='',Vehiculo1=&vehiculo,Lista2=&listaBooks)
+        Endif
+    EndIf
+Proximo
+If vacio(&FechaCotizFV) o &FechaCotizFV=Dialogo.Fecha1
+    **//21-11-23 Eliana - CASO3 B ENTRA ACÁ
+    **CASO 5 ENTRA ACÁ
+    If &evento=0
+        *CINTIA 261023 Se utiliza un recorrer para el cálculo de DCMM para contemplar el cálculo en dias no hábiles ya que no se corre el cierre. 
+        let &anteriorHabil Habiles(Dialogo.Fecha1,-1,'ARG')
+        let &anteriorReal  Habiles(Dialogo.Fecha1,-1,,NO)
+        Recorrer&j &anteriorHabil, &anteriorReal
+            EjecutarEvento('DCMM', Fecha1=Fecha(&j), Lista1='',NrOperacion1='',Radio1=1, Lista2= '', Vehiculo1='', Lista3='')
+        Proximo
+    Else
+        EjecutarEvento('RENTAB', Fecha1=Habiles(Dialogo.Fecha1,-1,'ARG'), Lista1='',Lista2='',Vehiculo1='',Radio1=1)
+    Endif
+Else
+    **//21-11-23 Eliana 
+    **CASO 1 ENTRA ACÁ
+    **CASO 2 B ENTRA ACÁ
+    **CASO 4 ENTRA ACÁ
+    If &evento=0
+        EjecutarEvento('DCMMLT', Radio1=0, Fecha1=Habiles(Fecha(&FechaCotizFV),1,'ARG',NO),Fecha2=Habiles(Dialogo.Fecha1,-1,'ARG'),Radio2=1, Lista2= '', Vehiculo1='', Lista3='',Lista1=Var('TIPOOPDCMM'))            
+    Else
+        EjecutarEvento('RENTLO', Fecha1=Fecha(&FechaCotizFV),Fecha2=Habiles(Dialogo.Fecha1,-1,'ARG'), Radio1=1 ,Lista1='',Vehiculo1='',Lista2='')
+    Endif 
+EndIf

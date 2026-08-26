@@ -1,0 +1,225 @@
+﻿**// --------------------------------------------------------------------------------------------- //**
+**// La función PPLRC es un script global que se distribuye junto al resto de los scripts
+**// y es ejecutado de forma automática cuando se crea el proceso para correr la aplicación.
+**// 
+**// Este archivo sirve, entre otras cosas, para modificar el proceso de inicialización de la aplicación, 
+**// configurar variables globales, definir funciones, sobrescribir funciones core y demás; 
+**// siempre utilizando código PPL.
+
+**// Las lineas que inician con "**//" son comentarios de ayuda,
+**// las que inician con "**" son ejemplos PPL.
+
+**// Mas info: https://github.com/FPA-SOFTWARE/ppl/wiki/pplrc
+**// --------------------------------------------------------------------------------------------- //**
+
+**// --------------------------------------------------------------------------------------------- //**
+**// ConfigGrilla:
+**// --------------------------------------------------------------------------------------------- //**
+**// Funciones de configuracion de grillas.
+
+**// Las siguientes funciones nos permiten definir las columnas que se muestran en las grillas de 
+**// Operaciones, Transacciones o Ordenes. Cada ejemplo muestra su valor default.
+
+**// Define las columnas de la super grilla. 
+**// Parametros: 
+**// [1] Lista de columnas formato query y con prefijo "o."
+** ConfigGrilla.ColumnasSuperGrillaOp("o.NrOperacion, o.FechaOp, RTRIM(o.Cliente1) as Cliente1, RTRIM(o.Especie) as Especie, RTRIM(o.TipoOp) as TipoOp, ROUND(o.Cantidad,2) as Cantidad, ROUND(o.PrecioEj,9) as PrecioEj, ROUND(o.Precio1,9) as Precio1, RTRIM(o.Cliente2) as Cliente2, o.FechaVto, o.Plazo, RTRIM(o.Operador) as Operador, RTRIM(o.Observaciones) as Observaciones, o.LInstancia, o.Direccion")
+
+**// Define las columnas de una grilla de instancia en particular. 
+**// Parametros: 
+**// [1] NrInstancia (si es cero aplica a todas)
+**// [2] Lista de columnas formato query y con prefijo "o."
+** ConfigGrilla.ColumnasInstanciaOp(0, "o.NrOperacion, o.FechaOp, RTRIM(o.Cliente1) as Cliente1, RTRIM(o.Especie) as Especie, RTRIM(o.TipoOp) as TipoOp, ROUND(o.Cantidad,2) as Cantidad, ROUND(o.PrecioEj,9) as PrecioEj, ROUND(o.Precio1,9) as Precio1, RTRIM(o.Cliente2) as Cliente2, o.FechaVto, o.Plazo, RTRIM(o.Operador) as Operador, RTRIM(o.Observaciones) as Observaciones, o.LInstancia, o.Direccion")
+ConfigGrilla.ColumnasInstanciaOp(0, "o.NrOperacion, o.Vehiculo1, o.Book1, o.FechaOp, o.Cliente1, o.Especie, o.TipoOp, o.Cantidad, o.Precio1, o.TotalNetoCli1, o.TotalBrutoCli1, o.Plazo, o.FechaVto, o.Operador, o.Observaciones, o.LInstancia, o.Direccion")
+ConfigGrilla.ColumnasSuperGrillaOp("o.NrOperacion, o.Vehiculo1, o.Book1, o.FechaOp, o.Cliente1, o.Especie, o.TipoOp, o.Cantidad, o.Precio1, o.TotalNetoCli1, o.TotalBrutoCli1, o.Plazo, o.FechaVto, o.Operador, o.Observaciones, o.LInstancia, o.Direccion")
+**ConfigGrilla.ColumnasSuperGrillaTr("o.NrTrans, o.Vehiculo1, o.Book1, o.Fecha1, o.Cliente1, o.Especie, o.TipoTr2, ROUND(o.Cantidad1,2) as Cantidad1, ROUND(o.Precio1,9) as Precio1, o.Cliente2, o.Direccion")
+**ConfigGrilla.ColumnasInstanciaTr(0, "o.NrTrans, o.Vehiculo1, o.Book1, o.Fecha1, o.Cliente1, o.Especie, o.TipoTr2, ROUND(o.Cantidad1,2) as Cantidad1, ROUND(o.Precio1,9) as Precio1, o.Cliente2, o.Direccion")
+
+*** ORDENES
+ConfigGrilla.ColumnasInstanciaOr(0, "o.NrOrden, o.Vehiculo, o.Book1, o.FechaOrden, CONVERT(varchar,FechaCarga,20) AS FechaCarga, o.Cliente, o.TipoOrden,o.CantidadTotalOrden,  o.ContraEspecie, o.Cuenta1, o.Operador")
+ConfigGrilla.ColumnasSuperGrillaOr ("o.NrOrden, o.Vehiculo, o.Book1, o.FechaOrden, CONVERT(varchar,FechaCarga,20) AS FechaCarga, o.Cliente, o.TipoOrden,o.CantidadTotalOrden,  o.Especie, o.Cuenta1, o.Operador")
+
+**// Configuracion de filtros de usuario para super grilla:
+** ConfigGrilla.AgregarFiltro("Compliance", "NrInstancia = 2 or NrInstancia = 3 or NrInstancia = 8")
+**// El filtro del ejemplo anterior ya viene por default para STD.
+**// --------------------------------------------------------------------------------------------- //**
+
+
+**// --------------------------------------------------------------------------------------------- //**
+**// ConfigCampos:
+**// --------------------------------------------------------------------------------------------- //**
+**//   Funciones para definir campos:
+**//     ConfigCampos.Operaciones()
+**//     ConfigCampos.Transacciones()
+**//     ConfigCampos.Ordenes()
+**//   Funciones para definir campos en los dialogos del interprete:
+**//     ConfigCampos.Eventos()
+
+** ConfigCampos.Operaciones("Label[1-21]", LABEL)
+
+** ConfigCampos.Operaciones("CB[1-17]", CHECK)
+
+** ConfigCampos.Operaciones("RB[1-17]", COMBO)
+
+** ConfigCampos.Operaciones("MB[1-6]", RADIO)
+
+** ConfigCampos.Operaciones("FechaOp[N-2]", DATE)
+
+**// TEXT, MEDIUM_TEXT o LARGE_TEXT, el 3er parametro es opcional (max. caracteres)
+** ConfigCampos.Operaciones("Observac[2-5]", TEXT ,100)
+
+**// El 3er parametro es opcional (mascara)
+** ConfigCampos.Operaciones("Cantidad[N-40]", NUMERIC, "##,###,###,###,###.##")
+
+**// Parametros obligatorios: 
+**// [3] Tabla
+**// [4] Campo clave
+**// [5] Campos columnas a mostrar
+** ConfigCampos.Operaciones("Especie[N-5]", LOOKUP, "Especies", "Codigo", "Codigo,Nombre,Extendido,ISIN,CUSIP")
+
+**// Luego de configurar los campos es necesario impactar los cambios:
+** ConfigCampos.Guardar()
+**// --------------------------------------------------------------------------------------------- //**
+
+
+**// --------------------------------------------------------------------------------------------- //**
+**// Definir numerador para operaciones eventuales
+**// --------------------------------------------------------------------------------------------- //**
+
+**// Por default es el numerador 1000
+**// Mas info: TODO
+
+**// Ejemplo:
+** EventualesNumerador(1001)
+**// --------------------------------------------------------------------------------------------- //**
+
+
+**// --------------------------------------------------------------------------------------------- //**
+**// Definir funciones PPL:
+**// --------------------------------------------------------------------------------------------- //**
+
+**// Las funciones definidas en PPLRC son globales y estan disponibles en todos los eventos e informes.
+**// Mas info: https://github.com/FPA-SOFTWARE/ppl/wiki/Intro-Sintaxis-Informes-y-Eventos#como-definir-funciones-en-pplnet
+
+**// Ejemplo:
+
+**// def sum (a, b)
+**//    return a + b
+**// end
+**// --------------------------------------------------------------------------------------------- //**
+
+
+**// --------------------------------------------------------------------------------------------- //**
+**// Sobrescribir funciones PPL Core:
+**// --------------------------------------------------------------------------------------------- //**
+
+**// Las funciones definidas en PPLRC son globales y estan disponibles en todos los eventos e informes.
+**// Mas info: https://github.com/FPA-SOFTWARE/ppl/wiki/Intro-Sintaxis-Informes-y-Eventos#como-definir-funciones-en-pplnet
+
+**// Ejemplo:
+**// (Funcion eqstr() case insensitive)
+
+** def eqstr(str1, str2)
+**   return eqstri(str1, str2)
+** end
+**// --------------------------------------------------------------------------------------------- //**
+
+
+**// --------------------------------------------------------------------------------------------- //**
+**// Definir variables globales: 
+
+
+
+**// --------------------------------------------------------------------------------------------- //**
+
+**// Variables de ambito global que se pueden acceder desde cualquier script.
+**// Mas info: https://github.com/FPA-SOFTWARE/ppl/wiki/Variables-Globales
+
+**// Ejemplo:
+** letGlobal path_logo, 'G:\PATH\logo.jpg'
+**// --------------------------------------------------------------------------------------------- //**
+
+***ConfigCampos.Cuotas("Cuenta1", LOOKUP, "CUENTAS", "Codigo", "Codigo,Nombre")
+***---ConfigCampos.Operaciones("RB6", RADIO)
+***ConfigCampos.Cuotas("Check[1-10]", CHECK)
+***
+ConfigCampos.Informes("PrecioRef[N-4]", LOOKUP, "PreciosRef",  "Codigo",  "Codigo,Descripcion")
+**** ORDENES
+*ConfigCampos.Operaciones("NrOrden", LOOKUP, "ORDENES", "NrOrden","NrOrden,format(CantidadTotalOrden , '#,##0') as CantidadTotalOrden,FechaEjercicio,TipoOrden,CantidadCompletada,Vehiculo, Book1,Especie")
+ConfigCampos.Operaciones("NrOrden", LOOKUP, "ORDENES", "NrOrden","NrOrden,TipoOrden,CantidadTotalOrden,FechaEjercicio,TipoOrden,CantidadCompletada,Vehiculo, Book1,Especie")
+****
+ConfigCampos.Operaciones("RB[5-6]", RADIO)
+ConfigCampos.Operaciones("RB[5-6]", RADIO)
+ConfigCampos.Operaciones("RB17", RADIO)
+ConfigCampos.Operaciones("RB10", RADIO)
+ConfigCampos.Operaciones("MB[3-4]", RADIO)
+ConfigCampos.Operaciones("Label[1-21]", LABEL)
+ConfigCampos.Operaciones("Cuenta[N-5]", LOOKUP, "Cuentas", "Codigo", "Codigo,Nombre,Cliente,Comitente as 'Depositante', Numero, Especies")
+ConfigCampos.Operaciones("NrSucursal", LOOKUP, "Sucursales", "Codigo", "Codigo,Nombre")
+ConfigCampos.Operaciones("Indice", LOOKUP, "Especies", "Codigo", "Codigo,Nombre")
+ConfigCampos.Operaciones("TasaIVA[1-4]", NUMERIC)
+ConfigCampos.Operaciones("TotalIVA[2-4]", NUMERIC)
+ConfigCampos.Operaciones("Arancel[1-2]", NUMERIC)
+ConfigCampos.Operaciones("PorArancel[1-2]", NUMERIC)
+ConfigCampos.Operaciones("UMedida", LOOKUP, "Umedidas", "Codigo", "Codigo,Descripcion")
+ConfigCampos.Operaciones("Riesgo", LOOKUP,"RIESGOOPERACIONES", "Codigo", "Codigo,Descripcion")
+ConfigCampos.Operaciones("Aprobaciones", NUMERIC)
+ConfigCampos.Operaciones("Aprobador[1-2]", TEXT,10)
+ConfigCampos.Operaciones("Hora[1-2]", TEXT ,8)
+ConfigCampos.Operaciones("CAMPOPRUEBA", TEXT ,8)
+ConfigCampos.Operaciones("NrComis", NUMERIC)
+ConfigCampos.Operaciones("CuentaContableAux[1-2]", LOOKUP,"CUENTACONTABLEAUX", "Codigo", "Codigo,Nombre")
+ConfigCampos.Operaciones("OFICIALCUENTA", TEXT ,3)
+
+***LIMITES
+ConfigCampos.Operaciones("LimConsum", NUMERIC)
+ConfigCampos.Operaciones("LimMonSup", NUMERIC)
+ConfigCampos.Operaciones("LimMonInf", NUMERIC)
+ConfigCampos.Operaciones("MonCartera", NUMERIC)
+ConfigCampos.Operaciones("LimMontCartMon", NUMERIC)
+ConfigCampos.Operaciones("LimPorcConsum", NUMERIC)
+ConfigCampos.Operaciones("LimPlazo", NUMERIC)
+ConfigCampos.Operaciones("LimConsum1", NUMERIC)
+ConfigCampos.Operaciones("LimPorcConsum1", NUMERIC)
+ConfigCampos.Operaciones("CotiBNA", NUMERIC)
+ConfigCampos.Operaciones("CotiOpLim", NUMERIC)
+ConfigCampos.Operaciones("MontoOpLim", NUMERIC)
+ConfigCampos.Operaciones("MontoOpLim", NUMERIC)
+ConfigCampos.Operaciones("LimTipoDias", TEXT,10)
+ConfigCampos.Operaciones("ImpComMerEq[3-4]", NUMERIC)
+ConfigCampos.Operaciones("TotalIVA[5-6]", NUMERIC)
+ConfigCampos.Operaciones("TCComMer[3-4]",NUMERIC)
+ConfigCampos.Operaciones("Cuotas3", NUMERIC,'###')
+
+***ConfigCampos.Eventos("BNrOperacion1", LOOKUP, "BOPERACIONES", "NrOperacion", "NrOperacion, TipoOp, FechaOp, Cliente1" )
+ConfigCampos.Eventos("TipoTasa[1-4]", LOOKUP, "ESPECIES", "Codigo", "Codigo, Nombre" )
+ConfigCampos.Eventos("Entorno1", LOOKUP, "ENTORNOSSTDCORP", "Codigo", "Codigo, Nombre")
+ConfigCampos.Eventos("Instancia1", LOOKUP, "INSTANCIAS", "NrInstancia", "NrInstancia,Nombre")
+**Por conciliacion de cheques manual BFSA
+ConfigCampos.Eventos("ObservacDoc", LOOKUP, "OPERACIONES", "ObservacDoc", "ObservacDoc")
+**Tipo Instrumento para Cheques 13/06/2023
+ConfigCampos.Eventos("Instrumento1", LOOKUP, "TIPOSIMPORTE", "Codigo", "Codigo, Descripcion")
+ConfigCampos.Eventos("TipoOrd[1-4]", LOOKUP, "TIPOSORDEN", "Codigo", "Codigo,Nombre")
+***
+ConfigCampos.Eventos("NrOperacion[N-9]", LOOKUP, "Operaciones", "NrOperacion", "NrOperacion,TipoOp,Vehiculo1,Especie,FechaOp,Cliente1")
+
+**Codigo:, Nombre:, Cliente:, Comitente: as 'Depositante', Numero:, Especies:
+ConfigCampos.Guardar()
+
+***---SECS
+*ConfigCro.AgregarCampo('SECS','Especie','Especie')
+*ConfigCro.AgregarCampo('SECS','Cantidad','Cantidad')
+*ConfigCro.AgregarCampo('SECS','Precio1','Precio')
+*ConfigCro.AgregarCampo('SECS','Vehiculo1','Vehiculo')
+*ConfigCro.AgregarCampo('SECS','Cliente1','Entidad')
+***---FXCS
+*ConfigCro.AgregarCampo('FXCS','Especie','Moneda')
+*ConfigCro.AgregarCampo('FXCS','Cantidad','V Nominal')
+*ConfigCro.AgregarCampo('FXCS','Precio1','Precio')
+*ConfigCro.AgregarCampo('FXCS','Cliente1','Cliente')
+*ConfigCro.AgregarCampo('FXCS','ConceptoBCRA','Conc. BCRA')
+*ConfigCro.AgregarCampo('FXCS','Vehiculo1','Vehiculo')
+*
+***---FXCF
+ConfigCro.AgregarCampo('FXCF','TasaIVA1','Tasa de Iva')
+OutputWrite("PPLRC OK")

@@ -1,0 +1,481 @@
+﻿*ModoReproceso(ConDialogo)
+CrearDialogo
+  NrOperacion1 : 'Operacion'       ; 1;1;;  ;  ;NoVacio(Dialogo.NrOperacion1) y Incluido(BuscarCampo('Operaciones','TipoOp','NrOperacion',Dialogo.NrOperacion1),'MMPCCM');'Debe Ingresar una Operacion valida';NO;;;;;;" TipoOp IN ('MMPCCM') ";
+  Radio1       : '|Todo|Ops|Cuotas'; 2;1;;  ;  ;;;;0
+FinDialogo
+if Not Ok
+  Cancelar
+endif
+
+CrearFont(1,'Arial,8,')
+CrearFont(2,'Arial,8,B')
+CrearFont(3,'Arial,10,B')
+
+SetFilaActual(1)
+ACT(a:FAC, 'Operacion: '~Dialogo.NrOperacion1)
+SetFont(a:FAC, 3)
+IFA
+if Dialogo.Radio1<>2
+  IFA
+  ACT(a:FAC, '# Op')
+  ACT(b:FAC, 'Tipo Op')
+  ACT(c:FAC, 'Tipo')
+  ACT(d:FAC, 'Fecha Op')
+  ACT(e:FAC, 'Plazo')
+  ACT(f:FAC, 'Fecha Vto')
+  ACT(g:FAC, 'Vehiculo1')
+  ACT(h:FAC, 'Vehiculo2')
+  ACT(i:FAC, 'Especie')
+  ACT(j:FAC, 'Capital')
+  ACT(k:FAC, 'Op.Vinculada')
+  ACT(l:FAC, 'Prorroga')
+  ACT(m:FAC, 'Precanc.')
+  ACT(n:FAC, 'Perid.')
+  ACT(o:FAC, 'Cuotas')
+  ACT(p:FAC, 'Activo')
+
+  ACT(c:FAC+1, 'MB3')
+  ACT(j:FAC+1, 'Cantidad')
+  ACT(k:FAC+1, 'NrOpeacion3')
+  ACT(l:FAC+1, 'NrOpeacion5')
+  ACT(m:FAC+1, 'NrOpeacion6')
+  ACT(n:FAC+1, 'Cuotas1')
+  ACT(o:FAC+1, 'Count()')
+  ACT(p:FAC+1, 'CB6')
+  SetFont(a:FAC..z:FAC+1, 2)
+  IFA
+
+  SQL.ADD("Select * from "~DBO~".OPERACIONES where NrOperacion = '"~Dialogo.NrOperacion1~"' ")
+  recorrer SQL
+    ACT(y1, fbn('NrOperacion3'))
+    ACT(a:FAC, fbn('NrOperacion'))
+    ACT(b:FAC, fbn('TipoOp'))
+    if fbn('MB3')=0
+      ACT(c:FAC, 'Prestamo')
+    else
+      if fbn('MB3')=1
+        ACT(c:FAC, 'Colocacion')
+      else
+        ACT(c:FAC, 'Indefinido')
+      endif
+    endif
+    ACD(d:FAC, fbn('FechaOp'))
+    ACN(e:FAC, fbn('Plazo'))
+    ACD(f:FAC, fbn('FechaVto'))
+    ACT(g:FAC, fbn('Vehiculo1'))
+    ACT(h:FAC, fbn('Vehiculo2'))
+    ACT(i:FAC, fbn('Especie'))
+    ACN(j:FAC, fbn('Cantidad'))
+    ACT(k:FAC, fbn('NrOperacion3'))
+    ACT(l:FAC, fbn('NrOperacion5'))
+    ACT(m:FAC, fbn('NrOperacion6'))
+    ACN(n:FAC, fbn('Cuotas1'))
+    ACN(o:FAC, SQL("Select Count(*) from "~DBO~".CUOTAS where NrOperacion = '"~Dialogo.NrOperacion1~"' "))
+    if fbn('CB6')=0
+      ACT(p:FAC, 'NO')
+    else
+      if fbn('CB6')=1
+        ACT(p:FAC, 'SI')
+      else
+        ACT(p:FAC, 'Indef.')
+      endif
+    endif
+    SetFont(a:FAC..z:FAC, 1)
+    FormatoCeldas(e:FAC..e:FAC, Exe('F0'))
+    FormatoCeldas(j:FAC..j:FAC, Exe('F2'))
+    FormatoCeldas(n:FAC..o:FAC, Exe('F0'))
+  proximo
+  if NoVacio(Val(y:1))
+    ACN(y:2,0)
+    SQL.ADD("Select * from "~DBO~".OPERACIONES where NrOperacion = '"~Val(y:1)~"' ")
+    recorrer SQL
+      ACN(y:2, 1)
+      ACT(a:FAC, fbn('NrOperacion'))
+      ACT(b:FAC, fbn('TipoOp'))
+      if fbn('MB3')=0
+        ACT(c:FAC, 'Prestamo')
+      else
+        if fbn('MB3')=1
+          ACT(c:FAC, 'Colocacion')
+        else
+          ACT(c:FAC, 'Indefinido')
+        endif
+      endif
+      ACD(d:FAC, fbn('FechaOp'))
+      ACN(e:FAC, fbn('Plazo'))
+      ACD(f:FAC, fbn('FechaVto'))
+      ACT(g:FAC, fbn('Vehiculo1'))
+      ACT(h:FAC, fbn('Vehiculo2'))
+      ACT(i:FAC, fbn('Especie'))
+      ACN(j:FAC, fbn('Cantidad'))
+      ACT(k:FAC, fbn('NrOperacion3'))
+      ACT(l:FAC, fbn('NrOperacion5'))
+      ACT(m:FAC, fbn('NrOperacion6'))
+      ACN(n:FAC, fbn('Cuotas1'))
+      ACN(o:FAC, SQL("Select Count(*) from "~DBO~".CUOTAS where NrOperacion = '"~Dialogo.NrOperacion1~"' "))
+      if fbn('CB6')=0
+        ACT(p:FAC, 'NO')
+      else
+        if fbn('CB6')=1
+          ACT(p:FAC, 'SI')
+        else
+          ACT(p:FAC, 'Indef.')
+        endif
+      endif
+      SetFont(a:FAC..z:FAC, 1)
+      FormatoCeldas(e:FAC..e:FAC, Exe('F0'))
+      FormatoCeldas(j:FAC..j:FAC, Exe('F2'))
+      FormatoCeldas(n:FAC..o:FAC, Exe('F0'))
+    proximo
+    if Val(y:2)=0
+      IFA
+      ACT(a:FAC, 'Operacion vinculada no hallada')
+      SetFont(a:FAC, 2)
+    endif
+  endif  
+endif  
+
+if Dialogo.Radio1<>1
+  IFA
+  ACT(b:FAC, '# Op')
+  ACT(c:FAC, '# Cuota')
+  ACT(d:FAC, 'Fecha Ini')
+  ACT(e:FAC, 'Plazo')
+  ACT(f:FAC, 'Fecha Fin')
+  ACT(g:FAC, 'Fecha Set')
+  ACT(h:FAC, 'Cantidad')
+  ACT(i:FAC, 'Tasa Amor')
+  ACT(j:FAC, 'Imp.Amort')
+  ACT(k:FAC, 'Tasa')
+  ACT(l:FAC, 'Intereses')
+  ACT(m:FAC, 'Monto')
+  ACT(n:FAC, 'Prorrog.')
+  ACT(o:FAC, 'x Prec')
+  SetFont(b:FAC..z:FAC, 2)
+
+  SQL.ADD("Select * from "~DBO~".CUOTAS where NrOperacion = '"~Dialogo.NrOperacion1~"' order by NrCuota ")
+  recorrer SQL
+    ACT(b:FAC, fbn('NrOperacion'))
+    ACN(c:FAC, fbn('NrCuota'))
+    ACD(d:FAC, fbn('Fecha1'))
+    ACN(e:FAC, fbn('Plazo1'))
+    ACD(f:FAC, fbn('Fecha2'))
+    ACD(g:FAC, fbn('Fecha3'))
+    ACN(h:FAC, fbn('Cantidad2'))
+    ACN(i:FAC, fbn('Tasa1'))
+    ACN(j:FAC, fbn('Cantidad1'))
+    ACN(k:FAC, fbn('Precio2'))
+    ACN(l:FAC, fbn('Cantidad3'))
+    ACN(m:FAC, fbn('Total2'))
+    if fbn('Radio1')=1
+      ACT(n:FAC, 'SI')
+    else
+      ACT(n:FAC, 'NO')
+    endif
+    if fbn('Check1')=1
+      ACT(o:FAC, 'SI')
+    endif
+    SetFont(b:FAC..c:FAC, 2)
+    SetFont(d:FAC..z:FAC, 1)
+    FormatoCeldas(c:FAC..c:FAC, Exe('F0'))
+    FormatoCeldas(e:FAC..e:FAC, Exe('F0'))
+    FormatoCeldas(h:FAC..h:FAC, Exe('F2'))
+    FormatoCeldas(i:FAC..i:FAC, Exe('F8'))
+    FormatoCeldas(j:FAC..j:FAC, Exe('F2'))
+    FormatoCeldas(k:FAC..k:FAC, Exe('F8'))
+    FormatoCeldas(l:FAC..m:FAC, Exe('F2'))
+  proximo
+  IFA
+  ACT(b:FAC, '===================')
+  if NoVacio(Val(y:1))
+    SQL.ADD("Select * from "~DBO~".CUOTAS where NrOperacion = '"~Val(y:1)~"' order by NrCuota ")
+    recorrer SQL
+      ACT(b:FAC, fbn('NrOperacion'))
+      ACN(c:FAC, fbn('NrCuota'))
+      ACD(d:FAC, fbn('Fecha1'))
+      ACN(e:FAC, fbn('Plazo1'))
+      ACD(f:FAC, fbn('Fecha2'))
+      ACD(g:FAC, fbn('Fecha3'))
+      ACN(h:FAC, fbn('Cantidad2'))
+      ACN(i:FAC, fbn('Tasa1'))
+      ACN(j:FAC, fbn('Cantidad1'))
+      ACN(k:FAC, fbn('Precio2'))
+      ACN(l:FAC, fbn('Cantidad3'))
+      ACN(m:FAC, fbn('Total2'))
+      if fbn('Radio1')=1
+        ACT(n:FAC, 'SI')
+      else
+        ACT(n:FAC, 'NO')
+      endif
+      if fbn('Check1')=1
+        ACT(o:FAC, 'SI')
+      endif
+      SetFont(b:FAC..c:FAC, 2)
+      SetFont(d:FAC..z:FAC, 1)
+      FormatoCeldas(c:FAC..c:FAC, Exe('F0'))
+      FormatoCeldas(e:FAC..e:FAC, Exe('F0'))
+      FormatoCeldas(h:FAC..h:FAC, Exe('F2'))
+      FormatoCeldas(i:FAC..i:FAC, Exe('F8'))
+      FormatoCeldas(j:FAC..j:FAC, Exe('F2'))
+      FormatoCeldas(k:FAC..k:FAC, Exe('F8'))
+      FormatoCeldas(l:FAC..m:FAC, Exe('F2'))
+    proximo
+    IFA
+    ACT(b:FAC, '===================')
+  endif
+endif
+
+if Dialogo.Radio1=1
+  IFA
+  ACT(b:FAC, '# Op')
+  ACT(c:FAC, 'Tipo Op')
+  ACT(d:FAC, 'Tipo')
+  ACT(e:FAC, 'Fecha Op')
+  ACT(f:FAC, 'Plazo')
+  ACT(g:FAC, 'Fecha Vto')
+  ACT(h:FAC, 'Vehiculo1')
+  ACT(i:FAC, 'Vehiculo2')
+  ACT(j:FAC, 'Especie')
+  ACT(k:FAC, 'Capital')
+  ACT(l:FAC, 'Op.Vinculada')
+  ACT(m:FAC, 'Prorroga')
+  ACT(n:FAC, 'Precanc.')
+  ACT(o:FAC, 'Perid.')
+  ACT(p:FAC, 'Cuotas')
+
+  ACT(d:FAC+1, 'MB3')
+  ACT(k:FAC+1, 'Cantidad')
+  ACT(l:FAC+1, 'NrOpeacion3')
+  ACT(m:FAC+1, 'NrOpeacion5')
+  ACT(n:FAC+1, 'NrOpeacion6')
+  ACT(o:FAC+1, 'Cuotas1')
+  ACT(p:FAC+1, 'Count()')
+  SetFont(a:FAC..z:FAC+1, 2)
+  IFA
+endif
+
+SQL.ADD("Select * from "~DBO~".OPERACIONES where NrOperacion6 = '"~Dialogo.NrOperacion1~"' Order by NrOperacion ")
+recorrer SQL
+  ACT(y:3, fbn('NrOperacion'))
+  if Dialogo.Radio1<>2
+    if Dialogo.Radio1=0
+      ACT(b:FAC, '# Op')
+      ACT(c:FAC, 'Tipo Op')
+      ACT(d:FAC, 'Tipo')
+      ACT(e:FAC, 'Fecha Op')
+      ACT(f:FAC, 'Plazo')
+      ACT(g:FAC, 'Fecha Vto')
+      ACT(h:FAC, 'Vehiculo1')
+      ACT(i:FAC, 'Vehiculo2')
+      ACT(j:FAC, 'Especie')
+      ACT(k:FAC, 'Capital')
+      ACT(l:FAC, 'Op.Vinculada')
+      ACT(m:FAC, 'Afecta')
+      ACT(n:FAC, 'Original')
+      ACT(o:FAC, 'Perid.')
+      ACT(p:FAC, 'Cuotas')
+      if EqStr(fbn('TipoOp'),'MMPRCO')
+        ACT(q:FAC, 'Activa')
+      else
+        ACT(q:FAC, 'Aprobada')
+      endif
+
+      ACT(d:FAC+1, 'MB3')
+      ACT(k:FAC+1, 'Cantidad')
+      ACT(l:FAC+1, 'NrOpeacion3')
+      ACT(m:FAC+1, 'NrOpeacion5')
+      ACT(n:FAC+1, 'NrOpeacion6')
+      ACT(o:FAC+1, 'Cuotas1')
+      ACT(p:FAC+1, 'Count()')
+      ACT(q:FAC+1, 'CB6')
+      SetFont(a:FAC..z:FAC+1, 2)
+      SetFilaActual(FAC+2)
+    endif
+    ACT(y:1, fbn('NrOperacion3'))
+    ACT(b:FAC, fbn('NrOperacion'))
+    ACT(c:FAC, fbn('TipoOp'))
+    if fbn('MB3')=0
+      ACT(d:FAC, 'Prestamo')
+    else
+      if fbn('MB3')=1
+        ACT(d:FAC, 'Colocacion')
+      else
+        ACT(d:FAC, 'Indefinido')
+      endif
+    endif
+    ACD(e:FAC, fbn('FechaOp'))
+    ACN(f:FAC, fbn('Plazo'))
+    ACD(g:FAC, fbn('FechaVto'))
+    ACT(h:FAC, fbn('Vehiculo1'))
+    ACT(i:FAC, fbn('Vehiculo2'))
+    ACT(j:FAC, fbn('Especie'))
+    ACN(k:FAC, fbn('Cantidad'))
+    ACT(l:FAC, fbn('NrOperacion3'))
+    ACT(m:FAC, fbn('NrOperacion5'))
+    ACT(n:FAC, fbn('NrOperacion6'))
+    ACN(o:FAC, fbn('Cuotas1'))
+    ACN(p:FAC, SQL("Select Count(*) from "~DBO~".CUOTAS where NrOperacion = '"~Val(b:FAC)~"' "))
+    if fbn('CB6')=0
+      ACT(q:FAC, 'NO')
+    else
+      if fbn('CB6')=1
+        ACT(q:FAC, 'SI')
+      else
+        ACT(q:FAC, 'Indef.')
+      endif
+    endif
+    SetFont(b:FAC..z:FAC, 1)
+    FormatoCeldas(f:FAC..f:FAC, Exe('F0'))
+    FormatoCeldas(k:FAC..k:FAC, Exe('F2'))
+    FormatoCeldas(o:FAC..p:FAC, Exe('F0'))
+    if NoVacio(Val(y:1))
+      ACN(y:2,0)
+      SQL.ADD("Select * from "~DBO~".OPERACIONES where NrOperacion = '"~Val(y:1)~"' ")
+      recorrer SQL
+        ACN(y:2, 1)
+        ACT(b:FAC, fbn('NrOperacion'))
+        ACT(c:FAC, fbn('TipoOp'))
+        if fbn('MB3')=0
+          ACT(d:FAC, 'Prestamo')
+        else
+          if fbn('MB3')=1
+            ACT(d:FAC, 'Colocacion')
+          else
+            ACT(d:FAC, 'Indefinido')
+          endif
+        endif
+        ACD(e:FAC, fbn('FechaOp'))
+        ACN(f:FAC, fbn('Plazo'))
+        ACD(g:FAC, fbn('FechaVto'))
+        ACT(h:FAC, fbn('Vehiculo1'))
+        ACT(i:FAC, fbn('Vehiculo2'))
+        ACT(j:FAC, fbn('Especie'))
+        ACN(k:FAC, fbn('Cantidad'))
+        ACT(l:FAC, fbn('NrOperacion3'))
+        ACT(m:FAC, fbn('NrOperacion5'))
+        ACT(n:FAC, fbn('NrOperacion6'))
+        ACN(o:FAC, fbn('Cuotas1'))
+        ACN(p:FAC, SQL("Select Count(*) from "~DBO~".CUOTAS where NrOperacion = '"~Val(b:FAC)~"' "))
+        if fbn('CB6')=0
+          ACT(q:FAC, 'NO')
+        else
+         if fbn('CB6')=1
+            ACT(q:FAC, 'SI')
+          else
+            ACT(q:FAC, 'Indef.')
+          endif
+        endif
+        SetFont(a:FAC..z:FAC, 1)
+        FormatoCeldas(f:FAC..f:FAC, Exe('F0'))
+        FormatoCeldas(k:FAC..k:FAC, Exe('F2'))
+        FormatoCeldas(o:FAC..p:FAC, Exe('F0'))
+      proximo
+      if Val(y:2)=0
+        IFA
+        ACT(b:FAC, 'Operacion vinculada no hallada')
+        SetFont(b:FAC, 2)
+      endif
+    endif  
+  endif
+  if Dialogo.Radio1<>1
+    IFA
+    ACT(c:FAC, '# Op.')
+    ACT(d:FAC, '# Cuota')
+    ACT(e:FAC, 'Fecha Ini')
+    ACT(f:FAC, 'Plazo')
+    ACT(g:FAC, 'Fecha Fin')
+    ACT(h:FAC, 'Fecha Set')
+    ACT(i:FAC, 'Cantidad')
+    ACT(j:FAC, 'Tasa Amor')
+    ACT(k:FAC, 'Imp.Amort')
+    ACT(l:FAC, 'Tasa')
+    ACT(m:FAC, 'Intereses')
+    ACT(n:FAC, 'Monto')
+    ACT(o:FAC, 'Prorrog.')
+    ACT(p:FAC, 'x Prec')
+    SetFont(c:FAC..z:FAC, 2)
+
+    SQL.ADD("Select * from "~DBO~".CUOTAS where NrOperacion = '"~Val(y:3)~"' order by NrCuota ")
+    recorrer SQL
+      ACT(c:FAC, fbn('NrOperacion'))
+      ACN(d:FAC, fbn('NrCuota'))
+      ACD(e:FAC, fbn('Fecha1'))
+      ACN(f:FAC, fbn('Plazo1'))
+      ACD(g:FAC, fbn('Fecha2'))
+      ACD(h:FAC, fbn('Fecha3'))
+      ACN(i:FAC, fbn('Cantidad2'))
+      ACN(j:FAC, fbn('Tasa1'))
+      ACN(k:FAC, fbn('Cantidad1'))
+      ACN(l:FAC, fbn('Precio2'))
+      ACN(m:FAC, fbn('Cantidad3'))
+      ACN(n:FAC, fbn('Total2'))
+      if fbn('Radio1')=1
+        ACT(o:FAC, 'SI')
+      else
+        ACT(o:FAC, 'NO')
+      endif
+      if fbn('Check1')=1
+        ACT(p:FAC, 'SI')
+      endif
+
+      SetFont(c:FAC..d:FAC, 2)
+      SetFont(e:FAC..z:FAC, 1)
+      FormatoCeldas(d:FAC..d:FAC, Exe('F0'))
+      FormatoCeldas(f:FAC..f:FAC, Exe('F0'))
+      FormatoCeldas(i:FAC..i:FAC, Exe('F2'))
+      FormatoCeldas(j:FAC..j:FAC, Exe('F8'))
+      FormatoCeldas(k:FAC..k:FAC, Exe('F2'))
+      FormatoCeldas(l:FAC..l:FAC, Exe('F8'))
+      FormatoCeldas(m:FAC..n:FAC, Exe('F2'))
+    proximo
+    IFA
+    ACT(c:FAC, '===================')
+    if NoVacio(Val(y:1))
+      SQL.ADD("Select * from "~DBO~".CUOTAS where NrOperacion = '"~Val(y:1)~"' order by NrCuota ")
+      recorrer SQL
+        ACT(c:FAC, fbn('NrOperacion'))
+        ACN(d:FAC, fbn('NrCuota'))
+        ACD(e:FAC, fbn('Fecha1'))
+        ACN(f:FAC, fbn('Plazo1'))
+        ACD(g:FAC, fbn('Fecha2'))
+        ACD(h:FAC, fbn('Fecha3'))
+        ACN(i:FAC, fbn('Cantidad2'))
+        ACN(j:FAC, fbn('Tasa1'))
+        ACN(k:FAC, fbn('Cantidad1'))
+        ACN(l:FAC, fbn('Precio2'))
+        ACN(m:FAC, fbn('Cantidad3'))
+        ACN(n:FAC, fbn('Total2'))
+        if fbn('Radio1')=1
+          ACT(o:FAC, 'SI')
+        else
+          ACT(o:FAC, 'NO')
+        endif
+        if fbn('Check1')=1
+          ACT(p:FAC, 'SI')
+        endif
+        SetFont(c:FAC..d:FAC, 2)
+        SetFont(e:FAC..z:FAC, 1)
+        FormatoCeldas(d:FAC..d:FAC, Exe('F0'))
+        FormatoCeldas(f:FAC..f:FAC, Exe('F0'))
+        FormatoCeldas(i:FAC..i:FAC, Exe('F2'))
+        FormatoCeldas(j:FAC..j:FAC, Exe('F8'))
+        FormatoCeldas(k:FAC..k:FAC, Exe('F2'))
+        FormatoCeldas(l:FAC..l:FAC, Exe('F8'))
+        FormatoCeldas(m:FAC..n:FAC, Exe('F2'))
+      proximo
+      IFA
+      ACT(c:FAC, '===================')
+    endif
+  endif
+proximo
+
+ACO(7, 8)
+ACO(8, 8)
+ACO(9, 8)
+ACO(10, 8)
+ACO(11, 8)
+ACO(12, 8)
+ACO(13, 8)
+ACO(14, 8)
+
+LimitesVision(s:FAC)

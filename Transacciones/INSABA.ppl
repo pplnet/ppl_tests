@@ -1,0 +1,17 @@
+﻿CAMPOS:1;;BuscarCampo('VEHICULOS','Alias3','Codigo',Vehiculo1)
+Vehiculo1  : 'Vehiculo '        ;;;;;; NoVacio(VEHICULO1);'Vehiculo invalido';NO;;IF(NoVacio(CUENTA1),BuscarCampo('CUENTAS','Cliente','Codigo',CUENTA1),);;;;;;IF (Vacio(CUENTA1) y Vacio(CLIENTE1),"Codigo IN (Select DISTINCT Cliente From "~DBO~".CUENTAS)","Codigo IN (Select DISTINCT Cliente From "~DBO~".CUENTAS Where Comitente = '"~CLIENTE1~"')")
+Cliente1   : 'Entidad'          ;;;;;; NoVacio(CLIENTE1) ;'Entidad invalida' ;NO;;IF (NoVacio(CUENTA1),BuscarCampo('CUENTAS','Comitente','Codigo',CUENTA1),);;;;;;IF(Vacio(VEHICULO1),"dbo.DesciendeDeCliente(Codigo,'BANCOS')=1 and Status = 'HAB' and Codigo IN (Select DISTINCT Comitente From "~DBO~".CUENTAS)","dbo.DesciendeDeCliente(Codigo,'BANCOS')=1 and Status = 'HAB' and Codigo IN (Select DISTINCT Comitente From "~DBO~".CUENTAS Where Cliente = '"~VEHICULO1~"')");;;
+Cuenta1    : 'Cuenta'           ;;;;;;                   ;'Error en Cuenta'  ;NO;;;;;;;;IF (NoVacio(CLIENTE1) y NoVacio(Vehiculo1),"Cliente='"~VEHICULO1~"' and Comitente='"~CLIENTE1~"' and Estado = 'HAB'",IF(NoVacio(CLIENTE1),"Comitente='"~CLIENTE1~"' and Estado = 'HAB'",IF(NoVacio(VEHICULO1),"Cliente='"~VEHICULO1~"' and Estado = 'HAB'",)))
+Fecha1     : 'FechaSaldo'       ;;;;;;                   ;                   ;Habiles(FSYS, -1, 'ARG', SI)                                       ;;;;;;;
+Especie1    : 'Moneda'          ;;;;;;                   ;                   ;DESCIENDEDEESPECIE(ESPECIE,'MONEDA') y ESTERMINAL(ESPECIE,ESPECIES);;;;;;;;;;"Status = 'HAB' and Jerarquia Like '"~Jerarquia('ESPECIES','MONEDA')~"%'"
+Cantidad1  : 'Saldo'            ;;;;;;                   ;                   ;;;;;;;;;;;
+
+***-------------------VALIDACION
+CONDICIONES
+Incluido(VEHICULO1, UsrVehiculos(USUARIOACTIVO)) o VACIO(UsrVehiculos(USUARIOACTIVO)); 'El usuario activo no esta habilitado para operar con el vehiculo '~VEHICULO1;NO;
+DesciendeDeCliente(CLIENTE1,'BANCOS');'El Cliente debe ser una Entidad Bancaria';NO;
+Query("SELECT 1 FROM "~dbo~".SALDOSBANCARIOS WHERE FechaSaldo = '"~IdxDate(FECHA1)~"' AND NrCuenta = '"~BuscarCampo('CUENTAS','Numero','Codigo', CUENTA1)~"' ") <> 1;'Ya Existe Saldo para la Cuenta '~CUENTA1~', Fecha '~FECHA1~' y Cantidad '~CANTIDAD1;NO;
+Query("SELECT 1 FROM "~dbo~".TRANSACCIONES2 WHERE Fecha1 = '"~IdxDate(FECHA1)~"' AND '"~Especie1~"' = Especie AND '"~Cuenta1~"' = Cuenta1 AND '"~TipoTr1~"'=TipoTr2")<> 1;'Ya Existe Una Transaccion para la Cuenta '~CUENTA1~', Fecha '~FECHA1~' y Cantidad '~CANTIDAD1;NO;
+
+POSTEDICION
+SI;'INSABA'; Vehiculo1=Vehiculo1; Cliente1=Cliente1; Cuenta1=Cuenta1; Fecha1=Fecha1; Especie1=Especie1; Cantidad1=Cantidad1; NrTrans1 = NrTrans

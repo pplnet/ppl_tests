@@ -1,0 +1,52 @@
+﻿set ds_TipoDocum           = "CI:CI|DNI:DNI|LE:LE|LC:LC|PAS:Pasaporte|CIP:C.I.Provincial|CUI:CUIT|GCE:Grupo Crediticio/Economico|OTR:Otro|"
+set ds_StatusPoder         = "VIG:Vigente|VEN:Vencido|REV:Revocado|"
+set ds_TipoPoder           = "TIT:Titular|AUT:Autorizado|APO:Apoderado|"
+set ds_Sexo                = "MAS:Masculino|FEM:Femenino|"
+set ds_EstadoCivil         = "SOL:Soltero|CAS:Casado|DIV:Divorciado|VIU:Viudo|"
+
+def abm "INTEGRANTESCTA"
+    def grid
+        Nombre:,
+        TipoDocumento:,
+        NrDocumento:,
+        FechaNacimiento:,
+        Sexo:,
+        EstadoCivil:,
+        Nacionalidad:,
+        StatusPoder:,
+        FechaVtoPoder:,
+        TipoPoder:,
+        Codigo:        
+    end
+    def filter
+        "Codigo = '" + $.parent('Codigo') + "' "
+    end
+    def key
+        Codigo:
+    end    
+    def dialog
+        #**************************************************************************
+        tab "General"
+            column    
+              Nombre:, , text
+              NrDocumento:, ,text
+              Nacionalidad:, ,text
+              FechaNacimiento:, , date
+              Sexo: , , combo, ds_Sexo
+              EstadoCivil: , , combo, ds_EstadoCivil
+              StatusPoder:, , combo, ds_StatusPoder
+              TipoPoder:, , combo, ds_TipoPoder
+              TipoDocumento: , , combo, ds_TipoDocum
+              FechaVtoPoder:, , date
+              Codigo:
+    end    
+    disable_fields: Codigo:
+    hide_fields: Codigo:;
+    validates_max_length_of:
+       Nombre:,30,true; 
+       NrDocumento:,12,true;
+       Nacionalidad:,10,true; 
+    before_show_create_dialog: do
+        $.set_field  (Codigo:, $.parent("Codigo"))     
+    end
+end

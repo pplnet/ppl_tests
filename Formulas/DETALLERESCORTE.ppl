@@ -1,0 +1,1 @@
+﻿Copy(ItemLista(Val(la:1),&i)~'-'~fbn('Cliente1')~'-'~fbn('NrOperacion'), 1, 30)

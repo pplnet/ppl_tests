@@ -1,0 +1,73 @@
+﻿MostrarCuadroDeMensajes
+CrearDialogo
+  Fecha1:       'Fecha'       ; 1;;;;;;;;fsys
+  Lista1:       'Vehiculos'   ; 3;;;;;;;;;;iif(Vacio(UsrVehiculos(UsuarioActivo)),SQLSET("Select Codigo from "~DBO~".VEHICULOS"),SQLSET("Select Vehiculo from "~DBO~".USRVEHICULO where Codigo = '"~UsuarioActivo~"'"))
+  ListaTabla1: 'Operaciones'  ;-3;2;;;;;;;;;;;;;'NrOperacion'; 'NrOperacion;Cliente1;FechaOp;Especie;FechaVto'; 'OPERACIONES' 
+FinDialogo
+
+If Not Ok
+   Cancelar
+Endif
+
+message('--- Asientos de Cobranza ---')
+
+ACT(US:1, Descendientes('ESPECIES', 'U$S'))
+**_Moneda Fuerte
+ACT(MF:1, Var('MONEEXTR'))
+
+SQL.ADD(" SELECT O.NrOperacion,  ")
+SQL.ADD(" O.FechaOp, O.Cliente1,  ")
+SQL.ADD(" O.Vehiculo1, O.TipoOp, O.Cantidad, O.TotalBrutoCli1, O.TotalNetoCli1, C.CUIT, V.Valor1, V.Valor2, ")
+SQL.ADD(" MA.Codigo CodAsi, E.Tipo, O.TotalNetoCli2, O.FechaVto, O.FechaVto2, O.PrecioMer, O.TotalIntereses, E.Cotiza, ")
+SQL.ADD(" O.ImpGastos1, O.PlazoRenovPredeter, O.MB3, O.TotalAux1, O.Observaciones, O.Precio1, O.Plazo, E.Alias8, V.Alias4 MonLocalVeh, O.ContraEspecie Moneda, ")
+SQL.ADD(" O.Cuenta2, O.ViaPago1, O.CantidadOri, O.CB13, 0 NrMov,O.Book1 AS Book,C.CategDepositante,O.ContraEspecie, ")
+SQL.ADD(" O.ContraEspecie2, O.ImpComCor1, O.ContraEspecie3, O.ImpComMer1, O.TotalIVA2, O.TotalIVA, O.TotalImpuesto1, O.ContraEspecie2 MonedaGastos, O.TipoDoc Instrumento, O.FechaEx1,O.Especie ")
+SQL.ADD(" FROM "~DBO~".OPERACIONES O, "~DBO~".CLIENTES C, "~DBO~".VEHICULOS V, ")
+SQL.ADD(" "~DBO~".MODELOSASIENTO MA, "~DBO~".ESPECIES E")
+SQL.ADD(" WHERE O.Cliente1    =  C.Codigo ")
+SQL.ADD(" AND   O.Vehiculo1   =  V.Codigo ")
+SQL.ADD(" AND   O.TipoOp      = MA.TipoOp ")
+SQL.ADD(" AND   O.Especie     = E.Codigo ")
+SQL.ADD(" AND   MA.TipoAsiento IN ("~Pipe2Comillas(Var('TIPASICOB'))~") ")
+SQL.ADD(" AND   O.FechaEx1 = '"~IdxDate(Dialogo.Fecha1)~"' ")
+SQL.ADD(" AND   O.RB1 >= 1 ")
+
+
+If NoVacio(Dialogo.ListaTabla1)
+   SQL.ADD(" AND O.NrOperacion IN ("~Pipe2Comillas(Dialogo.ListaTabla1)~") ")
+Endif
+
+SQL.ADD(" AND MA.Habilitado = 'SI' ")
+SQL.ADD(" AND MA.Entorno = '"~SIGLA~"' ")
+If NoVAcio(Dialogo.Lista1)
+   SQL.ADD(" AND O.Vehiculo1 IN ("~Pipe2Comillas(Dialogo.Lista1)~")  AND ((")
+   Recorrer&i 1,Elementos(Dialogo.Lista1)
+        SQL.ADD(" '|'+rtrim(MA.Vehiculo)+'|' like '%|"~ItemLista(Dialogo.Lista1,&i)~"|%' ")
+        If NOT Elementos(Dialogo.Lista1)=&i
+            SQL.ADD(" OR ")
+        EndIf
+   proximo
+   SQL.ADD(") OR MA.Vehiculo is null OR MA.Vehiculo = '' OR MA.Vehiculo = ' ' )")
+Else
+   If NoVacio(UsrVehiculos(UsuarioActivo))
+      SQL.ADD(" AND O.Vehiculo1 IN (Select Vehiculo from "~DBO~".USRVEHICULO where Codigo = '"~UsuarioActivo~"') ")
+   Endif
+Endif
+
+SQL.ADD(" ORDER BY O.NrOperacion ")
+watch(sql.batch)
+Recorrer SQL
+        ACD(FV:1, fbn('FechaOp'))
+        ACT(VH:1, fbn('Vehiculo1'))
+        ACD(FO:1, val(FV:1))
+        ACD(FO:2, Habiles(FinDeMes(val(FO:1),NO,'ARG')))
+        ACD(FV:2, Val(FV:1))
+        let &fechaContable Val(FV:2)
+        (.'FECHAVALOR'.)
+
+       Message(fbn('NrOperacion')~' - Modelo: '~fbn('CodAsi'))
+       let &modeloContable fbn('CodAsi')
+       SQL.GenerarAsientoOp(&modeloContable, fbn('NrOperacion'),'','',810,Val(FV:1),fbn('Vehiculo1'),,,,,,fbn('TipoOp'),,,,,,,fsys,Dialogo.Fecha1)
+       SQL.EXEC
+
+Proximo

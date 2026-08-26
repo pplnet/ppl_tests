@@ -1,0 +1,2 @@
+﻿FechaPago;Cliente1;ContraEspecie;;;;;Vehiculo1;1;TotalIVA    ;;'IVA Comisión Corredor SP' ;SI; Incluido(Vehiculo1,Var('VLIQUIDAA'));;;;Cuenta2;;50;
+FechaPago;Cliente1;ContraEspecie;;;;;Vehiculo1;1;TotalGastos    ;;'IVA Comisión Corredor FU' ;SI; Incluido(Vehiculo1,Var('VLIQUIDAA'));;;;Cuenta2;;80;

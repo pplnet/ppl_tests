@@ -1,0 +1,49 @@
+﻿** MODIINSTAN
+** Modifica las Instancias para las Operaciones 
+** i:1= Instancia en que se encuentra la Operacion, Si llega Vacio entonces no se cambia de Instancia
+** i:3= NrOperacion, Si llega Vacio utiliza Dialogo.NrOperacion1 
+** Dialogo.NrOperacion1: Debe estar el Nro. de La Operacion 
+
+If VACIO(VAL(i:3))
+   ACT(i:3, Dialogo.NrOperacion1)
+EndIf
+
+If VACIO(VAL(i:1))
+   ACN(i:1,11)
+   If EqStr(BuscarCampo('Operaciones','RB3','NrOperacion',VAL(i:3)),'0')
+      ACN(i:1, 13)
+   EndIf
+EndIf
+
+SQL.ADD("UPDATE "~DBO~".OPERACIONESBITS ")
+SQL.ADD("   Set Valor = '0' ")
+SQL.ADD(" Where NrOperacion = '"~VAL(i:3)~"' ")
+SQL.ADD("   and Valor       = '1' ")
+SQL.NEW
+
+ACT(ob:1, BuscarCampo('OPERACIONES','Observaciones','NrOperacion',val(i:3)) )
+ACT(ob:1, val(ob:1)~" "~BuscarCampo('EVENTOS','Nombre','Codigo',CodigoInforme)~" ")
+
+SQL.ADD("UPDATE "~DBO~".OPERACIONES ")
+SQL.ADD("   Set Observaciones = '"~Copy(val(ob:1),1,100)~"' ")
+SQL.ADD(" Where NrOperacion   = '"~Val(i:3)~"' ")
+SQL.NEW
+
+SQL.ADD("UPDATE "~DBO~".OPERACIONESBITS ")
+SQL.ADD("   Set Valor='1' ")
+SQL.ADD(" Where NrOperacion = '"~VAL(i:3)~"' ")
+SQL.ADD("   and NrBit       = "~Fstr(Val(i:1),2,0)~" ")
+SQL.NEW        
+
+SQL.ADD(" Insert into "~DBO~".EXCEPCIONES ( ")
+SQL.ADD(" NrOperacion, Fecha, Tipo, Descripcion ")
+SQL.ADD(" ) Values ( ")
+SQL.ADD(" '"~Val(i:3)~"', ")
+SQL.ADD(" '"~IdxDate(FSYS)~"', ")
+SQL.ADD(" 'MODEVENTO', ")
+SQL.ADD(" 'Modificada Evento "~BuscarCampo('EVENTOS','Nombre','Codigo',CodigoInforme)~" - "~Hora(Ahora)~"' ")
+SQL.ADD(" ) ")
+SQL.NEW
+SQL.EXEC
+
+BorrarCeldas(i:1..i:3)

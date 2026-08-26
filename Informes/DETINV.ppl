@@ -1,0 +1,55 @@
+﻿HojaVisible(NO)
+IF Vacio(UsrVehiculos(UsuarioActivo))
+    ACT(LS:1, SQLSet(" Select Codigo from "~DBO~".VEHICULOS where Status = 'HAB' "))
+ELSE
+    ACT(LS:1, UsrVehiculos(UsuarioActivo))
+ENDIF
+
+CrearDialogo
+  Fecha1: 'Fecha'                            ;;1;;;;;;;FSys
+  Radio1: 'Filtra Book|SI|NO'                ;3;1;;;;;;;1;
+  **TC**
+  Radio5    : 'TC: |BNA|Mercado'             ;;2;1;;;;;;0
+  Especie1  : 'Moneda'                       ;5;2;1;;Dialogo.Radio5=1;(Dialogo.Radio5=0 Y Vacio(Dialogo.Especie1)) O ( Incluido(SQLSet(" SELECT Codigo FROM ESPECIES WHERE Tipo IN('MON','IND')"),Dialogo.Especie1,1) );'La Moneda ingresada es invalida';NO;Var('MONEEXTR');;;;;" Tipo IN('MON','IND') AND NOT Codigo = '"~Var('MONELOCA')~"' "
+  ****
+  Vehiculo1 : 'Vehiculo'                      ;4;1;;Dialogo.Radio1=0;Dialogo.Radio1=0;Dialogo.Radio1=1 O NoVacio(Dialogo.Vehiculo1);'Vehiculo Invalido';NO;;;IIF(Vacio(UsrVehiculos(UsuarioActivo)), Val(LS:1), SQLSet(" Select U.Vehiculo From "~DBO~".USRVEHICULO U, "~DBO~".VEHICULOS V Where V.Codigo = U.Vehiculo AND U.Codigo = '"~UsuarioActivo~"' AND V.Status = 'HAB' "));;
+  Lista2: 'Books'                            ;5;1;;;Dialogo.Radio1=0;;;;;;SQLSet(" Select Codigo From "~DBO~".BOOKS Where Vehiculo = '"~Dialogo.Vehiculo1~"' ");;
+  Lista1: 'Vehiculos'                        ;-1;1;;;Dialogo.Radio1=1;;;;;;IIF(Vacio(UsrVehiculos(UsuarioActivo)), Val(LS:1), SQLSet(" Select U.Vehiculo From "~DBO~".USRVEHICULO U, "~DBO~".VEHICULOS V Where V.Codigo = U.Vehiculo AND U.Codigo = '"~UsuarioActivo~"' AND V.Status = 'HAB' "));;
+  Radio2: 'Expresado en|ARP|USD'             ;;1;;;;;;;0
+  Radio3: 'Expresado en|Millones|ImporteOri' ;;1;;SI;SI;;;;0;;;;;
+  Radio4: 'Vehiculo Consolidado|NO|SI'       ;-9;2;1;SI;Dialogo.Radio1=1;;;;1;;;;;;;
+
+  
+  
+FinDialogo
+
+IF Not OK
+  Cancelar
+ENDIF
+
+*Filtra Book
+IF Dialogo.Radio1 = 0
+    LinkearHoja('DETINA', 1, Fecha1 = Dialogo.Fecha1, Vehiculo1 = Dialogo.Vehiculo1, Lista1 = Dialogo.Lista1, Lista2 = Dialogo.Lista2, Radio1=Dialogo.Radio1, Radio2 = Dialogo.Radio2, Radio3 = Dialogo.Radio3, Radio4=0, Radio5=Dialogo.Radio5, Especie1=Dialogo.Especie1)
+ELSE
+    *Vehiculo NO Consolidado
+    If Dialogo.Radio4=0
+        IF NoVacio(Dialogo.Lista1)
+            Recorrer&k 1, Elementos(Dialogo.Lista1)
+            LinkearHoja('DETINA', 1, Fecha1 = Dialogo.Fecha1, Vehiculo1 = ItemLista(Dialogo.Lista1, &k), Lista1 = '', Lista2 = '', Radio1=Dialogo.Radio1, Radio2 = Dialogo.Radio2, Radio3 = Dialogo.Radio3, Radio4=Dialogo.Radio4, Radio5=Dialogo.Radio5, Especie1=Dialogo.Especie1)
+            Proximo
+        ELSE
+            Recorrer&k 1, Elementos(Val(LS:1))
+            LinkearHoja('DETINA', 1, Fecha1 = Dialogo.Fecha1, Vehiculo1 = ItemLista(Val(LS:1), &k), Lista1 = '', Lista2 = '', Radio1=Dialogo.Radio1, Radio2 = Dialogo.Radio2, Radio3 = Dialogo.Radio3, Radio4=Dialogo.Radio4, Radio5=Dialogo.Radio5, Especie1=Dialogo.Especie1)
+            Proximo
+        ENDIF
+        *Vehiculos Consolidados
+    Else
+        IF NoVacio(Dialogo.Lista1)
+        LinkearHoja('DETINA', 1, Fecha1 = Dialogo.Fecha1, Vehiculo1 = '', Lista1 = Dialogo.Lista1, Lista2 = Dialogo.Lista2, Radio1=Dialogo.Radio1, Radio2 = Dialogo.Radio2, Radio3 = Dialogo.Radio3, Radio4=Dialogo.Radio4, Radio5=Dialogo.Radio5, Especie1=Dialogo.Especie1)
+        ELSE
+        LinkearHoja('DETINA', 1, Fecha1 = Dialogo.Fecha1, Vehiculo1 = '', Lista1 = Val(LS:1), Lista2 = Dialogo.Lista2, Radio1=Dialogo.Radio1, Radio2 = Dialogo.Radio2, Radio3 = Dialogo.Radio3, Radio4=Dialogo.Radio4, Radio5=Dialogo.Radio5, Especie1=Dialogo.Especie1)
+        ENDIF
+    Endif
+
+ENDIF
+

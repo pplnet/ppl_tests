@@ -1,0 +1,317 @@
+﻿#*********************************************************************************
+#combos data sources.
+set ds_Status              = "HAB:Habilitado|DES:Deshabilitado|"
+set ds_Sector              = "IND:Industria|COM:Comercio|BAN:Banca|PUB:Publico|STA:Staff|OTR:Otro|"
+set ds_CategDepositante    = "CLI:Cliente|BAN:Banco|ALY:ALYC|ABO:Ag.Bolsa|AME:Ag.Mercado|CFI:Cia. Fin.|FON:Fondo|BRO:Broker en el exterior|CSE:Cia. Seguros|ART:ART|EGA:Entidad Garante|OTR:Otro|"
+set ds_TipoSucursal        = "CMA:Casa Matriz|SUC:Sucursal|SUB:Subsidiaria|GOB:Gobierno|IND:Individual|SOC:Sociedad|TRU:Trust|NA:N/A|"
+set ds_CatPrestamosBCRA    = "NOR:Normal|RPO:Riesgo Potencial|CPR:Con Problemas|IRR:Irrecuperables|IRA:Irrecuperables (A2440)|"
+set ds_LiqHabitual         = "STD:Estandar|CLI:Contra Acr.Cliente|PRO:Contra Acr.Propia|"
+set ds_TipoIngBru          = "EXE:Exento|CM:Conv.Multilateral|BA:Bs.As.|"
+set ds_TipoInscripcion     = "CIT:CUIT|CIL:CUIL|CDI:CDI|"
+set ds_CondicionIVA        = "INS:Inscripto|NOI:No Inscripto|NO5:No inscripto Adic. 50%|NOR:No Responsable|EXE:Exento|GRA:Gran Consumidor|FIN:Consumidor Final|MON:MonoTributista|NOC:No Categorizado|OTR:Otro|"
+set ds_Ganancias           = "INS:Inscripto|NOI:No Insc.|EXE:Exento|NOR:No Resid.|MON:Monotributista|OTR:Otro|"
+set ds_Balance             = "MEN:Mensual|SEM:Semestral|ANU:Anual|"
+set ds_TipoDocum           = "CI:CI|DNI:DNI|LE:LE|LC:LC|PAS:Pasaporte|CIP:C.I.Provincial|CUI:CUIT|GCE:Grupo Crediticio/Economico|OTR:Otro|"
+set ds_EstadoCivil         = "SOL:Soltero|CAS:Casado|DIV:Divorciado|VIU:Viudo|"
+set ds_Sexo                = "MAS:Masculino|FEM:Femenino|"
+set ds_Estudios            = "PRI:Primario|SEC:Secundario|UNI:Universitario|OTR:Otro|"
+set ds_TipoActividad       = "RDE:R.Dependencia|CTA:Ctapropista|NOT:NoTrabaja|"
+set ds_ExperienciaInv      = "001:Nivel 1|002:Nivel 2|003:Nivel 3|004:Nivel 4|005:Nivel 5|"
+set ds_SexoConyuge         = "MAS:Masculino|FEM:Femenino|"
+set ds_Vivienda            = "PRO:Propia|ALQ:Alquilada|OTR:Otro|"
+set ds_Persona             = "SI:Fisica|NO:Juridica|"
+set ds_Inscripcion         = "COM:Reg.Pub.Comercio|JUS:Ins.Gen.Justicia|"
+set ds_TipoEntidadGarante  = "SGR:SGR|FPG:FPG"
+
+#auxiliar
+set aux_Codigo = ''
+
+# Instancio ExtendedPPL
+set xppl = $.NewExtendedPPL()
+ 
+#*********************************************************************************
+def abm 'Clientes'
+   def grid
+       Jerarquia:, Codigo:, RazonSocial:, NrCuenta: 
+   end
+   def key
+       Jerarquia:, Codigo:
+   end
+   def dialog
+       #**************************************************************************
+       tab 'General'
+          column
+             Jerarquia: , 'Jerarquia',
+             Codigo: , 'Codigo', small_text
+             NrCuenta: ,          , 
+             RazonSocial: , 'Razon Social', extra_large_text
+             Direccion: , 'Direccion', extra_large_text
+             Localidad: ,          , large_text
+             CodigoPostal: , 'Codigo Postal', large_text
+             Provincia: , 'Provincia', autocomplete, 'PROVINCIAS', 'Codigo,Nombre'             
+             Pais: , 'Pais', autocomplete, 'PAISES', 'Codigo,Nombre' 
+             Telefono: ,          , large_text
+             Fax: ,          , large_text
+             DireccionEMail: , 'Direccion EMail', extra_large_text
+             Limite: , 'Limite Credito', numeric
+             PaisDir: , 'PaisDir', autocomplete, 'PAISES', 'Codigo,Nombre'              
+          column
+             Bcuelga: , 'Depende del anterior' , check
+             Status: ,          , combo, ds_Status
+             FecDesHabilitacion: , 'Fes. Deshab.' , date
+       #**************************************************************************
+       tab 'Datos'
+          column
+             NrMAE: ,          , small_text
+             FIngreso: , 'Fecha Ingreso', date
+             CodComitente: , 'Cod.Comitente', text
+             NrAgenteBolsa: , 'Nr.Agente Bolsa', extra_small_text
+             DeposDelComitente: , 'Depos del Comit', extra_small_text
+             CodDepCajaValores: , 'Cod Dep Caj Val' , text
+             CodigoBCRA: , 'Codigo BCRA', numeric,'#########0' 
+             SectorBCRA: ,          ,
+             ActividadBCRA: ,          , autocomplete, 'ACTIVIDADESBCRA', 'Codigo,Descripcion'
+          column
+             EsDepositante: ,          , check
+             CategDepositante: , 'Categoria', combo, ds_CategDepositante
+             CatPrestamosBCRA: , 'Cat.Prest BCRA', combo, ds_CatPrestamosBCRA
+             AFJP: ,          , check
+             ActComplementarias: ,          , check
+             Vinculado: ,          , check
+             CodigoMAV: , 'Codigo MAV', numeric,'#########0'   
+          column
+             Sector: ,          , combo, ds_Sector
+             TipoSucursal: , 'Tipo', combo, ds_TipoSucursal
+             CuentaContableAux: , 'CtaContaAux' , autocomplete,'CUENTACONTABLEAUX', 'Codigo,Nombre'
+       #**************************************************************************
+       tab 'Preferencias'
+          column
+             BACRR: , 'CRR', small_text
+             GCI: , 'GCI#', small_text
+             CIS: , 'CIS#', text
+             Responsable: ,          , autocomplete, 'USUARIOS', 'Codigo,Nombre'
+             PresentadoPor: , 'Presentado Por', large_text
+             NrUnico: , 'Nr Unico', numeric
+             TipoArancel: , 'Tipo Arancel', autocomplete, 'TIPOSARANCEL', 'Codigo,Descripcion'
+             CodAS400: ,          , large_text
+          column
+             Extracto: , 'Extracto'    , check
+             FAXConfirmacion: , 'FAXConfirmacion' , check
+             HabDerivados: , 'HabDerivados' , check
+             HabFuturos: , 'HabFuturos' , check
+             HabExtLocal: , 'HabExtLocal' , check
+             HabExtIntl: , 'HabExtInt' , check
+             HabBurPiso: , 'HabBurPiso' , check
+             HabBurCont: , 'HabBurCont' , check
+             HabFinanciero: , 'HabFinanciero' , check
+             HabPrestamos: , 'HabPrestamos' , check
+             HabFX: , 'HabFX' , check  
+             LiqHabitual: , 'Liquidacion', combo, ds_LiqHabitual
+       #**************************************************************************
+       tab 'Impositivos'
+          column
+             CUIT: , , text
+             FechaBal: , 'Fecha Balance' , date
+             Patrimonio: , , numeric
+             NrIngBrutos: , , 
+             NrDNRP: , , 
+             ImpuestosInternos: , 'Imp Internos' , 
+             RPC: , , numeric
+             FExeGan: , 'F. Exe. Ganancias' , date
+          column  
+             GrupoEconomico: , 'Es Controlante' , check          
+             CodGrupoEconomico: , 'Codigo', autocomplete, 'CONTROLANTES', 'Codigo,RazonSocial'
+             TIngBru: , 'Tipo Ing. Brutos' , combo, ds_TipoIngBru
+             Res3125: , 'Res. 3125' , check
+             Res3337: , 'Res. 3337' , check
+             AjusteIn: , 'Ajuste Inflacion' , check
+             ImpuestoEEmp: , 'Impuesto Endeudamiento' , check
+          column
+             TipoInscripcion: , 'Tipo Inscripcion' , combo, ds_TipoInscripcion
+             CondicionIVA: , 'Condicion IVA' , combo, ds_CondicionIVA
+             CondicionGan: , 'Ganancias' , combo, ds_Ganancias
+             PeriodicidadBalance: , 'Balance' , combo, ds_Balance
+       #**************************************************************************
+       tab 'Caracteristicas'
+          column
+             Integrantes:,,embeded_abm,"INTECL"
+       #**************************************************************************
+       tab 'Persona Fisica'
+          column
+             Persona: , 'Tipo', combo, ds_Persona
+             Nacionalidad: ,          , autocomplete, 'PAISES', 'Codigo,Nombre'
+             NrDocum: , 'Documento', large_text
+             FechaNacimiento: , 'Fecha Nac.', date
+             CantHijos: ,          , numeric
+             CantACargo: ,          , numeric
+             Ocupacion: ,          , large_text
+             Cargo: ,          , large_text
+             Ingresos: ,          , numeric
+             NetWorth: ,          , numeric
+             NyAConyuge: ,          , large_text
+             FNacConyuge: ,          , 
+             OcupConyuge: ,          , large_text
+             IngrConyuge: ,          , numeric
+          column
+             Sexo: ,          , combo, ds_Sexo
+             Estudios: ,          , combo, ds_Estudios
+             SexoConyuge: ,          , combo, ds_SexoConyuge
+             EstadoCivil: , 'Estado', combo, ds_EstadoCivil
+             Vivienda: ,          , combo, ds_Vivienda
+          column
+             TipoDocum: , 'Tipo Documento', combo, ds_TipoDocum
+             ExperienciaInv: , 'Exp. Inversion', combo, ds_ExperienciaInv
+             TipoActividad: ,          , combo, ds_TipoActividad
+       #**************************************************************************
+       tab 'Variables'
+          column
+             Valor1: ,          , numeric
+             Valor2: ,          , numeric
+             Valor3: ,          , numeric
+             Valor4: ,          , numeric
+             Valor5: ,          , numeric
+             Valor6: ,          , numeric
+             Valor7: ,          , numeric
+             Valor8: ,          , numeric
+             Valor9: ,          , numeric
+             Valor10: ,          , numeric
+          column
+             Fecha1: ,          , date
+             Fecha2: ,          , date
+             Fecha3: ,          , date
+             Fecha4: ,          , date
+             Fecha5: ,          , date
+             Fecha6: ,          , date
+             Fecha7: ,          , date
+             Fecha8: ,          , date
+             Fecha9: ,          , date
+             Fecha10: ,          , date
+           column
+             Alias1: , 'ID Sist.Cont.', large_text              
+             Alias2: ,          , large_text
+             Alias3: , 'B.InterBanking', large_text
+             Alias4: , 'Tipo Entidad Gte', combo, ds_TipoEntidadGarante
+             Alias5: ,  'Cod. SGR ECheq'  , small_text
+             Alias6: ,  'Cod. SGR FCE'        , small_text
+             Alias7: ,          , large_text
+             Alias8: ,'CC Sist Contable' , large_text
+             Alias9: ,          , large_text
+             Alias10: ,          , large_text
+       #**************************************************************************
+       tab 'Inscripcion'
+          column
+             NroInsc: , 'Nr.Inscripcion', small_text
+             Libro: ,          , extra_small_text
+             Folio: ,          , small_text
+             Tomo: ,          , extra_small_text
+             FechaInsc: , 'Fecha Inscr', date
+             PaisInsc: , 'Pais Inscr.', autocomplete, 'PAISES', 'Codigo,Nombre'
+          column
+             Inscripcion: ,          , combo, ds_Inscripcion
+       #**************************************************************************
+       tab 'Observaciones'
+          column
+             Observaciones: ,          , full_tab_text
+   end
+   when_change:
+      Status:, $.toggle_enabled(FecDesHabilitacion:,val(Status:)='DES')
+   when_change:
+      Persona:, $.toggle_enabled(Nacionalidad:,NrDocum:,FechaNacimiento:,CantHijos:,CantACargo:,Ocupacion:,Cargo:,Ingresos:,NetWorth:,NyAConyuge:,FNacConyuge:,OcupConyuge:,IngrConyuge:,val(Persona:)='SI')
+   disable:
+   Jerarquia:,1=1;
+   hide:
+   PaisDir:,1=1;
+   # Esto hace que no el campo no se grabe.
+   do_not_map: 
+        Bcuelga:;
+   before_show_dialog: do
+        #ppl.MessageBox($.val(aux_Codigo))
+        set aux_Codigo = $.val(Codigo:)
+        #ppl.MessageBox("Aux: "+$.val(aux_Codigo))
+   end
+        
+        
+    when_change: Bcuelga: do
+        if $.Alta()
+            set jerRef = $.val(sender.JERARQUIA)
+            $.set_field Jerarquia:, ppl.GenerarJerarquiaByRef('CLIENTES', jerRef, $.val Bcuelga: = 'SI')
+        endif
+    end
+
+    when_change: Pais: do
+    $.set_field PaisDir:, $.val(Pais:)
+    end
+    
+    before_show_create_dialog:  do
+        if $.Alta()
+            # Se muestra solo en el alta
+            $.show(Bcuelga:)
+            set jerRef = $.val(sender.JERARQUIA)
+            $.set_field Jerarquia:, ppl.GenerarJerarquiaByRef('CLIENTES', jerRef, $.val Bcuelga: = 'SI')
+        endif
+    end
+
+    hide_fields: 
+        Bcuelga:;
+        
+    upper_case_fields: Codigo:
+    validates_uniqueness_of: Codigo:, Jerarquia:
+   
+   #Verifica que el CUIT ingresado sea valido
+   before_save: do
+   If Not $.val CUIT: = null
+      if Not xppl.ValidaCuit($.val(CUIT:))
+         $.Alert('CUIT invalido ')
+         false
+      else
+         true
+      endif
+   else
+       true
+   endif        
+   end
+   
+   before_save: do
+    if $.val(CategDepositante:) = 'EGA'
+        if $.val Alias4: = null  
+            $.Alert('Tipo Entidad Gte. Obligatorio ')
+            false
+        else
+            true
+        endif
+    else
+        true
+    endif   
+   end
+   
+       #Antes de borrar, hay que ver que no tenga descendientes
+    before_delete: do
+        if xppl.Eqstr(xppl.Copy($.val(Jerarquia:),4,3),'000')
+            set limiteJerarquia = 3
+        else
+            if xppl.Eqstr(xppl.Copy($.val(Jerarquia:),7,3),'000')
+                set limiteJerarquia = 6
+            else
+                if xppl.Eqstr(xppl.Copy($.val(Jerarquia:),10,3),'000')
+                    set limiteJerarquia = 9
+                else
+                    if xppl.Eqstr(xppl.Copy($.val(Jerarquia:),13,3),'000')
+                        set limiteJerarquia = 12
+                    else
+                        set limiteJerarquia = 15
+                    endif
+                endif
+            endif
+        endif
+        
+        set raizBuscar = xppl.Copy($.val(Jerarquia:),1,limiteJerarquia)
+        
+        if ppl.NoVacio(ppl.SQL(" SELECT 1 FROM "+dbo+".CLIENTES WHERE Jerarquia like '"+raizBuscar+"%' and Jerarquia <> '"+$.val(Jerarquia:)+"' ")) AND limiteJerarquia <> 15
+        $.Alert('El cliente no puede eliminarse porque tiene descendientes')
+            false
+        else
+            true
+        endif
+    end
+    
+end

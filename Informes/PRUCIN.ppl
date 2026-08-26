@@ -1,0 +1,11 @@
+﻿CrearDialogo
+    String1: 'Prueba' ;;;;;;;;
+FinDialogo
+
+IF Not OK
+  Cancelar
+ENDIF
+
+ACT(A:1,Copy(BuscarCampo('CLIENTES','Alias1','Codigo',Dialogo.String1),Longitud(BuscarCampo('CLIENTES','Alias1','Codigo',Dialogo.String1)-1),2))
+ACT(A:2,'XX'~BuscarCampo('CLIENTES','Alias1','Codigo',Dialogo.String1)~'XX')
+@VARTIPOCAM

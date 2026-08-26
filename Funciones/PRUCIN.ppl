@@ -1,0 +1,8 @@
+﻿COMISIONES2:SI;8;
+   NrCuota      : 'Cuota'         ;VACIO(VEHICULO1);;;;;;90;NO;Combo;'cero|uno|dos|tres' 
+   Tasa1      : 'Tasa'            ;VACIO(VEHICULO1);;VACIO(COM2L.NrCuota[Fila]) O COM2L.Tasa1[Fila]>0;'Debe ingresar una Tasa';;;100;NO;Numero;'###.########';NO;NO;
+   #ifdef BFSA
+       Cantidad1      : 'Cuota'         ;VACIO(VEHICULO1);;;;;;90;NO;
+   #else
+       Cantidad2      : 'Cuota'         ;VACIO(VEHICULO1);;;;;;90;NO;
+   #endif

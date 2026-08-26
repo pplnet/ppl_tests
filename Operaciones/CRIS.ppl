@@ -1,0 +1,23 @@
+﻿CAMPOS:1;;
+Especie        : 'Commodity'                  ;;;;NOT EV;;NoVacio(ESPECIE);'Debe Ingresar una Especie';NO;'WTI'
+FechaOp        : 'FechaOp'                    ;;;;;;;;;;;;;;;
+FechaOp2       : 'Fecha_Inicio'               ;;;;;;;;;FECHAOP;;
+FechaEj        : 'Fecha_Final'                ;;;;;;FECHAEJ>FECHAOP2;'Debe ser MAYOR a la FECHA DE INICIO';NO;FECHAOP;;
+Plazo          : 'Plazo'                      ;;;;NO;;PLAZO>0;'Debe INGRESAR el PLAZO';NO;;EXE2(VTXT1)+(FECHAEJ-FECHAEJ+FECHAOP2-FECHAOP2)
+Cantidad       : 'Volumen'                    ;;;;NOT EV;;CANTIDAD>0;'El Volumen DEBE SER POSITIVO';NO;EXE2(VTXT2)+(CANTIDAD-CANTIDAD+PLAZO-PLAZO)
+TotalAux2      : 'Vol_Total'                  ;;;;NO;;;;;;EXE2(VTXT2)+(CANTIDAD-CANTIDAD+PLAZO-PLAZO)
+UMedida        : 'U.Medida'                   ;;;;;;NOVACIO(UMEDIDA);'Indique la Unidad de Medida';NO;BuscarCampo('Especies','Alias1','Codigo',ESPECIE)
+VTXT1          : 'C_PLAZO'                    ;;;;NO;SI;;;;;BuscarCampo('UMEDIDAS','Formula1','Codigo',UMEDIDA)
+VTXT2          : 'C_VOL_TOT'                  ;;;;NO;SI;;;;;BuscarCampo('UMEDIDAS','Formula2','Codigo',UMEDIDA)
+
+
+BITS
+1;1
+5;0
+10;0
+11;0
+
+INSTANCIA1
+BITS
+1 ;0;FW=1
+5 ;1;FW=1

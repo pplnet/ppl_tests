@@ -1,0 +1,113 @@
+﻿CrearDialogo
+  Fecha1 : 'Desde'            ;1;1;;;;Dialogo.Fecha1<>0;'Fecha invalida';NO;Habiles(Fecha2,-Var('DIAVISTAFI'),'ARG',NO)
+  Fecha2 : 'Hasta'            ;;;;;;Dialogo.Fecha2>Dialogo.Fecha1;'La Fecha Desde debe ser mayor a la Fecha Hasta';NO;Fsys
+FinDialogo
+
+If NOT OK
+  Cancelar
+EndIf
+
+let &fechaDesde IIF(EsHabil(Dialogo.Fecha1,'ARG'),Dialogo.Fecha1,Habiles(Dialogo.Fecha1,1,'ARG'))
+let &fechaHasta Dialogo.Fecha2
+
+***SALDO CUENTA COMITENTE***
+IF Vacio SQL("SELECT 1 from INFORMATION_SCHEMA.TABLES  where TABLE_NAME= 'V_SALCTACOM'")
+    SQL.ADD("EXEC "~DBO~".V_SALCTACOM_CREAR '"~IdxDate(&fechaDesde)~"','"~IdxDate(&fechaHasta)~"'")
+    SQL.NEW
+    SQL.EXEC
+EndIf
+***SALDO CUENTA CORRIENTE***
+IF Vacio SQL("SELECT 1 from INFORMATION_SCHEMA.TABLES  where TABLE_NAME= 'V_SALCTACTE'")
+    SQL.ADD("EXEC "~DBO~".V_SALCTACTE_CREAR '"~IdxDate(&fechaDesde)~"','"~IdxDate(&fechaHasta)~"'")
+    SQL.NEW
+    SQL.EXEC
+EndIf
+***RENTABILIDAD***
+IF Vacio SQL("SELECT 1 from INFORMATION_SCHEMA.TABLES  where TABLE_NAME= 'V_RENTABILIDAD'")
+    SQL.ADD("EXEC "~DBO~".V_RENTABILIDAD_CREAR '"~IdxDate(&fechaDesde)~"','"~IdxDate(&fechaHasta)~"'")
+    SQL.NEW
+    SQL.EXEC
+EndIf
+*TC
+IF Vacio SQL("SELECT 1 from INFORMATION_SCHEMA.TABLES  where TABLE_NAME= 'V_TC'")
+    SQL.ADD(" EXEC "~DBO~".V_TC_CREAR '"~IdxDate(&fechaDesde)~"','"~IdxDate(&fechaHasta)~"' ")
+    SQL.NEW
+    SQL.EXEC
+ENDIF
+***Saldos a Liquidar***
+IF Vacio SQL("SELECT 1 from INFORMATION_SCHEMA.TABLES  where TABLE_NAME= 'V_SALLIQ'")
+    SQL.ADD(" EXEC "~DBO~".V_SALLIQ_CREAR '"~IdxDate(&fechaDesde)~"','"~IdxDate(&fechaHasta)~"' ")
+    SQL.NEW
+    SQL.EXEC
+ENDIF
+***GRALOP***
+IF Vacio SQL("SELECT 1 from INFORMATION_SCHEMA.TABLES  where TABLE_NAME= 'V_GRALOP'")
+    SQL.ADD(" EXEC "~DBO~".V_GRALOP_CREAR '"~IdxDate(&fechaDesde)~"','"~IdxDate(&fechaHasta)~"' ")
+    SQL.NEW
+    SQL.EXEC
+ENDIF
+***ACCIONES***
+IF Vacio SQL("SELECT 1 from INFORMATION_SCHEMA.TABLES  where TABLE_NAME= 'V_Accion'")
+    SQL.ADD(" EXEC "~DBO~".V_Accion_CREAR '"~IdxDate(&fechaDesde)~"','"~IdxDate(&fechaHasta)~"' ")
+    SQL.NEW
+    SQL.EXEC
+ENDIF
+***LETRASyBONOS***
+IF Vacio SQL("SELECT 1 from INFORMATION_SCHEMA.TABLES  where TABLE_NAME= 'V_LetrasYBonos'")
+    SQL.ADD(" EXEC "~DBO~".V_LetrasYBonos_CREAR '"~IdxDate(&fechaDesde)~"','"~IdxDate(&fechaHasta)~"' ")
+    SQL.NEW
+    SQL.EXEC
+ENDIF
+***FCI***
+IF Vacio SQL("SELECT 1 from INFORMATION_SCHEMA.TABLES  where TABLE_NAME= 'V_FCI'")
+    SQL.ADD(" EXEC "~DBO~".V_FCI_CREAR '"~IdxDate(&fechaDesde)~"','"~IdxDate(&fechaHasta)~"' ")
+    SQL.NEW
+    SQL.EXEC
+ENDIF
+***CAUCIONES***
+IF Vacio SQL("SELECT 1 from INFORMATION_SCHEMA.TABLES  where TABLE_NAME= 'V_CAUCIONES'")
+    SQL.ADD(" EXEC "~DBO~".V_CAUCIONES_CREAR '"~IdxDate(&fechaDesde)~"','"~IdxDate(&fechaHasta)~"' ")
+    SQL.NEW
+    SQL.EXEC
+ENDIF
+***PLAZO FIJO***
+IF Vacio SQL("SELECT 1 from INFORMATION_SCHEMA.TABLES  where TABLE_NAME= 'V_PlazoFijo'")
+    SQL.ADD(" EXEC "~DBO~".V_PlazoFijo_CREAR '"~IdxDate(&fechaDesde)~"','"~IdxDate(&fechaHasta)~"' ")
+    SQL.NEW
+    SQL.EXEC
+ENDIF
+***COTIZACION***
+IF Vacio SQL("SELECT 1 from INFORMATION_SCHEMA.TABLES  where TABLE_NAME= 'V_COTIZACION'")
+    SQL.ADD(" EXEC "~DBO~".V_COTIZACION_CREAR '"~IdxDate(&fechaDesde)~"','"~IdxDate(&fechaHasta)~"' ")
+    SQL.NEW
+    SQL.EXEC
+ENDIF
+
+****CHEQUES*****
+
+let &fecha Habiles(Dialogo.Fecha2,-Var('DIAVISTADD'),'ARG',NO)
+let &fechaDesde IIF(EsHabil(&fecha,'ARG'),&fecha,Habiles(&fecha,1,'ARG'))
+let &fechaHasta Dialogo.Fecha2
+
+***OPERACIONES DE CHEQUES***
+IF Vacio SQL("SELECT 1 from INFORMATION_SCHEMA.TABLES  where TABLE_NAME= 'V_OPCHEQ'")
+    SQL.ADD(" EXEC "~DBO~".V_OPCHEQ_CREAR '"~IdxDate(&fechaDesde)~"','"~IdxDate(&fechaHasta)~"' ")
+    SQL.NEW
+    SQL.EXEC
+ENDIF
+
+***CHEQUES Avalados***
+IF Vacio SQL("SELECT 1 from INFORMATION_SCHEMA.TABLES  where TABLE_NAME= 'V_Avalados'")
+    SQL.ADD(" EXEC "~DBO~".V_Avalados_CREAR '"~IdxDate(&fechaDesde)~"','"~IdxDate(&fechaHasta)~"' ")
+    SQL.NEW
+    SQL.EXEC
+ENDIF
+
+***CHEQUES No Avalados***
+IF Vacio SQL("SELECT 1 from INFORMATION_SCHEMA.TABLES  where TABLE_NAME= 'V_NoAvalados'")
+    SQL.ADD(" EXEC "~DBO~".V_NoAvalados_CREAR '"~IdxDate(&fechaDesde)~"','"~IdxDate(&fechaHasta)~"' ")
+    SQL.NEW
+    SQL.EXEC
+ENDIF
+
+MessageBox('Vistas generadas correctamente')

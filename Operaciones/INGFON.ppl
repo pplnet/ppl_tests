@@ -1,0 +1,35 @@
+﻿CAMPOS:1;;BuscarCampo('VEHICULOS','Alias1','Codigo',Vehiculo1)
+FechaOp         : 'FechaTr'     ;1;2;;VerificaAcceso('OPFVALOR');;FECHA1<=FSYS y EsHabil(FECHAOP,'ARG');'Fecha Incorrecta';NO;FSYS;
+Vehiculo1       : 'Vehiculo'    ;3;2;1;;;NOVACIO(VEHICULO1) Y  Incluido(VEHICULO1,SqlSet("Select Codigo from "~DBO~".VEHICULOS WHERE Codigo = '"~Vehiculo1~"' and Status ='HAB' ")) y [Vacio(UsrVehiculos(UsuarioActivo)) o Incluido(VEHICULO1,SqlSet("Select Vehiculo From "~DBO~".USRVEHICULO Where Codigo = '"~UsuarioActivo~"'"))];'El VEHICULO es INVALIDO';NO;         ;IIF([Incluido(TIPOOP,'MMPRCO|MMPREC') o [Incluido(TIPOOP,'SECS|SEVS|SECSV|SEVSV|FXCS|FXVS|FXCSV|FXVSV|FCCPV|FCVPV') y CB13=1]] THEN BuscarCampo('OPERACIONES','Vehiculo1','NrOperacion', NROPERACION5) ELSE IF(Incluido(TIPOOP, 'MMONRE'), OPREF.VEHICULO1) ENDIF);;;;;;IF(Vacio(UsrVehiculos(UsuarioActivo)),  " Status ='HAB' " ,  " Codigo IN (Select Vehiculo from "~DBO~".USRVEHICULO where Codigo = '"~UsuarioActivo~"')")
+Book1           : 'Book'        ;5;2;1;;;[SI O BookValido(BOOK1, TIPOOP, ESPECIE, VEHICULO1, OPERADOR,'')] Y NoVacio(BOOK1);'Book Invalido';NO;Var('BOOKDEF');;;;;;;;
+Especie         : 'Moneda '     ;3;1;1;;;NoVacio(ESPECIE) y DesciendeDeEspecie(ESPECIE,'MONEDA');'Moneda Invalida';NO;;;;;;;;"Status = 'HAB' and Jerarquia Like '"~Jerarquia('ESPECIES','MONEDA')~"%' ";
+Cantidad        : 'Cantidad'    ;5;1;;;;CANTIDAD > 0;'Cantidad Invalida';NO;
+Operador        : 'Operador'    ;7;1;;NO;;;;;UsuarioActivo;
+
+MOVIMIENTOS
+FechaOp;Vehiculo1;Especie;;;;;Vehiculo1;50;Cantidad;;'Ingreso de Fondos para Inversion';SI;SI;;;;'CAJA';;10;;;;;;;Book1;;;;;;;
+
+
+BITS
+6;1
+7;0
+8;0
+9;0
+
+INSTANCIA6
+BITS
+6;0;FW=1
+7;1;FW=1
+
+INSTANCIA7
+BITS
+7;0;FW=1 O FW=2
+8;1;FW=1
+6;1;FW=2
+
+INSTANCIA8
+BITS
+8;0;FW=1 O FW=2
+9;1;FW=1
+7;1;FW=2
+

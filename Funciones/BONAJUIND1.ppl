@@ -1,0 +1,30 @@
+﻿**Para utilizar esta funcion deben estar declaradas las variables 
+*&espBonInd (especie),&book,&vehiculo y &fechaBonInd
+IF NoVacio(BuscarCampo('ESPECIES','Indice','Codigo',&espBonInd))
+    SQL.ADD("Select ABS(Cantidad1) as 'Nominales',Cambio3,Precio1,Precio2 from "~DBO~".TRANSACCIONES2 ")
+    SQL.ADD(" Where TipoTr2='CUPON' AND Cantidad4=3 AND Fecha1 >='"~IdxDate(&fechaBonInd1)~"' AND ")
+    SQL.ADD(" Fecha1 <='"~IdxDate(&fechaBonInd2)~"'AND Vehiculo1='"~&vehiculo~"' ")
+    SQL.ADD(" AND Book1='"~&book~"' AND Especie='"~&espBonInd~"' ")
+    Recorrer SQL
+        DFA
+        let &dif fbn('Cambio3')-1
+        let &PorAmort  fbn('Precio1')/100
+        let &PorRenta  fbn('Precio2')/100
+        let &montoIni fbn('Nominales')*&dif
+        let &montoAmort &montoIni*&PorAmort
+        let &montoRenta &montoIni*&PorRenta
+        let &monto &montoAmort+&montoRenta
+    Proximo
+Endif
+
+**Lo que se quiere obtener de esta funcion es el valor de &monto
+
+
+
+*lAS CUPON por la renta, con indice
+*Diferencia entre Cambio3 (Valor Indice) y 1 (Precio Cupon) * Nominales (Cantidad1) * Precio2/100 (tasa efectiva)
+*
+*Amortizacion parcial, cuando Precio1 > 0 y < 100
+*Idem pero tomando Cantidad1 * dif (cambio3-1) * Precio1/100 tambien para letras
+*
+

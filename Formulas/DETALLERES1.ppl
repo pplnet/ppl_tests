@@ -1,0 +1,1 @@
+﻿Copy(fbn('CodAsi')~'-'~fbn('Cliente1')~'-'~fbn('NrOperacion'), 1, 30)

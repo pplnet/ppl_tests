@@ -1,0 +1,167 @@
+﻿CrearDialogo
+   NrOperacion1 : 'Operacion ON'        ;;;;;;NoVacio(Dialogo.NrOperacion1);'Debe ingresar un numero de Op.';NO
+   NrOperacion2 : 'Operacion SECS'      ;;;;;;NoVacio(Dialogo.NrOperacion1);'Debe ingresar un numero de Op.';NO
+   Fecha1       : 'FechaOpSecs'         ;;;;;;
+   Cantidad1    : 'Cant SECS'           ;;;;;;
+   Cantidad2    : 'Cant de Cuota ON'    ;;;;;;
+   Radio1       : 'Accion SECS|Alta|Modif|Baja|Otro|';;;;;;;;;0
+FinDialogo
+
+If Not Ok
+   Cancelar
+Endif
+
+
+*Cuando cargo nueva secs:
+*1-agrego registro en la solapa Precacelacion de la ON
+*2-ACTMOV de la ON para la solapa nueva (devengados)
+*3-actualizar datos de las 2 nuevas colunmas en CUOTAS de la ON
+*4-ACTMOV de CUOTAS (movimientos)
+*/
+
+let &opON Dialogo.NrOperacion1
+let &opSECS Dialogo.NrOperacion2
+let &accion Dialogo.Radio1
+***Capital de Prencancelacion
+let &capPrecan Dialogo.Cantidad1
+***Fecha de la Precancelacion
+let &fechaPrecan Dialogo.Fecha1
+
+***Cantidad obtenida de la cuota disponible
+let &cantDisponibleOn Dialogo.Cantidad2
+
+If &accion=0
+    ****SECS = ALTA
+    ***Cuota de la ON vigente (controlamos vigencia por fecha de precancelacion e importe restante, o si no tomamos la proxima cuota)
+    If &cantDisponibleOn >= &capPrecan
+        let &nrCuotaOn SQL("Select NrCuota from "~DBO~".CUOTAS where NrOperacion='"~&opON~"' AND (Fecha2>='"~IdXdate(&fechaPrecan)~"' AND Fecha1<'"~IdXdate(&fechaPrecan)~"')")
+    Else
+        let &nrCuotaON SQL("Select Min(NrCuota) from "~DBO~".CUOTAS where NrOperacion = '"~&opON~"' AND (Fecha2>'"~IdxDate(&fechaPrecan)~"' AND Total5 >=  '"~FsTr(&capPrecan)~"')")
+    EndiF
+Else
+    If &accion=2
+        ****SECS=ELIMINA   
+        let &nrCuotaOn SQL("Select NrCuota1 from "~DBO~".PRECANCELACION WHERE NrOperacion ='"~&opON~"' AND NrOperacion1='"~&opSECS~"' ")
+    EndIf
+Endif
+***Busco datos de la ON
+SQL.ADD("SELECT FechaVto,RB8,TotalDerechos,Cuotas2+1 NrPrecan FROM "~DBO~".OPERACIONES WHERE NrOperacion ='"~&opON~"'")
+Recorrer SQL
+    ***Nr Precancelacion
+    let &nrPrecancel fbn('NrPrecan')
+    
+    ***FechaVto de la ON
+    let &fechaVtoOn fbn('FechaVto')
+    
+    ***RB8 para 360/365 de los intereses
+    let &rb8 fbn('RB8')
+
+    ***Prima de ON
+    let &prima fbn('TotalDerechos')
+Proximo
+
+***Busco campos de la CUOTA vigente de la ON
+SQL.ADD("Select Total5 as CapALiquidar, Precio12 as IntALiquidar, Precio4+Precio2 as TasaIntCuotaOn, Fecha2 as FechaVtoCuotaOn, ")
+SQL.ADD("Cantidad2 VN ")
+SQL.ADD("FROM "~DBO~".CUOTAS WHERE NrOperacion ='"~&opON~"' and NrCuota='"~&nrCuotaON~"' ")
+Recorrer SQL
+    let &CapALiquidar fbn('CapALiquidar')
+    let &IntALiquidar fbn('IntALiquidar')
+    let &TasaIntCuotaOn fbn('TasaIntCuotaOn')
+    let &fechaVtoCuotaOn fbn('FechaVtoCuotaOn')
+    let &vnCuota fbn('VN')
+Proximo
+
+***Interes total de la op
+let &intPrecan &capPrecan*(&TasaIntCuotaOn/100)*FACTORDIAS(&fechaPrecan,&fechaVtoOn,&rb8+1)
+
+***Interes Remanente Cuota 
+let &intRemanente &capPrecan*(&TasaIntCuotaOn/100)*FACTORDIAS(&fechaPrecan,&fechaVtoCuotaOn,&rb8+1)
+
+If &accion=0
+    ****SECS = ALTA
+    
+    ***Columnas nuevas de CUOTAS de la ON
+    let &CapALiquidar &CapALiquidar - &capPrecan
+    let &IntALiquidar &IntALiquidar - &intPrecan
+
+    ***Columnas de la solapa nueva PRECANCELACION
+    ***Capital Adeudado (restando precancelaciones previas)
+    If Vacio(SQL("Select NrOperacion FROM "~DBO~".PRECANCELACION WHERE NrOperacion ='"~&opON~"' and NrCuota1='"~&nrCuotaON~"' "))
+        ***Si no hay PRECANCELACIONES para esa cuota de ON es la primera y tomo el capital adeudado de la cuota
+        let &capAdeudado &vnCuota
+    Else
+        ***Busco importe de precancelacion de la anterior cuota y capital adeudado
+        let &nrPrecAnt &nrPrecancel-1
+        SQL.ADD("SELECT Total2 as CapAdeudado, Total1 as CapPrecan FROM "~DBO~".PRECANCELACION WHERE ")
+        SQL.ADD("NrOperacion ='"~&opON~"' and NrCuota='"~&nrCuotaON~"' and NrCuota1 ="~FsTr(&nrPrecAnt,0,0)~" ")
+        Recorrer SQL
+            let &capAdeudado fbn('CapAdeudado')-fbn('CapPrecan')
+        Proximo
+    EndIf
+    ***Prima de Precancelacion
+    let &primaDto &capPrecan*&prima/&capAdeudado
+
+    **Campos nuevos en la solapa Cuotas de ON
+    SQL.ADD("UPDATE "~DBO~".CUOTAS set Total5= "~Fstr(&CapALiquidar,0,0)~",Precio12 ="~Fstr(&IntALiquidar,0,2)~" ")
+    SQL.ADD("WHERE NrOperacion = '"~&opON~"' and NrCuota='"~&nrCuotaON~"' ")
+    SQL.NEW
+    SQL.EXEC  
+      
+    **Campos de la solapa Precancelacion de la ON
+    SQL.ADD("INSERT INTO "~DBO~".PRECANCELACION ")
+    SQL.ADD("(NrCuota, NrOperacion, NrOperacion1, Fecha1, ")
+    SQL.ADD("Total1, Precio1, Precio2, ")
+    SQL.ADD("NrCuota1, Total2, Precio3, Fecha2) ")
+    SQL.ADD("VALUES ")
+    SQL.ADD("('"~&nrPrecancel~"','"~&opON~"','"~&opSECS~"', '"~IdxDate(&fechaPrecan)~"',")
+    SQL.ADD(" '"~Fstr(&capPrecan,0,0)~"','"~Fstr(&intPrecan,0,2)~"','"~Fstr(&primaDto,0,2)~"', ")
+    SQL.ADD(" '"~Fstr(&nrCuotaON,0,0)~"', '"~Fstr(&capAdeudado,0,0)~"', '"~Fstr(&intRemanente,0,2)~"', '"~IdxDate(fsys)~"') ")
+    SQL.NEW
+    SQL.EXEC
+  
+    **Actualizo Nr de precancelaciones
+    SQL.ADD("UPDATE "~DBO~".OPERACIONES SET Cuotas2=Cuotas2+1 WHERE NrOperacion = '"~&opON~"' ")
+    SQL.NEW
+    SQL.EXEC
+ELSE
+    If &accion=2
+        ****SECS=ELIMINA
+        ****Es la ultima precancelacion, hay que actualizar valores y eliminar SECS
+        
+        ***Columnas nuevas de CUOTAS de la ON
+        let &CapALiquidar &CapALiquidar + &capPrecan
+        let &IntALiquidar &IntALiquidar + &intPrecan
+
+        **Campos nuevos en la solapa Cuotas de ON
+        SQL.ADD("UPDATE "~DBO~".CUOTAS ")
+        SQL.ADD("set Total5 = '"~Fstr(&CapALiquidar,0,0)~"', ")
+        SQL.ADD("Precio12 = '"~Fstr(&IntALiquidar,0,2)~"' ")
+        SQL.ADD("WHERE NrOperacion = '"~&opON~"' and NrCuota='"~&nrCuotaON~"' ")
+        SQL.NEW
+        SQL.EXEC
+
+        **Elimino precancelacion
+        SQL.ADD("DELETE "~DBO~".PRECANCELACION ")
+        SQL.ADD("WHERE NrOperacion = '"~&opON~"' AND NrOperacion1 = '"~&opSECS~"' ")
+        SQL.NEW
+        SQL.EXEC   
+
+     
+        **Campos nuevos en la solapa Cuotas de ON
+        SQL.ADD("UPDATE "~DBO~".OPERACIONES ")
+        SQL.ADD("set Cuotas2 = Cuotas2-1 ")
+        SQL.ADD("WHERE NrOperacion = '"~&opON~"' ")
+        SQL.NEW
+        SQL.EXEC
+        
+    ENDIF
+EndIf
+
+**Actualizo movimientos de la ON
+SQL.ActualizarMovimientos3(&opON,SI,NO,NO,NO,NO)
+SQL.EXEC
+
+**Actualizo devengados de la ON
+SQL.ActualizarMovimientos3(&opON,NO,NO,NO,NO,SI)
+SQL.EXEC

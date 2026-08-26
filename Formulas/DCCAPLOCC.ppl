@@ -1,0 +1,7 @@
+﻿IIF(Eqstr(#MONELOCAVH, #MONELOCAL),
+   #DCCAPITAL,
+   IIF(Eqstr(#MONELOCAVH, #MONEURU),
+      #DCCAPITAL*#CBNABCUSDC,
+      #DCCAPITAL
+   )     
+)

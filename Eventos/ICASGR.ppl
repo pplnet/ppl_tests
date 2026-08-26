@@ -1,0 +1,152 @@
+﻿MostrarCuadrodeMensajes
+DialogoVisible(SI)
+CrearDialogo
+  Directorio1  : 'Path'           ;1;1;;;;;;;Var('PATHDDCHE')
+  String1      : 'Archivo '       ;2;1;1;SI;SI;;;;Var('FILEDDASGR') 
+  Fecha1       : 'Fecha Vigencia' ;;1;1;SI;SI;NoVacio(Dialogo.Fecha1);'Debe ingresar una fecha';NO;FSYS
+  Vehiculo1    : 'Vehiculo'       ;;;;;;;;;Var('DDVEHDEF')
+  Book1        : 'Book'           ;;;;SI;SI;EqStr(Dialogo.Vehiculo1,BuscarCampo('BOOKS','Vehiculo','Codigo',Dialogo.Book1));'El book ingresado no corresponde al Vehiculo';NO;Var('BOOKDDCHE');BuscarCampo('VEHICULOS','Alias5','Codigo',Dialogo.Vehiculo1);;;;" Vehiculo = '"~Dialogo.Vehiculo1~"'"
+  Especie1     : 'Moneda'         ;;;;NO;NO;;;;Var('MONELOCA')
+FinDialogo
+
+if Not Ok
+  Cancelar
+endif
+
+(.'VALIDPATH'.)
+
+*** Corregir path
+let &pf ''
+If EqStr(Copy(Dialogo.Directorio1,Longitud(Dialogo.Directorio1),1),'\')
+    let &pf Dialogo.Directorio1~Dialogo.String1
+Else
+    let &pf Dialogo.Directorio1~'\'~Dialogo.String1
+Endif
+
+ImportarXLS(A:3..V:10000, A:1..V:10000, &pf)
+
+If Not Ok
+  Cancelar('Error al cargar el archivo '~&pf)
+EndIf
+
+
+Let &TotalProcesados 0
+Let &TotalNoProcesados 0
+
+***Guarda Variable de directorio, agrega una '\' si no tiene
+If EqStr(Copy(Dialogo.Directorio1,Longitud(Dialogo.Directorio1),1),'\')
+    let &Directorio Dialogo.Directorio1
+Else
+    let &Directorio Dialogo.Directorio1~'\'
+EndIf
+
+***Valida que el directorio que se guardó sea correcto
+  If ExisteDirectorio(&Directorio)
+     **Si el directorio existe, guarda el nombre de archivo en una variable.
+     let &FileName Var('FILELOGSGR')~Pad0(FStr(Dia(FSYS),0,0),2)~Pad0(FStr(Mes(FSYS),0,0),2)~FStr(Anio(FSYS),0,0)     
+  Else
+      Cancelar('El directorio '~&Directorio~' no existe')
+  EndIf
+
+
+**Si el nombre del archivo del comprobante es el mismo, le agrega una enumeración al final del nombre del archivo.
+ACT(AR:1,&Directorio~&FileName~'.txt')
+
+IF ExisteArchivo(Val(AR:1))
+    Recorrer&I 1,9000
+    ACT(AR:1,&Directorio~&FileName~'_'~Fstr(&I,10,0)~'.txt')
+        IF Not ExisteArchivo(Val(AR:1))
+            Break
+        ENDIF
+    Proximo 
+ENDIF
+
+AbrirAscii(Val(AR:1),0,NO,1)
+
+
+Recorrer&i 1,10000
+  
+    If Vacio(Val(A:&i))
+        Break
+    Else
+    
+          ***CUITGarante
+          let &CUITGte Fstr(Val(A:&i),0,0)
+         ***EntidadGarante 
+        let &EntidadGte BuscarCampo('CLIENTES','Codigo','CUIT',&CUITGte)
+       
+           ***Validacion de que no exista CUPO DUPLICADO  
+        If SQL("Select 1 from "~DBO~".DDCUPOSAVALADOS where FechaVigencia='"~IdxDate(Dialogo.Fecha1)~"' and Vehiculo = '"~Dialogo.Vehiculo1~"' and Book = '"~Dialogo.Book1~"' and EntidadGarante='"~&EntidadGte~"' and  CUITGarante='"~&CUITGte~"'")>0
+            EscribirAscii('Cupo duplicado, el Cupo con FechaVigencia:'~Dialogo.Fecha1~',Vehiculo:'~Dialogo.Vehiculo1~', Book:'~Dialogo.Book1~', EntidadGarante:'~&EntidadGte~', CUITGarante:'~&CUITGte~' no fue procesado')
+           Let &TotalNoProcesados &TotalNoProcesados+1         
+        Else                   
+       
+            ***Validacion que exista el CUIT en la tabla CLIENTES       
+            If SQL("Select 1 from "~DBO~".CLIENTES WHERE CUIT = '"~&CUITGte~"'  ")=0
+                EscribirAscii('No se encontró CUIT '~&CUITGte~', el Cupo no se procesó')
+                Let &TotalNoProcesados &TotalNoProcesados+1 
+            Else
+                **Validacion que FechaVigencia sea mayor al ultimo registro 
+                let &UltFecha SQL("Select MAX(FechaVigencia) From "~DBO~".DDCUPOSAVALADOS Where Vehiculo = '"~Dialogo.Vehiculo1~"' and Book = '"~Dialogo.Book1~"' and EntidadGarante='"~&EntidadGte~"' and  CUITGarante='"~&CUITGte~"'")
+                If  &UltFecha >= Dialogo.Fecha1
+                    EscribirAscii('La fecha debe ser mayor a  '~&UltFecha~', el Cupo no se procesó')
+                    Let &TotalNoProcesados &TotalNoProcesados+1 
+                Else 
+
+                    
+                     ***Vehiculo
+                    
+                    let &Vehiculo Dialogo.Vehiculo1
+                    
+                    ***Book
+                    
+                    let &Book  Dialogo.Book1
+                    
+                    ***Moneda
+                    
+                    let &Moneda Dialogo.Especie1
+                    
+                    
+                    ***TipoEntidadGarante
+                    
+                    let &TipoEntGte 'SGR'
+                    
+                    ***Disponible
+                     
+                    let &Disponible Val(E:&i)
+                    
+                    ***PorcentajeMora
+                    
+                    let &PorcentajeMora  Val(G:&i)
+                    
+                    ***PorcentajeAutorizado
+                    
+                    let &PorcentajeAutorizado Val(K:&i)
+                    
+                    ***MontoAutorizado
+                    
+                    let &MontoAutorizado &Disponible*&PorcentajeAutorizado/100
+                                                    
+                    SQL.ADD("INSERT INTO "~DBO~".DDCUPOSAVALADOS ( ")
+                    SQL.ADD("   EntidadGarante, CUITGarante,           TipoEntidadGarante,   Operador,             Vehiculo, ")
+                    SQL.ADD("   Book,           Moneda,                FechaVigencia,        FechaCargaSys,        Disponible, ")
+                    SQL.ADD("   PorcentajeMora, PorcentajeAutorizado,  MontoAutorizado ")
+                    SQL.ADD("   ) VALUES (")
+                    SQL.ADD("   '"~&EntidadGte~"',  '"~&CUITGte~"', '"~&TipoEntGte~"', '"~UsuarioActivo~"', '"~&Vehiculo~"',")
+                    SQL.ADD("   '"~&Book~"','"~&Moneda~"', '"~IdxDate(Dialogo.Fecha1)~"','"~IdxDate(FSYS)~"', "~FStr(&Disponible,0,2)~", ")
+                    SQL.ADD("    "~FStr(&PorcentajeMora,0,2)~",  "~FStr(&PorcentajeAutorizado,0,2)~", "~FStr(&MontoAutorizado,0,2)~" ")
+                    SQL.ADD("   )")
+                    SQL.NEW
+                    SQL.EXEC
+                    Let &TotalProcesados &TotalProcesados+1
+                 Endif    
+            Endif
+        Endif    
+    Endif  
+    
+Proximo
+
+    EscribirAscii('Cupos Avalados SGR cargados correctamente: '~FStr(&TotalProcesados, 0, 0))
+    EscribirAscii('Cupos Avalados SGR que no fueron cargados: '~FStr(&TotalNoProcesados, 0, 0))
+
+CerrarAscii

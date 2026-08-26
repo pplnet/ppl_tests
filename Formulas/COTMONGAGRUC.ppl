@@ -1,0 +1,10 @@
+﻿IIF(Eqstr(#MONEDAGASTOS, #MONEGRUPO),
+   1,
+   IIF(Eqstr(#MONEDAGASTOS, #MONEURU),
+      1/#COTBCUGRUC,
+      IIF(Eqstr(#MONEDAGASTOS, #MONELOCAL),
+         1/#COTBNAGRUC,
+         (#COTBNAMONC/#COTBNAGRUC)
+      )
+   )
+)

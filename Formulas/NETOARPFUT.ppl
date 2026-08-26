@@ -1,0 +1,4 @@
+﻿Iif (Eqstr(fbn('ContraEspecie'), VAR('MONELOCA')),
+     fbn('TotalNetoCli2'),
+     fbn('TotalNetoCli2')*COTIZACIONC(fbn('ContraEspecie'),,,,Val(FV:2),1,SI,VAR('MONELOCA'))
+     )

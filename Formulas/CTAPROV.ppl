@@ -1,0 +1,1 @@
+﻿BuscarCampo('CUENTAS','CuentaContable2','Codigo', fbn('Cuenta2'))

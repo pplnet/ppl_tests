@@ -1,0 +1,191 @@
+﻿SQL.ADD("Delete from "~DBO~".EXCEPCIONES where NrOperacion='"~Dialogo.NrOperacion1~"' and Tipo in")
+SQL.ADD("(Select Codigo from "~DBO~".TIPOSLIMITE where Clase='P')")
+SQL.NEW
+SQL.EXEC
+
+SQL.ADD("Select * from "~DBO~".LIMASIGNADOS where")
+if Val(x3)=0
+  SQL.ADD("(Limite like 'VMAX%' or Limite like 'CMAX%')")
+else
+  SQL.ADD("Limite like 'CMAX%'")
+endif
+if [EqStr(fbn['TipoOp'],'MMPF') y EqStr(fbn['PaseCB'],'3')]
+  SQL.ADD(" and SubStr(Limite,6,3) Not like 'MES' and SubStr(Limite,6,3) Not like 'DIA'")
+endif
+
+SQL.ADD("and Vehiculo='"~fbn('Vehiculo1')~"'")
+SQL.ADD("and (Producto='"~Val(z6)~"' or Producto in ('', NULL))")
+SQL.ADD("and (ActPas='"~Val(z2)~"' or ActPas in ('', NULL,' ','TOD'))")
+SQL.ADD("and (Especie='"~Val(x1)~"' or Especie in ('', NULL))")
+SQL.ADD("and (Book='"~fbn('Book1')~"' or Book in ('', NULL))")
+SQL.ADD("and (Responsable='"~fbn('Responsable1')~"' or Responsable in ('', NULL)) ")
+SetfilaActual(0)
+ACN(z5, 0)
+ACN(z6, 0)
+recorrer SQL
+ACN(z6, 0)
+*  messagebox(fbn('Limite')~' '~fbn('Especie')~' '~fbn('ActPas'))
+  if EqStr(Copy(fbn('Limite'),5,1),'M')
+    ACN(a:fac, fbn('Monto'))
+    ACT(z7, fbn('Limite'))
+  else
+    * por ahora solo para plazo fijo
+*    messagebox(SQL("Select Max(Fecha1) from "~DBO~".TRANSACCIONES2 where Especie='"~fbn('Especie')~"' and TipoTr2='TC' and Vehiculo1='"~fbn('Vehiculo')~"' and Fecha1<='"~Idxdate(fbn('FechaOp',0))~"'"))
+    ACN(a:fac, SQL("Select Cantidad1 from "~DBO~".TRANSACCIONES2 where Especie='"~fbn('Especie')~"' and TipoTr2='TC' and Vehiculo1='"~fbn('Vehiculo')~"' and Fecha1=(Select Max(Fecha1) from "~DBO~".TRANSACCIONES2 where Especie='"~fbn('Especie')~"' and TipoTr2='TC' and Vehiculo1='"~fbn('Vehiculo')~"' and Fecha1<='"~Idxdate(fbn('FechaOp',0))~"')"))
+*    messagebox('* '~FStr(Val(a:fac),1,2))
+    ACN(a:fac, Val(a:fac)*fbn('Monto')/100)
+*    messagebox('** '~FStr(Val(a:fac),1,2))
+    ACT(z7, Copy(fbn('Limite'),1,4)~'M'~Copy(fbn('Limite'),6,4))
+  endif
+  if EqStr(fbn('ActPas'), 'TOD')
+    ACT(x4, '')
+  else
+    ACT(x4, fbn('ActPas'))
+  endif
+  if EqStr(Copy(fbn('Limite'),6,3),'MES')
+    if EqStr(Copy(fbn('Limite'),1,1),'V')
+      ACD(z3, PriDeMes(fbn('FechaVto',0),SI))
+    else
+      ACD(z3, PriDeMes(fbn('FechaOp',0),SI))
+    endif
+  else
+    if EqStr(Copy(fbn('Limite'),6,3),'DIA')
+      if EqStr(Copy(fbn('Limite'),1,1),'V')
+        ACD(z3, fbn('FechaVto',0))
+      else
+        ACD(z3, fbn('FechaOp',0))
+      endif
+    else
+      if EqStr(Copy(fbn('Limite'),6,3),'TRA')
+        ACN(z4, fbn('PlazoDesde'))
+      else
+      endif
+    endif
+  endif
+  if EqStr(Copy(fbn('Limite'),9,1),'C') y not EqStr(fbn('Limite'),'CMAXMEFEC')
+    if EqStr(Copy(fbn('Limite'),6,3),'TRA')
+      ACN(b:fac, LimConsumido(fbn('Cliente2',0),Val(z7),fbn('Especie'),0,fbn('Vehiculo'),,fbn('Book'),,,,,fbn('Responsable'),,fbn('Producto'),,,Val(z4),Val(x4)))
+    else
+      if Incluido(Copy(fbn('Limite'),6,3),'MES|DIA')
+        ACN(b:fac, LimConsumido(fbn('Cliente2',0),Val(z7),fbn('Especie'),Val(z3),fbn('Vehiculo'),,fbn('Book'),,,,,fbn('Responsable'),,fbn('Producto'),,,,Val(x4)))
+      else
+        ACN(b:fac, LimConsumido(fbn('Cliente2',0),Val(z7),fbn('Especie'),0,fbn('Vehiculo'),,fbn('Book'),,,,,fbn('Responsable'),,fbn('Producto'),,,,Val(x4)))
+      endif
+    endif
+  else
+    if EqStr(Copy(fbn('Limite'),9,1),'G')
+      SQL.ADD("Select Controlante from "~DBO~".GRUPOSECONOMICOS where Cliente='"~fbn('Cliente2',0)~"'")
+      recorrer SQL
+        dfa
+        SCN(z6, 1)
+        if EqStr(Copy(fbn('Limite',1),6,3),'TRA')
+          if Val(x3)=0
+            ACN(2+((Val(z6)-1)*4):fac, LimConsumido(fbn('Controlante'),Val(z7),fbn('Especie',1),0,fbn('Vehiculo',1),,fbn('Book',1),,,,,fbn('Responsable',1),,fbn('Producto',1),,,Val(z4),Val(x4)))
+          else
+            ACN(2+((Val(z6)-1)*4):fac, 0)
+          endif
+        else
+          if Incluido(Copy(fbn('Limite',1),6,3),'MES|DIA')
+            ACN(2+((Val(z6)-1)*4):fac, LimConsumido(fbn('Controlante'),Val(z7),fbn('Especie',1),Val(z3),fbn('Vehiculo',1),,fbn('Book',1),,,,,fbn('Responsable',1),,fbn('Producto',1),,,,Val(x4)))
+          else
+            ACN(2+((Val(z6)-1)*4):fac, LimConsumido(fbn('Controlante'),Val(z7),fbn('Especie',1),0,fbn('Vehiculo',1),,fbn('Book',1),,,,,fbn('Responsable',1),,fbn('Producto',1),,,,Val(x4)))
+          endif
+        endif
+      proximo
+    else
+      if EqStr(Copy(fbn('Limite'),6,3),'TRA')
+        if Val(x3)=0
+          ACN(b:fac, LimConsumido(fbn('Cliente'),Val(z7),fbn('Especie'),0,fbn('Vehiculo'),,fbn('Book'),,,,,fbn('Responsable'),,fbn('Producto'),,,Val(z4),Val(x4)))
+        else
+          ACN(b:fac, 0)
+        endif
+      else
+        if Incluido(Copy(fbn('Limite'),6,3),'MES|DIA')
+          ACN(b:fac, LimConsumido(fbn('Cliente'),Val(z7),fbn('Especie'),Val(z3),fbn('Vehiculo'),,fbn('Book'),,,,,fbn('Responsable'),,fbn('Producto'),,,,Val(x4)))
+        else
+          ACN(b:fac, LimConsumido(fbn('Cliente'),Val(z7),fbn('Especie'),0,fbn('Vehiculo'),,fbn('Book'),,,,,fbn('Responsable'),,fbn('Producto'),,,,Val(x4)))
+        endif
+      endif
+    endif
+  endif
+  if fbn('FVencimiento')<FSys
+    MessageBox('Limite '~fbn('Limite')~' vencido el '~fecha(fbn('FVencimiento')))
+    SQL.ADD("Insert into "~DBO~".EXCEPCIONES (")
+    SQL.ADD("NrOperacion, Tipo, Fecha, Descripcion")
+    SQL.ADD(") values (")
+    SQL.ADD("'"~Dialogo.NrOperacion1~"', '"~fbn('Limite')~"', '"~IdxDate(FSys)~"', 'Limite "~fbn('Limite')~" vencido el "~fecha(fbn('FVencimiento'))~"'")
+    SQL.ADD(")")
+    SQL.NEW
+    ACN(z5, 1)
+  endif
+
+  *-MessageBox('Control de '~fbn('Limite')~' si '~PyC(Val(b:fac),1,2)~' > '~PyC(Val(a:fac),1,2)~'' )
+
+  if Val(b:fac)>Val(a:fac)
+    ACT(c:fac, 'Exceso')
+    ACN(d:fac, Val(b:fac)-Val(a:fac))
+    ACT(e:fac, fbn('Limite'))
+    if EqStr(Copy(fbn('Limite'),6,3),'TRA')
+      MessageBox('Exceso de '~Val(e:fac)~' en '~PyC(Val(d:fac),1,2)~' tramo '~fbn('PlazoDesde')~'-'~fbn('PlazoHasta'))
+    else
+      MessageBox('Exceso de '~Val(e:fac)~' en '~PyC(Val(d:fac),1,2))
+    endif
+    SQL.ADD("Insert into "~DBO~".EXCEPCIONES (")
+    SQL.ADD("NrOperacion, Tipo, Fecha, Descripcion")
+    SQL.ADD(") values (")
+    if EqStr(Copy(fbn('Limite'),6,3),'TRA')
+      SQL.ADD("'"~Dialogo.NrOperacion1~"', '"~Val(e:fac)~"', '"~IdxDate(FSys)~"', 'Exceso de "~Val(e:fac)~" en "~PyC(Val(d:fac),1,2)~" tramo "~fbn('PlazoDesde')~"-"~fbn('PlazoHasta')~"'")
+    else
+      SQL.ADD("'"~Dialogo.NrOperacion1~"', '"~Val(e:fac)~"', '"~IdxDate(FSys)~"', 'Exceso de "~Val(e:fac)~" en "~PyC(Val(d:fac),1,2)~"'")
+    endif
+    SQL.ADD(")")
+    SQL.NEW
+    * falta controlar si hay mas de un controlante (ojo porque no se si viene en la interfaz)
+    ACN(z5, 1)
+  endif
+
+
+  if Val(z6)>1
+   * Para Controlar si hay mas de un controlante
+   Recorrer&i 2, Val(z6)
+     if Val(2+((Val(z6)-1)*4):fac)>Val(a:fac)
+       ACT(c:fac, 'Exceso')
+       ACN(d:fac, Val(2+((Val(z6)-1)*4):fac)-Val(a:fac))
+       ACT(e:fac, fbn('Limite'))
+       if EqStr(Copy(fbn('Limite'),6,3),'TRA')
+         MessageBox('Exceso de '~Val(e:fac)~' en '~PyC(Val(d:fac),1,2)~' tramo '~fbn('PlazoDesde')~'-'~fbn('PlazoHasta'))
+       else
+         MessageBox('Exceso de '~Val(e:fac)~' en '~PyC(Val(d:fac),1,2))
+       endif
+       SQL.ADD("Insert into "~DBO~".EXCEPCIONES (")
+       SQL.ADD("NrOperacion, Tipo, Fecha, Descripcion")
+       SQL.ADD(") values (")
+       if EqStr(Copy(fbn('Limite'),6,3),'TRA')
+         SQL.ADD("'"~Dialogo.NrOperacion1~"', '"~Val(e:fac)~"', '"~IdxDate(FSys)~"', 'Exceso de "~Val(e:fac)~" en "~PyC(Val(d:fac),1,2)~" tramo "~fbn('PlazoDesde')~"-"~fbn('PlazoHasta')~"'")
+       else
+         SQL.ADD("'"~Dialogo.NrOperacion1~"', '"~Val(e:fac)~"', '"~IdxDate(FSys)~"', 'Exceso de "~Val(e:fac)~" en "~PyC(Val(d:fac),1,2)~"'")
+       endif
+       SQL.ADD(")")
+       SQL.NEW
+       ACN(z5, 1)
+     endif
+   proximo
+  endif
+
+
+proximo
+if Val(z5)>0
+  SQL.EXEC
+endif
+
+
+*Hojavisible(si)
+*messagebox('cliente: '~fbn('Cliente'))
+*messagebox('Limite : '~fbn('Limite'))
+*messagebox('Especie: '~fbn('Especie'))
+*messagebox('Vehiculo: '~fbn('Vehiculo'))
+*messagebox('Book: '~fbn('Book'))
+*messagebox('responsable: '~fbn('Responsable'))
+*messagebox('Producto: '~fbn('Producto'))
+*messagebox(': '~fbn('ActPas'))
+*messagebox('fechaLim: '~fecha(Val(z3)))

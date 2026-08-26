@@ -1,0 +1,45 @@
+﻿#*********************************************************************************
+#combos data sources.
+set ds_Movimiento = "MAN:Manual|AUT:Automatico|"
+#*********************************************************************************
+def abm 'Aranceles'
+   def grid
+       Codigo:, Descripcion: 
+   end
+   def key
+       Codigo: 
+   end
+   def dialog
+       #**************************************************************************
+       tab 'General'
+          column
+             Codigo: , 'Codigo', small_text
+             Descripcion: , 'Descripcion', large_text
+             TipoArancel: , 'Tipo Arancel', autocomplete, 'TIPOSARANCEL', 'Codigo,Descripcion'
+             Especie: , , autocomplete, 'ESPECIES', 'Codigo,Nombre'
+             Vehiculo: , , autocomplete, 'VEHICULOS', 'Codigo,Descripcion'
+             CuentaContable: , , autocomplete, 'CONTABILIDAD', 'Codigo,Nombre'
+             Mercado: , 'Ubicacion' , autocomplete, 'MERCADOS', 'Codigo,Descripcion'
+             Movimiento: , , combo, ds_Movimiento
+          column
+          TiposOperacion: , , autocomplete_ar_list, 'TIPOSOPERACION', 'Codigo,Nombre'
+          ListaEspecies: , , autocomplete_ar_list, 'ESPECIES', 'Codigo,Nombre'
+          column
+          TiposTransaccion2: , , autocomplete_ar_list, 'TIPOSTRANSACCION2', 'Codigo,Nombre'
+          EstadosCustodia: , , autocomplete_ar_list, 'ESTADOSCUSTODIA', 'Codigo,Descripcion'
+       #**************************************************************************
+       tab 'Valores'
+          column
+             Porcentaje: ,          , numeric, '#######0.000000000'
+             Minimo: ,          , numeric, '#######0.000000000'
+             Fijo: ,          , numeric, '#######0.000000000'
+             BasePorcentaje: , 'Base Porcentaje', numeric, '#######0.000000000'
+             DesdeMonto: , 'Desde Monto', numeric, '#######0.000000000'
+             HastaMonto: , 'Hasta Monto', numeric, '#######0.000000000'
+             Maximo: , 'Maximo', numeric, '#######0.000000000'
+   end
+   validates_max_length_of:
+      Codigo:, 6,true;
+      Descripcion:, 30,true;
+   upper_case_fields: Codigo:
+end

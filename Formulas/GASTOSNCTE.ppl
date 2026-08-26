@@ -1,0 +1,1 @@
+﻿Round(ABS(SQL(" Select Sum(Monto) From "~DBO~".MOVDEVENGADOS Where NrOperacion = '"~fbn('NrOperacion')~"' AND TipoDevengado = 'COMION' AND Cupon = "~FBN('NrGrupo2')~" AND Fecha > '"~IdxDate(Val(FV:2)+VAR('PLCAPCORR'))~"' ")),2)

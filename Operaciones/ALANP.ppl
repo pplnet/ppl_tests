@@ -1,0 +1,7 @@
+﻿CAMPOS:1;;BuscarCampo('VEHICULOS','Alias1','Codigo',Vehiculo1)
+Cliente1       : 'Cliente1'               ;1;1;;;;NOVACIO(CLIENTE1);
+MB1            : 'Radial Cliente1|No|Si|' ;1;2;;Vacio(CLIENTE1);;;;;0;
+OperacionRef   : 'OperacionRef'           ;2;1;;;;
+MB2            : 'OperacionRef|No|Si|'    ;2;2;;Vacio(OperacionRef);;;;;0;
+Observac2      : 'Observac2'              ;3;1;;;;NOVACIO(OBSERVAC2);'';SI;;;;;;;'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'
+MB3            : 'Observac2|oN|Si|'       ;3;2;;Vacio(Observac2);;;;;0;

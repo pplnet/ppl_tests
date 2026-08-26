@@ -1,0 +1,2 @@
+﻿***/// Interes devengado cotizado dia a dia
+Round(Val(IT:2),2)

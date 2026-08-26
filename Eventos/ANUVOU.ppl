@@ -1,0 +1,296 @@
+﻿CrearDialogo
+   NrTrans1: 'Nro.Voucher' ;;;;;;Incluido(BuscarCampo('TRANSACCIONES2','TipoTr2','NrTrans',Dialogo.NrTrans1),'DEP|RET');'Tipo de Comprobante incorrecto';NO;
+   Check1  : 'Elimina Oper';;;;NO;NO;;;;0;
+FinDialogo
+
+If Not OK
+   Cancelar
+Endif
+
+MostrarCuadroDeMensajes
+
+IF Dialogo.Check1 = 0
+    SQL.ADD(" Select NrOperacionRef1 From "~DBO~".TRANSACCIONES2 Where NrTrans = '"~Dialogo.NrTrans1~"' ")
+    Recorrer SQL
+        ACT(NR:1, fbn('NrOperacionRef1'))
+        IF Incluido(BuscarCampo('OPERACIONES','TipoOp','NrOperacion', Val(NR:1)), Var('TIPOOPNC'))
+            IF MessageBox('Si intenta ingresar una Nota de Credito, debe anular los vouchers a traves del evento Anulacion de Factura y Vouchers, ¿Desea Continuar?', 1, 2) = 7
+                Cancelar
+            ENDIF
+        ENDIF
+    Proximo
+ENDIF
+
+Message('Anulando el Voucher: '~Dialogo.NrTrans1)
+
+SQL.ADD("Select NrBit,Valor from "~DBO~".OPERACIONESBITS where NrOperacion = '"~Dialogo.NrTrans1~"' and NrBit in (1,3) ")
+ACN(x4,0)
+Recorrer SQL
+   SCN(x4,FBN['Valor'])
+Proximo
+
+If Val(x4)=0
+*   Cancelar('El Voucher '~Dialogo.NrTrans1~' no esta en Aprobacion de Vouchers o Supervision')
+Endif
+
+*- Control de vehiculo habilitado para el usuario
+*- vh1: vehiculo de la operacion o transaccion
+*- Cancela si el vehiculo no esta habilitado para el usuario activo
+ACT(vh1, BuscarCampo('TRANSACCIONES2', 'Vehiculo1', 'NrTrans', Dialogo.NrTrans1))
+(.'CONTROLVH'.)
+
+ACT(x2, SQL("Select Valor from "~DBO~".OPERACIONESBITS where NrOperacion = '"~Dialogo.NrTrans1~"' and NrBit = 20 "))
+
+If EqStr(Val(x2),'1')
+*  Cancelar('El Voucher '~Dialogo.NrTrans1~' esta en terminal.')
+Endif
+
+IF NO
+    ****---Se desactiva este bloque porque si el movimiento se genera con Cuenta4, el movpte se genera con una cuenta incorrecta. Se hace ActualizarMov al final
+    ***---del evento
+    SQL.ADD("INSERT INTO "~DBO~".MOVPENDIENTES ")
+    SQL.ADD("(NrOperacion, FechaMov, Cliente, Especie, CallPut, ")
+    SQL.ADD(" FechaEj, PrecioEj, EnteCustodia, NrSaldo, Mercado, ")
+    SQL.ADD(" Leyenda, Bits, NrGrupo, Concepto, NrGrupo2, ")
+    SQL.ADD(" NrMov, NrLiq, Status, NrInstan, Cupon, ")
+    SQL.ADD(" Cuenta, Transaccion, Cantidad ")
+    SQL.ADD(") ")
+    SQL.ADD("SELECT ")
+    SQL.ADD("       M.NrOperacion, M.FechaMov, M.Cliente, M.Especie, M.CallPut, ")
+    SQL.ADD("       M.FechaEj, M.PrecioEj, M.EnteCustodia, M.NrSaldo, M.Mercado, ")
+    SQL.ADD("       M.Leyenda, M.Bits, M.NrGrupo, M.Concepto, M.NrGrupo2, ")
+    SQL.ADD("       M.NrMov, M.NrLiq, M.Status, M.NrInstan, M.Cupon, ")
+    SQL.ADD("       CASE M.Especie WHEN O.Especie THEN O.Cuenta1 ELSE O.Cuenta2 END Cuenta, ")
+    SQL.ADD("       M.Transaccion, M.Cantidad ")
+    SQL.ADD("FROM   "~DBO~".MOVEJECUTADOS M, "~DBO~".OPERACIONES O  ")
+    SQL.ADD("WHERE  M.NrOperacion = O.NrOperacion ")
+    SQL.ADD("       and M.NrTrans2 = '"~Dialogo.NrTrans1~"'")
+    SQL.ADD("       and M.NrOperacion <> '"~Dialogo.NrTrans1~"'")
+    SQL.ADD("UNION ")
+    SQL.ADD("SELECT ")
+    SQL.ADD("       NrOperacion, FechaMov, Cliente, Especie, CallPut, ")
+    SQL.ADD("       FechaEj, PrecioEj, EnteCustodia, NrSaldo, Mercado, ")
+    SQL.ADD("       Leyenda, Bits, NrGrupo, Concepto, NrGrupo2, ")
+    SQL.ADD("       NrMov, NrLiq, Status, NrInstan, Cupon, ")
+    SQL.ADD("       Cuenta, Transaccion, Cantidad ")
+    SQL.ADD("FROM   "~DBO~".MOVPENDIENTES ")
+    SQL.ADD("WHERE  NrTrans2 = '"~Dialogo.NrTrans1~"'")
+    SQL.ADD("       and NrOperacion <> '"~Dialogo.NrTrans1~"' ")
+    SQL.NEW
+
+ENDIF
+
+ACT(x3, BuscarCampo('TRANSACCIONES2','NrOperacionRef1','NrTrans', Dialogo.NrTrans1))
+ACN(x5, BuscarCampo('TRANSACCIONES2','Cantidad8','NrTrans', Dialogo.NrTrans1))
+ACN(x6, BuscarCampo('OPERACIONES','TipoOp','NrOperacion', Val(x3)))
+
+If BuscarCampo('TRANSACCIONES2','CB9','NrTrans',Dialogo.NrTrans1)=1
+   Message('El Voucher '~Dialogo.NrTrans1~' esta confirmado ...')
+   SQL.ADD("DELETE "~DBO~".MOVLIMITES ")
+   SQL.ADD("WHERE  Limite IN ('COTOR','CONTRACT') and Monto<0 and ")
+   SQL.ADD("       Descripcion='Conf.Cobro "~Dialogo.NrTrans1~"' and NrOperacion='"~val(x3)~"' ")
+   SQL.NEW 
+Endif
+
+
+***********************************************************************************
+***--- Marco las Operaciones para la des/afectacion de LIMITES y POSICIONES2 ---***
+***********************************************************************************
+IF Not Incluido(Val(x6),'SERA|SERAV|SERP|SERPV|')
+   **// Afecta POSICIONES2 
+   If Val(x5)=500
+      SQL.ADD(" UPDATE "~DBO~".OPERACIONES ")
+      SQL.ADD(" SET CB15 = 0 ")
+      SQL.ADD(" Where NrOperacion = '"~Val(x3)~"' ")
+      SQL.NEW
+      SQL.EXEC
+      ***Actualizo Movimientos de posiciones
+      **//MessageBox('Actualizo POSICIONES2 para '~Val(x3))
+      Message(' Actualizando movimientos de POSICIONES2')
+      Esperar(3)
+      SQL.ActualizarMovimientos2(Val(x3),NO,NO,NO,SI)
+      SQL.EXEC
+   Endif
+   **// Afecta LIMITES
+   If Val(x5)=600
+      SQL.ADD(" UPDATE "~DBO~".OPERACIONES ")
+      SQL.ADD(" SET RB15 = 0 ")
+      SQL.ADD(" Where NrOperacion = '"~Val(x3)~"' ")
+      SQL.NEW
+      SQL.EXEC
+      ***Actualizo Movimientos de limites
+      **//MessageBox('Actualizo LIMITES para '~Val(x3))
+      Message(' Actualizando movimientos de LIMITES')
+      Esperar(3)
+      SQL.ActualizarMovimientos2(Val(x3),NO,SI,NO,NO)
+      SQL.EXEC
+   Endif
+   **// Afecta LIMITES y POSICIONES2
+   If Val(x5)=700
+      SQL.ADD(" UPDATE "~DBO~".OPERACIONES ")
+      SQL.ADD(" SET CB15 = 0 , RB15 = 0 ")
+      SQL.ADD(" Where NrOperacion = '"~Val(x3)~"' ")
+      SQL.NEW
+      SQL.EXEC
+      ***Actualizo Movimientos de posiciones y limites
+      **//MessageBox('Actualizo POSICIONES2 Y LIMITES para '~Val(x3))
+      Message(' Actualizando movimientos de POSICIONES2 y LIMITES')
+      Esperar(3)
+      SQL.ActualizarMovimientos2(Val(x3),NO,SI,NO,SI)
+      SQL.EXEC
+   Endif
+ELSE
+   ***/// Las REPOS tienen tratamiento especial segun se liquide mov de SPOT o FUTURO
+   **// Afecta POSICIONES2 SPOT
+   If Val(x5)=500
+      SQL.ADD(" UPDATE "~DBO~".OPERACIONES ")
+      SQL.ADD(" Set CB15 = CASE ")
+      SQL.ADD("            WHEN CB15=3 THEN 2 ")
+      SQL.ADD("            ELSE 0 END ")
+      SQL.ADD(" Where NrOperacion = '"~Val(x3)~"' ")
+      SQL.NEW
+      SQL.EXEC
+      ***Actualizo Movimientos de posiciones
+      Message(' Actualizando movimientos de POSICIONES2')
+      Esperar(3)
+      SQL.ActualizarMovimientos2(Val(x3),NO,NO,NO,SI)
+      SQL.EXEC
+   Endif
+   **// Afecta LIMITES SPOT
+   If Val(x5)=600
+      SQL.ADD(" UPDATE "~DBO~".OPERACIONES ")
+      SQL.ADD(" Set RB15 = CASE ")
+      SQL.ADD("            WHEN RB15=3 THEN 2 ")
+      SQL.ADD("            ELSE 0 END ")
+      SQL.ADD(" Where NrOperacion = '"~Val(x3)~"' ")
+      SQL.NEW
+      SQL.EXEC
+      ***Actualizo Movimientos de limites
+      Message(' Actualizando movimientos de LIMITES')
+      Esperar(3)
+      SQL.ActualizarMovimientos2(Val(x3),NO,SI,NO,NO)
+      SQL.EXEC
+   Endif
+   **// Afecta LIMITES y POSICIONES2 SPOT
+   If Val(x5)=700
+      SQL.ADD(" UPDATE "~DBO~".OPERACIONES ")
+      SQL.ADD(" Set CB15 = CASE ")
+      SQL.ADD("            WHEN CB15=3 THEN 2 ")
+      SQL.ADD("            ELSE 0 END, ")
+      SQL.ADD("     RB15 = CASE ")
+      SQL.ADD("            WHEN RB15=3 THEN 2 ")
+      SQL.ADD("            ELSE 0 END ")
+      SQL.ADD(" Where NrOperacion = '"~Val(x3)~"' ")
+      SQL.NEW
+      SQL.EXEC
+      ***Actualizo Movimientos de posiciones y limites
+      Message(' Actualizando movimientos de POSICIONES2 y LIMITES')
+      Esperar(3)
+      SQL.ActualizarMovimientos2(Val(x3),NO,SI,NO,SI)
+      SQL.EXEC
+   Endif
+   **// Afecta POSICIONES2 FUTURO
+   If Val(x5)=550
+      SQL.ADD(" UPDATE "~DBO~".OPERACIONES ")
+      SQL.ADD(" Set CB15 = CASE ")
+      SQL.ADD("            WHEN CB15=3 THEN 1 ")
+      SQL.ADD("            ELSE 0 END ")
+      SQL.ADD(" Where NrOperacion = '"~Val(x3)~"' ")
+      SQL.NEW
+      SQL.EXEC
+      ***Actualizo Movimientos de posiciones
+      Message(' Actualizando movimientos de POSICIONES2')
+      Esperar(3)
+      SQL.ActualizarMovimientos2(Val(x3),NO,NO,NO,SI)
+      SQL.EXEC
+   Endif
+   **// Afecta LIMITES FUTURO
+   If Val(x5)=650
+      SQL.ADD(" UPDATE "~DBO~".OPERACIONES ")
+      SQL.ADD(" Set RB15 = CASE ")
+      SQL.ADD("            WHEN RB15=3 THEN 1 ")
+      SQL.ADD("            ELSE 0 END ")
+      SQL.ADD(" Where NrOperacion = '"~Val(x3)~"' ")
+      SQL.NEW
+      SQL.EXEC
+      ***Actualizo Movimientos de limites
+      Message(' Actualizando movimientos de LIMITES')
+      Esperar(3)
+      SQL.ActualizarMovimientos2(Val(x3),NO,SI,NO,NO)
+      SQL.EXEC
+   Endif
+   **// Afecta LIMITES y POSICIONES2 FUTURO
+   If Val(x5)=750
+      SQL.ADD(" UPDATE "~DBO~".OPERACIONES ")
+      SQL.ADD(" Set CB15 = CASE ")
+      SQL.ADD("            WHEN CB15=3 THEN 1 ")
+      SQL.ADD("            ELSE 0 END, ")
+      SQL.ADD("     RB15 = CASE ")
+      SQL.ADD("            WHEN RB15=3 THEN 1 ")
+      SQL.ADD("            ELSE 0 END ")
+      SQL.ADD(" Where NrOperacion = '"~Val(x3)~"' ")
+      SQL.NEW
+      SQL.EXEC
+      ***Actualizo Movimientos de posiciones y limites
+      Message(' Actualizando movimientos de POSICIONES2 y LIMITES')
+      Esperar(3)
+      SQL.ActualizarMovimientos2(Val(x3),NO,SI,NO,SI)
+      SQL.EXEC
+   Endif
+ENDIF
+
+
+
+***---Marco movimientos para generar contraasientos
+***---Busco las Operaciones de la Tr.
+***---SQL.ADD(" Select NrOperacion, NrMov, Leyenda From "~DBO~".MOVEJECUTADOS ")
+***---SQL.ADD(" Where NrTrans2 = '"~Dialogo.NrTrans1~"' ")
+***---Recorrer SQL
+***---    SQL.ADD(" Update "~DBO~".MOVIMIENTOS ")
+***---    SQL.ADD(" Set Estado = 'Anulado' ")
+***---    *- SQL.ADD(" FechaAnulada = '"~IdxDate(Fsys)~"' ")
+***---    SQL.ADD(" Where NrOperacion = '"~fbn('NrOperacion')~"' ")
+***---    SQL.ADD(" AND Estado = 'Pendiente' ")
+***---    IF Dialogo.Check1 = 0
+***---        ***---La comision inicio se manda si se liquido el movimiento, => se anula tambien el
+***---        ***---inicio. Para las CEC y CEN NO, solo el vto.
+***---        IF Eqstr(fbn('Leyenda'), 'Monto Comision')
+***---            SQL.ADD(" AND Concepto IN ('"~Var('INTCOMINI')~"', '"~Var('INTCOMPAGO')~"') ")
+***---        ELSE
+***---            IF Eqstr(fbn('Leyenda'), 'Vto. Comision CEC')
+***---                SQL.ADD(" AND Concepto = 'Vto. Comision CEC' ")
+***---            ELSE
+***---                IF Eqstr(fbn('Leyenda'), 'Vto. Comision CEN')
+***---                    SQL.ADD(" AND Concepto = 'Vto. Comision CEN' ")
+***---                ELSE
+***---                    SQL.ADD(" AND Movimiento_Numero = "~fbn('NrMov')~" ")
+***---                ENDIF
+***---            ENDIF
+***---        ENDIF
+***---    ENDIF
+***---    SQL.NEW
+***---Proximo
+
+SQL.ADD("DELETE FROM "~DBO~".MOVEJECUTADOS ")
+SQL.ADD("WHERE  NrTrans2 = '"~Dialogo.NrTrans1~"'")
+SQL.NEW
+
+SQL.ADD("DELETE FROM "~DBO~".MOVPENDIENTES ")
+SQL.ADD("WHERE  NrTrans2 = '"~Dialogo.NrTrans1~"'")
+SQL.NEW
+
+SQL.ADD("DELETE FROM "~DBO~".OPERACIONESBITS ")
+SQL.ADD("WHERE  NrOperacion = '"~Dialogo.NrTrans1~"'")
+SQL.NEW
+
+SQL.ADD("DELETE FROM "~DBO~".TRANSACCIONES2 ")
+SQL.ADD("WHERE  NrTrans = '"~Dialogo.NrTrans1~"'")
+SQL.NEW
+SQL.EXEC
+
+***---IF Incluido(BuscarCampo('OPERACIONES','TipoOp','NrOperacion', Val(X:3)), 'FCS|FCR')
+    ***---Para las FCI puede haber movimientos de ajuste con el mismo NrMov, con lo cual de esta manera se unifican para que no haya problemas en la liquidacion
+    ***---al volver a liquidar
+    SQL.ActualizarMovimientos3(Val(X:3),SI,NO,NO,NO,NO)
+    SQL.EXEC
+***---ENDIF

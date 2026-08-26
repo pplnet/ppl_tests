@@ -1,0 +1,4 @@
+﻿Iif (Incluido(fbn('Moneda'), Val(US:1)),
+     #IMPORTE,
+     #IMPORTE*COTIZACIONC(fbn('ContraEspecie'),,,,Val(FV:2),1,SI,'USD')
+     )

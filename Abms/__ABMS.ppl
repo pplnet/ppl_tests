@@ -1,0 +1,30 @@
+﻿def abm 'Abms'     
+    def grid
+        Codigo:, Tipo:, Nombre:, Menu:, Orden:, Acceso: 
+    end
+    def key
+        Codigo:, Acceso:
+    end
+    def dialog
+        tab 'General'
+            column          
+                Codigo: ,, small_text
+                Nombre: ,, large_text
+                Tipo: , 'Tipo', autocomplete, 'TIPOSABM', 'Codigo,Descripcion'
+                Orden: , 'Orden', numeric, '########0'
+                Menu: , 'Menu', numeric, '########0'
+                Acceso:, 'Acceso', extra_small_text
+         tab 'Script'
+            column
+                Script: ,          , full_tab_text
+    end
+    validates_uniqueness_of: Codigo:, Acceso:
+    upper_case_fields: Codigo:
+    required_fields: Codigo:, Nombre:, Acceso:
+    disable_fields:
+    Script:, 
+    Orden:, 
+    Menu:
+    
+    
+end

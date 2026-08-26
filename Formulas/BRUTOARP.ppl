@@ -1,0 +1,4 @@
+﻿Iif (Eqstr(fbn('ContraEspecie'), Var('MONELOCA')),
+     #MONTOBRUTO,
+     #MONTOBRUTO*COTIZACIONC(fbn('ContraEspecie'),,,,Val(FV:2),1,SI,VAR('MONELOCA'))
+     )

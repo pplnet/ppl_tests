@@ -1,0 +1,196 @@
+﻿CrearDialogo
+   Fecha1         :'Fecha Cierre:'             ;;;;;;Dialogo.Fecha1>=Fecha(VAR('CTRLEJECIE'));'El informe está disponible a partir del : '~Fecha(VAR('CTRLEJECIE'));NO;FSys
+FinDialogo
+
+If Not Ok
+   Cancelar
+Endif
+
+***+++Preparamos contadores por cada ejecucion de evento/informe con la misma Logica del Cierre, luego validaremos cantidad de ejecuciones en LOGINFORMES
+SQL.ADD(" Select Tipo,Codigo,Nombre from  "~DBO~".CIERREDIARIO Where Habilitado='SI' Order By OrdenEjecucion")
+let &sumoFila 0
+Recorrer SQL
+    If Incluido(FBN['Codigo'],'RESET3|INT001|COPPOS|DCMM|RENTAB|')
+        ****-----La lógica de RESET3 debe quedar ya que si se ejecuta o no, depende del valor de FechaEjec
+        If EqStr(FBN['Codigo'],'RESET3') Y EqStr(FBN['Tipo'],'E')        
+            IF Var('DIASRESET')<=Var('DIASCONT')    
+                IF SQL("Select 1 from "~DBO~".VARIABLES where Codigo = 'DIASRESET' ")=1
+                    let &diaRESET  Trunc(Var('DIASRESET'),0)
+                ELSE
+                    let &diaRESET 1
+                ENDIF
+            ELSE
+                IF SQL("Select 1 from "~DBO~".VARIABLES where Codigo = 'DIASCONT' ")=1
+                    let &diaRESET  Trunc(Var('DIASCONT'),0)
+                ELSE
+                    let &diaRESET 1
+                ENDIF
+            ENDIF
+
+
+            IF &diaRESET = 0 Y FinDeMes(Dialogo.Fecha1,NO) = Dialogo.Fecha1    
+                let &diaEjecEvento Dialogo.Fecha1
+                let &fechaEjec Dialogo.Fecha1    
+            ELSE    
+                let &diaEjecEvento Habiles(PriDeMes(Dialogo.Fecha1,SI),-1,,NO) 
+                IF DiaSem(&diaEjecEvento)=1
+                    let &diaEjecEvento Habiles(&diaEjecEvento,-2,,NO) 
+                ELSE
+                    IF DiaSem(&diaEjecEvento)=7
+                        let &diaEjecEvento Habiles(&diaEjecEvento,-1,,NO)
+                    ENDIF
+                ENDIF
+               
+                let &fechaEjec Habiles(PriDeMes(Dialogo.Fecha1,SI)-1,&diaRESET,'ARG')
+            ENDIF
+             
+
+            IF &fechaEjec = Dialogo.Fecha1
+                ACN(AB:FAC,1)
+            ENDIF 
+        Endif   
+        *****------
+        
+        **--Se omite la lógica de INT001/COPPOS ya que la cantidad de ejecuciones es la misma sin importar el dia de la semana
+        If EqStr(FBN['Codigo'],'INT001') Y EqStr(FBN['Tipo'],'E')                                                            
+            ACN(AB:FAC,3)
+        Endif
+        
+        If EqStr(FBN['Codigo'],'COPPOS') Y EqStr(FBN['Tipo'],'E')  
+            Recorrer&i 1,Habiles(Dialogo.Fecha1,1,'ARG')-Dialogo.Fecha1
+                IF DiaSem(Dialogo.Fecha1+&i) > 1 Y  DiaSem(Dialogo.Fecha1+&i) < 7
+                ACN(AB:FAC,Val(AB:FAC)+1)
+                ENDIF
+            Proximo
+        Endif
+        **--
+        
+        **tanto diferencia de cambio como rentabilidad se calcularán con un día de atraso (con el cierre de hoy se calcula lo de ayer)
+        
+        *Identifico la FechaValor mas antigua de las cotizaciones ingresadas en la fecha que se está cerrando    
+        let &FechaCotizFV SQL("Select Min(Fecha) from "~DBO~".COTIZACIONES where FechaActualizacion= '"~IdxDate(Dialogo.Fecha1)~"'")
+                
+        If EqStr(FBN['Codigo'],'DCMM') Y EqStr(FBN['Tipo'],'E')
+            ***+++Creamos nuevas funciones para contar las ejecuciones de cada evento segun logica correspondiente
+            ACT(AA:FAC+1,'DCMMLT')
+            ACT(AC:FAC+1,'E')
+            ACT(AD:FAC+1,'Cálculo de DC MM por lote')
+            let &sumoFila 1
+            (.'DCCIERRINF'.)
+            let &evento 0
+            (.'DCRECIEINF'.) 
+        Endif
+        
+        If EqStr(FBN['Codigo'],'RENTAB') Y EqStr(FBN['Tipo'],'E')
+            ACT(AA:FAC+1,'RENTLO')
+            ACT(AC:FAC+1,'E')
+            ACT(AD:FAC+1,'Rentabilidad por Lotes')
+            let &sumoFila 1
+            (.'RENTCIEINF'.)
+            let &evento 1
+            (.'DCRECIEINF'.) 
+        Endif
+        *-----------------------------------------------    
+    Else
+        ACN(AB:FAC,1)
+    Endif  
+    ACT(AA:FAC,FBN['Codigo'])
+    ACT(AD:FAC,FBN['Nombre'])
+    ACT(AC:FAC,FBN['Tipo'])
+    If &sumoFila>0
+        IFA
+        let &sumoFila 0
+    Endif
+Proximo  
+IFA
+
+let &filaFin FAC
+
+CrearFont(1,"Arial,8,")
+CrearFont(2,"Arial,8,B")
+CrearFont(3,"Arial,10,B")
+SetFilaActual(1)
+ACT(a:FAC, "Ejecuciones del Cierre")
+SetFont(a:1,2)
+
+SetFilaActual(4)
+
+ACT(A:2,'Fecha de cierre: '~Dialogo.Fecha1)
+SetFont(a:2..a:2,2)
+
+SetFilaActual(FAC+2)
+ACT(a:FAC, 'Tipo')
+ACT(b:FAC, 'Codigo')
+ACT(c:FAC, 'Nombre')
+ACT(d:FAC, 'Ejecución')
+AlinearCeldas(a:FAC..d:FAC,'I')
+SetFont(a:fac..d:FAC,2)
+AgregarMarco(a:FAC..d:FAC,2,0,Exe('COLOR'))
+
+**Busco la fecha de PMAUDIT de la variable que indica cuándo empezó la ejecución del cierre del día solicitado
+ACD(ZZ:1, SQL(" Select Fecha from "~DBO~".PMAUDIT Where Codigo = 'FECHACIERR' and Tabla = 'VARIABLES' and ValorActual ='"~Dialogo.Fecha1~"' "))
+
+If Val(ZZ:1)<Fecha('01/01/2000')
+    Cancelar("No se ha ejecutado el Cierre para la fecha:"~Dialogo.Fecha1)
+Endif
+
+let &fechaHoraInicio Fstr(Anio(Val(ZZ:1)))~'-'~Fstr(Mes(Val(ZZ:1)))~'-'~Fstr(Dia(Val(ZZ:1)))~' '~Copy(Hora(Val(ZZ:1)),1,5)
+ACT(ZZ:3,Habiles(Dialogo.Fecha1,1,'ARG',SI))
+**Busco la fecha en que se abrió el dia siguiente al dia que estoy chequeando
+ACD(ZZ:2, SQL(" Select MIN(Fecha) from "~DBO~".PMAUDIT Where Codigo = 'FECHASYS' and Tabla = 'VARIABLES' and ValorActual = '"~Val(zz:3)~"' and Fecha>= '"~&fechaHoraInicio~"' "))
+
+**Si no se abrió el dia posteriormente al cierre solicitado, se toma como fechaFin el momento actual.
+If Val(ZZ:2)<Fecha('01/01/2000')
+    ACD(ZZ:2,Ahora)
+Endif
+
+
+let &fechaHoraFin Fstr(Anio(Val(ZZ:2)))~'-'~Fstr(Mes(Val(ZZ:2)))~'-'~Fstr(Dia(Val(ZZ:2)))~' '~Copy(Hora(Val(ZZ:2)),1,5)
+
+SetFilaActual(7)
+Recorrer&k 1,&filaFin
+    If Vacio(Val(AA:&k))
+        break
+    Endif
+    If EqStr(Val(AC:&k),'E')
+        ACT(A:FAC, 'EVENTO')
+    Else
+        ACT(A:FAC, 'INFORME')
+    Endif
+    ACT(B:FAC, Val(AA:&k))
+    ACT(C:FAC, Val(AD:&k)) 
+    
+    SQL.ADD(" Select Codigo,COUNT(Codigo) as Contador from "~DBO~".LOGINFORMES")
+    SQL.ADD(" Where Codigo = '"~Val(B:FAC)~"' AND ")
+    SQL.ADD(" Fecha Between '"~&fechaHoraInicio~"' AND '"~&fechaHoraFin~"' ")    
+    SQL.ADD(" Group by Codigo ")
+    let &ejecutado 0
+    Recorrer SQL 
+        DFA
+        If EqStr(Val(B:FAC),FBN['Codigo']) Y Val(AB:&k) = FBN['Contador']
+            let &ejecutado 1  
+        Endif
+        If &ejecutado = 1
+            ACT(D:FAC, 'Finalizo correctamente')
+            ColorCeldas(D:FAC, clGreen)
+        Endif    
+    Proximo
+    IF &ejecutado = 0
+        IF Val(AB:&k)>0
+            ACT(D:FAC, 'No finalizo correctamente')
+            ColorCeldas(D:FAC, clRed)
+        ELSE
+            ACT(D:FAC, 'No corresponde ejecución')
+            ColorCeldas(D:FAC, clBlue)
+        ENDIF
+    ENDIF
+    IFA
+Proximo
+
+ACO(3,25)
+ACO(4,18)
+SetFilaActual(FAC+2)
+ACT(a:FAC, 'FIN DE LISTADO')
+SetFont(a:FAC, 2)
+LimitesVision(E:FAC)
+

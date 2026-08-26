@@ -1,0 +1,9 @@
+﻿ACN(A:1,100)
+FormatoCeldas(a1..a1, Exe('F2%'))
+
+
+*---SECAC
+Label2        : ''                           ;2;2;2;  ;;;;;'Neto '~Especie;'Neto '~Especie;;;;;;
+TotalAux5     : '-'                          ;3;2;2;;;;;;;IF(Eqstr(ESPECIE,CONTRAESPECIE3),TotalNetoCli2-TotalGastos-TotalRetenciones,TotalNetoCli2);IF(Eqstr(ESPECIE,CONTRAESPECIE3),TotalNetoCli2-TotalGastos-TotalRetenciones,TotalNetoCli2)
+Label3        : ''                           ;5;2;2;Not Eqstr(ESPECIE,CONTRAESPECIE3);Not Eqstr(ESPECIE,CONTRAESPECIE3);;;;'Neto '~ContraEspecie3;'Neto '~ContraEspecie3;;;;;;
+TotalAux6     : '-'                          ;;2;2;Not Eqstr(ESPECIE,CONTRAESPECIE3);Not Eqstr(ESPECIE,CONTRAESPECIE3);;;;;IF(Not Eqstr(ESPECIE,CONTRAESPECIE3),TotalGastos+TotalRetenciones,TotalNetoCli2)

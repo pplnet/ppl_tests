@@ -1,0 +1,65 @@
+﻿def abm 'Instancias'      
+    def grid
+    Tabla:, Nombre:, NrInstancia:, Agregar:, Editar:, Borrar:, Fwd:, Rew:, Mensajes:
+    end
+    def key
+        Tabla:, NrInstancia:
+    end
+    def dialog
+        #**************************************************************************
+        tab 'General'       
+            column          
+                Tabla: , , large_text
+                Nombre: , 'Nombre Inst',large_text
+                NrInstancia: , 'Nr Instancia' , numeric,'###0'
+                Agregar: , , small_text
+                Editar: , , small_text
+                Borrar: , , small_text
+                Fwd: , , small_text
+                Rew: , , small_text
+                Mensajes: , , small_text
+    end
+    upper_case_fields: Tabla:
+    
+    validates_max_length_of:
+      Tabla:, 20,true;
+      Nombre:, 20,true;
+      Agregar:, 10,true;
+      Editar:, 10,true;
+      Borrar:, 10,true;
+      Fwd:, 10,true;
+      Rew:, 10,true;
+      Mensajes:, 10,true;
+   
+   before_show_dialog: do
+      $.Disable(Agregar:)
+      $.Disable(Editar:)
+      $.Disable(Borrar:)
+      $.Disable(Fwd:)
+      $.Disable(Rew:)
+      $.Disable(Mensajes:)
+   end
+   
+   before_show_create_dialog: do
+     $.SetField(NrInstancia:,0)
+   end
+   
+   when_change: NrInstancia: do 
+      set xppl = $.NewExtendedPPL()
+      set Instancia = ppl.FStr($.val(NrInstancia:))
+      set InicialTabla = ppl.Copy($.val(Tabla:),1,2)
+      #$.set_field(Agregar:,'AG'+xppl.Pad0(Instancia,4))
+      #$.set_field(Editar:,'ED'+xppl.Pad0(Instancia,4))
+      #$.set_field(Borrar:,'BO'+xppl.Pad0(Instancia,4))
+      #$.set_field(Fwd:,'FW'+xppl.Pad0(Instancia,4))
+      #$.set_field(Rew:,'RW'+xppl.Pad0(Instancia,4))
+      $.set_field(Agregar:,'A'+InicialTabla+xppl.Pad0(Instancia,4))
+      $.set_field(Editar:,'E'+InicialTabla+xppl.Pad0(Instancia,4))
+      $.set_field(Borrar:,'B'+InicialTabla+xppl.Pad0(Instancia,4))
+      $.set_field(Fwd:,'F'+InicialTabla+xppl.Pad0(Instancia,4))
+      $.set_field(Rew:,'R'+InicialTabla+xppl.Pad0(Instancia,4))      
+      $.set_field(Mensajes:,'M'+InicialTabla+xppl.Pad0(Instancia,4))
+   end
+   
+   validates_uniqueness_of_set: Tabla:,NrInstancia:
+end

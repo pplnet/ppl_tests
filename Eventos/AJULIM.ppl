@@ -1,0 +1,91 @@
+﻿MostrarCuadroDeMensajes
+ModoReproceso(ConDialogo)
+CrearDialogo
+  Fecha1:   'Fecha'     ;;;;;;;;;fsys
+FinDialogo
+
+If Not Ok
+   Cancelar
+Endif
+
+message('--- Ajuste Limites FCI ---')
+
+ACD(FE:1, Habiles(Dialogo.Fecha1, -1, 'ARG'))
+
+SQL.ADD(" Select NrTrans From "~DBO~".TRANSACCIONES2 ")
+SQL.ADD(" Where TipoTr2 = 'AJULIM' ")
+SQL.ADD(" and Fecha1 = '"~IdxDate(Dialogo.Fecha1)~"' ")
+Recorrer SQL
+    SQL.ADD(" Delete "~DBO~".MOVLIMITES Where NrOperacion = '"~fbn('NrTrans')~"' ")
+    SQL.NEW
+    SQL.ADD(" Delete "~DBO~".TRANSACCIONES2 Where NrTrans = '"~fbn('NrTrans')~"' ")
+    SQL.NEW
+Proximo
+SQL.EXEC
+
+SQL.ADD(" Select P.Especie, SUM(P.CantidadFin) CantidadFin, E.Issuer, E.Cotiza ")
+SQL.ADD(" From "~DBO~".POSICIONES2 P, "~DBO~".ESPECIES E ")
+SQL.ADD(" Where E.Codigo = P.Especie ")
+SQL.ADD(" AND P.NrSaldo = 2 ")
+SQL.ADD(" AND P.TipoNegocio = 'FC' ")
+SQL.ADD(" AND P.Fecha = '"~IdxDate(Val(FE:1))~"' ")
+SQL.ADD(" AND Round(P.CantidadFin,0) <> 0 ")
+SQL.ADD(" Group By P.Especie, E.Issuer, E.Cotiza ")
+SQL.ADD(" Order By P.Especie ")
+Recorrer SQL
+    ACN(CF:1, fbn('CantidadFin'))
+    ACN(ES:1, fbn('Especie'))
+    ***---Moneda del Limite
+    ACT(ES:2, SQL(" Select Especie From "~DBO~".LIMASIGNADOS Where Cliente = '"~fbn('Issuer')~"' AND Limite = 'COTOR' "))
+    ***---Moneda que Cotiza
+    ACT(ES:3, CotizaEn(fbn('Especie')))
+    ***---Limite Consumido a Ayer
+    ACN(LM:1, LimConsumido(fbn('Issuer'),'COTOR',Val(ES:2),0,,,,,Val(FE:1),,,,,fbn('Especie')))
+    ***---Cotizacion Ayer
+    ACN(CT:1, Cotizacion(fbn('Especie'),,,,Val(FE:1),1,SI))
+    ***---Cotizacion Hoy
+    ACN(CT:2, Cotizacion(fbn('Especie'),,,,Dialogo.Fecha1,1,SI))
+    ***---Cotizacion de la moneda del limite en la moneda que cotiza
+    ACN(CT:3, CotizacionC(Val(ES:2),,,,Dialogo.Fecha1,1,SI,Val(ES:3)))
+
+    ***---Porcentaje de variacion
+    ***---ACN(PV:1, ((Val(CT:2) - Val(CT:1)) / Val(CT:1)) * 100)
+    ***---Monto a Ajustar
+    ***---ACN(MA:1, Val(LM:1) * Val(PV:1) / 100)
+    ***---Posicion valuada a hoy en Cotiza (ARP)
+    ACN(PV:1, fbn('CantidadFin') * Val(CT:2))
+    ***---Posicion valuada a hoy en la moneda del limite (USD)
+    ACN(PV:2, Val(PV:1) / Val(CT:3))
+    ***---El monto a ajustar es la diferencia entre la posicion valuada a hoy en la moneda del limite y el limite afectado de ayer.
+    ACN(MA:1, Val(PV:2) - Val(LM:1))
+
+    ACT(NR:1,GetNumerador(240))
+    SQL.ADD(" Insert INTO "~DBO~".TRANSACCIONES2 ")
+    SQL.ADD(" (Especie, Especie1, Cliente1, ")
+    SQL.ADD(" Precio1, Precio2, Cantidad1, ")
+    SQL.ADD(" UsrInput, Vehiculo1, Fecha1, ")
+    SQL.ADD(" Fecha2, Cantidad2, Cantidad3, ")
+    SQL.ADD(" Especie2, TipoTr2, FechaCarga, ")
+    SQL.ADD(" FechaCargaSys, NrTrans, Precio3) ")
+    SQL.ADD(" Values ")
+    SQL.ADD(" ('"~fbn('Especie')~"', '"~fbn('Cotiza')~"', '"~fbn('Issuer')~"', ")
+    SQL.ADD(" "~Fstr(Val(CT:2), 0, 8)~", "~Fstr(Val(CT:1), 0, 8)~", "~Fstr(fbn('CantidadFin'), 0, 0)~", ")
+    SQL.ADD(" '"~UsuarioActivo~"', '', '"~IdxDate(Dialogo.Fecha1)~"', ")
+    SQL.ADD(" '"~IdxDate(Val(FE:1))~"', "~Fstr(Val(LM:1), 0, 8)~", "~Fstr(Val(MA:1), 0, 8)~", ")
+    SQL.ADD(" '"~Val(ES:2)~"', 'AJULIM', "~SQLAhora~", ")
+    SQL.ADD(" '"~IdxDate(Fsys)~"', '"~Val(NR:1)~"', "~Fstr(Val(CT:3), 0, 8)~") ")
+    SQL.NEW
+    SQL.ADD(" Insert INTO "~DBO~".OPERACIONESBITS ")
+    SQL.ADD("(NrBit, NrOperacion, Valor) ")
+    SQL.ADD(" Select NrInstancia, '"~Val(NR:1)~"', '0'")
+    SQL.ADD(" From "~DBO~".INSTANCIAS ")
+    SQL.ADD(" Where Tabla = 'TRANSACCIONES2'")
+    SQL.NEW
+    SQL.ADD(" UPDATE "~DBO~".OPERACIONESBITS ")
+    SQL.ADD(" SET Valor = '1' ")
+    SQL.ADD(" Where NrOperacion = '"~Val(NR:1)~"' AND NrBit = 20 ")
+    SQL.NEW
+    SQL.EXEC
+    SQL.ActualizarMovimientosT2(Val(NR:1),NO,SI,NO,NO)
+    SQL.EXEC
+Proximo

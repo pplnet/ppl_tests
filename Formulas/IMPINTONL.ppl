@@ -1,0 +1,1 @@
+﻿SQL(" Select Cantidad3 From "~DBO~".CUOTAS Where NrOperacion = '"~fbn('NrOperacion')~"' AND Fecha3 = '"~IdxDate(Val(FV:2))~"' ")

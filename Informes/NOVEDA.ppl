@@ -1,0 +1,31 @@
+﻿* Para hacer auditoria de novedades.
+HOJAVISIBLE(NO)
+CrearDialogo
+  Fecha1 : 'Desde';1;1;;;;;;;FSys
+  Fecha2 : 'Hasta';2;1;;;;;;;FSys
+  String3:'D.Hora';1;2;;;;NoVacio(Dialogo.String3) y HoraValida(Dialogo.String3);'Debe especificar una Hora_Desde Valida';NO;'00:00';;;;'##:##'
+  String4:'H.Hora';2;2;;;;NoVacio(Dialogo.String4) y HoraValida(Dialogo.String4) y [GtStr(Dialogo.String4,Dialogo.String3) o EqStr(Dialogo.String4,Dialogo.String3)] ;'Debe especificar una Hora_Hasta Valida';NO;'23:59';;;;'##:##'
+  String1: 'Tabla';3;1;;NO;NO
+  String2: 'Codigo';;;;NO;NO
+  String:  'Campo'   ;;;;NO;NO
+  Operador: 'Usuario';;;;NO;NO
+  Check1  : 'Resumido'  ;;;;;;;;;1;
+  Radio1  : 'Mostrar|Separado|Junto';;;;;;;;;1;
+FinDialogo
+
+if not Ok
+  Cancelar
+endif
+
+If Dialogo.Radio1=1
+  LinkearHoja('LOGTOT',1,Fecha1=Dialogo.Fecha1,Fecha2=Dialogo.Fecha2,String3=Dialogo.String3,String4=Dialogo.String4,String1=Dialogo.String1  ,String2=Dialogo.String2,String=Dialogo.String,Operador='dbo',Check1=Dialogo.Check1,Radio1=Dialogo.Radio1)
+Else
+  LinkearHoja('LOGTOT',1,Fecha1=Dialogo.Fecha1,Fecha2=Dialogo.Fecha2,String3=Dialogo.String3,String4=Dialogo.String4,String1='INFORMES'       ,String2=Dialogo.String2,String=Dialogo.String,Operador=Dialogo.Operador,Check1=Dialogo.Check1,Radio1=Dialogo.Radio1)
+  LinkearHoja('LOGTOT',1,Fecha1=Dialogo.Fecha1,Fecha2=Dialogo.Fecha2,String3=Dialogo.String3,String4=Dialogo.String4,String1='EVENTOS'        ,String2=Dialogo.String2,String=Dialogo.String,Operador=Dialogo.Operador,Check1=Dialogo.Check1,Radio1=Dialogo.Radio1)
+  LinkearHoja('LOGTOT',1,Fecha1=Dialogo.Fecha1,Fecha2=Dialogo.Fecha2,String3=Dialogo.String3,String4=Dialogo.String4,String1='TIPOSOPERACION' ,String2=Dialogo.String2,String=Dialogo.String,Operador=Dialogo.Operador,Check1=Dialogo.Check1,Radio1=Dialogo.Radio1)
+  LinkearHoja('LOGTOT',1,Fecha1=Dialogo.Fecha1,Fecha2=Dialogo.Fecha2,String3=Dialogo.String3,String4=Dialogo.String4,String1='FUNCIONES'      ,String2=Dialogo.String2,String=Dialogo.String,Operador=Dialogo.Operador,Check1=Dialogo.Check1,Radio1=Dialogo.Radio1)
+  LinkearHoja('LOGTOT',1,Fecha1=Dialogo.Fecha1,Fecha2=Dialogo.Fecha2,String3=Dialogo.String3,String4=Dialogo.String4,String1='FORMULAS'       ,String2=Dialogo.String2,String=Dialogo.String,Operador=Dialogo.Operador,Check1=Dialogo.Check1,Radio1=Dialogo.Radio1)
+  LinkearHoja('LOGTOT',1,Fecha1=Dialogo.Fecha1,Fecha2=Dialogo.Fecha2,String3=Dialogo.String3,String4=Dialogo.String4,String1='MODELOSASIENTO' ,String2=Dialogo.String2,String=Dialogo.String,Operador=Dialogo.Operador,Check1=Dialogo.Check1,Radio1=Dialogo.Radio1)
+  LinkearHoja('LOGTOT',1,Fecha1=Dialogo.Fecha1,Fecha2=Dialogo.Fecha2,String3=Dialogo.String3,String4=Dialogo.String4,String1='MODELOSASIENTO1',String2=Dialogo.String2,String=Dialogo.String,Operador=Dialogo.Operador,Check1=Dialogo.Check1,Radio1=Dialogo.Radio1)
+  LinkearHoja('LOGTOT',1,Fecha1=Dialogo.Fecha1,Fecha2=Dialogo.Fecha2,String3=Dialogo.String3,String4=Dialogo.String4,String1='TIPOSTRANSACCION2',String2=Dialogo.String2,String=Dialogo.String,Operador=Dialogo.Operador,Check1=Dialogo.Check1,Radio1=Dialogo.Radio1)
+Endif

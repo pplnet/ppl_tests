@@ -1,0 +1,61 @@
+﻿#*********************************************************************************
+#combos data sources.
+set ds_Status              = "OPE:Operativo|BLO:Bloqueado|ENT:En Tramite|CAN:Cancelado|"
+set ds_ActPas              = "ACT:Activo|PAS:Pasivo|TOD:Todos|"
+set ds_CarteraBCRA         = "AAA:A|BBB:B|CCC:C|"
+set fsys = db.get_scalar("SELECT convert(datetime, Valor, 103) from "+Dbo+".VARIABLES where Codigo='FECHASYS' ")  
+#*********************************************************************************
+def abm 'LimAsignados'
+   def grid
+       Cliente:, Especie:, Limite:, Vehiculo:, Facility:, Tenor:, FVencimiento:, Monto: 
+   end
+   def filter
+       "Where Limite in (Select Codigo from dbo.TIPOSLIMITE Where Clase = 'C')"
+   end
+   def key
+        Cliente:, Especie:, Limite:, Vehiculo:, Facility:, Tenor:, FVencimiento:, Monto: 
+   end
+   def dialog
+       #**************************************************************************
+       tab 'General'
+          column
+             Limite:       ,  , autocomplete, 'TIPOSLIMITE', 'Codigo,Descripcion',, "Clase = 'C'"
+             Cliente:      ,  , autocomplete, 'CLIENTES', 'Codigo,RazonSocial'
+             Especie:      ,  , autocomplete, 'ESPECIES', 'Codigo,Nombre'
+             Facility:     ,  , 
+             Tenor:        ,  , numeric
+             FVencimiento: ,  , date
+             FAsignacion:  ,  , date
+             FRevision:    ,  , date
+             Monto:        ,  , numeric,'##,###,###,##0.00'
+       #**************************************************************************
+       tab 'Codigos'
+          column
+             Vehiculo:    ,                 , autocomplete, 'VEHICULOS'     , 'Codigo,Descripcion'
+             Operador:    ,                 , autocomplete, 'USUARIOS'      , 'Codigo,Nombre'
+             Book:        ,                 , autocomplete, 'BOOKS'         , 'Codigo,Descripcion'
+             Trader:      , 'Trader'        , autocomplete, 'USUARIOS'      , 'Codigo,Nombre'
+             TipoNegocio: , 'TipoNegocio'   , autocomplete, 'TIPOSNEGOCIO'  , 'Codigo,Descripcion'
+             Responsable: , 'Responsable'   , autocomplete, 'RESPONSABLES'  , 'Codigo,Descripcion'
+             TipoPosicion:, 'TipoPosicion'  , autocomplete, 'TIPOSPOSICION' , 'Codigo,Descripcion'
+             Producto:    , 'Producto'      , autocomplete, 'PRODUCTOS'     , 'Codigo,Descripcion'
+             GrupoEspecie:, 'GrupoEspecie'  , autocomplete, 'GRUPOSESPECIE' , 'Codigo,Descripcion'
+             CarteraBCRA: , 'CarteraBCRA'   , combo       , ds_CarteraBCRA
+   end
+   #***Mejoras 02/03/26
+    required_fields: FVencimiento:,FAsignacion:,FRevision:
+    before_show_create_dialog:  do
+        if $.Alta()
+            $.set_field(FAsignacion:, fsys)
+            $.set_field(FRevision:, fsys)
+        endif
+    end      
+
+    
+   upper_case_fields: Cliente:
+   required_fields: Cliente:, Especie:, Limite:
+   validates_max_length_of:
+      Facility:, 15,true 
+   validates_uniqueness_of_set: Cliente:, Especie:, Limite:, Vehiculo:, Book:,Responsable:,TipoPosicion:,Producto:,GrupoEspecie:,TipoNegocio:,Trader:
+   
+end

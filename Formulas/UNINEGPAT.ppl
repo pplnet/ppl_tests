@@ -1,0 +1,1 @@
+﻿Copy(BuscarCampo('CLIENTES','Alias1','Codigo',#VEHICULO),Longitud(BuscarCampo('CLIENTES','Alias1','Codigo',#VEHICULO))-1,2)~BuscarCampo('CLIENTES','Alias8','Codigo',#VEHICULO)

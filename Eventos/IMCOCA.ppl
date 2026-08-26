@@ -1,0 +1,102 @@
+﻿MostrarCuadrodeMensajes
+DialogoVisible(SI)
+CrearDialogo
+  Directorio1  : 'Path'           ;1;1;;;;;;;Var('PATHDDCHE')
+  String1      : 'Archivo '       ;3;1;1;SI;SI;;;;Var('FILEDDCOD') 
+FinDialogo
+
+if Not Ok
+  Cancelar
+endif
+
+(.'VALIDPATH'.)
+
+*** Corregir path
+let &pf ''
+If EqStr(Copy(Dialogo.Directorio1,Longitud(Dialogo.Directorio1),1),'\')
+    let &pf Dialogo.Directorio1~Dialogo.String1
+Else
+    let &pf Dialogo.Directorio1~'\'~Dialogo.String1
+Endif
+
+ImportarXLS(A:2..E:10000, A:1..E:10000, &pf)
+
+If Not Ok
+  Cancelar('Error al cargar el archivo '~&pf)
+EndIf
+
+Recorrer&i 1,10000
+  
+    If Vacio(Val(A:&i))
+        Break
+    Else
+        
+        ***---CUIT
+        let &CUIT FStr(Val(A:&i),0,0)
+        
+        ***---Codigo
+        let &Codigo Val(B:&i)
+        
+        ***---Codigo Echeq
+        let &CodEcheq Val(C:&i)
+        
+        ***---Nombre
+        let &Nombre Val(D:&i)
+        
+        ***---Tipo Entidad
+        let &Tipo Val(E:&i)
+        
+        ***---Status
+        let &Status 'HAB'
+        
+        ***---Categoria
+        let &Categoria 'EGA'
+        
+        ***---Jerarquia
+        let &Jerarq GenerarJerarquiaByRef('CLIENTES',Query("Select Jerarquia from "~DBO~".CLIENTES where Codigo = 'GARANTES' "), true)
+        
+        If NoVacio(SQL("Select  1 from "~DBO~".CLIENTES WHERE Codigo = '"~&Codigo~"' "))                 
+             SQL.ADD(" Update "~DBO~".CLIENTES ")
+             SQL.ADD(" Set Codigo = '"~&Codigo~"',")
+             SQL.ADD(" CUIT = '"~&CUIT~"',")
+             SQL.ADD(" Status = '"~&Status~"',")
+             SQL.ADD(" Jerarquia = '"~&Jerarq~"', ")
+             SQL.ADD(" RazonSocial = '"~Copy(&Nombre,1,40)~"', ")
+             SQL.ADD(" CategDepositante = '"~&Categoria~"', ")
+             SQL.ADD(" Alias4 = '"~&Tipo~"' ")
+             If Eqstr('*',Copy(&CodEcheq,1,1))
+                SQL.ADD("   , Alias5 = '"~&CodEcheq~"'")
+             Else
+                 If Eqstr('%',Copy(&CodEcheq,1,1))
+                    SQL.ADD("   , Alias6 ='"~&CodEcheq~"' ")
+                 Else
+                     SQL.ADD("")
+                 Endif
+             Endif
+             SQL.ADD(" Where Codigo = '"~&Codigo~"' ")
+             SQL.NEW
+             SQL.EXEC
+       Else    
+             SQL.ADD("INSERT INTO "~DBO~".CLIENTES ( ")
+             SQL.ADD("   Codigo, CUIT, Jerarquia, RazonSocial, Status, CategDepositante, Alias4 ")
+             If Eqstr('*',Copy(&CodEcheq,1,1))
+                 SQL.ADD("   ,Alias5) ")
+             Else
+                 If Eqstr('%',Copy(&CodEcheq,1,1))
+                     SQL.ADD("   ,Alias6) ")
+                 Else
+                     SQL.ADD("   ) ")
+                 Endif
+             Endif
+
+             SQL.ADD("    VALUES (")
+             SQL.ADD("   '"~&Codigo~"',  '"~&CUIT~"', '"~&Jerarq~"', '"~Copy(&Nombre,1,40)~"', '"~&Status~"','"~&Categoria~"','"~&Tipo~"'")
+             If Eqstr('*',Copy(&CodEcheq,1,1)) O Eqstr('%',Copy(&CodEcheq,1,1))
+                 SQL.ADD("   ,'"~&CodEcheq~"'")
+             Endif
+             SQL.ADD("   )")
+             SQL.NEW
+             SQL.EXEC
+       Endif    
+    Endif
+Proximo

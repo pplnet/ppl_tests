@@ -1,0 +1,96 @@
+﻿MostrarCuadroDeMensajes
+CrearDialogo
+  Fecha1    : 'Fecha'   ;;;;;;Dialogo.Fecha1 = FinDeMes(Dialogo.Fecha1, SI);'Debe ser Fin de Mes';NO;FinDeMes(Fsys, SI);
+  Cuenta1   : 'Cuenta'  ;;;;;;NoVacio(Dialogo.Cuenta1);'Cuenta Invalida';NO;
+  Check1    : 'Elim Extractos' ;;;;
+FinDialogo
+
+If Not OK
+  Cancelar
+EndIf
+
+IF SQL(" Select 1 From "~DBO~".OPERACIONES Where TipoOp = 'MMDC' AND FechaOp > '"~IdxDate(Dialogo.Fecha1)~"' AND Cuenta1 = '"~Dialogo.Cuenta1~"' ") = 1
+    Cancelar('No se Puede Anular - Existen Descubiertos de Meses Posteriores al Indicado')
+ENDIF
+
+***---Los movimientos de liquidacion son para el primer dia habil del mes siguiente
+ACD(FE:1, Habiles(Dialogo.Fecha1, 1, 'ARG'))
+
+SQL.ADD(" Select O.NrOperacion ")
+SQL.ADD(" From "~DBO~".MOVEJECUTADOS M, "~DBO~".OPERACIONES O ")
+SQL.ADD(" Where O.NrOperacion = M.NrOperacion ")
+SQL.ADD(" AND O.TipoOp = 'MMDPAC' ")
+***---SQL.ADD(" AND M.FechaMov >= '"~IdxDate(PriDeMes(Dialogo.Fecha1, SI))~"' ")
+***---Mayor estricto xq el mov del primero de mes corresponde al extracto del mes anterior
+SQL.ADD(" AND M.FechaMov > '"~IdxDate(PriDeMes(Dialogo.Fecha1, NO, 'ARG'))~"' ")
+SQL.ADD(" AND M.FechaMov <= '"~IdxDate(Val(FE:1))~"' ")
+SQL.ADD(" AND (M.Cuenta = '"~Dialogo.Cuenta1~"' OR O.Cuenta1 = '"~Dialogo.Cuenta1~"') ")
+SQL.ADD(" AND M.NrSaldo = 1 ")
+Recorrer SQL
+    Cancelar('El descubierto del Mes para la Cuenta '~Dialogo.cuenta1~' Ya fue Liquidado, Anule la Liq. Primero')
+Proximo
+
+***---Borro todas las operaciones MMDC. Las reversiones contables se realizan con BOPERACIONES
+ACN(BD:1, 0)
+SQL.ADD(" Select NrOperacion, OperacionRef from "~DBO~".OPERACIONES ")
+SQL.ADD(" where TipoOp = 'MMDC' ")
+SQL.ADD(" and FechaOp >= '"~IdxDate(PriDeMes(Dialogo.Fecha1, SI))~"' ")
+SQL.ADD(" and FechaOp <= '"~IdxDate(Dialogo.Fecha1)~"' ")
+***---Solo las que vencen en el mes
+***---SQL.ADD(" and FechaVto >= '"~IdxDate(PriDeMes(Dialogo.Fecha1, SI))~"' ")
+***---SQL.ADD(" and FechaVto <= '"~IdxDate(Dialogo.Fecha1)~"' ")
+SQL.ADD(" AND (Cuenta1 = '"~Dialogo.Cuenta1~"' OR Cuenta4 = '"~Dialogo.Cuenta1~"') ")
+Recorrer SQL
+    Message('Anulando MMDC '~fbn('NrOperacion'))
+    SQL.ADD(" Delete "~DBO~".MOVDEVENGADOS ")
+    SQL.ADD(" Where NrOperacion = '"~fbn('NrOperacion')~"' ")
+    SQL.NEW
+    SQL.EXEC
+    SQL.ADD(" Delete "~DBO~".OPERACIONES ")
+    SQL.ADD(" Where NrOperacion = '"~fbn('NrOperacion')~"' ")
+    SQL.NEW
+    SQL.EXEC
+    IF Not Eqstr(fbn('OperacionRef'), Val(OR:1))
+        ***---Borro los intereses en la MMDPAC
+        SQL.ADD(" Delete "~DBO~".CUOTAS ")
+        SQL.ADD(" Where NrOperacion = '"~fbn('OperacionRef')~"' ")
+        SQL.ADD(" AND Fecha1 = '"~IdxDate(Val(FE:1))~"' ")
+        SQL.NEW
+        SQL.ADD(" Delete "~DBO~".MOVPENDIENTES ")
+        SQL.ADD(" Where NrOperacion = '"~fbn('OperacionRef')~"' ")
+        SQL.ADD(" AND FechaMov = '"~IdxDate(Val(FE:1))~"' ")
+        SQL.NEW
+        ***---Borro Impuestos de la cuota en la MMDPAC
+        SQL.ADD(" Delete "~DBO~".IMPUESTOS ")
+        SQL.ADD(" Where NrOperacion = '"~fbn('OperacionRef')~"' ")
+        SQL.ADD(" AND Fecha2 = '"~IdxDate(Val(FE:1))~"' ")
+        SQL.NEW
+        SQL.EXEC
+    ENDIF
+    ACT(OR:1, fbn('OperacionRef'))
+Proximo
+
+If Dialogo.Check1 = 1
+   ***---Borro todas las operaciones eventuales procesadas
+   SQL.ADD(" Delete from "~DBO~".OPSEVENTUALES ")
+   SQL.ADD(" where TipoOp = 'MMEVDE' ")
+   SQL.ADD(" and FechaOp >= '"~IdxDate(PriDeMes(Dialogo.Fecha1, SI))~"' ")
+   SQL.ADD(" and FechaOp <= '"~IdxDate(Dialogo.Fecha1)~"' ")
+   IF NoVacio(Dialogo.Cuenta1)
+       SQL.ADD(" AND Cuenta1 = '"~Dialogo.Cuenta1~"' ")
+   ENDIF
+   SQL.NEW
+   SQL.EXEC
+Else
+   ***/// Marco como NO procesadas todas las operaciones eventuales
+   SQL.ADD(" Update "~DBO~".OPSEVENTUALES ")
+   SQL.ADD(" Set CB5 = 0 ")
+   SQL.ADD(" where TipoOp = 'MMEVDE' ")
+   SQL.ADD(" and FechaOp >= '"~IdxDate(PriDeMes(Dialogo.Fecha1, SI))~"' ")
+   SQL.ADD(" and FechaOp <= '"~IdxDate(Dialogo.Fecha1)~"' ")
+   IF NoVacio(Dialogo.Cuenta1)
+       SQL.ADD(" AND Cuenta1 = '"~Dialogo.Cuenta1~"' ")
+   ENDIF
+   SQL.NEW
+   SQL.EXEC
+Endif

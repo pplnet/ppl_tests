@@ -1,0 +1,2 @@
+﻿**/ Monto dev + DC en moneda de la op
+(ABS(#MONTODEVEN)+(#DCCAPCTE)+(#DCINTERES)+(#DCPRIMA))

@@ -1,0 +1,72 @@
+﻿CrearDialogo
+    TipoOp:       'TipoOp'            ;;;;;;;;;;;;;;;;;;
+    Especie1:      'Moneda'           ;;;;;;;;;;;;;;;;;;
+    Cantidad1:    'Importe'           ;;;;;;;;;;;;;;;;;;
+    Book1:        'Book'              ;;;;;;;;;;;;;;;;;;
+    NrOperacion:  'NrOperacion'       ;;;;;;;;;;;;;;;;;;
+    Fecha1:       'FechaOp'           ;;;;;;;;;;;;;;;;;;
+FinDialogo
+
+If Not Ok
+    Cancelar
+Endif
+
+**Instrucción del Fiduciante 
+*let &restricciones BuscarCampo('BOOKS','Alias2','Codigo',Dialogo.Book1)
+*150823 CINTIA Se reemplaza dato sacado del book por dato sacado de la op  
+let &restricciones BuscarCampo('OPERACIONES','CB11','NrOperacion',Dialogo.NrOperacion)
+
+If Incluido(Dialogo.TipoOp,VAR('TIPOPRBDIR')) O &restricciones=1
+    **Operaciones que siempre son de Riesgo Bajo
+    let &riesgo 'BA'
+else
+    If Incluido(Dialogo.TipoOp,VAR('TIPOPRMBDI'))
+        **Operaciones que siempre son de Riesgo Medio Bajo
+        let &riesgo 'MB'
+    else
+        ***Se setea el importe (a comparar contra los limites de mòdulos)
+        if EqStr(Dialogo.Especie1,VAR('MONELOCA'))
+            let &importe Dialogo.Cantidad1
+        else
+            let &importe CotizacionBNA(Dialogo.Especie1,Dialogo.Fecha1,1,NO,NO)*Dialogo.Cantidad1
+        Endif
+        ***Operaciones que pueden ser Riesgo Bajo o MedioBajo según módulos
+        If Incluido(Dialogo.TipoOp,VAR('TIPOPRBCON'))
+            let &modulos VAR('VALMODARP')*VAR('LIMMODRIEB')
+            If &importe<&modulos
+                let &riesgo 'BA'
+            else
+                let &riesgo 'MB'
+            endif
+        Else
+*Nota:El código de Riesgo MD se mantiene para que las op que ya tienen este código no haya que modificarlas, antes era Medio, ahora es MedioAlto.             
+            let &esRenovacion BuscarCampo('OPERACIONES','CB9','NrOperacion',Dialogo.NrOperacion)
+            If Incluido(Dialogo.TipoOp,VAR('TIPOPRMBCO')) y &esRenovacion=1
+                **Op que son Riesgo Medio Bajo segun condicion (Solo aplica por ahora a MMCPM ya que depende si es renovacion)
+                let &riesgo 'MB'
+            else
+                let &modulos VAR('VALMODARP')*VAR('LIMMODRIE')
+                If Incluido(Dialogo.TipoOp,VAR('TIPOPRMACO'))
+                ***Operaciones que pueden ser Riesgo MedioBajo o MedioAlto según módulos
+                    if &importe<&modulos
+                        let &riesgo 'MB'
+                    else
+                        let &riesgo 'MD'
+                    endif
+                else
+                    If Incluido(Dialogo.TipoOp,VAR('TIPOPRACON'))
+                        if &importe<&modulos
+                            let &riesgo 'MB'
+                        else
+                            let &riesgo 'AL'
+                        endif
+                    endif
+                endif    
+            endif
+        endif
+    Endif
+Endif
+
+SQL.ADD("UPDATE "~DBO~".OPERACIONES SET Riesgo = '"~&riesgo~"' Where NrOperacion = '"~Dialogo.NrOperacion~"'")
+SQL.NEW
+SQL.EXEC

@@ -1,0 +1,42 @@
+﻿If vacio(&FechaCotizFV) o &FechaCotizFV=Dialogo.Fecha1
+    **//21-11-23 Eliana - CASO3 B ENTRA ACÁ
+    **CASO 5 ENTRA ACÁ
+    If &evento=0
+        *CINTIA 261023 Se utiliza un recorrer para el cálculo de DCMM para contemplar el cálculo en dias no hábiles ya que no se corre el cierre. 
+        let &anteriorHabil Habiles(Dialogo.Fecha1,-1,'ARG')
+        let &anteriorReal  Habiles(Dialogo.Fecha1,-1,,NO)
+        Recorrer&j &anteriorHabil, &anteriorReal
+            EjecutarEvento('DCMM', Fecha1=Fecha(&j), Lista1=Var('TIPOOPDCMM'),NrOperacion1='',Radio1=1, Lista2= '', Vehiculo1='', Lista3='')
+        Proximo
+    Else
+        EjecutarEvento('RENTAB', Fecha1=Habiles(Dialogo.Fecha1,-1,'ARG'), Lista1='',Lista2='',Vehiculo1='',Radio1=1)
+    Endif
+Else
+    **//21-11-23 Eliana 
+    **CASO 1 ENTRA ACÁ
+    **CASO 2 B ENTRA ACÁ
+    **CASO 4 ENTRA ACÁ
+    If &evento=0
+        EjecutarEvento('DCMMLT', Radio1=0, Fecha1=Fecha(&FechaCotizFV),Fecha2=Habiles(Dialogo.Fecha1,-1,'ARG'),Radio2=1, Lista2= '', Vehiculo1='', Lista3='',Lista1=Var('TIPOOPDCMM'))            
+    Else
+        EjecutarEvento('RENTLO', Fecha1=Fecha(&FechaCotizFV),Fecha2=Habiles(Dialogo.Fecha1,-1,'ARG'), Radio1=1 ,Lista1='',Vehiculo1='',Lista2='')
+    Endif 
+EndIf
+
+**Cintia 290724 por precancelacion de ON (SECS)
+**Busco si se cargaron SECS de precancelacion 
+SQL.ADD(" Select NrOperacion,FechaOp from "~DBO~".OPERACIONES Where TipoOp='SECS' AND RB10=1 ")
+SQL.ADD(" AND FechaCargaSys='"~IdxDate(Dialogo.Fecha1)~"' ")
+Recorrer SQL
+   let &nrOpPrecan fbn('NrOperacion')
+   **Busco la fechaIni de la cuota vigente para la fecha de la precancelación cargada
+   SQL.ADD(" Select C.Fecha1 'FechaIni',O.NrOperacion from "~DBO~".CUOTAS C,"~DBO~".OPERACIONES O,"~DBO~".PRECANCELACION P ")
+   SQL.ADD(" Where O.NrOperacion=C.NrOperacion and O.NrOperacion=P.NrOperacion ")
+   SQL.ADD(" AND O.TipoOp='MMONM' AND P.NrOperacion1= '"~&nrOpPrecan~"' ")
+   SQL.ADD(" and (C.Fecha1<='"~IdxDate(fbn('FechaOp'))~"' and C.Fecha2>='"~IdxDate(fbn('FechaOp'))~"'  ) ")
+    
+   **Ejecuto DC desde FechaIni hasta Fecha1-2 ya que Fecha1-1 es la que calcula en el cierre de ese dia
+   Recorrer SQL
+       EjecutarEvento('DCMMLT', Radio1=1,NrOperacion1=fbn('NrOperacion'),Check1=1, Fecha1=Habiles(fbn('FechaIni'),+1,'ARG',NO),Fecha2=Habiles(Dialogo.Fecha1,-2,'ARG'),Radio2=1, Lista2= '', Vehiculo1='', Lista3='', Lista1='')
+   Proximo
+Proximo

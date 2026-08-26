@@ -1,0 +1,18 @@
+﻿CrearDialogo
+  Fecha1: 'Fecha'                            ;1;1;1;;;;;;FSys
+FinDialogo
+*Si la fecha es un sábado, se elige el viernes anterior
+If DiaSem(Dialogo.Fecha1) = 7 
+    let &fechaPosiciones2 Dialogo.Fecha1-1
+else
+    *Si la fecha es un domingo, se elige el viernes anterior
+    If DiaSem(Dialogo.Fecha1) = 1 
+        let &fechaPosiciones2 Dialogo.Fecha1-2
+    else
+        *sino, se deja la fecha del diálogo
+        let &fechaPosiciones2 Dialogo.Fecha1
+    Endif
+Endif
+
+MessageBox(&fechaPosiciones2)
+HojaVisible(NO)

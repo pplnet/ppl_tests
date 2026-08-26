@@ -1,0 +1,1 @@
+﻿Round((Val(DK:1)+Val(DN:1)),2)

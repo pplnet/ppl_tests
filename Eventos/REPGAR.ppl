@@ -1,0 +1,652 @@
+﻿*- REPGAR: REPOSICION de Garantias
+CrearDialogo
+  Vehiculo1   : 'Vehiculo'   ;;;;;;NoVacio(Dialogo.Vehiculo1) y IIf(Vacio(UsrVehiculos(UsuarioActivo)),SQL("Select Count(*) from "~DBO~".VEHICULOS Where Codigo='"~Dialogo.Vehiculo1~"' "),SQL("Select Count(*) from "~DBO~".USRVEHICULO where Codigo='"~UsuarioActivo~"' and Vehiculo='"~Dialogo.Vehiculo1~"' "))>0;'Debe ingresar un Vehiculo';NO;IIf(Vacio(UsrVehiculos(UsuarioActivo)),SQL("Select Codigo from "~DBO~".VEHICULOS Where Codigo='"~VAR('VEHICULODE')~"' "),SQL("Select Vehiculo from "~DBO~".USRVEHICULO where Codigo='"~UsuarioActivo~"' and Vehiculo='"~VAR('VEHICULODE')~"' "));;IIf(Vacio(UsrVehiculos(UsuarioActivo)),SQLSET("Select Codigo from "~DBO~".VEHICULOS "),SQLSET("Select Vehiculo From "~DBO~".USRVEHICULO Where Codigo = '"~UsuarioActivo~"' "));NO
+  Fecha1      : 'Fecha'      ;;;;;;;;;Fsys;
+  Especie1    : 'Especie'    ;;;;;;;;;;
+  Cliente1    : 'Cliente'    ;;;;;;;;;;
+  NrOperacion1: 'Operacion'  ;;;;;;;;;;
+  Check1      : 'Procesa'    ;;;;NO;;;;;1;
+FinDialogo
+If Not Ok
+  Cancelar
+EndIf
+if Dialogo.Check1=0
+  HojaVisible(SI)
+endif
+ACN(z:1, Dialogo.Check1)
+* Veo solamente los tipos seleccionados
+SetListaClaves(2)
+
+CrearFont(1,"Arial,8,")
+CrearFont(2,"Arial,8,B")
+
+ACT(a:0, 'A marca (1)')
+ACT(c:0, 'C Cliente (az:3) (2)')
+ACT(d:0, 'D Oper (az:4) (3)')
+ACT(e:0, 'E Variacion (y - va:1) (8)')
+ACT(f:0, 'F Esp.Repo. (es:2) (14)')
+ACT(h:0, 'H Ent/Rec')
+ACT(i:0, 'I Especie (es:1) (4)')
+ACT(j:0, 'J Monto (sa:1 TXT) (7)')
+ACT(k:0, 'K mr:3 TXT')
+ACT(m:0, 'M Desvio (Z:8 TXT) (5)')
+ACT(n:0, 'N Aforo (Z:9 TXT) (6)')
+ACT(o:0, 'O re:1 TXT')
+ACT(p:0, 'P Repone (re:2) (12)')
+ACT(q:0, 'Q A Reponer (ga:1) (13)')
+ACT(t:0, 'T fac-1')
+ACT(v:0, 'V Minimo (mi:1) (9)')
+ACT(w:0, 'W Maximo (ma:1) (10)')
+ACT(x:0, 'X Multiplo (mu:1) (11)')
+ACT(y:0, 'Y sa:1')
+
+ACT(aa:0, 'AA')
+ACT(ba:0, 'BA')
+ACT(ca:0, 'CA')
+ACT(da:0, 'DA')
+ACT(ea:0, 'EA')
+ACT(es:0, 'ES')
+ACT(fb:0, 'FB')
+ACT(ga:0, 'GA')
+
+ACT(ta:1,'SALDOS')
+If Dialogo.Fecha1<Fsys
+   ACT(ta:1,'SALDOSDIA')
+EndIf
+
+ACN(w1,fac)
+acn(mr:1,0)
+act(az:2,'')
+act(az:3,'')
+act(az:4,'')
+
+*- Fila del grupo de control
+acn(fb:1,0)
+
+*SCN(ba:1, 1)
+
+*- Select desde Saldos o saldosdia
+SQL.ADD("SELECT 1 Marca, S.Cliente, S.Cuenta,  S.Saldo,        S.Especie, ")
+SQL.ADD("       S.Cupon, S.NrSaldo, S.Mercado, S.EnteCustodia, S.Cuenta as Referencia,")
+SQL.ADD("       ESP.FechaCambioTasa, ESP.TasaIntAnterior, ESP.TasaIntVigente, ESP.Cotiza, ESP.InteresesC ")
+SQL.ADD("FROM "~DBO~"."~Val(ta:1)~" S,"~DBO~".ESPECIES ESP ")
+SQL.ADD("WHERE S.Especie = ESP.Codigo ")
+IF NoVacio(Dialogo.Especie1)
+   SQL.ADD(" AND S.Especie = '"~Dialogo.Especie1~"'  ")
+ENDIF
+IF NoVacio(Dialogo.Cliente1)
+   SQL.ADD(" AND S.Cliente = '"~Dialogo.Cliente1~"'  ")
+ENDIF
+If Not Vacio(Dialogo.NrOperacion1)
+   SQL.ADD(" AND S.Cuenta ='"~Dialogo.NrOperacion1~"'  ")
+EndIf
+SQL.ADD("    AND S.EnteCustodia = '"~Dialogo.Vehiculo1~"' ")
+SQL.ADD("    AND S.Saldo <> 0  ")
+SQL.ADD("    AND S.NrSaldo = 201 ")
+If Dialogo.Fecha1<Fsys
+   *- Condicion Adicional para Saldos dia
+   SQL.ADD("      and S.Fecha = (SELECT MAX(S2.Fecha) ")
+   SQL.ADD("                       FROM "~DBO~"."~Val(ta:1)~" S2 ")
+   SQL.ADD("                      WHERE S2.Cliente       = S.Cliente ")
+   SQL.ADD("                        and S2.Especie       = S.Especie ")
+   SQL.ADD("                        and S2.EnteCustodia  = S.EnteCustodia ")
+   SQL.ADD("                        and S2.Mercado       = S.Mercado ")
+   SQL.ADD("                        and S2.NrSaldo       = S.NrSaldo ")
+   SQL.ADD("                        and S2.Cuenta        = S.Cuenta ")
+   SQL.ADD("                        and S2.Fecha         <= '"~IdxDate(Dialogo.Fecha1)~"' ")
+   SQL.ADD("                    ) ")
+EndIf
+SQL.ADD(" AND S.Cuenta = '30000335' ")
+SQL.ADD("ORDER BY S.EnteCustodia, S.Cliente, S.Referencia, S.Especie ")
+*- Por cada saldo verifico si tiene transacciones de CAMBIO DE ESTADO en Efectivo  que 
+*- no sean por Reposicion
+Recorrer SQL
+*   MessageBox(fbn('EnteCustodia')~' '~fbn('Cliente')~' '~fbn('Referencia')~' '~fbn('Especie'))
+   *- Por fin de control grabo la ultima linea de esa garantia en z:
+
+   SCN(dz:1, 1)
+   ACT(ea:Val(dz:1), fbn('EnteCustodia'))
+   ACT(eb:Val(dz:1), fbn('Cliente'))
+   ACT(ec:Val(dz:1), fbn('Cuenta'))
+   ACT(ed:Val(dz:1), fbn('Referencia'))
+   ACT(ee:Val(dz:1), fbn('Especie'))
+   ACT(ef:Val(dz:1), fbn('Cupon'))
+   ACN(eg:Val(dz:1), fbn('NrSaldo'))
+   ACT(eh:Val(dz:1), fbn('Mercado'))
+   ACN(ei:Val(dz:1), fbn('Saldo'))
+   ACT(ej:Val(dz:1), BuscarCampo('OPERACIONES','Especie','NrOperacion',fbn('Referencia')))
+   ACT(ek:Val(dz:1), BuscarCampo('OPERACIONES','ContraEspecie','NrOperacion',fbn('Referencia')))
+   ACN(el:Val(dz:1), BuscarCampo('OPERACIONES','Cantidad','NrOperacion',fbn('Referencia')))
+   if EqStr(Val(ee:Val(dz:1)), Val(ek:Val(dz:1)))
+     ACT(em:Val(dz:1), 'ORIG')
+     if Val(ei:Val(dz:1))>Val(el:Val(dz:1))
+       ACN(cu:2, 1)
+       ACT(eo:Val(dz:1), 'CON')
+     else
+       ACT(eo:Val(dz:1), 'SIN')
+     endif
+   else
+     ACN(cu:2, 1)
+     ACT(em:Val(dz:1), 'REPO')
+     ACN(ga:3, -fbn('Saldo'))
+   endif
+
+   If Not EqStr(Val(az:2)~Val(az:3)~Val(az:4),FBN['EnteCustodia']~FBN['Cliente']~FBN['Referencia']) y NoVacio(Val(az:2))
+      *- Comparo las Valuaciones de las reposiciones con el saldo al que hay que llegar
+      *- Saldo de Garantia Entregada
+      ** Nuevo
+      ACN(bb:Val(ba:1), Val(sa:1))
+      ** Nuevo
+      ACN(bc:Val(ba:1), Val(va:1))
+      acn(mr:1,         Val(sa:1)-Val(va:1))
+      ** Nuevo
+      ACN(bd:Val(ba:1), Val(mr:1))
+
+          if Val(cu:2)>0
+            ACN(cu:3, SQL("SELECT Cuotas2 FROM "~DBO~".OPERACIONES WHERE NrOperacion='"~Val(az:4)~"' ")+1)
+          else
+            ACN(cu:3, 1)
+          endif
+
+          * Obtengo el minimo y maximo de OPSCALLSPUTS segun el numero de reposicion que haga
+          SQL.ADD("SELECT NrOperacion as Referencia,  IntCorridosEj as SettDesde,  ImporteTotEj as SettHasta,")
+          SQL.ADD("       VNCancelado as   Minimo,  ImpVNCancela as Maximo ")
+          SQL.ADD("  FROM "~DBO~".OPSCALLSPUTS ")
+          SQL.ADD(" WHERE NrOperacion='"~Val(az:4)~"' ")
+          SQL.ADD("   and IntCorridosEj <= "~Fstr(Val(cu:3),0,0)~" ")
+          SQL.ADD("   and ImporteTotEj  >= "~Fstr(Val(cu:3),0,0)~"  ")        
+          Recorrer SQL   
+             dfa 
+             ACN(mi:1,FBN['Minimo'])
+             ACN(ma:1,FBN['Maximo'])
+          Proximo
+
+      *- Chequeo contro el % de Desvio para saber cuanto vario cada cotizacion
+      *- de:1 = desvio sobre  la cotizacion de la primer entrega 
+      *- re:1 = a reponer 1er. entrega
+      ACN(de:1, (Val(va:1)/Val(sa:1)) -1)
+      ACN(re:2, 0)
+      ** Nuevo
+      ACN(be:Val(ba:1), Val(de:1))
+
+      *- h: Entregado/recibido 
+
+      ** ListBox Col 8 Variacion
+      acn(e:Val(fb:1),   Val(y:Val(fb:1))-Val(va:1))
+
+      ** Nuevo
+      ACN(bf:Val(ba:1), Val(y:Val(fb:1)))
+      ** Nuevo
+      ACN(bg:Val(ba:1), Val(va:1))
+      ** Nuevo
+      ACN(bh:Val(ba:1), Val(e:Val(fb:1)))
+
+      ACN(t:Val(fb:1), fac-1)
+
+      If abs(Val(de:1))>=Val(z:8) 
+         IF [Abs(Val(e:Val(fb:1)))>=Val(mi:1) y Abs(Val(e:Val(fb:1)))<= Val(ma:1)] o Val(mo:1)=1
+            If Val(mu:1)=0
+               acn(mu:1,1)
+            EndIf
+
+            ACN(ga:2, Val(e:Val(fb:1)) Mod Val(mu:1) )
+            *- Garantia Entregada => Entrego mas que el multiplo
+            ACN(ga:1, ((Val(e:Val(fb:1)) Div Val(mu:1)) + IIf(Val(e:Val(fb:1))>0 y Val(ga:2)>0,1,0)) * Val(mu:1) )
+            If Val(ga:1)<>0
+               ACN(re:2,1)      
+            EndIf
+
+            *- Convierto el saldo a la especie de la garantia 
+            IF Not EqSTr(Val(es:1),Val(es:2)) y NO
+               ACN(ga:1,Val(ga:1)*COTIZACIONC(Val(es:1),,,,Dialogo.Fecha1-1,1,,Val(es:2))/Val(z:9)*100)
+            ENDIF
+            IF DesciendeDeEspecie(Val(es:2),'TITULO')
+               *- Redondeo a enteros
+               ACN(ga:1,Round2(Val(ga:1),0))
+            EndIf
+         EndIf
+      EndIf
+      ** ListBox Col 14 Esp. reposicion
+      act(f:Val(fb:1),Val(es:2))
+      ** ListBox Col 12 Repone
+      acn(p:Val(fb:1),Val(re:2))
+      ** ListBox Col 13 A Reponer
+*      acn(q:Val(fb:1),Val(ga:1))
+      if Val(ga:1)<0
+        ** tengo que recuperar
+        if Val(ga:1)>Val(ga:3)
+          acn(q:Val(fb:1), Val(ga:1))
+        else
+          acn(q:Val(fb:1), Val(ga:3))
+        endif
+      else
+        ** Tengo que reponer
+        acn(q:Val(fb:1), Val(ga:1))
+      endif
+      ** ListBox Col 9 Minimo
+      acn(v:Val(fb:1),Val(mi:1))
+      ** ListBox Col 10 Maximo
+      acn(w:Val(fb:1),Val(ma:1))
+      ** ListBox Col 11 Multiplo
+      acn(x:Val(fb:1),Val(mu:1)) 
+
+      ACN(ga:3, 0)
+      ACN(cu:2, 0)
+
+   EndIf
+
+   Message(FBN['EnteCustodia']~' '~FBN['Cliente']~' '~FBN['Referencia']~' '~Fstr(FBN['Especie'],0,0) )
+
+   ACN(a:fac,0)
+
+   *- Cuando cambia Vehiculo/Cliente/Referencia(Operacion) registro el monto a reponer
+   If Not EqStr(Val(az:2)~Val(az:3)~Val(az:4),FBN['EnteCustodia']~FBN['Cliente']~FBN['Referencia']) 
+      act(az:2,FBN['EnteCustodia'] )
+      act(az:3,FBN['Cliente'] )
+      act(az:4,FBN['Referencia'] )
+
+      ACN(ga:1,0)
+      ACN(ga:2,0)
+      ACN(mo:1,0)
+      acn(mr:1,0)
+      acn(mr:2,1)
+      scn(fb:1,1)
+
+      *- Busco los datos de la Garantia Original
+      SQL.ADD("SELECT OperacionRef, Cotizacion2, Cotizacion1, FechaOp,             Precio1, ")
+      SQL.ADD("       PorAforo,     MB3,         Especie,     PrecioEj as Cantidad ")
+      SQL.ADD("  FROM "~DBO~".OPERACIONES ")
+      SQL.ADD(" WHERE NrOperacion='"~FBN['Referencia']~"' ")
+      Recorrer SQL
+          dfa
+          act(z:5,FBN['Especie'] )
+          acn(z:6,FBN['Cantidad']*IIF(Val(z:7)=0,1,-1) )
+          acn(z:8,FBN['Precio1'] )
+          acn(z:9,FBN['PorAforo'] )
+          If Val(z:9)=0
+             acn(z:9,100 )
+          EndIf
+          acd(z:10,FBN['FechaOp'] )
+          acn(z:11,FBN['Cotizacion1'] )
+          acn(z:12,FBN['Cotizacion2'] )
+          act(z:13,FBN['OperacionRef'] )
+      Proximo
+
+      *- Cotizacion Por Especie original garantiza 
+      ACN(ce:2, COTIZACION(Val(z:5),,,,Dialogo.Fecha1-1,1) - Val(z:11))
+      *- de:2 = desvio sobre la cotizacion de la gtia original 
+      *- re:2 = a reponer gtia original
+      ACN(de:2, (COTIZACION(Val(z:5),,,,Dialogo.Fecha1-1,1) / Val(z:11)) -1)
+
+      *----- ENTREGA ORIGINAL Y SUCESIVAS REPOSICIONES 
+      *- Recupero las reglas de reposicion para llegar a que el saldo entregado sea
+      *- el total de la regla
+      SQL.ADD("SELECT  NrOperacion as Referencia, Especie2, Tipo,     Especie1, Importe1,")
+      SQL.ADD("        RB2,                       Importe2, Importe3, Importe4   ")
+      SQL.ADD("  FROM "~DBO~".COMISIONES2 ")
+      SQL.ADD(" WHERE NrOperacion='"~FBN['Referencia']~"' ")
+      SQL.ADD(" ORDER BY Tipo")
+      Recorrer SQL       
+          dfa
+          *- sa:1 = Saldo al que hay que llegar para reposicion
+          *- es:1 = Especie del saldo hay que hay que llegar 
+          *- es:2 = Especie a Reponer => Una vez que llego al saldo, transformo a esta especie
+          ACN(sa:1, FBN['Importe1'])
+*MessageBox(Val(SA:1))
+*MessageBox(Val(Z:13))
+          *- Verifico el Valor nominal actual de esa operacion 
+          IF EqStr(Copy(BuscarCampo('OPERACIONES','TipoOp','NrOperacion',Val(z:13)),1,2),'MM')
+*MessageBox('1')
+             *- Es una operacion de MM y multiple vto. busco el monto 
+             *- Si es unico vencimiento -> No amortiza
+             If Not SQL("SELECT Count(*) FROM "~DBO~".CUOTAS WHERE NrOperacion='"~Val(z:13)~"' ") = 1
+*MessageBox('2')
+                ACN(sa:1, SQL("SELECT Cantidad2 FROM "~DBO~".CUOTAS WHERE NrOperacion='"~Val(z:13)~"' AND Fecha1<='"~IdxDate(Dialogo.Fecha1)~"' and Fecha2>'"~IdxDate(Dialogo.Fecha1)~"' "))
+             EndIf
+          EndIf
+*MessageBox(Val(SA:1))
+          ACT(es:1,FBN['Especie1'])
+          ACT(es:2,FBN['Especie2'])
+          ACN(li:1,FBN['RB2'])
+          ACN(mu:1,FBN['Importe2'])
+          IF Val(mu:1)=0
+             *- No Valida Multiplo => asigno 1
+             ACN(mu:1,1)
+          EndIf
+
+IF NO
+          *- CU:2 Nro. de Settlement a reponer 
+          if 
+            ACN(cu:2, SQL("SELECT Cuotas2 FROM "~DBO~".OPERACIONES WHERE NrOperacion='"~FBN['Referencia']~"' ")+1)
+          else
+            ACN(cu:2, 1)
+          endif
+
+          * Obtengo el minimo y maximo de OPSCALLSPUTS segun el numero de reposicion que haga
+          SQL.ADD("SELECT NrOperacion as Referencia,  IntCorridosEj as SettDesde,  ImporteTotEj as SettHasta,")
+          SQL.ADD("       VNCancelado as   Minimo,  ImpVNCancela as Maximo ")
+          SQL.ADD("  FROM "~DBO~".OPSCALLSPUTS ")
+          SQL.ADD(" WHERE NrOperacion='"~FBN['Referencia']~"' ")
+          SQL.ADD("   and IntCorridosEj <= "~Fstr(Val(cu:2),0,0)~" ")
+          SQL.ADD("   and ImporteTotEj  >= "~Fstr(Val(cu:2),0,0)~"  ")        
+          Recorrer SQL   
+             dfa 
+             ACN(mi:1,FBN['Minimo'])
+             ACN(ma:1,FBN['Maximo'])
+          Proximo
+ENDIF
+      Proximo
+
+      *- Datos de la grantia original     
+      act(c:Val(fb:1), Val(az:3) )
+      act(d:Val(fb:1), Val(az:4) )
+      *- act(i:Val(fb:1), Val(z:5) )
+
+      act(m:Val(fb:1), PYC(Val(z:8),0,2))
+      act(n:Val(fb:1), PYC(Val(z:9),0,2))
+
+      acn(mr:3,       Val(z:6)*Val(ce:2)*Val(z:9)/100)
+      act(k:Val(fb:1), PYC(Val(mr:3),0,2))
+      act(o:Val(fb:1), PYC(Val(re:1),0,2))
+
+      act(i:Val(fb:1), Val(es:1) )
+
+      *- j: Saldo en texto para mostrar 
+      *- y: Saldo en numerico para calcular 
+      act(j:Val(fb:1), PYC(Val(sa:1),0,2))
+      acn(y:Val(fb:1), Val(sa:1) )
+
+      *- va:1 Valuacion a Hoy expresado en moneda es1
+      ACN(va:1,0)
+      ** Nuevo
+      SCN(ba:1, 1)
+
+      ** Nuevo Linea primer saldo
+      ACN(bv:Val(ba:1), Val(dz:1))
+   EndIf
+
+   *- ce:1= Delta entre cotizacion de ayer y hoy 
+   ACN(ce:1, COTIZACION(FBN['Especie'],,,,Dialogo.Fecha1-1,1) - Val(z:12) )
+   ** Nuevo
+   ACN(bi:Val(ba:1), COTIZACION(FBN['Especie'],,,,Dialogo.Fecha1-1,1))
+   ** Nuevo
+   ACN(bj:Val(ba:1), Val(z:12))
+   ** Nuevo
+   ACN(bk:Val(ba:1), Val(ce:1))
+   ** Nuevo
+   ACN(bl:Val(ba:1), Val(va:1))
+   ** Nuevo
+   ACT(bm:Val(ba:1), FBN['Especie'])
+   ** Nuevo
+   ACT(bn:Val(ba:1), Val(es:1))
+   ** Nuevo
+   ACN(bo:Val(ba:1), FBN['Saldo'])
+
+   *- CALCULO EL SALDO A HOY => va1 Valuacion a Hoy expresado en moneda de la especie del saldo
+IF NO
+   If Not EqSTr(FBN['Especie'],Val(es:1))
+      MessageBox('Distinto '~FBN['Especie']~' '~Val(es:1))
+      *- El primer dia valuo a la cotizacion de la operacion, el resto al tipo de cambio de la tabla
+      SCN(va:1, FBN['Saldo']*IIF(Val(z:10)=Dialogo.Fecha1,Val(z:12),COTIZACIONC(FBN['Especie'],,,,Dialogo.Fecha1-1,1,,Val(es:1)))*Val(z:9)/100)
+      messageBox(PYC(Val(va:1),1,2)~' '~PyC(FBN['Saldo'],1,2)~' a ')
+   Else 
+      MessageBox('Igual '~FBN['Especie']~' '~Val(es:1))
+      SCN(va1,Val(va1)+FBN['Saldo'])
+*      SCN(va:1, FBN['Saldo']*IIF(Val(z:10)=Dialogo.Fecha1,Val(z:12),COTIZACIONC(FBN['Especie'],,,,Dialogo.Fecha1-1,1,,Val(es:2)))*Val(z:9)/100)
+      messageBox(PYC(Val(va:1),1,2)~' '~PyC(FBN['Saldo'],1,2)~' b ')
+      *- Marco que tuvo saldo en moneda porque si no tuvo saldo en moneda vale el maximo y el minimo
+      ACN(mo:1,1)
+      ** Nuevo
+      ACN(bp:Val(ba:1), Val(z:12))
+      ** Nuevo
+      ACN(bq:Val(ba:1), COTIZACIONC(FBN['Especie'],,,,Dialogo.Fecha1-1,1,,Val(es:1)))
+      ** Nuevo
+      ACN(br:Val(ba:1), Val(z:9))
+   EndIf
+ELSE
+MessageBox('yyy')
+MessageBox(Val(VA:1))
+
+   If Not EqSTr(FBN['Especie'],Val(es:2))
+     MessageBox('Distinto '~FBN['Especie']~' '~Val(es:2))
+     *- El primer dia valuo a la cotizacion de la operacion, el resto al tipo de cambio de la tabla
+     SCN(va:1, FBN['Saldo']*IIF(Val(z:10)=Dialogo.Fecha1,Val(z:12),COTIZACIONC(FBN['Especie'],,,,Dialogo.Fecha1-1,1,,Val(es:2)))*Val(z:9)/100)
+*MessageBox(fbn('Saldo'))
+*MessageBox(Val(Z:12))
+*MessageBox(Val(Z:9))
+   Else
+     MessageBox('Igual '~FBN['Especie']~' '~Val(es:2))
+*     SCN(va1,Val(va1)+FBN['Saldo'])
+     SCN(va1, FBN['Saldo'])
+     *- Marco que tuvo saldo en moneda porque si no tuvo saldo en moneda vale el maximo y el minimo
+     ACN(mo:1,1)
+   EndIf
+   ** Nuevo
+   ACN(bp:Val(ba:1), Val(z:12))
+   ** Nuevo
+   ACN(bq:Val(ba:1), COTIZACIONC(FBN['Especie'],,,,Dialogo.Fecha1-1,1,,Val(es:2)))
+   ** Nuevo
+   ACN(br:Val(ba:1), Val(z:9))
+ENDIF
+   ** Nuevo
+   ACN(bt:Val(ba:1), Val(va:1))
+   ** Nuevo Linea ultimo saldo
+   ACN(bw:Val(ba:1), Val(dz:1))
+Proximo 
+
+*MessageBox('xxx')
+*MessageBox(Val(VA:1))
+
+*- Comparo las valuaciones de las reposiciones con el saldo al que hay que llegar
+*- Saldo de Garantia Entregada
+** Nuevo
+ACN(bb:Val(ba:1), Val(sa:1))
+** Nuevo
+ACN(bc:Val(ba:1), Val(va:1))
+acn(mr:1,         Val(sa:1)-Val(va:1))
+** Nuevo
+ACN(bd:Val(ba:1), Val(mr:1))
+
+if Val(cu:2)>0
+  ACN(cu:3, SQL("SELECT Cuotas2 FROM "~DBO~".OPERACIONES WHERE NrOperacion='"~Val(az:4)~"' ")+1)
+else
+  ACN(cu:3, 1)
+endif
+
+* Obtengo el minimo y maximo de OPSCALLSPUTS segun el numero de reposicion que haga
+SQL.ADD("SELECT NrOperacion as Referencia,  IntCorridosEj as SettDesde,  ImporteTotEj as SettHasta,")
+SQL.ADD("       VNCancelado as   Minimo,  ImpVNCancela as Maximo ")
+SQL.ADD("  FROM "~DBO~".OPSCALLSPUTS ")
+SQL.ADD(" WHERE NrOperacion='"~Val(az:4)~"' ")
+SQL.ADD("   and IntCorridosEj <= "~Fstr(Val(cu:3),0,0)~" ")
+SQL.ADD("   and ImporteTotEj  >= "~Fstr(Val(cu:3),0,0)~"  ")        
+Recorrer SQL   
+  dfa 
+  ACN(mi:1,FBN['Minimo'])
+  ACN(ma:1,FBN['Maximo'])
+Proximo
+
+*- Chequeo contro el % de Desvio para saber cuanto vario cada cotizacion
+*- de:1 = desvio sobre  la cotizacion de la primer entrega 
+*- re:1 = a reponer 1er. entrega
+ACN(de:1, (Abs(Val(va:1))/Val(sa:1)) -1)
+** Nuevo
+ACN(be:Val(ba:1), Val(de:1))
+ACN(re:2,0)
+
+*- h: Entregado/recibido 
+
+** ListBox Col 8 Variacion
+acn(e:Val(fb:1),   Val(y:Val(fb:1))-Val(va:1))
+MessageBox(Val(y:Val(fb:1)))
+MessageBox(Val(va:1))
+** Nuevo
+ACN(bf:Val(ba:1), Val(y:Val(fb:1)))
+** Nuevo
+ACN(bg:Val(ba:1), Val(va:1))
+** Nuevo
+ACN(bh:Val(ba:1), Val(e:Val(fb:1)))
+ACN(t:Val(fb:1),   FAC)
+
+If abs(Val(de:1))>=Val(z:8) 
+   message('1 '~ Val(e:Val(fb:1))~' '~Val(mi:1)~' '~Val(ma:1)~' '~Val(mo:1))
+   IF [Abs(Round2(Val(e:Val(fb:1)),0))>=Val(mi:1) y Abs(Round2(Val(e:Val(fb:1)),0))<= Val(ma:1)] o Val(mo:1)=1
+MessageBox('entra')
+      If Val(mu:1)=0
+         acn(mu:1,1)
+      EndIf
+      ACN(ga:2, Val(e:Val(fb:1)) Mod Val(mu:1) )
+      *- Garantia Entregada => Entrego mas que el multiplo
+      ACN(ga:1, ((Val(e:Val(fb:1)) Div Val(mu:1))+IIf(Val(e:Val(fb:1))>0 y Val(ga:2)>0,1,0))*Val(mu:1) )
+      If Val(ga:1)<>0
+         ACN(re:2,1)      
+      EndIf
+      *- Convierto el saldo a la especie de la garantia 
+      IF Not EqSTr(Val(es:1),Val(es:2)) y NO
+         message(Val(ga:1))
+         ACN(ga:1, Val(ga:1)*COTIZACIONC(Val(es:1),,,,Dialogo.Fecha1-1,1,,Val(es:2))/Val(z:9)*100)
+         message(Val(ga:1))
+      ENDIF
+      IF DesciendeDeEspecie(Val(es:2),'TITULO')
+         *- Redondeo a enteros
+         ACN(ga:1, Round2(Val(ga:1),0))
+      EndIf
+   EndIf
+EndIf
+
+** ListBox Col 14 Esp. reposicion
+act(f:Val(fb:1), Val(es:2))
+** ListBox Col 12 Repone
+acn(p:Val(fb:1), Val(re:2))
+** ListBox Col 13 A Reponer
+*acn(q:Val(fb:1), Val(ga:1))
+if Val(ga:1)<0
+  * Hay que recuperar
+  if Val(ga:1)>Val(ga:3)
+    acn(q:Val(fb:1), Val(ga:1))
+  else
+    acn(q:Val(fb:1), Val(ga:3))
+  endif
+else
+  * Hay que reponer
+  acn(q:Val(fb:1), Val(ga:1))
+endif
+** ListBox Col 9 Minimo
+acn(v:Val(fb:1), Val(mi:1))
+** ListBox Col 10 Maximo
+acn(w:Val(fb:1), Val(ma:1))
+** ListBox Col 11 Multiplo
+acn(x:Val(fb:1), Val(mu:1))
+
+SetFilaActual(Val(fb:1))
+
+If Val(fb:1)<=0
+  message(' No se encontraron Saldos a REPONER !!! ')
+Else 
+  *- Muestro todos los datos 
+  CrearListBox ; 'Arial ,8,'; '________________ G  A  R  A  N  T  I  A     O  R  I  G  I  N  A  L _______________________  E   N   T   R   E   G   A   S ' 
+     'Marca'           ; a1..a:fac;Not Eqstr(Val(c:flb),'////////////////////////');;;80;CHECK;RGB(232,255,215);
+     'Cliente'         ; c1..c:fac;NO;SI;'Error'; 50;STRING;;RGB(180,180,193)
+     'Operacion'       ; d1..d:fac;NO;SI;'Error'; 80;STRING;;RGB(180,180,193)
+     'Especie'         ; i1..i:fac;NO;SI;'Error'; 50;STRING;;RGB(180,180,193)
+     '%Desvio'         ; m1..m:fac;NO;SI;'Error'; 50;STRING;;RGB(180,180,193)
+     '%Aforo'          ; n1..n:fac;NO;SI;'Error'; 50;STRING;;RGB(180,180,193)
+     'Monto'           ; j1..j:fac;NO;SI;'Error'; 80;STRING;;RGB(180,180,193)
+     'Variacion'       ; e1..e:fac;NO;SI;'Error'; 100;NUMERO;'###,###,###,###.##';RGB(180,180,193)      
+
+     'Minimo'          ; v1..v:fac;NO;SI;'Error'; 100;NUMERO;'###,###,###,###.##';RGB(180,180,193)      
+     'Maximo'          ; w1..w:fac;NO;SI;'Error'; 100;NUMERO;'###,###,###,###.##';RGB(180,180,193)      
+     'Multiplo'        ; x1..x:fac;NO;SI;'Error'; 100;NUMERO;'###,###,###,###.##';RGB(180,180,193)      
+
+     'Repone'          ; p1..p:fac;NO;SI;'Error'; 40;COMBO;'No|Si|';RGB(220,220,193)
+     'A Reponer'       ; q1..q:fac;NO;SI;'Error'; 100;NUMERO;'###,###,###,###.##';RGB(180,180,193)      
+
+*-   'Ent/Rec'         ; h1..h:fac;NO;SI;'Error'; 100;NUMERO;'###,###,###,###.##';RGB(180,180,193)
+     'EspRepo'         ; f1..f:fac;NO;SI;'Error'; 50;STRING;;RGB(180,180,193)
+  FinListBox
+  IF Not Ok
+    Cancelar
+  ENDIF
+
+  Recorrer&i 1,fac
+    *acn(va1,&i)
+    *messagebox(Val(va1))
+    if Val(a:&i)=1 
+      *- Puede reponer de esa linea => Ubico las reglas de reposicion
+      *- Por cada variacion propongo las reglas
+         
+      *- aa: Repone ab: Fecha Movimiento  ac: Liquida Movimiento ad: Especie ae: Monto Entregado 
+      *- fi1: Fila hasta donde escribo  las posibilidades
+      ACN(fi1,0)
+
+      *- Recorro la seleccion desde &i hasta que tenga datos para esa garantia y propongo los valores a reponer
+      *- en la especie de la regla
+      SQL.ADD("SELECT Especie1 FROM "~DBO~".COMISIONES2 WHERE NrOperacion='"~Val(d:&i)~"' ORDER BY Tipo")
+      Recorrer SQL
+        dfa
+      Proximo
+          
+*      ACN(aa:Val(fi1),0)
+*      ACD(ab:Val(fi1),Fsys)
+*      ACN(ac:Val(fi1),1)
+*      ACT(ad:Val(fi1),Val(i:&i))
+*      ACN(ae:Val(fi1),Num(ReemplazarSTR(Val(k:&i),',','',SI)))
+
+      Recorrer&j &i,Val(t:&i)
+        *acn(va2,&j)
+        *messagebox(Val(va2))
+        If Val(q:&j)<>0
+          SCN(fi1,1)
+          ACN(aa:Val(fi1),1)
+          ACD(ab:Val(fi1),Fsys)
+          ACN(ac:Val(fi1),1)
+          ACT(ad:Val(fi1),Val(f:&j))
+          ACN(ae:Val(fi1),Val(q:&j))          
+        EndIf
+      Proximo
+
+      CrearDialogo
+        Cliente1     : "Cliente"      ;1;1;;NO;;;;;Val(c:&i)
+        NrOperacion1 : "Operacion"    ;2;1;;NO;;;;;Val(d:&i)
+        Especie1     : "Especie"      ;3;1;;NO;;;;;Val(i:&i)
+        Precio1      : "%Desvio"      ;1;2;;NO;;;;;Num(Val(m:&i))
+        Precio2      : "%Aforo"       ;2;2;;NO;;;;;Num(Val(n:&i))
+        String1      : "MontGaran"    ;4;1;;NO;;;;;Val(j:&i)
+        ListBox; 'Arial,8,N'; 460; 180
+          'Repone'        ;aa:1..aa:Val(fi1);;;;;70;CHECK
+          'Liquida'       ;ac:1..ac:Val(fi1);;;;;40;COMBO;'No|Si|'
+          'Fecha'         ;ab:1..ab:Val(fi1);;;;;60;FECHA
+          'Monto'         ;ae:1..ae:Val(fi1);;;;;100;NUMERO;'##,###,###,###.##'
+          'Especie'       ;ad:1..ad:Val(fi1);;;;;80;TABLA ; 'Especies';'Codigo';'Codigo;Nombre'
+        FinListBox  
+      FinDialogo
+      IF Not OK
+        Cancelar
+      EndIf            
+
+      if Val(z:1)=1
+        *- CU1: Cantidad de cuotas
+        ACN(cu:1,SQL("SELECT Cuotas2 FROM "~DBO~".OPERACIONES WHERE NrOperacion='"~Dialogo.NrOperacion1~"' "))
+        Recorrer&k 1,Val(fi1)
+          If Val(aa:&k)=1
+            *- CU1: Cantidad de cuotas
+            SCN(cu:1,1)
+            SQL.ADD("INSERT INTO "~DBO~".CUOTAS ")
+            SQL.ADD("(NrOperacion,NrCuota,Fecha1,Especie1,Cantidad1,Radio2) Values ")
+            SQL.ADD("('"~Dialogo.NrOperacion1~"',"~Fstr(Val(cu:1),0,0)~","~IdxDate2(Val(ab:&k))~",'"~Val(ad:&k)~"',"~Fstr(Val(ae:&k),0,2)~","~Fstr(Val(ac:&k),0,0)~")")
+            SQL.NEW
+            SQL.EXEC
+          EndIf
+        Proximo
+
+        SQL.ADD("UPDATE "~DBO~".OPERACIONES SET Cuotas2="~Fstr(Val(cu:1),0,0)~" WHERE ")
+        SQL.ADD("NrOperacion='"~Dialogo.NrOperacion1~"' ")
+        SQL.NEW
+        SQL.EXEC
+
+        SQL.ActualizarMovimientos(Dialogo.NrOperacion1,SI)
+        SQL.EXEC
+      EndIf
+    EndIf
+  Proximo
+EndIf

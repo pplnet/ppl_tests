@@ -1,0 +1,6 @@
+﻿RelacionCuenta('','','','',
+                #TIPOOP,
+                fbn('Cotiza'),
+                '',
+                '',
+                Modelo.Alias1)

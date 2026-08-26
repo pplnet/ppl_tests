@@ -1,0 +1,8 @@
+﻿SetFilaActual(3)
+SQL.ADD(" SELECT Distinct Vehiculo1 FROM "~dbo~".OPERACIONES ")
+SQL.ADD(" where Vehiculo1 > 'A'  ")
+Recorrer SQL
+     ACT(VL:fac,fbn('Vehiculo1'))
+     ACT(t:fac,GetNumerador(BuscarCampo('VEHICULOS','Alias3','Codigo',Val(VL:fac))))
+Proximo
+MessageBox('Evento Fin Correcto')

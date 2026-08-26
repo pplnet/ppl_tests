@@ -1,0 +1,8 @@
+﻿RelacionCuenta('','','','',
+                #TIPOOP,
+                #MONEDA,
+                '',
+                '',
+                Modelo.TablaRc,
+                0,'','','','','','','',
+                #VEHICULO)

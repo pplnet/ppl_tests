@@ -1,0 +1,24 @@
+﻿MostrarCuadrodeMensajes
+CrearDialogo
+  String1 : 'Archivo'     ; ; ;;  ;  ;;;;'G:\Corporate\BFSA\Instalacion Inicial\Contabilidad\Correcion CONTAB BFSA.xlsx'
+FinDialogo
+
+If Not OK
+   Cancelar
+EndIf
+
+ImportarXLS(A:2..B:10000,A:2..B:10000,Dialogo.String1)
+
+If Vacio(val(A:2))
+   Cancelar('No se ha podido recuperar el archivo:'~Dialogo.String1)
+EndIf
+
+Recorrer&i 2,10000
+
+    If  NoVacio(Val(A:&i))           
+    SQL.ADD("UPDATE "~DBO~".CONTABILIDAD Set Nombre = '"~Val(B:&i)~"' ")
+           SQL.ADD("Where Codigo = '"~FStr(Val(A:&i),0,0)~"' And Nombre like '%Cuenta Bancaria%' ")
+           SQL.NEW
+           SQL.EXEC
+    Endif
+Proximo

@@ -1,0 +1,72 @@
+﻿CrearDialogo
+   NrOperacion1 : 'Operacion ON';;;;;;NoVacio(Dialogo.NrOperacion1);'Debe ingresar un numero de Op.';NO
+   NrOperacion2 : 'Operacion SECS';;;;;;NoVacio(Dialogo.NrOperacion1);'Debe ingresar un numero de Op.';NO
+   Radio1       : 'Accion SECS|Alta|Modif|Baja|Otro|';;;;;;
+FinDialogo
+
+If Not Ok
+   Cancelar
+Endif
+
+
+****SECS = ALTA, ON = OK, todo OK
+****SECS = ALTA, ON= Cancel, Warning "Se va a eliminar la SECS XXXX, esta de acuerdo?". Si confirma eliminamos SECS y grabamos excepcion en ON, sino edito ON.
+****SECS = Edicion, ON = OK, todo ok
+****SECS = Edicion, ON = Cancel, la ON no fue modificada, confirma?  SI,grabar excepcion en , NO volver a llamar al modificar a ModificarOp, si es de nuevo NO, excepcion (despues vemos mensaje)
+****SECS = Delete, IDEM edicion.
+
+****Excepcion: "ONERROR" "On no modificada luego de modificar/eliminar la SECS"  
+    
+recorrer&i 1,2
+    messagebox("Se modificará la minuta de la ON "~Dialogo.NrOperacion1,0,0)
+    ModificarOperacion(Dialogo.NrOperacion1,0,NO,SI,SI,NO,SI,NO,NO,SI,SI,SI,SI,NO,NO,NO,NO,NO,SI,NO,SI,NO,NO,NO,SI,0)
+    If Not Ok
+        If Dialogo.Radio1=0
+            ****SECS = ALTA
+            If messagebox("La ON no fue modificada por lo que se va a eliminar la SECS "~Dialogo.NrOperacion2~", Desea modificar la ON?",3,2) = 7
+                SQL.ADD(" Insert into "~DBO~".EXCEPCIONES ")
+                SQL.ADD(" (NrOperacion, Fecha, Tipo, Descripcion) Values ")
+                SQL.ADD(" ('"~Dialogo.NrOperacion1~"', '"~IdxDate(FSYS)~"','ONERROR','Se ingresó la SECS "~Dialogo.NrOperacion2~" y fue eliminada porque no se modifico la ON') ")
+                SQL.NEW
+                SQL.ADD("Delete "~DBO~".OPERACIONES where NrOperacion = '"~Dialogo.NrOperacion2~"'")
+                SQL.NEW
+                SQL.EXEC
+                Break
+            EndIf
+        Else
+            ****SECS = Modif y Elim
+            If messagebox('La emision de la ON no fue modificada, confirma?',3,2) = 6
+                If Dialogo.Radio1=1
+                    let &mensajeExcep "On "~Dialogo.NrOperacion1~" no modificada luego de modificar la SECS "~Dialogo.NrOperacion2~""
+                Else
+                    let &mensajeExcep "On "~Dialogo.NrOperacion1~" no modificada luego de eliminar la SECS "~Dialogo.NrOperacion2~""
+                EndIf
+                SQL.ADD(" Insert into "~DBO~".EXCEPCIONES ")
+                SQL.ADD(" (NrOperacion, Fecha, Tipo, Descripcion) Values ")
+                SQL.ADD(" ('"~Dialogo.NrOperacion1~"', '"~IdxDate(FSYS)~"','ONERROR','"~&mensajeExcep~"') ")
+                SQL.NEW
+                If Dialogo.Radio1=1
+                    ****Si modifico la SECS tengo que guardar la excepcion en esa op tambien.
+                    SQL.ADD(" Insert into "~DBO~".EXCEPCIONES ")
+                    SQL.ADD(" (NrOperacion, Fecha, Tipo, Descripcion) Values ")
+                    SQL.ADD(" ('"~Dialogo.NrOperacion2~"', '"~IdxDate(FSYS)~"','ONERROR','"~&mensajeExcep~"') ")
+                    SQL.NEW
+                EndIf
+                SQL.EXEC
+                Break
+            EndIf
+        ENDIF
+        ***Si no se modificó la ON, se debe eliminar la SECS
+    Else
+         SQL.ADD("Update "~DBO~".OPERACIONESBITS set Valor='0' where NrOperacion = '"~Dialogo.NrOperacion1~"' ")
+         SQL.NEW
+         SQL.ADD("Update "~DBO~".OPERACIONESBITS set Valor='1' where NrOperacion = '"~Dialogo.NrOperacion1~"' and NrBit=11 ")
+         SQL.NEW
+         SQL.ADD(" Insert into "~DBO~".EXCEPCIONES ")
+         SQL.ADD(" (NrOperacion, Fecha, Tipo, Descripcion) Values ")
+         SQL.ADD(" ('"~Dialogo.NrOperacion1~"', '"~IdxDate(FSYS)~"','MODON','"~BuscarCampo('EVENTOS','Nombre','Codigo','MODON')~" "~Hora(Ahora)~"') ")
+         SQL.NEW
+         SQL.EXEC
+        Break
+    Endif
+proximo

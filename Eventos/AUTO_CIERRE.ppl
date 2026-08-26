@@ -1,0 +1,1 @@
+﻿ExecuteEvento('CIERRE',SI,Fecha1 = Fsys)

@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ScriptHeader xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <CodFpa>CONTR</CodFpa>
+  <Type>ABM</Type>
+  <Nombre>Contratos</Nombre>
+  <Habilitado xsi:nil="true" />
+  <Tipo />
+  <Orden>166</Orden>
+  <Menu>166</Menu>
+  <Acceso>CTT</Acceso>
+</ScriptHeader>

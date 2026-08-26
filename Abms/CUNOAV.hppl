@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ScriptHeader xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <CodFpa>CUNOAV</CodFpa>
+  <Type>ABM</Type>
+  <Nombre>Cupos No Garantizados</Nombre>
+  <Habilitado xsi:nil="true" />
+  <Tipo>DTODOC</Tipo>
+  <Orden>297</Orden>
+  <Menu>297</Menu>
+  <Acceso>CNA</Acceso>
+</ScriptHeader>

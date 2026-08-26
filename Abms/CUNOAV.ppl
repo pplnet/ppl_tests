@@ -1,0 +1,119 @@
+﻿#*********************************************************************************
+#combos data sources.
+set fsys = db.get_scalar("SELECT convert(datetime, Valor, 103) from "+Dbo+".VARIABLES where Codigo='FECHASYS' ") 
+# Instancio ExtendedPPL
+set xppl = $.NewExtendedPPL()
+#*********************************************************************************
+def abm 'DDCUPOSNOAVALADOS'
+   def grid
+   Vehiculo:, Book:,EmisorNombre: as 'Emisor',CUITEmisor: as 'CUIT Emisor',CupoFCE: as 'Cupo FCE',
+   CupoCPD: as 'Cupo CPD', CupoNC: as 'Cupo NC',CupoTotal: as 'Cupo Total',FechaVigencia: as 'Fecha Vigencia'
+   end
+   def key
+   FechaVigencia:,CUITEmisor:, Vehiculo:, Book:
+   end
+   def dialog
+       #**************************************************************************
+       tab 'General'
+          column
+                Vehiculo:           ,                    , autocomplete,'VEHICULOS' ,'Codigo,Descripcion'
+                Book:               ,                    , autocomplete,'BOOKS'     ,'Codigo,Descripcion'
+                Moneda:             ,                    , autocomplete,'ESPECIES'  ,'Codigo,Nombre',," Tipo='MON'"
+                EmisorNombre:       , 'Nombre Emisor'    , large_text
+                CUITEmisor:         , 'Cuit Emisor'      , large_text
+                NroActividad:       , 'Nro Actividad'    , small_text
+                Actividad:          , 'Actividad'        , large_text
+                Score:              , 'Score'            , numeric     ,'#########0'
+                CDA:                , 'CDA '             , small_text
+                MoraFAE:            , 'Mora FAE'         , large_text
+            column
+                PedidoAmpliacion:   , 'Pedido Ampliacion', small_text
+                CupoFCE:            , 'Cupo FCE'         , numeric     ,'#########0'
+                CupoCPD:            , 'Cupo CPD'         , numeric     ,'#########0'
+                CupoPagare:         , 'Cupo Pagare'      , numeric     ,'#########0'
+                CupoNC:             , 'Cupo NC'          , numeric     ,'#########0'
+                CupoTotal:          , 'Cupo Total'       , numeric     ,'#########0'
+                FechaVigencia:      , 'FechaVigencia'    , date
+                UltimaFecha:        , 'Ultima fecha: '    , date
+                FechaCargaSys:      , 'FechaCargaSys'    , datetime
+                Operador:           ,                    , small_text
+   end
+   #------------------------------------------------------------------------
+   before_show_create_dialog: do
+   #set ultimafecha = db.get_scalar("Select MAX(FechaVigencia) From "+Dbo+".DDCUPOSNOAVALADOS")
+     If $.Alta()
+        $.set_field(Moneda:, ppl.Var('MONELOCA'))
+        $.set_field(Operador:, ppl.UsuarioActivo)
+        $.set_field(FechaVigencia:, ppl.Hoy)
+        $.set_field(FechaCargaSys:, ppl.Ahora)
+        $.disable UltimaFecha:
+     Endif
+   end
+  
+   #hide: FechaVigencia:
+   hide: FechaCargaSys:
+   hide: Operador:
+   
+   #------------------------------------------------------------------------
+   #Validaciones
+   validates_max_length_of:
+   EmisorNombre:, 100,true
+   
+   validates_uniqueness_of_set: FechaVigencia:,CUITEmisor:, Vehiculo:, Book:
+   
+   before_save: do
+       If Not $.val CUITEmisor: = null
+           if Not xppl.ValidaCuit($.val(CUITEmisor:))
+               $.Alert('CUIT invalido ')
+               false
+           else
+               true
+           endif
+       else
+           true
+       endif        
+   end
+   
+   #------------------------------------------------------------------------
+   #Cálculo de FechaVigencia
+   
+   do_not_map: UltimaFecha:
+    
+   when_change: CUITEmisor:, 
+        set ultimafecha = db.get_scalar("Select MAX(FechaVigencia) From "+Dbo+".DDCUPOSNOAVALADOS WHERE CUITEmisor =  '"+$.val(CUITEmisor:)+"'AND Vehiculo =  '"+$.val(Vehiculo:)+"'AND Book =  '"+$.val(Book:)+"'")   
+   when_change: CUITEmisor:, 
+        $.set_field UltimaFecha:, $.val(ultimafecha)
+    
+   when_change: Vehiculo:, 
+        set ultimafecha = db.get_scalar("Select MAX(FechaVigencia) From "+Dbo+".DDCUPOSNOAVALADOS WHERE CUITEmisor =  '"+$.val(CUITEmisor:)+"'AND Vehiculo =  '"+$.val(Vehiculo:)+"'AND Book =  '"+$.val(Book:)+"'")   
+   when_change: Vehiculo:, 
+        $.set_field UltimaFecha:, $.val(ultimafecha)
+    
+   when_change: Book:, 
+        set ultimafecha = db.get_scalar("Select MAX(FechaVigencia) From "+Dbo+".DDCUPOSNOAVALADOS WHERE CUITEmisor =  '"+$.val(CUITEmisor:)+"'AND Vehiculo =  '"+$.val(Vehiculo:)+"'AND Book =  '"+$.val(Book:)+"'")   
+   when_change: Book:, 
+        $.set_field UltimaFecha:, $.val(ultimafecha)
+   
+   #validación FechaVigencia deba ser mayor que ultima fecha
+   validations:
+   FechaVigencia:,$.val(ultimafecha) < $.val(FechaVigencia:),'La Fecha Vigencia debe ser mayor a la última fecha registrada para el CUIT, Vehiculo y Book seleccionados','messagebox';
+   
+   #-------------------------------------------------------------------------
+   #Bloquea la modificación de registros
+      before_show_dialog: do 
+        if $.Modificacion()
+            # Se muestra solo en la modificacion
+            ppl.MessageBox('No se pueden realizar modificaciones')
+            $.disable 
+                 Vehiculo:,Book:,Moneda:,EmisorNombre:,CUITEmisor:,NroActividad:,Actividad:,Score:,
+                 CDA:,MoraFAE:,PedidoAmpliacion:,CupoFCE:,CupoCPD:,CupoPagare:,CupoNC:,CupoTotal:,FechaVigencia:,
+                 FechaCargaSys:,Operador:,UltimaFecha:
+        else
+            $.enable 
+                Vehiculo:,Book:,Moneda:,EmisorNombre:,CUITEmisor:,NroActividad:,Actividad:,Score:,
+                CDA:,MoraFAE:,PedidoAmpliacion:,CupoFCE:,CupoCPD:,CupoPagare:,CupoNC:,CupoTotal:,FechaVigencia:,
+                FechaCargaSys:,Operador:,UltimaFecha:
+        Endif
+    end
+   
+end   

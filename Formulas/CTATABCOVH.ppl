@@ -1,0 +1,8 @@
+﻿RelacionCuenta('','','','',
+                '',
+                #COTIZA,
+                '',
+                '',
+                Modelo.Alias1,
+                0,'','','','','','','',
+                #VEHICULO)

@@ -1,0 +1,20 @@
+﻿CAMPOS:1;;BuscarCampo('VEHICULOS','Alias1','Codigo',Vehiculo1)
+FechaOp2       : 'Fecha Conc.'            ;1;1;;VERIFICAACCESO('OPFVALOR');;FECHAOP2<=FECHAOP;'LA FECHA DE CONCERTACION DEBE SER <= A LA FECHA DE ORIGEN';NO;FSYS;
+FechaOp        : 'Fecha_Origen'           ;2;1;;NOT EV y VERIFICAACCESO('OPFVALOR');;ESHABIL(FECHAOP,TABLAFERIADOS1);'La Fecha de Origen no es Habil en la Tabla de Feriados Seleccionada';;FSYS;
+RB10           : 'Precancelable|Si|No'    ;;;;;NO;RB10>=0;'Precancelable Si/No';NO;1; 
+@VEHITO
+OperacionRef   : 'Id_Partida'             ;3;2;;NOT EV;;VACIO(OPERACIONREF) O [EqStr(BuscarCampo('Operaciones','TipoOp','NrOperacion',OPERACIONREF),'MMP')];'El Codigo de Id. Partida es Incorrecto';NO;;;;
+Plazo          : 'Plazo'                  ;;;;OPREF.RB6<>1;;PLAZO>0;'Debe INGRESAR el PLAZO';NO;0;IF(NoVacio(OPERACIONREF),IF(OPREF.RB6=0,OPREF.CUOTAS1*OPREF.PLAZO2,FECHAVTO-FECHAOP),FECHAVTO-FECHAOP)
+FechaVto       : 'Vto_Monto'              ;;;;OPREF.RB6<>1;;;;;FECHAOP+PLAZO;IF(OPREF.RB6=1,OPREF.FECHAVTO2,IF(INCLUIDO(CAMPOMODIFICADO,'PLAZO|FECHAOP'),FECHAOP+PLAZO,FECHAVTO))
+Cuotas1        : 'Nr_Periodos'            ;;;;VACIO(OPERACIONREF) O OPREF.RB6<0;;CUOTAS1>=1;'Debe INGRESAR la Cantidad DE PERIODOS';NO;;OPREF.CUOTAS1-IF(CUOTAS2>0,CUOTAS2-1,0);
+
+
+LISTA:SI;IF(ESINICIO,2,CUOTAS1+CUOTAS2-CUOTAS2+OPREF.RB6-OPREF.RB6);
+  Fecha1     : 'F.Origen'       ;;;SI O [ESHABIL(CUOTASL.FECHA1[Fila],TABLAFERIADOS1) Y ESHABIL(CUOTASL.FECHA1[Fila],'ARG')];'La Fecha Origen de la Cuota '~Fstr(Fila, 0, 0)~' NO ES HABIL';IF(Fila=1,FECHAOP,CUOTASL.FECHA2[Fila-1]);IF(Fila=1,FECHAOP,CUOTASL.FECHA2[Fila-1]);90;;Fecha;NO;NO;;;;;;
+  Fecha2     : 'F.Vto'          ;;;  ;   ;IF(VACIO(OPERACIONREF) O OPREF.RB6<=0,IF(Fila=CUOTAS1,FECHAVTO,CUOTASL.FECHA1[Fila]+CUOTASL.PLAZO1[Fila]),QUERY("SELECT Fecha2 FROM "~DBO~".CUOTAS Where NrOperacion='"~OPERACIONREF~"' and NrCuota="~Fstr(Fila+CUOTAS2-1,0,0)~" "));IF(VACIO(OPERACIONREF) O OPREF.RB6<=0,IF(Fila=CUOTAS1,FECHAVTO,CUOTASL.FECHA1[Fila]+CUOTASL.PLAZO1[Fila]),QUERY("SELECT Fecha2 FROM "~DBO~".CUOTAS Where NrOperacion='"~OPERACIONREF~"' and NrCuota="~Fstr(Fila+CUOTAS2-1,0,0)~" "));90;;Fecha;NO;NO;;;;;;
+  Plazo1     : 'Plazo'          ;;;CUOTASL.PLAZO1[Fila]>0;'El Plazo DEBE SER POSITIVO';IF(NOVACIO(OPERACIONREF) Y OPREF.RB6=0,IF(Fila<OPREF.CUOTAS1,OPREF.PLAZO2,PLAZO-(OPREF.PLAZO2*(OPREF.CUOTAS1-1))),IF(VACIO(OPERACIONREF) O OPREF.RB6<0,IF(Fila=CUOTAS1 Y (PLAZO MOD CUOTAS1)<>0,(PLAZO DIV CUOTAS1)+(PLAZO MOD CUOTAS1),(PLAZO DIV CUOTAS1)),CUOTASL.FECHA2[Fila]-CUOTASL.FECHA1[Fila]));CUOTASL.FECHA2[Fila]-CUOTASL.FECHA1[Fila];60;;Numero;'####';NO;NO;'5;4'
+  
+
+CONDICIONES
+SUM(CUOTASL,3)=PLAZO;'La Sumatoria de Plazos de los Periodos debe ser igual al Plazo Total de la OperaciOn';NO
+  

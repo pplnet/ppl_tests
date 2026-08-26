@@ -1,0 +1,161 @@
+﻿CrearDialogo
+    Vehiculo1:   'Vehiculo: '         ;1;1;1;SI;SI;NoVacio(Dialogo.Vehiculo1);'Debe ingresar un Vehiculo';NO;Var('DDVEHDEF')
+    Book1:       'Book: '             ;2;1;1;SI;SI;EqStr(Dialogo.Vehiculo1,BuscarCampo('BOOKS','Vehiculo','Codigo',Dialogo.Book1));'El book ingresado no corresponde al Vehiculo';NO;Var('BOOKDDCHE');BuscarCampo('VEHICULOS','Alias5','Codigo',Dialogo.Vehiculo1);;;;" Vehiculo = '"~Dialogo.Vehiculo1~"'"
+    Radio1       : 'Accion:|Aprueba|Rechaza' ;3;1;1;SI;SI;Dialogo.Radio1>-1;'Debe seleccionar una acción';NO;
+    Fecha1       : "Fecha Aprobacion" ;;;;;;Dialogo.Fecha1<>0;'Debe Ingresar la Fecha';NO;FSys
+FinDialogo
+
+If Not OK
+   Cancelar
+Endif   
+
+SQL.ADD(" Select O.NrOperacion, O.TipoOp, O.Cliente1,O.Cliente2,O.Cliente3, O.FechaOp, O.FechaVto,")
+SQL.ADD(" O.FechaVto2, O.Especie, O.Cantidad, O.TotalImpuesto1,")
+SQL.ADD(" O.ImpComMer1, ImpGastos1,O.TotalIntereses, O.TotalBrutoCli1,")
+SQL.ADD(" O.Precio1, O.TipoDoc, O.NrOperacion2, O.CB1, O.ObservacDoc ")
+SQL.ADD(" From "~DBO~".OPERACIONES O, "~DBO~".OPERACIONESBITS OB ")
+SQL.ADD(" WHERE O.NrOperacion = OB.NrOperacion")
+SQL.ADD(" AND OB.NrBit='18'")
+SQL.ADD(" AND OB.Valor='1'")
+SQL.ADD(" AND O.Vehiculo1 = '"~Dialogo.Vehiculo1~"' ")
+SQL.ADD(" AND O.Book1 = '"~Dialogo.Book1~"' ")
+SQL.ADD(" AND O.FechaOp = '"~IdxDate(Dialogo.Fecha1)~"' ")
+
+let &flagMensaje 1
+
+Recorrer SQL
+    let &flagMensaje 0
+    ACT(A:fac, fbn('NrOperacion'))
+    ACT(B:fac, fbn('TipoOp'))
+    IF EqStr(Val(B:FAC),'DDC')
+        ACT(B:FAC, 'Compra')
+    ELSE
+        ACT(B:FAC, 'Venta')
+    EndIF 
+    ACT(C:fac, fbn('Cliente1'))
+    ACT(D:fac, fbn('Cliente2'))
+    ACT(E:fac, fbn('Cliente3')) 
+    ACT(F:fac,Fecha(fbn('FechaOp'),'dd/mm/yy'))
+    ACT(G:fac, Fecha(fbn('FechaVto'),'dd/mm/yy'))
+    ACT(H:fac, Fecha(fbn('FechaVto2'),'dd/mm/yy'))
+    ACT(I:fac, fbn('Especie'))
+    ACN(J:fac, fbn('Cantidad'))
+    ACN(K:fac, fbn('TotalImpuesto1'))
+    ACN(L:fac, fbn('ImpComMer1')+fbn('ImpGastos1'))
+    ACN(M:fac, fbn('TotalIntereses'))
+    ACN(N:fac, fbn('TotalBrutoCli1'))
+    ACN(O:fac, fbn('Precio1'))
+    ACT(P:fac, fbn('TipoDoc'))
+    ACT(Q:fac, fbn('NrOperacion2'))
+    ACT(R:fac, fbn('CB1'))
+    IF EqStr(Val(R:FAC),'1')
+        ACT(R:FAC, 'SI')
+    ELSE
+        ACT(R:FAC, 'NO')
+    EndIF 
+    ACT(S:fac, fbn('ObservacDoc'))
+    let &subtotalCapital &subtotalCapital+Val(J:FAC)
+    let &subtotalImpuestos &subtotalImpuestos+Val(K:FAC)
+    let &subtotalGastos &subtotalGastos+Val(L:FAC)
+
+Proximo
+***Fila Totales***
+    SetFilaActual FAC+1
+    ACT(J:fac, '')
+    ACT(K:fac, '')
+    ACT(L:fac, '')
+    ACT(M:fac, '')
+    ACT(N:fac, '')
+    ACT(O:fac, '')
+    ifa
+    ACT(A:fac, 'Total Debitado: ')
+    ACN(B:fac, &subtotalCapital+&subtotalImpuestos+&subtotalGastos)
+    ACN(J:fac, &subtotalCapital)
+    ACN(K:fac, &subtotalImpuestos)
+    ACN(L:fac, &subtotalGastos)
+    *ColorCeldas(a:fac..L:fac, 6)
+*    FormatoCeldas(B:fac..B:fac,)
+
+If &flagMensaje=1
+    Cancelar('No hay operaciones para aprobar para el vehiculo '~Dialogo.Vehiculo1~' y Book '~Dialogo.Book1 )
+Endif
+
+
+CrearListBox;'Arial,8,B';'Aprobacion de operaciones DTO DOC del vehiculo '~Dialogo.Vehiculo1~' y Book '~Dialogo.Book1
+    'Operación'                  ; a1..a:fac; NO; NO;;100;STRING
+    'TipoOp'                     ; b1..b:fac; NO; NO;;80;NUMERO;'###,###,###,###.##'
+    'Entidad'                    ; c1..c:fac; NO; NO;;80;STRING 
+    'ContraParte'                ; d1..d:fac; NO; NO;;80;STRING 
+    'Banco Emisor'               ; e1..e:fac; NO; NO;;80;STRING 
+    'F.Concertacion'             ; f1..f:fac; NO; NO;;100;STRING
+    'FechaVto'                   ; g1..g:fac; NO; NO;;100;STRING
+    'F.Acreditacion'             ; h1..h:fac; NO; NO;;100;STRING
+    'Moneda'                     ; i1..i:fac; NO; NO;;60;STRING 
+    'Capital'                    ; j1..j:fac; NO; NO;;120;NUMERO;'###,###,###,###.##'
+    'Impuestos'                  ; k1..k:fac; NO; NO;;120;NUMERO;'###,###,###,###.##'
+    'Gastos'                     ; l1..l:fac; NO; NO;;120;NUMERO;'###,###,###,###.##'
+    'Descuento'                  ; m1..m:fac; NO; NO;;120;NUMERO;'###,###,###,###.##'
+    'Monto del Cheque'           ; n1..n:fac; NO; NO;;120;NUMERO;'###,###,###,###.##'
+    'Tasa'                       ; o1..o:fac; NO; NO;;100;NUMERO;'###.########' 
+    'Instrumento'                ; p1..p:fac; NO; NO;;80;STRING
+    'Subasta'                    ; q1..q:fac; NO; NO;;80;STRING
+    'Avalado'                    ; r1..r:fac; SI; SI;;60;STRING;
+    'ID Cheque'                  ; s1..s:fac; NO; NO;;120;STRING
+FinListBox
+
+If Not OK
+   Cancelar
+Else
+    SetFilaActual FAC-1
+    
+    If Dialogo.Radio1 = 0 
+    **Se aprueban los cheques
+        let &aprobarCheques MessageBox('Se aprobaran los cheques. Esta seguro?',3,2)
+        If &aprobarCheques=6
+            Recorrer&i 1,FAC
+                *Actualizo Instancias
+                SQL.ADD(" UPDATE "~DBO~".OPERACIONESBITS ")
+                SQL.ADD(" SET Valor = '1' ")
+                SQL.ADD(" Where NrBit = '50'")
+                SQL.ADD(" AND NrOperacion = '"~Val(A:&i)~"' ")
+                SQL.NEW
+
+                SQL.ADD(" UPDATE "~DBO~".OPERACIONESBITS ")
+                SQL.ADD(" SET Valor = '0' ")
+                SQL.ADD(" Where NrBit = '18'")
+                SQL.ADD(" AND NrOperacion = '"~Val(A:&i)~"' ")
+                SQL.NEW
+            Proximo
+            SQL.EXEC
+            Recorrer&j 1,FAC
+                *hacer un update a cada una de las operaciones que se aprueban, cambiar CB6 = 1 en la tabla de OPERACIONES
+                SQL.ADD(" UPDATE "~DBO~".OPERACIONES ")
+                SQL.ADD(" SET CB6 = 1, ")
+                SQL.ADD(" Fecha1 = '"~IdxDate(FSYS)~"' ")
+                SQL.ADD(" Where NrOperacion = '"~Val(A:&j)~"' ")
+                SQL.NEW
+            Proximo
+            SQL.EXEC
+            Recorrer&k 1,FAC
+                *actualizar movimiento de las secciones movimientos y de la sección límites.
+                SQL.ActualizarMovimientos2(Val(A:&k),SI,SI,NO,NO)  
+                SQL.EXEC
+            Proximo
+        Else
+            MessageBox('Evento cancelado. No se procesaron los cheques')
+        Endif    
+    Else
+        let &eliminarCheques MessageBox('Se van a eliminar todos los cheques pendientes de Aprobación. Está seguro?',3,2)
+        If &eliminarCheques=6
+            *Query eliminar cheques
+            Recorrer&i 1,FAC
+                SQL.ADD("DELETE FROM "~DBO~".OPERACIONES")
+                SQL.ADD("WHERE NrOperacion = '"~Val(A:&i)~"'")
+                SQL.NEW
+                SQL.EXEC
+            Proximo
+        Else
+            MessageBox('Evento cancelado. No se procesaron los cheques')
+        Endif
+    Endif
+Endif

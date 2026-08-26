@@ -1,0 +1,159 @@
+﻿*MINUTA
+*CODIGO: FCS
+*NOMBRE: Suscripcion Fondo Comun
+
+*V1   25/11/02 JD    -Se cambia la condicion de WHERE del campo de clientes para que traiga solo los clientes que pertenecen
+*                     al equipo del cual el usuario es miembro (Solo para TEAM1,TEAM2 y TEAM3).
+*                     Version Anterior de la linea: Cliente1      : 'Cliente'       ; ; ; ;  ;  ;NOVACIO(CLIENTE1);'Debe ingresar un Cliente Valido ';NO;;IF(MODI,CLIENTE1,OPREF.CLIENTE1);;Var('LC'~UsuarioActivo);;;;"(Alias10 in ("~VAR(USUARIOACTIVO)~") or (0 in (select count(*) from sam.variables where codigo = '"~USUARIOACTIVO~"') and Alias10 <> 'BP')) and Status ='HAB' and Jerarquia not like '015%'"
+*V2   18/03/04    JD    -Se agrega la llamada al evento que envia la confirmacion por fax y e-mail.
+ 
+CAMPOS:2;;10           
+FechaOp       : 'Fecha Op.'               ;3  ;2;1;VerificaAcceso('OPFVALOR');;FechaOp <= FSys y FechaOp >= Habiles(FSys,-4,'ARG') Y ESHABIL(FECHAOP,'ARG') Y Mes(FECHAOP)=Mes(FSYS);'Fecha incorrecta';NO;FSYS;   
+Especie       : 'Fondo'                   ;1  ;1; ;  ;  ;NOVACIO(ESPECIE)  ;IF(VACIO(ESPECIE),"Debe ingresar un fondo","FONDO NO HABILITADO");NO;;;;"BR10|BR106|BR01|F073|11103|";;;;"Tipo = 'FON'"      
+ContraEspecie : 'Moneda'                  ;2  ;1 ; ;NOT Eqstr(CotizaEn(ESPECIE),'ARP');NOVACIO(CONTRAESPECIE)  Y Incluido(CONTRAESPECIE,'ARP');;;;;CotizaEn(ESPECIE);;'USD|USB|';NO           
+Cliente1      : 'Cliente'                 ;3  ;1 ; ;  ;  ;NOVACIO(CLIENTE1);'Debe ingresar un Cliente Valido ';NO;;IF(MODI,CLIENTE1,OPREF.CLIENTE1);;Var('LC'~UsuarioActivo);;;;"Status = 'HAB'"~IF(QUERY("SELECT COUNT(*) FROM USUARIOS WHERE Codigo = '"~USUARIOACTIVO~"' AND Alias1 IN ('TEAM1','TEAM2','TEAM3')")=0," AND Jerarquia not like '015%'"," AND '"~BuscarCampo('USUARIOS','Alias1','Codigo',USUARIOACTIVO)~"' IN (Select Alias1 from "~DBO~".USUARIOS where codigo=RESPONSABLE)")          
+MB3           : '|Efectivo|CuotasParte|'  ;4 ;2;1;  ;  ;;;;0; 
+TotalBrutoCli1: 'Efectivo'                ;4 ;1; ;MB3=0;  ;TOTALBRUTOCLI1>0;'El Valor Efectivo debre ser positiv';SI;;IF(EqStr(CampoModificado,'CANTIDAD'),CANTIDAD*Cotizacion(ESPECIE,,,,FECHAOP,1),TOTALBRUTOCLI1)                   
+Cantidad      : 'CuotasParte'             ;5  ;1 ; ;MB3=1;  ;CANTIDAD>0;'La Cantidad de CuotasParte debe ser positiva';SI;;IF(EqStr(CampoModificado,'TOTALBRUTOCLI1'),TOTALBRUTOCLI1*(1/Cotizacion(ESPECIE,,,,FECHAOP,1)),CANTIDAD);;;;;'###,###,###.####'    
+FechaVto      : 'Fecha Vto.'              ;4 ;2;1;NO;NO;ESHABIL(FECHAVTO,'ARG') ;'No es un dia habil';SI;;FECHAOP;          
+Operador      : 'Gestor'                  ;6 ;1; ;NO;  ;NoVacio(OPERADOR);'El Gestor no puede estar vacio';NO;;IF(INSTANCIA=3,Query("Select Responsable from "~DBO~".CLIENTES where Codigo ='"~CLIENTE1~"'"),USUARIOACTIVO);           
+Book1         : 'Book' 
+Vehiculo1     : 'Vehiculo'                ;7;1;;;;;;;'RIO';                
+CB8           : 'Op de Camb'              ;8;1;;SI;SI;;;;0 
+RB7           : 'Mercado|Oficial|Libre'   ;9;1;1;CB8=1;CB8=1;RB7=0 o RB7=1 o CB8=0;'Debe especificar el Mercado de la moneda extranjera';NO;   
+tipocambio    : 'Precio'                  ;10;1;;SI;CB8=1;;;;                    
+ContraEspecie2: 'Mon Cta'                 ;11;1;;Incluido(CONTRAESPECIE,'ARP');CB8=1;NOVACIO(CONTRAESPECIE) Y Incluido(CONTRAESPECIE,'ARP|USD|USB');'Debe ingresar ARP o USD o USB';NO;;IF(eqstr(CONTRAESPECIE,'USD') O eqstr(CONTRAESPECIE,'USB'),'ARP','USD');;'USD|USB|';NO    
+totalbrutocli2: 'Mon Nac'                 ;9 ;2; ;  ;CB8=1;;;;;IF(eqstr(TIPOOP,'FCS'),IF(eqstr(MERCADO2,'FXCE'),IF(TOTALBRUTOCLI2<>TOTALBRUTOCLI1 Y TOTALBRUTOCLI2<>0 Y CB8=1,TOTALBRUTOCLI2,TOTALBRUTOCLI1),IF(TOTALBRUTOCLI3<>TOTALBRUTOCLI1 Y TOTALBRUTOCLI3<>0 Y CB8=1,TOTALBRUTOCLI3*TIPOCAMBIO,TOTALBRUTOCLI1*TIPOCAMBIO)),IF(eqstr(MERCADO2,'FXCE'),IF(TOTALBRUTOCLI3<>TOTALBRUTOCLI1 Y TOTALBRUTOCLI3<>0 Y CB8=1,TOTALBRUTOCLI3*TIPOCAMBIO,TOTALBRUTOCLI1*TIPOCAMBIO),IF(TOTALBRUTOCLI2<>TOTALBRUTOCLI1 Y TOTALBRUTOCLI2<>0 Y CB8=1,TOTALBRUTOCLI2,TOTALBRUTOCLI1)))
+totalbrutocli3: 'Mon Ext'                 ;10;2; ;  ;CB8=1;;;;;IF(eqstr(TIPOOP,'FCS'),IF(eqstr(MERCADO2,'FXCE'),IF(TOTALBRUTOCLI2<>TOTALBRUTOCLI1 Y TOTALBRUTOCLI2<>0 Y CB8=1,TOTALBRUTOCLI2/TIPOCAMBIO,TOTALBRUTOCLI1/TIPOCAMBIO),IF(TOTALNETOCLI3<>TOTALBRUTOCLI1 Y TOTALNETOCLI3<>0 Y CB8=1,TOTALBRUTOCLI2,TOTALBRUTOCLI1)),IF(eqstr(MERCADO2,'FXCE'),IF(TOTALBRUTOCLI3<>TOTALBRUTOCLI1 Y TOTALBRUTOCLI3<>0 Y CB8=1,TOTALBRUTOCLI3,TOTALBRUTOCLI1),IF(TOTALBRUTOCLI2<>TOTALBRUTOCLI1 Y TOTALBRUTOCLI2<>0 Y CB8=1,TOTALBRUTOCLI2/TIPOCAMBIO,TOTALBRUTOCLI1/TIPOCAMBIO)))  
+mercado2      : 'Op Cambio'               ;11;2; ;NO;CB8=1;;;;;IF(eqstr(TIPOOP,'FCS'),IF(eqstr(CONTRAESPECIE,'ARP'),'FXCE','FXVE'),IF(eqstr(TIPOOP,'FCR'),IF(eqstr(CONTRAESPECIE,'ARP'),'FXVE','FXCE')))         
+ConceptoBCRA  : 'Conc.BCRA'               ;12;2;1;CB8=1;CB8=1;[CB8=0] O [NOVACIO(CONCEPTOBCRA) Y EQSTR(QUERY("SELECT RTRIM(Alias1) FROM ConceptosBCRA WHERE Codigo = '"~CONCEPTOBCRA~"'"),IF(RB7=0,"O",IF(RB7=1,"L","X")))];IF(VACIO(CONCEPTOBCRA),"Debe Ingresar el Concepto BCRA.","Codigo de Concepto BCRA invalido");NO;;;;;;;;"Alias1='"~IF(RB7=0,"O",IF(RB7=1,"L","X"))~"'"                      
+Vtxt2         : 'Operador'                ;6 ;2; ;NO;  ;;;;;if(Vacio(USRINPUT),USUARIOACTIVO,USRINPUT); 
+Precio3       : '% IVA'                   ;1 ;1;2;  ;  ;PRECIO3>=0;'El porcentaje de IVA no puede ser negativo';NO;Var('IVA');                  
+Mercado       : 'Merc. Liq.'              ;2 ;1;2;NO;NO;NOVACIO(MERCADO);'Debe indicar mercado';NO;'CV';'CV';              
+Corporate     : 'Corporate'               ;3 ;1;2;NO; ;;;;;If(INSTANCIA=3,1,0);
+cb6           : 'RTL'                     ; 4 ; 1;2 ;NO;NO;;;;;IF(INSTANCIA=8,1,0)
+
+VRB1             : 'Canal|Tel|Mail|Bloomb|Fuera Hora|Otro|Reuters|Msn|';13;1;;;[INSTANCIA=1] O [INSTANCIA=3] O [INSTANCIA=6];;;;0
+vtxt3            : 'Obs'                              ;14;1;;;[INSTANCIA=1] O [INSTANCIA=3] O [INSTANCIA=6]
+vtxt4            : 'Hora estimada'                    ;15;1;;;VRB1=3;[VRB1<>3] o [VRB1=3 Y horavalida(vtxt4)];'Ingrese la hora de la operaci?n. Ejemplo 15:25';NO;
+FORMALIQUIDACION3: 'Canal|Telefono|Mail|Bloomberg|Fuera Hora|Otro|Reuters|';;;;;NO;;;;VRB1;VRB1
+VTEORICO         : 'Instancia'                        ;;;;;NO                                           ;;;;INSTANCIA
+Operador1        : 'Concert. por:'                    ;16;1; ;  ;     ;;;;OPERADOR;   
+ 
+POSTEDICION            
+CB8=1;'FCIEV';NROPERACION1=NROPERACION;Radio1=RB7          
+SI;'ESCOTR';nroperacion1=nroperacion;radio1=vrb1;string1=vtxt3~' - '~vtxt4
+ 
+CONDICIONES:           
+EqStr(Query("SELECT VALOR FROM SAM.VARIABLES WHERE CODIGO='HABFON'"),'SI');'Operatoria Deshabilitada';NO                 
+Not EqStr('DES',BuscarCampo('Clientes','Status','Codigo',CLIENTE1));'El Cliente esta deshabilitado';NO                   
+EqStr(Query("select SUBSTR(sam.PKG_FM.control_horario('"~ESPECIE~"','"~TIPOOP~"',SYSDATE),1,INSTR(sam.PKG_FM.control_horario('"~ESPECIE~"','"~TIPOOP~"',SYSDATE),'-')-1) from dual"),'OK');'Control FM: '~Query("select SUBSTR(sam.PKG_FM.control_horario('"~ESPECIE~"','"~TIPOOP~"',SYSDATE),INSTR(sam.PKG_FM.control_horario('"~ESPECIE~"','"~TIPOOP~"',SYSDATE),'-')+1) from dual");NO
+Query("select COUNT(*) from sam.cotizaciones where codigo = '"~ESPECIE~"' and fecha >= sam.habiles(TO_DATE('"~FECHAOP~"'),-1,'ARG','NO')")<>0;'No existe valor de cuota parte cargado para el fondo '~ESPECIE~' del dia '~QUERY("select sam.habiles(TO_DATE('"~FECHAOP~"'),-1,'ARG','NO') from dual")~' Ultimo valor de cuota parte '~Fstr(Cotizacion(ESPECIE,,,,FECHAOP,1),1,5)~' de fecha '~QUERY("select max(fecha) from sam.cotizaciones where codigo = '"~ESPECIE~"' and fecha < sam.habiles(TO_DATE('"~FECHAOP~"'),-1,'ARG','NO')");NO
+
+*INFORMES
+*'CLIENTE1|TIPOOP';NOVACIO(CLIENTE1) Y NOVACIO(TIPOOP) ;'FCRSDI';Cliente1=CLIENTE1;TipoOp1=TIPOOP;Fecha1=FECHAOP
+*
+ 
+
+
+ 
+BITS             
+1;1;INSTANCIA=1
+1;0;INSTANCIA<>1
+3;0
+3;1;INSTANCIA=3 Y Query("SELECT COUNT(*) FROM CLIENTES WHERE Codigo='"~CLIENTE1~"' and CB5='1' ")>=1
+8;0;INSTANCIA<>8
+8;1;INSTANCIA=8 
+70;0             
+79;0
+79;1;INSTANCIA=3 Y Query("SELECT COUNT(*) FROM CLIENTES WHERE Codigo='"~CLIENTE1~"' and CB5 ='1' ")=0
+87;0              
+
+INSTANCIA1             
+POSTEDICION
+EQSTR(ABM,'D');'ELOPER';nroperacion1=nroperacion
+
+BITS                   
+1;0;FW=1               
+79;1;FW=1 
+
+INSTANCIA3             
+CAMPOS:1;SI
+
+Especie       : 'Fondo'                 ;1;1; ;NO;;  
+ContraEspecie : 'Moneda'                ; ; ; ;NO;;
+Cliente1      : 'Cliente'               ; ; ; ;NO;; 
+TotalBrutoCli1: 'Efectivo'              ;4;1; ;NO;;
+Cantidad      : 'CuotasParte'           ;5;1; ;NO;;;;;;;;;;;'###,###,###.####';
+FechaOp       : 'Fecha Op.'             ;4;2;1;NO;;
+FechaVto      : 'Fecha Vto.'            ;5;2;1;NO;;
+Operador      : 'Gestor'                ;6;1; ;NO;;
+VTXT1         : 'Cargada por'           ; ; ; ;NO;  ;;;;QUERY("SELECT Nombre FROM USUARIOS WHERE Codigo = '"~USUARIOACTIVO~"'")
+VCAN1         : 'Confirmar x Mail'      ; ; ; ;NO;NO;;;;QUERY("SELECT COUNT(*) FROM CLIENTES WHERE CODIGO='"~CLIENTE1~"' AND CB1= 'SI' ")
+
+CONDICIONES
+[VCAN1=0 O [NOT EQSTR(USUARIOACTIVO,USRINPUT)]] Y FW=1;"La operacion debe ser verificada y fowardeada por otro usuario diferente al que la cargo.";NO
+
+POSTEDICION
+FW=1 Y VCAN1<>0;'CONFAX'; NROPERACION1=NROPERACION; 
+EQSTR(ABM,'D');'ELOPER';nroperacion1=nroperacion
+fw=2;'ELOPER';nroperacion1=nroperacion
+
+
+BITS             
+3;0;FW=1         
+79;1;FW=1 
+
+
+INSTANCIA8             
+POSTEDICION
+EQSTR(ABM,'D');'ELOPER';nroperacion1=nroperacion
+
+BITS                   
+8;0;FW=1               
+79;1;FW=1 
+
+INSTANCIA70            
+POSTEDICION
+EQSTR(ABM,'D');'ELOPER';nroperacion1=nroperacion
+
+BITS                   
+1;1;FW=2 y Corporate=0
+3;1;FW=2 y Corporate=1 
+70;0;FW=2              
+ 
+INSTANCIA79            
+ 
+CAMPOS:1;SI            
+FechaOp        : 'Fecha Op.'    ;2;1; ;NO; ;    
+Especie        : 'Especie'      ;3; ; ;NO; ;    
+Cliente1       : 'Cliente'      ;4; ; ;NO; ;    
+Cantidad       : 'Cantidad'     ;5; ; ;NO; ;    
+Precio1        : 'Tasa'         ;6; ; ;NO; ;    
+NrSisExterno   : 'Nro.Sist.Ext.';8; ; ;  ; ;;;; 
+
+POSTEDICION
+EQSTR(ABM,'D');'ELOPER';nroperacion1=nroperacion
+ 
+BITS                   
+1;1;FW=2 y Corporate=0 
+3;1;FW=2 y Corporate=1 
+70;1;FW=1              
+79;0                   
+ 
+INSTANCIA87            
+ 
+CAMPOS:1;SI            
+FechaOp        : 'Fecha Op.'    ;2;1; ;NO; ;    
+Especie        : 'Especie'      ;3; ; ;NO; ;    
+Cliente1       : 'Cliente'      ;4; ; ;NO; ;    
+Cantidad       : 'Cantidad'     ;5; ; ;NO; ;    
+Precio1        : 'Tasa'         ;6; ; ;NO; ;    
+
+POSTEDICION
+EQSTR(ABM,'D');'ELOPER';nroperacion1=nroperacion
+ 
+BITS                   
+1;1;FW=2 y Corporate=0 
+3;1;FW=2 y Corporate=1 
+*87;0;FW<>0

@@ -1,0 +1,2 @@
+﻿***---Eqstr(fbn('Tipo'),'PRI')
+DesciendeDeEspecie(fbn('Especie'), 'ACCION')

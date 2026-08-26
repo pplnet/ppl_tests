@@ -1,0 +1,8 @@
+﻿CAMPOS:1;;BuscarCampo('VEHICULOS','Alias3','Codigo',Vehiculo1)
+Vehiculo1:'Vehiculo' ;2;2;;;;NoVacio(VEHICULO1) Y  Incluido(VEHICULO1, SQLSet(" Select Codigo from "~DBO~".VEHICULOS WHERE Codigo = '"~Vehiculo1~"' and Status ='HAB' ")) y [Vacio(UsrVehiculos(UsuarioActivo)) o Incluido(VEHICULO1,SqlSet("Select Vehiculo From "~DBO~".USRVEHICULO Where Codigo = '"~UsuarioActivo~"'"))];'Vehiculo Invalido';NO;;SqlSet("Select Vehiculo from "~DBO~".USRVEHICULO where Codigo = '"~UsuarioActivo~"'");;If(Vacio(UsrVehiculos(UsuarioActivo)),SqlSet("Select Codigo from "~DBO~".VEHICULOS WHERE Status ='HAB' "),SqlSet("Select Vehiculo from "~DBO~".USRVEHICULO where Codigo = '"~UsuarioActivo~"'"));NO
+Fecha1:   'FechaTr'  ;2;1;;;;FECHA1 <> 0;'Fecha Invalida';NO;Fsys;
+Book1:    'Cartera'  ;4;1;;;;NoVacio(BOOK1) Y BookValido(BOOK1, TIPOOP, ESPECIE, VEHICULO1, OPERADOR,'');'Book Invalido';NO;Var('BOOKDEF')
+Cantidad: 'Cantidad' ;;;;;;CANTIDAD > 0;'Ingrese Cantidad a Depositar';NO;
+Precio1:  'Valor CuotaParte' ;5;2;;;;;;;0;;;;;;'###,###.##########';;
+Especie1: 'Moneda'   ;6;1;;;;NoVacio(ESPECIE1) y DesciendeDeEspecie(ESPECIE1,'MONEDA') y ESTERMINAL(ESPECIE1, ESPECIE) ;'Debe Ingresar una Moneda';NO;Var('MONELOCA');;;;;;;"Codigo In ("~Pipe2Comillas(Var('MONELOCA')~'|'~Var('MONEEXTR'))~") and Status = 'HAB'";;;
+Operador: 'Operador' ;8;;;NO;;;;;UsuarioActivo;

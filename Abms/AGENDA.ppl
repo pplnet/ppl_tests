@@ -1,0 +1,65 @@
+﻿#*********************************************************************************
+#combos data sources.
+set ds_TipoCupon           = "REN:Renta|RYA:Renta y Amortiz|AMO:Amortizacion|CAP:Capitalizacion|ZER:Zero Coupon|ZCA:Zero Coup.Am|"
+set ds_Estado              = "PRO:Procesado|PEN:Pendiente|"
+ 
+#*********************************************************************************
+def abm 'AgendaCupones'
+    def grid
+      Especie:, NrCupon:, FechaCorte:, FechaPago:, Estado:, Esquema:
+    end
+    def filter
+      ' 1=1 order by Especie,Convert(int,NrCupon) --'
+    end
+    def key
+      Especie:, NrCupon: 
+    end
+    def dialog_size
+        750,700
+    end 
+    def dialog
+        #**************************************************************************
+        tab 'General'
+        column
+            Especie: ,, autocomplete, 'ESPECIES', 'Codigo,Nombre'   
+            NrCupon: ,, extra_small_text
+            FechaCorte: ,, date
+            FechaPago: ,, date
+            PorRenta: ,'% Renta', numeric, '##0.0000000000'
+            PorAmCapital: ,'% Am. Capital', numeric, '##0.0000000000'
+            PorAmIntCap: ,'% Am. Int. Capital', numeric, '##0.0000000000'
+            TasaCapInt: ,'%Tasa Cap. Int.', numeric, '##0.0000000000'
+            PorRentaAnterior: ,'% Renta Anterior', numeric, '##0.0000000000'
+            FechaCambioTasa: ,'Fecha Cambio Tasa', date
+            IntsCapitalizados:,'Ints. Cap. Acum.', numeric, '##0.0000000000'
+            FechaProceso: ,, date
+            VTeoricoAnt:  ,, numeric, '##0.0000000000'
+            PrecioCupon:  ,, numeric, '##0.0000000000'
+            Pickeado:,, check
+            Esquema: ,, extra_small_text
+            PorPIK: ,, numeric, '##0.0000000000'
+            PIKsAcumulados: ,, numeric, '##0.0000000000'
+            PorPenalty: ,, numeric, '##0.0000000000'
+        column
+            TipoCupon: , 'Tipo', combo, ds_TipoCupon
+            Estado: ,          , combo, ds_Estado
+    end
+    upper_case_fields: Especie:
+    required_fields: Especie:, TipoCupon:, Estado:
+    when_change:
+      Esquema:, $.toggle_enabled(PorPIK:,PIKsAcumulados:,PorPenalty:,val(Esquema:)>0)
+    
+    validates_max_length_of:
+      NrCupon:, 3,true;
+      Esquema:, 3,true;
+    hide:
+      Pickeado:;
+      Esquema:;
+      PorPIK:;
+      PIKsAcumulados:;
+      PorPenalty:;
+      
+    before_save: do
+      $.set_field(Esquema:, '0')
+    end
+end

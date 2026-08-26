@@ -1,0 +1,54 @@
+﻿MostrarCuadrodeMensajes
+CrearDialogo
+    Directorio1: 'Ruta'    ;;;;;;NoVacio(Dialogo.Directorio1);'Debe indicar una ruta';NO;VAR('PATHPLCTA')
+    String1: 'Archivo'     ;;;;;;NoVacio(Dialogo.String1);'Debe indicar el archivo a importar';NO;VAR('FILEPLCTA')
+    Entorno1: 'Entorno'    ;;;;NO;;NoVacio(Dialogo.Entorno1);'Debe indicar el entorno';NO;'BFSA'
+Findialogo
+
+If Not Ok
+    Cancelar
+Endif
+************************************************************VALIDACION DE PATH Y ARCHIVO************************************************************
+let &archivo Dialogo.String1
+If ExisteDirectorio(Dialogo.Directorio1)
+    If EqStr(Copy(Dialogo.Directorio1,Longitud(Dialogo.Directorio1),1),'\')
+        let &pathCompleto Dialogo.Directorio1~&archivo
+    Else
+        let &pathCompleto Dialogo.Directorio1~'\'~&archivo
+    Endif
+    If Not ExisteArchivo(&pathCompleto)
+       Cancelar('El Archivo '~&archivo~ ' no existe en el directorio: '~Dialogo.Directorio1)
+    Endif
+    
+Else
+    Cancelar('El directorio '~Dialogo.Directorio1~' no existe')
+Endif
+
+**************************************************************IMPORTACION DE ARCHIVO**************************************************************
+ImportarXLS(A:3..C:1000,A:1..C:1000,&pathCompleto)
+If Not Ok
+  Cancelar('Error al cargar el archivo '~&pathCompleto)
+EndIf
+
+Message("Importando cuentas contables")
+
+Recorrer&i 1,1000
+    If NoVacio(Val(A:&i))
+        Message(Val(A:&i))
+        ACT(A:&i,Trim(Val(A:&i)))
+        ACT(B:&i,Trim(Val(B:&i)))
+        If Vacio(SQL("SELECT 1 FROM "~DBO~".CONTABILIDAD WHERE Codigo = '"~Fstr(val(A:&i),0,0)~"'"))
+            SQL.ADD("INSERT INTO "~DBO~".CONTABILIDAD (Codigo,Nombre,Moneda,Entorno) VALUES")
+            SQL.ADD("('"~Fstr(val(A:&i),0,0)~"','"~Copy(val(B:&i),1,100)~"','"~Val(C:&i)~"','"~Dialogo.Entorno1~"')")
+            SQL.NEW
+            SQL.EXEC
+        Else
+            SQL.ADD("UPDATE "~DBO~".CONTABILIDAD Set Nombre = '"~Copy(val(B:&i),1,100)~"',Moneda ='"~Val(C:&i)~"' , Entorno = '"~Dialogo.Entorno1~"'")
+            SQL.ADD("Where Codigo = '"~Fstr(val(A:&i),0,0)~"'")
+            SQL.NEW
+            SQL.EXEC
+        Endif
+    Else
+        break
+    Endif    
+Proximo

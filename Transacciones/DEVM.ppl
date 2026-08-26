@@ -1,0 +1,199 @@
+﻿CAMPOS:1; ;10101
+ConceptoPago   : 'Concepto'      ;1;1;;;;Eqstr(BuscarCampo('CNCONCEPTOSPAGOCOBRO','TipoConcepto','Codigo',CONCEPTOPAGO),'RET');'Concepto invalido';NO;'RETIRO';;;;;;;" TipoConcepto='RET' ";
+Fecha1         : 'Fecha Op.'     ;1;2;;VerificaAcceso('OPFVALOR');;FECHA1<=FSYS y EsHabil(FECHA1,'ARG');'Fecha Incorrecta';NO;FSYS;
+Fecha2         : 'Fecha Acredit.';2;2;;;;EsHabil(FECHA2,'ARG');'Fecha de Acreditacion Invalida';NO;;HABILES(FECHA1,if(RB1=0,0,IF(RB1=1,1,IF(RB1=2,2,IF(RB1=3,3,4)))),'ARG')
+Fecha3         : 'Fecha Acredit.';2;2;;NO;NO;;;;FECHA2;FECHA2
+CodigoDatanet1 : 'Cod.Datanet'   ;3;2;1;NO;
+
+Vehiculo1      : 'Vehiculo '   ;3;1;;;;NoVacio(VEHICULO1);'Vehiculo Invalido';NO;BuscarCampo('USRVEHICULO','Vehiculo','Codigo',USUARIOACTIVO)
+Proveedor      : 'Proveedor'   ;4;1;
+Especie        : 'Moneda'      ;5;1;;;;DesciendeDeEspecie(ESPECIE,'MONEDA');'Moneda Invalida';NO;;;;;;;;"Status = 'HAB' and Jerarquia Like '"~Jerarquia('ESPECIES','MONEDA')~"%' ";
+Cantidad1      : 'Cantidad'    ;6;1;;;;CANTIDAD1>0;'Cantidad Invalida';NO;
+CNFormaPago    : 'Forma Pago'  ;6;2;;;;NOVACIO(CNFORMAPAGO);'Forma de Pago Invalida';;
+Cantidad3      : 'Ajuste'      ;7;1;1;NO;CANTIDAD3<>0;
+
+Cliente2       : 'Banco'       ;8;1;;;;Eqstr(BuscarCampo('CLIENTES','Sector','Codigo',CLIENTE2),'BAN');'Banco invalido';NO;;;;;;;;" Sector='BAN' "
+Cuenta2        : 'Cuenta'      ;9;1;;;;NoVacio(CUENTA2);'Cuenta Invalida';NO;;QUERY("SELECT Codigo FROM "~DBO~".CUENTAS WHERE Cliente = '"~VEHICULO1~"' AND Estado='HAB' AND (Especies LIKE '%"~ESPECIE~"%' OR Especies LIKE '%MONEDA%') AND Comitente = '"~CLIENTE2~"' ");;;;;;"Cliente = '"~VEHICULO1~"' AND (Especies Like '%"~ESPECIE~"%' OR Especies LIKE '%MONEDA%') and Estado='HAB' AND Comitente = '"~CLIENTE2~"' ";
+VTXT2          : '#'           ;9;2; ;NO;;;;;;BuscarCampo('CUENTAS','Numero','Codigo',CUENTA2);;;;;'XXXXXXXXXXXXXXXXXXXXXX'
+
+Chequera1      : 'Nr.Chequera'  ;10;1;; ;Eqstr(BuscarCampo('CNFORMASPAGOCOBRO','Tipo','Codigo',CNFORMAPAGO),'CHE');Vacio(CHEQUERA1) o [Eqstr(BuscarCampo('CNCHEQUERASBANCO','Estado','Chequera',CHEQUERA1),'HAB') y Eqstr(BuscarCampo('CNCHEQUERASBANCO','Cuenta','Chequera',CHEQUERA1), CUENTA2) y NoVacio(CHEQUERA1)];'Chequera Invalida';NO;;Query(" SELECT Chequera FROM "~DBO~".CNCHEQUERASBANCO WHERE Cuenta = '"~CUENTA2~"' AND Estado='HAB' and Vehiculo = '"~VEHICULO1~"'");;;;;;"Cuenta = '"~CUENTA2~"' AND Estado='HAB' and Vehiculo = '"~VEHICULO1~"' ";
+Cantidad2      : 'Nr. Cheque'   ;10;2;; ;Eqstr(BuscarCampo('CNFORMASPAGOCOBRO','Tipo','Codigo',CNFORMAPAGO),'CHE');Not Eqstr(BuscarCampo('CNFORMASPAGOCOBRO','Tipo','Codigo',CNFORMAPAGO),'CHE') o CANTIDAD2<>0;'Nro. de Cheque Invalido';NO;;;;;;;'###############';
+RB1            : 'Plazo|Hoy|24|48|72|Diferido';11;1;1;;;;;;2;IF(DifDias(FECHA2,FECHA1,'ARG',SI)=0,0,IF(DifDias(FECHA2,FECHA1,'ARG',SI)=1,1, IF(DifDias(FECHA2,FECHA1,'ARG',SI)=2,2,IF(DifDias(FECHA2,FECHA1,'ARG',SI)=3,3,4))))
+CB2            : 'Inf.Datanet'  ;12;1;1;;;;;;0
+CB3            : 'Conc.Datanet' ;13;1;1;;;;;;1
+CB4            : 'Ev.CargaAut.' ;14;1;1;NO;;;;;0
+
+Cambio1        : 'Nro.Boleta'   ;10;1;;;Not Eqstr(BuscarCampo('CNFORMASPAGOCOBRO','Tipo','Codigo',CNFORMAPAGO),'CHE');;;;;;;;;;"###,###,###,###,###"
+
+VCAN6: 'Boleta/Cuenta'; ; ;1;NO;NO;;;;;IIF(CAMBIO1<>0 THEN Query("SELECT /*+first_rows*/ 1 FROM "~DBO~".TRANSACCIONES2 WHERE TipoTr2 IN ('DEVM') AND Cuenta2 = '"~CUENTA2~"' AND Cambio1 = "~fstr(CAMBIO1,1,0)~" ") ELSE 0 ENDIF)
+VCAN5: 'cheque'       ; ; ;1;NO;NO;;;;;IIF(CANTIDAD2 <> 0 Y Eqstr(ABM, 'A') THEN Query("SELECT 1 FROM "~DBO~".TRANSACCIONES2 WHERE Cantidad2 = '"~CANTIDAD2~"' AND Chequera1 = '"~CHEQUERA1~"' ") ELSE IIF(Cantidad2 <> 0 THEN Query("SELECT 1 FROM "~DBO~".TRANSACCIONES2 WHERE Cantidad2 = '"~CANTIDAD2~"' AND Chequera1 = '"~CHEQUERA1~"' AND NrTrans<>'"~NRTRANS~"' ") ELSE 0 ENDIF) ENDIF)
+VCAN7: 'Nrcheque'     ; ; ;1;NO;NO;;;;;IIF(CANTIDAD2 <> 0 Y VCAN5 = 0 Y Eqstr(ABM, 'A') THEN Query(" Select NrCheque From "~DBO~".CHEQUES Where NrCheque = '"~CANTIDAD2~"' AND Chequera = '"~CHEQUERA1~"' ") ELSE IIF(Cantidad2 <> 0 Y VCAN5 = 0 THEN Query(" Select NrCheque From "~DBO~".CHEQUES Where NrCheque = '"~CANTIDAD2~"' AND Chequera = '"~CHEQUERA1~"' AND NrComprobante<>'"~NRTRANS~"' ") ELSE 0 ENDIF) ENDIF)
+CB5: 'PagoLiqMesa'    ; ; ;1;NO;NO;
+CB10: 'Inf.Imp.a.CAP x TRF AUT' ;1;1;1;NO;NO;
+VCAN8: 'Monto en ARP' ; ; ;1;NO;NO;;;;;IF(Eqstr(ESPECIE,'ARP'),CANTIDAD1,CANTIDAD1*CotizacionC(ESPECIE,,,,FECHA1,1,SI,'ARP'))
+
+
+CONDICIONES
+Incluido(VEHICULO1, UsrVehiculos(USUARIOACTIVO))  o VACIO(UsrVehiculos(USUARIOACTIVO)); 'El usuario activo no esta habilitado para operar con el vehiculo '~VEHICULO1;NO
+EspecieCuenta(ESPECIE, CUENTA2)   o VACIO(CUENTA2);'La Moneda No Corresponde a la Cuenta.';NO
+ClienteCuenta(VEHICULO1, CUENTA2) o VACIO(CUENTA2);'La Cuenta no corresponde al Vehiculo.';NO
+SaldoC(Vehiculo1,Especie,,,,,,Cuenta2,1,FSYS)>=Cantidad1;'Cantidad a retirar es superior al saldo en la cuenta.';SI
+VCAN6<>1;'Nro. de Boleta de Retiro o Cuenta Invalidos.';NO
+VCAN5<>1;'El Nro. de Cheque ya existe.';NO
+VCAN7=0;'Cheque Existente para una Transaccion Anulada';SI
+Not Eqstr(BuscarCampo('CNFORMASPAGOCOBRO','Tipo','Codigo',CNFORMAPAGO),'CHE') o [NoVacio(Chequera1) y Cantidad2<>0];'Nro de Chequera o Cheque Invalido.';NO
+
+MOVIMIENTOS
+Fecha2;Vehiculo1;Especie;;;;;Vehiculo1;1; -Cantidad1;;'Debito de '~Especie;SI;NO;;;;Cuenta2;;1;
+
+
+POSTEDICION
+[Eqstr(ABM,'A') o Eqstr(ABM,'E')] Y VCAN7 = 0 y Eqstr(BuscarCampo('CNFORMASPAGOCOBRO','Tipo','Codigo',CNFORMAPAGO),'CHE');'CHEDEV';NrTrans1=NrTrans;Vehiculo1=Vehiculo1;Radio1=IF(Eqstr(ABM,'A'),0,1);Chequera1 = Chequera1; Entero1 = Cantidad2
+VCAN7<>0 Y Eqstr(BuscarCampo('CNFORMASPAGOCOBRO','Tipo','Codigo',CNFORMAPAGO),'CHE');'CHEDEV';NrTrans1=NrTrans;Vehiculo1=Vehiculo1;Radio1 = 2;Chequera1 = Chequera1; Entero1 = Cantidad2
+
+BAJA
+Not Eqstr(CNFORMAPAGO,'DATANE');'La Transaccion se genero por una Concialicion con Datanet. Se debe eliminar con el evento de Desconciliacion.';
+
+EDICION
+INSTANCIA=11;'La transaccion solo se puede modificar en la instancia de carga.'
+
+
+BITS
+11;1
+14;0
+16;0
+17;0
+18;0
+20;0
+25;0
+
+
+INSTANCIA11
+BITS
+11;0;[FW=1] Y [[Not Eqstr(BuscarCampo('CNFORMASPAGOCOBRO','Tipo','Codigo',CNFORMAPAGO),'CHE')] O [CANTIDAD2 > 0]]
+14;1;[FW=1] Y [[Not Eqstr(BuscarCampo('CNFORMASPAGOCOBRO','Tipo','Codigo',CNFORMAPAGO),'CHE')] O [CANTIDAD2 > 0]]
+
+POSTEDICION
+Eqstr(ABM, 'D') Y Eqstr(BuscarCampo('CNFORMASPAGOCOBRO','Tipo','Codigo',CNFORMAPAGO),'CHE');'CHEDEV';NrTrans1=NrTrans;Vehiculo1=Vehiculo1;Radio1 = 3;Chequera1 = Chequera1; Entero1 = Cantidad2
+
+
+INSTANCIA14
+CAMPOS:1;;;FW=1
+
+ConceptoPago   : 'Concepto'    ;1;1;;NO
+Fecha1         : 'Fecha Op.'   ;1;2;;NO
+Fecha2         : 'Plazo'       ;2;2;;NO
+Proveedor      : 'Proveedor'   ;2;1;;NO
+Especie        : 'Moneda'      ;3;1;;NO
+Cantidad1      : 'Cantidad'    ;4;1;;NO
+CNFormaPago    : 'F. de Cobro' ;4;2;;NO
+
+Cliente2       : 'Banco'       ;6;1;;NO
+Cuenta2        : 'Cuenta'      ;7;1;;NO
+VTXT2          : '#'           ;7;2;;NO;;;;;;BuscarCampo('CUENTAS','Numero','Codigo',CUENTA2);;;;;'XXXXXXXXXXXXXXXXXXXXXX'
+
+Chequera1      : 'Nr.Chequera' ;8;1;;NO;Eqstr(BuscarCampo('CNFORMASPAGOCOBRO','Tipo','Codigo',CNFORMAPAGO),'CHE')
+Cantidad2      : 'Nr. Cheque'  ;8;2;;NO;Eqstr(BuscarCampo('CNFORMASPAGOCOBRO','Tipo','Codigo',CNFORMAPAGO),'CHE')
+Cambio1        : 'Nro.Boleta'  ; 8;1;;NO;Not Eqstr(BuscarCampo('CNFORMASPAGOCOBRO','Tipo','Codigo',CNFORMAPAGO),'CHE');;;;;;;;;;"###,###,###,###,###"
+
+CB2            : 'Inf.Datanet'  ;10;1;;NO
+CB3            : 'Conc.Datanet' ;11;1;;NO
+Vehiculo1      : 'Vehiculo '    ;11;2;;NO
+
+VCAN6: 'Boleta/Cuenta'; ; ;1;NO;NO;;;;;IIF(CAMBIO1<>0 THEN Query("SELECT /*+first_rows*/ 1 FROM "~DBO~".TRANSACCIONES2 WHERE TipoTr2 IN ('DEVM') AND Cuenta2 = '"~CUENTA2~"' AND Cambio1 = "~fstr(CAMBIO1,1,0)~" ") ELSE 0 ENDIF)
+VCAN8: 'Monto en ARP' ; ; ;1;NO;NO;;;;;IF(Eqstr(ESPECIE,'ARP'),CANTIDAD1,CANTIDAD1*CotizacionC(ESPECIE,,,,FECHA1,1,SI,'ARP'))
+
+
+BITS
+14;0;FW=1 o FW=2
+11;1;FW=2
+17;1;FW=1 y CB2=1 y VCAN8 < VAR('NIVEL2')
+18;1;FW=1 y CB3=1 y CB2=0 y VCAN8 < VAR('NIVEL2')
+20;1;FW=1 y CB3=0 y CB2=0 y VCAN8 < VAR('NIVEL2')
+16;1;FW=1 y VCAN8 >= VAR('NIVEL2')
+
+SQL
+" INSERT INTO "~DBO~".MOVEJECUTADOS SELECT * FROM "~DBO~".MOVPENDIENTES WHERE NrOperacion = '"~NrTrans~"' ";FW=1 y CB3=0 y CB2=0 y VCAN8 < VAR('NIVEL2')
+" DELETE FROM "~DBO~".MOVPENDIENTES WHERE NrOperacion = '"~NrTrans~"' ";FW=1 y CB3=0 y CB2=0 y VCAN8 < VAR('NIVEL2')
+
+POSTEDICION
+FW=2 y Eqstr(BuscarCampo('CNFORMASPAGOCOBRO','Tipo','Codigo',CNFORMAPAGO), 'CHE');'PB2';NrTrans1=NrTrans;Radio1=4;Entero1=Cantidad2;Chequera1=Chequera1;Vehiculo1=Vehiculo1
+FW=2;'DEVMAU';NrTrans1 = NrTrans;String1 = CNFORMAPAGO;
+
+
+
+INSTANCIA16
+CAMPOS:1;;;FW=1
+
+ConceptoPago   : 'Concepto'    ;1;1;;NO
+Fecha1         : 'Fecha Op.'   ;1;2;;NO
+Fecha2         : 'Plazo'       ;2;2;;NO
+Proveedor      : 'Proveedor'   ;2;1;;NO
+Especie        : 'Moneda'      ;3;1;;NO
+Cantidad1      : 'Cantidad'    ;4;1;;NO
+CNFormaPago    : 'F. de Cobro' ;4;2;;NO
+
+Cliente2       : 'Banco'       ;6;1;;NO
+Cuenta2        : 'Cuenta'      ;7;1;;NO
+VTXT2          : '#'           ;7;2;;NO;;;;;;BuscarCampo('CUENTAS','Numero','Codigo',CUENTA2);;;;;'XXXXXXXXXXXXXXXXXXXXXX'
+
+Chequera1      : 'Nr.Chequera' ;8;1;;NO;Eqstr(BuscarCampo('CNFORMASPAGOCOBRO','Tipo','Codigo',CNFORMAPAGO),'CHE')
+Cantidad2      : 'Nr. Cheque'  ;8;2;;NO;Eqstr(BuscarCampo('CNFORMASPAGOCOBRO','Tipo','Codigo',CNFORMAPAGO),'CHE')
+Cambio1        : 'Nro.Boleta'  ; 8;1;;NO;Not Eqstr(BuscarCampo('CNFORMASPAGOCOBRO','Tipo','Codigo',CNFORMAPAGO),'CHE');;;;;;;;;;"###,###,###,###,###"
+
+CB2            : 'Inf.Datanet'  ;10;1;;NO
+CB3            : 'Conc.Datanet' ;11;1;;NO
+Vehiculo1      : 'Vehiculo '    ;11;2;;NO
+
+VCAN6: 'Boleta/Cuenta'; ; ;1;NO;NO;;;;;IIF(CAMBIO1<>0 THEN Query("SELECT /*+first_rows*/ 1 FROM "~DBO~".TRANSACCIONES2 WHERE TipoTr2 IN ('DEVM') AND Cuenta2 = '"~CUENTA2~"' AND Cambio1 = "~fstr(CAMBIO1,1,0)~" ") ELSE 0 ENDIF)
+
+
+BITS
+16;0;FW=1 o FW=2
+11;1;FW=2
+
+17;1;FW=1 y CB2=1
+18;1;FW=1 y CB3=1 y CB2=0
+20;1;FW=1 y CB3=0 y CB2=0
+
+SQL
+" INSERT INTO "~DBO~".MOVEJECUTADOS SELECT * FROM "~DBO~".MOVPENDIENTES WHERE NrOperacion = '"~NrTrans~"' ";FW=1 y CB3=0 y CB2=0
+" DELETE FROM "~DBO~".MOVPENDIENTES WHERE NrOperacion = '"~NrTrans~"' ";FW=1 y CB3=0 y CB2=0
+
+
+POSTEDICION
+FW=2 y Eqstr(BuscarCampo('CNFORMASPAGOCOBRO','Tipo','Codigo',CNFORMAPAGO), 'CHE');'PB2';NrTrans1=NrTrans;Radio1=4;Entero1=Cantidad2;Chequera1=Chequera1;Vehiculo1=Vehiculo1
+FW=2;'DEVMAU';NrTrans1 = NrTrans;String1 = CNFORMAPAGO;
+
+
+INSTANCIA17
+BITS
+17;0;FW=2
+11;1;FW=2
+
+POSTEDICION
+FW=2 y Eqstr(BuscarCampo('CNFORMASPAGOCOBRO','Tipo','Codigo',CNFORMAPAGO), 'CHE');'PB2';NrTrans1=NrTrans;Radio1=4;Entero1=Cantidad2;Chequera1=Chequera1;Vehiculo1=Vehiculo1
+FW=2;'DEVMAU';NrTrans1 = NrTrans;String1 = CNFORMAPAGO;
+
+
+INSTANCIA18
+BITS
+18;0;FW=2
+11;1;FW=2
+
+POSTEDICION
+FW=2 y Eqstr(BuscarCampo('CNFORMASPAGOCOBRO','Tipo','Codigo',CNFORMAPAGO), 'CHE');'PB2';NrTrans1=NrTrans;Radio1=5;Entero1=Cantidad2;Chequera1=Chequera1;Vehiculo1=Vehiculo1
+FW=2;'DEVMAU';NrTrans1 = NrTrans;String1 = CNFORMAPAGO;
+
+
+INSTANCIA20
+
+BITS
+20;0;FW=2
+
+POSTEDICION
+FW=2 y Eqstr(BuscarCampo('CNFORMASPAGOCOBRO','Tipo','Codigo',CNFORMAPAGO), 'CHE');'PB2';NrTrans1=NrTrans;Radio1=2;Entero1=Cantidad2;Chequera1=Chequera1;Vehiculo1=Vehiculo1
+FW=2;'INSBIT';String1='TRANSACCIONES2';Entero1=11;NrOperacion1=NrTrans
+
+
+

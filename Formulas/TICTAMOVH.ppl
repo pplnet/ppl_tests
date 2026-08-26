@@ -1,0 +1,6 @@
+﻿RelacionCuenta('','','','',
+                '',
+                '',
+                '',
+                '',
+                #TIPOCTA,'',#MONEDA,'','','','','','',#VEHICULO)

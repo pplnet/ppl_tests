@@ -1,0 +1,10 @@
+﻿IIF (#ESUSDLINK,
+    #TCLINK,
+    IIF(Incluido(FBN['TipoOp'],VAR('TOPASTCLIQ')),
+        IIF(#TCLIQ>0,
+            #TCLIQ,
+            #COTBNAMONP
+        ),
+        #COTBNAMONP
+    )
+)    

@@ -1,0 +1,155 @@
+﻿CAMPOS:1;;10102
+RB1        :'Tipo|Ctas.Propias|Intercompany';;;;NO;;;;;0
+Vehiculo2  :'a Vehiculo'    ;2;1;;;RB1=1;RB1<>1 o Not Eqstr(VEHICULO2,VEHICULO1);'Vehiculo Destino Invalido';NO
+
+Vehiculo1:'Vehiculo'        ;3;1;;;;NoVacio(VEHICULO1);'Vehiculo invalido';NO;BuscarCampo('USRVEHICULO','Vehiculo','Codigo',USUARIOACTIVO)
+Fecha1     :'Fecha'         ;2;2;;VerificaAcceso('OPFVALOR');;FECHA1<=FSYS y EsHabil(FECHA1,'ARG');'Fecha invalida';NO;FSYS
+Fecha2     :'Fecha Acredit' ;3;2;;;;EsHabil(FECHA2,'ARG');;;FSYS;FSYS
+Fecha4     :'Fecha'         ;3;2;;NO;NO;;;;FECHA1;
+
+Especie    :'Moneda'        ;4;1;;;;NoVacio(ESPECIE) y DesciendeDeEspecie(ESPECIE,'MONEDA') y EsTerminal(ESPECIE,Especie);'Especie invalida';NO;;;;;;;;"Status = 'HAB' and Jerarquia Like '"~Jerarquia('ESPECIES','MONEDA')~"%' ";
+Cantidad1  :'Cantidad'      ;5;1;;;;CANTIDAD1>0 ;'Cantidad Invalida';NO
+Cantidad2  :'Gastos'        ;5;2;1;NO;NO;CANTIDAD2>=0 ;'Gastos Invalidos';NO
+Cantidad3  :'Ajuste'        ;6;1;1;NO;CANTIDAD3<>0;
+Cantidad4  :'Imp.Original'  ;1;1;2;NO;;;;;;CANTIDAD1
+
+Cliente1   :'De Banco'      ;7;1;;;;[Eqstr(BuscarCampo('CUENTAS','Comitente','Codigo', CUENTA1), CLIENTE1) y Eqstr(BuscarCampo('CLIENTES','Status','Codigo',CLIENTE1), 'HAB')];'Banco Origen invalido';NO;;BuscarCampo('CUENTAS','Comitente','Codigo',CUENTA1);;;;;;"Sector='BAN' AND Status='HAB' "
+Cuenta1    :'De Cuenta'     ;8;1;;;;Eqstr(BuscarCampo('CUENTAS','Comitente','Codigo',CUENTA1),CLIENTE1);'Cuenta Origen invalida';NO;;QUERY("select Codigo from "~DBO~".CUENTAS where Cliente='"~VEHICULO1~"' and Estado='HAB' and Comitente='"~CLIENTE1~"' AND (Especies LIKE '%"~ESPECIE~"%' or Especies LIKE '%MONEDA%') ");;;;;;"Cliente='"~VEHICULO1~"' and Estado='HAB' and (Especies LIKE '%"~ESPECIE~"%' or Especies LIKE '%MONEDA%') "
+
+Cliente2   :'A Banco'       ;7;2;;;VACIO(PROVEEDOR);NOVACIO(PROVEEDOR) o [Eqstr(BuscarCampo('CUENTAS','Comitente','Codigo', CUENTA2), CLIENTE2) y Eqstr(BuscarCampo('CLIENTES','Status','Codigo',CLIENTE2), 'HAB')];'Banco Destino invalido';NO;;BuscarCampo('CUENTAS','Comitente','Codigo',CUENTA2);;;;;;"Sector='BAN' AND Status='HAB' "
+Cuenta2    :'A Cuenta'      ;8;2;;;VACIO(PROVEEDOR);NOVACIO(PROVEEDOR) o Eqstr(BuscarCampo('CUENTAS','Comitente','Codigo',CUENTA2),CLIENTE2);'Cuenta Destino Invalida';NO;;QUERY("select Codigo from "~DBO~".CUENTAS where Cliente='"~IF(RB1=1,VEHICULO2,VEHICULO1)~"' and Estado='HAB' and Comitente='"~CLIENTE2~"' AND (Especies LIKE '%"~ESPECIE~"%' or Especies LIKE '%MONEDA%') ");;;;;;"Cliente='"~IF(RB1=1,VEHICULO2,VEHICULO1)~"' and Estado='HAB' and (Especies LIKE '%"~ESPECIE~"%' or Especies LIKE '%MONEDA%') "
+
+VCAN8: 'Monto en ARP'  ;1 ;;1;NO;NO;;;;;IF(Eqstr(ESPECIE,'ARP'),CANTIDAD1,CANTIDAD1*CotizacionC(ESPECIE,,,,FECHA1,1,SI,'ARP'))
+
+Fecha3: 'Fecha Aprobacion' ;;;;NO;NO;
+
+
+CONDICIONES
+Incluido(VEHICULO1, UsrVehiculos(USUARIOACTIVO))  o VACIO(UsrVehiculos(USUARIOACTIVO)); 'El usuario activo no esta habilitado para operar con el vehiculo '~VEHICULO1;NO
+EspecieCuenta(ESPECIE, CUENTA1)   o VACIO(CUENTA1);'La Moneda No Corresponde con la Cuenta Origen';NO
+ClienteCuenta(VEHICULO1, CUENTA1) o VACIO(CUENTA1);'La Cuenta Origen no corresponde al Vehiculo';SI
+
+RB1<>1 o EspecieCuenta(ESPECIE, CUENTA2) o VACIO(CUENTA2);'La Moneda No Corresponde con la Cuenta Origen';NO
+RB1<>1 o ClienteCuenta(VEHICULO2, CUENTA2) o VACIO(CUENTA2);'La Cuenta Destino no corresponde al Vehiculo';SI
+RB1<>0 o ClienteCuenta(VEHICULO1, CUENTA2) o VACIO(CUENTA2);'La Cuenta Destino no corresponde al Vehiculo';SI
+
+
+SaldoC(Vehiculo1,Especie,,,,,,Cuenta1,1,FSYS)>=Cantidad1;'Cantidad a transferir es superior al saldo en la cuenta origen.';SI
+
+
+MOVIMIENTOS
+Fecha2;Vehiculo1;Especie;;;;;Vehiculo1 ;1; -Cantidad1;;'Transferencia de '~Especie;SI;NO;;;;Cuenta1;;1;
+Fecha2;Vehiculo1;Especie;;;;;Vehiculo1 ;1; -Cantidad2;;'Gastos por Transferencia de '~Especie;SI;NO;;;;Cuenta1;;2;
+
+Fecha2;Vehiculo1;Especie;;;;;Vehiculo1 ;1;  Cantidad1;;'Transferencia de '~Especie;SI;NO;;VACIO(PROVEEDOR) y RB1=0;;Cuenta2;;3;
+Fecha2;Vehiculo2;Especie;;;;;Vehiculo2 ;1;  Cantidad1;;'Transferencia de '~Especie;SI;NO;;VACIO(PROVEEDOR) y RB1=1;;Cuenta2;;3;
+
+
+BAJA
+Not Eqstr(CNFORMAPAGO,'DATANE');'La Transaccion se genero por una Concilicion con Datanet. Se debe eliminar con el evento de Desconciliacion.';
+
+EDICION
+INSTANCIA=11;'La transaccion solo se puede modificar en la instancia de carga.'
+
+
+BITS
+11;1
+14;0
+16;0
+17;0
+18;0
+20;0
+25;0
+
+
+INSTANCIA11
+BITS
+11;0;FW=1
+14;1;FW=1
+
+SQL
+" UPDATE "~DBO~".TRANSACCIONES2 SET Fecha4="~IdxDate2(FSYS)~" WHERE NrTrans = '"~NRTRANS~"' ";FW=1
+
+
+
+INSTANCIA14
+CAMPOS:1;FW=1
+RB1        :'Tipo|Ctas.Propias|Intercompany';;;;NO;
+Vehiculo2  :'a Vehiculo'    ;2;1;;NO;RB1=1;
+Fecha1     :'Fecha'         ;2;2;;NO;
+Fecha2     :'Fecha Liq.'    ;3;2;;NO;
+
+Especie    :'Moneda'        ;4;1;;NO;
+Cantidad1  :'Cantidad'      ;5;1;;NO;
+
+Cantidad2  :'Gastos'        ;5;2;1;NO;
+
+Cliente1   :'De Banco'      ;7;1;;NO;
+Cuenta1    :'De Cuenta'     ;8;1;;NO;
+
+Cliente2   :'A Banco'       ;7;2;;NO;VACIO(PROVEEDOR)
+Cuenta2    :'A Cuenta'      ;8;2;;NO;VACIO(PROVEEDOR)
+
+Cliente3           :'A Banco Prov.'  ;7;2;;NO;NOVACIO(PROVEEDOR)
+CNCuentaProveedor1 :'A Cuenta Prov.' ;8;2;;NO;NOVACIO(PROVEEDOR)
+
+Vehiculo1:'Vehiculo'   ;11;2; ;NO;
+VCAN8: 'Monto en ARP'  ; 1; ;1;NO;NO;;;;;IF(Eqstr(ESPECIE,'ARP'),CANTIDAD1,CANTIDAD1*CotizacionC(ESPECIE,,,,FECHA1,1,SI,'ARP'))
+
+
+BITS
+14;0;FW=1 o FW=2
+11;1;FW=2
+16;1;FW=1
+
+INSTANCIA16
+CAMPOS:1;FW=1
+RB1        :'Tipo|Ctas.Propias|Intercompany';;;;NO;
+Vehiculo2  :'a Vehiculo'    ;2;1;;NO;RB1=1;
+Fecha1     :'Fecha'         ;2;2;;NO;
+Fecha2     :'Fecha Liq.'    ;3;2;;NO;
+
+Especie    :'Moneda'        ;4;1;;NO;
+Cantidad1  :'Cantidad'      ;5;1;;NO;
+
+Cantidad2  :'Gastos'        ;5;2;1;NO;
+
+Cliente1   :'De Banco'      ;7;1;;NO;
+Cuenta1    :'De Cuenta'     ;8;1;;NO;
+
+Cliente2   :'A Banco'       ;7;2;;NO;VACIO(PROVEEDOR)
+Cuenta2    :'A Cuenta'      ;8;2;;NO;VACIO(PROVEEDOR)
+
+Cliente3           :'A Banco Prov.'  ;7;2;;NO;NOVACIO(PROVEEDOR)
+CNCuentaProveedor1 :'A Cuenta Prov.' ;8;2;;NO;NOVACIO(PROVEEDOR)
+
+Vehiculo1:'Vehiculo'   ;11;2; ;NO;
+
+Fecha3: 'Fecha Aprobacion'  ;11;1;;NO;;;;;Fsys;
+
+VCAN8: 'Monto en ARP'  ; 1; ;1;NO;NO;;;;;IF(Eqstr(ESPECIE,'ARP'),CANTIDAD1,CANTIDAD1*CotizacionC(ESPECIE,,,,FECHA1,1,SI,'ARP'))
+
+
+BITS
+16;0;FW=1 o FW=2
+14;1;FW=2
+20;1;FW=1
+
+SQL
+" INSERT INTO "~DBO~".MOVEJECUTADOS SELECT * FROM "~DBO~".MOVPENDIENTES WHERE NrOperacion = '"~NrTrans~"' AND NrMov=1 ";FW=1
+" DELETE FROM "~DBO~".MOVPENDIENTES WHERE NrOperacion = '"~NrTrans~"' AND NrMov=1 ";FW=1
+
+" INSERT INTO "~DBO~".MOVEJECUTADOS SELECT * FROM "~DBO~".MOVPENDIENTES WHERE NrOperacion = '"~NrTrans~"' AND NrMov=3 ";FW=1
+" DELETE FROM "~DBO~".MOVPENDIENTES WHERE NrOperacion = '"~NrTrans~"' AND NrMov=3";FW=1
+
+INSTANCIA20
+SQL
+" INSERT INTO "~DBO~".MOVPENDIENTES SELECT * FROM "~DBO~".MOVEJECUTADOS WHERE NrOperacion = '"~NRTRANS~"' ";FW=2
+" DELETE FROM "~DBO~".MOVEJECUTADOS WHERE NrOperacion = '"~NRTRANS~"' ";FW=2
+
+
+BITS
+20;0;FW=2
+
+POSTEDICION
+FW=2;'INSBIT';String1='TRANSACCIONES2';Entero1=11;NrOperacion1=NrTrans

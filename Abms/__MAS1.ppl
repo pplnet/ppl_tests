@@ -1,0 +1,356 @@
+﻿#*********************************************************************************
+#combos data sources.
+set ds_DC            = "DEB:Debito|CRE:Credito|OTRO:Otro"
+#*********************************************************************************
+
+def abm "MODELOSASIENTO1"
+    def grid
+        Modelo:,
+        NrItem:,
+        CuentaContable:,
+        CuentaContable1:,
+        FormaCalculo1:,
+        FormaCalculo2:,
+        FormaCalculo3:,
+        CondicionValidez:,
+        DebitoCredito:,
+        Moneda1:,
+        Moneda2:,
+        Moneda3:,
+        Alias1:,
+        Alias2:,
+        Alias3:,
+        Detalle:,
+        CentroCosto:,
+        CC1:,
+        MN1:,
+        MN2:,
+        MN3:,
+        AL1:,
+        AL2:,
+        AL3:,
+        CentroCosto1:,
+        Moneda11:,
+        Moneda12:,
+        Moneda13:,
+        CT1:,
+        Alias4:,
+        Alias5:,
+        Alias8:,
+        CuentaAuxiliar:,
+        CuentaAuxiliar1:,
+        CA1:
+    end
+    def filter
+        "Modelo = '" + $.parent('Codigo') + "'"
+    end
+    def key
+        Modelo:, NrItem:
+    end
+    def dialog_size
+        860,750
+    end
+    def dialog          
+        tab 'General'
+            column
+                NrItem:,,numeric,'####0'
+                %%ifdef PCR
+                    Alias10: ,'Unidad Negocio', autocomplete_formula,'Descripcion'
+                    CuentaContable:, 'Cuenta Objeto', autocomplete_formula,'Descripcion'
+                    CuentaContable1: , 'Cuenta Objeto' , autocomplete, 'CONTABILIDAD', 'Codigo,Nombre',,,125
+                    CuentaAuxiliar: ,'Cuenta Aux', autocomplete_formula,'Descripcion'
+                    CuentaAuxiliar1:,'Cuenta Aux',autocomplete,'CUENTACONTABLEAUX','Codigo,Nombre'
+                %%else
+                    CuentaContable:,, autocomplete_formula,'Descripcion'
+                    CuentaContable1: , 'Cuenta Contable' , autocomplete, 'CONTABILIDAD', 'Codigo,Nombre',,,125                
+                %%endif
+                FormaCalculo1:,'Imp.Mon. Fuerte', autocomplete_formula,'Descripcion'
+                FormaCalculo2:,'Imp.Mon. Local', autocomplete_formula,'Descripcion'
+                FormaCalculo3:,'Imp.Mon. Grupo', autocomplete_formula,'Descripcion'
+                CondicionValidez:,, autocomplete_formula,'Descripcion'
+                DebitoCredito:,, text
+                Moneda1:, 'Moneda 1', autocomplete_formula,'Descripcion'
+                Moneda11:, 'Moneda 1', autocomplete, 'ESPECIES', 'Codigo,Nombre'
+                Moneda2:, 'Moneda 2', autocomplete_formula,'Descripcion'
+                Moneda12:, 'Moneda 2', autocomplete, 'ESPECIES', 'Codigo,Nombre'
+                Moneda3:, 'Moneda 3', autocomplete_formula,'Descripcion'
+                Moneda13:, 'Moneda 3', autocomplete, 'ESPECIES', 'Codigo,Nombre'
+                #TablaRC:,, autocomplete, 'RELACIONCUENTA', 'Tabla',,"1=1 GROUP BY Tabla"
+                TablaRC:, 'Tipo Cuenta' , autocomplete, 'TIPOCTACONT', 'Codigo,Nombre'
+                CentroCosto:,'Centro Costos', autocomplete_formula,'Descripcion'
+                CentroCosto1:,'Centro Costos', autocomplete, 'CENTROSCOSTO', 'Codigo,Descripcion'
+                Modelo:,
+            column
+
+                %%ifdef PCR
+                    Label1: ,       ,label
+                    Label2: ,       ,label
+                %%endif
+                CC1:    , 'Fijo',check
+                %%ifdef PCR
+                    Label14: ,       ,label
+                    CA1:    , 'Fijo',check
+                %%endif
+                Label3: ,       ,label
+                Label4: ,       ,label
+                Label5: ,       ,label
+                Label6: ,       ,label
+                Label7: ,       ,label
+                DC1:    , 'Tipo',combo, ds_DC
+                
+                MN1:    , 'Fijo',check
+                Label8: ,       ,label
+                MN2:    , 'Fijo',check
+                Label9: ,       ,label
+                MN3:    , 'Fijo',check
+                Label10:,       ,label
+                Label11:,       ,label
+                CT1:    , 'Fijo',check
+                
+        tab 'Adicional'
+            column
+                Alias1:,'Moneda op.', autocomplete_formula  
+                Alias2:,'Entidad', autocomplete_formula  
+                Alias3:,'Book', autocomplete_formula  
+                Alias4:,'Cia.Sist.Cont.', autocomplete_formula  
+                Alias5:,, autocomplete_formula  
+                Alias7:,'Especie', autocomplete_formula
+                FormulaValor1:,'Imp.Mon. Op.', autocomplete_formula
+                FormulaValor2:,'TC', autocomplete_formula
+                FormulaValor3:,, autocomplete_formula
+                Alias8:,'Det.Resumido', autocomplete_formula
+                Detalle:,,autocomplete_formula , extra_large_text            
+           # Estos campos vienen desde BKB (BOFA)
+           #     Alias6:,, autocomplete_formula
+           #     Alias8:,, autocomplete_formula
+           #     Alias9:,, autocomplete_formula
+           #     Alias10:,, autocomplete_formula
+           #column
+           #     Clave:,, large_text, 
+           #     Producto:,, large_text, 
+           #     SubProducto:,, large_text, 
+           #     CodContable:,, large_text, 
+           #     CuentaWest:,, large_text, 
+            
+    end
+
+    do_not_map: DC1:; 
+   
+    when_change: CC1: do
+       if $.val CC1: = 'SI'
+            $.Show(CuentaContable1:)
+            $.Hide(CuentaContable:)
+       else
+            $.Hide(CuentaContable1:)
+            $.Show(CuentaContable:)       
+       end
+    end
+    
+    %%ifdef PCR
+        when_change: CA1: do
+           if $.val CA1: = 'SI'
+                $.Show(CuentaAuxiliar1:)
+                $.Hide(CuentaAuxiliar:)
+           else
+                $.Hide(CuentaAuxiliar1:)
+                $.Show(CuentaAuxiliar:)       
+           end
+        end
+    %%endif
+    
+    when_change: MN1: do
+       if $.val MN1: = 'SI'
+            $.Show(Moneda11:)
+            $.Hide(Moneda1:)
+       else
+            $.Hide(Moneda11:)
+            $.Show(Moneda1:)
+       end
+    end
+    
+    when_change: MN2: do
+        if $.val MN2: = 'SI'
+            $.Show(Moneda12:)
+            $.Hide(Moneda2:)
+        else
+            $.Hide(Moneda12:)
+            $.Show(Moneda2:)
+        end
+    end
+    
+    when_change: MN3: do
+        if $.val MN3: = 'SI'
+            $.Show(Moneda13:)
+            $.Hide(Moneda3:)
+        else
+            $.Hide(Moneda13:)
+            $.Show(Moneda3:)
+        end
+    end
+    
+    when_change: CT1: do
+        if $.val CT1: = 'SI'
+            $.Show(CentroCosto1:)
+            $.Hide(CentroCosto:)
+        else
+            $.Hide(CentroCosto1:)
+            $.Show(CentroCosto:)
+        end
+    end
+
+    when_change: DC1: do
+#       if $.val (DC1:) = $.val (DC1Anterior:)
+#            $.set_field(DebitoCredito:, $.val(DebitoCreditoAnterior:))
+#       else       
+#           if $.val (DC1:) = 'DEB'
+#                $.set_field(DebitoCredito:, "'DEB'")
+#                $.Disable(DebitoCredito:)
+#           end
+#           if $.val DC1: = 'CRE'
+#                $.set_field(DebitoCredito:, "'CRE'") 
+#                $.Disable(DebitoCredito:)
+#           end
+#           if $.val DC1: = 'OTRO'
+#                 If ppl.Vacio(DebitoCredito:) OR $.val(DebitoCredito:) = "'DEB'" OR $.val(DebitoCredito:) = "'CRE'"
+#                    $.set_field(DebitoCredito:, '')
+#                EndIf
+#                $.Enable(DebitoCredito:)
+#           end       
+#       end
+       if $.val (DC1:) = 'DEB'
+            $.set_field(DebitoCredito:, "'DEB'")
+            $.Disable(DebitoCredito:)
+       end
+       if $.val DC1: = 'CRE'
+            $.set_field(DebitoCredito:, "'CRE'")
+            $.Disable(DebitoCredito:)
+       end
+       if $.val DC1: = 'OTRO'
+            $.set_field(DebitoCredito:, '')
+            $.Enable(DebitoCredito:)
+       end           
+    end
+   
+    before_show_dialog: do
+       $.Show(DC1:)
+       if $.val CC1: = 'SI'
+            $.Show(CuentaContable1:)
+            $.Hide(CuentaContable:)
+       else
+            $.Hide(CuentaContable1:)
+            $.Show(CuentaContable:)       
+       end
+       
+       %%ifdef PCR
+           if $.val CA1: = 'SI'
+           #$.set_field(CuentaAuxiliar1:, $.val CuentaAuxiliar:)
+                $.Show(CuentaAuxiliar1:)
+                $.Hide(CuentaAuxiliar:)
+           else
+                $.Hide(CuentaAuxiliar1:)
+                $.Show(CuentaAuxiliar:)       
+           end
+       %%endif
+
+        if $.val CT1: = 'SI'
+            $.Show(CentroCosto1:)
+            $.Hide(CentroCosto:)
+        else
+            $.Hide(CentroCosto1:)
+            $.Show(CentroCosto:)
+        end
+
+       if $.val (DebitoCredito:) = "'DEB'"
+            $.set_field(DC1:, 'DEB')
+            $.Disable(DebitoCredito:)
+       else 
+            if $.val DebitoCredito: = "'CRE'"
+                $.set_field(DC1:, 'CRE') 
+                $.Disable(DebitoCredito:)
+            else
+                 $.set_field(DC1:, 'OTRO')
+                 $.Enable(DebitoCredito:)
+                 $.set_field(DebitoCredito:, ppl.SQL("Select DebitoCredito FROM MODELOSASIENTO1 WHERE Modelo = '"+$.val(Modelo:)+"' AND NrItem = '"+$.val(NrItem:)+"' "))
+                 #$.set_field(DebitoCredito:, ppl.BuscarCampo('MODELOSASIENTO1', 'DebitoCredito', 'Modelo', $.parent('Codigo')))
+            endif
+       endif
+    end
+    
+    before_show_create_dialog: do
+       $.set_field(DC1:,'OTRO')
+       $.set_field  (DebitoCredito:, '')
+       $.set_field  (Modelo:, $.parent("Codigo"))
+       if $.val CC1: = 'SI'
+            $.Show(CuentaContable1:)
+            $.Hide(CuentaContable:)
+       else
+            $.Hide(CuentaContable1:)
+            $.Show(CuentaContable:)       
+       end
+       %%ifdef PCR
+           if $.val CA1: = 'SI'
+           #$.set_field(CuentaAuxiliar1:, $.val CuentaAuxiliar:)
+                $.Show(CuentaAuxiliar1:)
+                $.Hide(CuentaAuxiliar:)
+           else
+                $.Hide(CuentaAuxiliar1:)
+                $.Show(CuentaAuxiliar:)       
+           end
+       %%endif
+       if $.val MN1: = 'SI'
+            $.Show(Moneda11:)
+            $.Hide(Moneda1:)
+       else
+            $.Hide(Moneda11:)
+            $.Show(Moneda1:)
+       end       
+        if $.val MN2: = 'SI'
+            $.Show(Moneda12:)
+            $.Hide(Moneda2:)
+        else
+            $.Hide(Moneda12:)
+            $.Show(Moneda2:)
+        end
+        if $.val MN3: = 'SI'
+            $.Show(Moneda13:)
+            $.Hide(Moneda3:)
+        else
+            $.Hide(Moneda13:)
+            $.Show(Moneda3:)
+        end
+        if $.val CT1: = 'SI'
+            $.Show(CentroCosto1:)
+            $.Hide(CentroCosto:)
+        else
+            $.Hide(CentroCosto1:)
+            $.Show(CentroCosto:)
+        end
+    end    
+    
+    %%ifdef PCR
+        before_save: do
+            if $.val(CA1:) = 'SI'
+                $.set_field(CuentaAuxiliar:, '')
+                
+            else
+                $.set_field(CuentaAuxiliar1:, '')
+                
+            endif
+            if $.val(CC1:) = 'SI'
+                $.set_field(CuentaContable:, '')
+                
+            else
+                $.set_field(CuentaContable1:, '')
+                
+            endif
+        end 
+    %%endif
+    
+    hide_fields:
+        Modelo:,DC1:
+        
+    validations: 
+        DebitoCredito:, not ppl.Vacio($.val(DebitoCredito:)), 'El campo DebitoCredito no puede ser vacio','error';
+        NrItem:, not ppl.Vacio($.val(NrItem:)), 'El campo Nr Item no puede ser vacio','error'
+ 
+end

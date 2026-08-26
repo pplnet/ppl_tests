@@ -1,0 +1,438 @@
+﻿IF Vacio(UsrVehiculos(UsuarioActivo))
+    ACT(LS:1, SQLSet(" Select Codigo from "~DBO~".VEHICULOS where Status = 'HAB' "))
+ELSE
+    ACT(LS:1, UsrVehiculos(UsuarioActivo))
+ENDIF
+
+CrearDialogo
+    Fecha1        : 'Fecha: '      ;1;1;1;SI;SI;;;;Habiles(FSYS,-1,'ARG',SI)
+    Lista1        : 'TiposOp: '    ;2;1;1;SI;SI;;;;;;SQLSet("SELECT Codigo FROM TIPOSOPERACION WHERE Codigo IN ("~Pipe2Comillas(Var('TIPOOPDCMM'))~")  ")
+    NrOperacion1  : 'Operacion: '  ;3;;;SI;SI;(Incluido(BuscarCampo('OPERACIONES','TipoOp','NrOperacion',Dialogo.NrOperacion1),Var('TIPOOPDCMM')) Y BuscarCampo('OPERACIONES','Especie','NrOperacion',Dialogo.NrOperacion1)<>VAR('MONELOCA')) o Vacio(Dialogo.NrOperacion1);'La operación ingresada es inválida';NO;;;;;;"TipoOp IN ("~Pipe2Comillas(Var('TIPOOPDCMM'))~") and Especie<>'"~VAR('MONELOCA')~"' "
+    
+    Radio1: 'Filtra Book|SI|NO'    ;4;;;;;;;;1;
+    Lista2: 'Vehiculos'            ;5;;;;Dialogo.Radio1=1;;;;;;IIF(Vacio(UsrVehiculos(UsuarioActivo)), Val(LS:1), SQLSet(" Select U.Vehiculo From "~DBO~".USRVEHICULO U, "~DBO~".VEHICULOS V Where V.Codigo = U.Vehiculo AND U.Codigo = '"~UsuarioActivo~"' AND V.Status = 'HAB' "));;
+    Vehiculo1: 'Vehiculo'          ;6;;;;Dialogo.Radio1=0;Dialogo.Radio1=1 O NoVacio(Dialogo.Vehiculo1) ;'Vehiculo Invalido';NO;;;;;;;
+    Lista3: 'Books'                ;7;;;;Dialogo.Radio1=0;;;;;;SQLSet(" Select Codigo From "~DBO~".BOOKS Where Vehiculo = '"~Dialogo.Vehiculo1~"' ");;
+FinDialogo
+
+If Not ok
+    Cancelar
+EndIf
+
+
+********TIPOSDC**********
+*CTE -> Capital Corriente
+*NCT -> Capital No Corriente
+*INT -> Intereses
+*PCT -> Prima/Dcto Corriente
+*PNC -> Prima/Dcto. No Corriente
+*CCT -> Comisiones Corriente (Gastos)
+*CNC -> Comisiones No Corriente (Gastos)
+*************************
+
+IF Dialogo.Fecha1 >= Fecha(FSYS)
+    Cancelar
+ENDIF
+
+**Vehiculo/s
+If Dialogo.Radio1=1
+    **Si no filtra Book, se toman vh de Dialogo.Lista1 o todos en caso de no seleccionar ninguno
+    If Vacio(Dialogo.Lista2)
+        let &lista2 Val(LS:1)
+    Else
+        let &lista2 Dialogo.Lista2    
+    Endif
+Else
+    *Si filtra book, sólo se seleccionará un vh el cual se toma de Dialogo.Vehiculo1
+    let &vehiculo Dialogo.Vehiculo1
+    If NoVacio(Dialogo.Lista3)
+        *Se toman los seleccionados en la lista de books
+        let &books Dialogo.Lista3
+    Else
+        **Si no selecciona book, se toman todos
+        let &books SQLSet(" Select Codigo From "~DBO~".BOOKS Where Vehiculo = '"~Dialogo.Vehiculo1~"' ")
+    Endif
+Endif
+
+
+***VARIABLES***
+If Vacio(Dialogo.Lista1)
+    let &tiposOp Var('TIPOOPDCMM')
+Else
+    let &tiposOp Dialogo.Lista1
+EndIf
+ACT(ML:1,Var('MONELOCA'))
+ACT(ME:1,Var('MONEEXTR'))
+
+
+
+
+*   FD:55 = Fecha Desde
+    ACD(FD:55, Habiles(Dialogo.Fecha1, -1, 'ARG', SI))
+*   FH:55 = Fecha Hasta
+    ACD(FH:55, Dialogo.Fecha1)
+
+********************
+*UPDATE 11/09/2023
+*Se reemplazan celdas por variables para mayor claridad:
+********************
+***---MO:88 = &monedaOp
+***---AL:88 = &monedaLocal
+***---MO:55 = &capital
+***---DK:55 = &dcCapitalMonFuerte
+***---DK:66 = &dcCapitalMonLocal
+***---DK:77 = &dcCapitalMonGrupo
+     
+**SELECT para Operaciones***
+SQL.ADD("SELECT DISTINCT O.NrOperacion,O.Especie, O.TipoOp, O.Cantidad, O.FechaVto,")
+SQL.ADD("O.FechaOp, O.Cliente1, O.Vehiculo1, O.Book1, V.Alias4 ")
+SQL.ADD("FROM "~DBO~".OPERACIONES O, "~DBO~".VEHICULOS V ")
+SQL.ADD("WHERE O.Vehiculo1 = V.Codigo")
+
+*Reviso si se eligió un nr Operación particular
+IF NoVacio(Dialogo.NrOperacion1)
+    SQL.ADD("AND O.NrOperacion = '"~Dialogo.NrOperacion1~"' ")
+Else
+    *Sino filtro operaciones
+    SQL.ADD("AND O.TipoOp IN("~Pipe2Comillas(&tiposOp)~") ")
+    SQL.ADD("AND O.FechaVto >= '"~IdxDate(Dialogo.Fecha1)~"'")
+    SQL.ADD("AND O.FechaOp < '"~IdxDate(Dialogo.Fecha1) ~"'")
+    *    SQL.ADD("AND NOT O.Especie = '"~Val(ML:1)~"' ")
+    SQL.ADD("AND O.Especie <> V.Alias4 ")
+    **CINTIA 221123 SE AGREGA FILTRO X VH Y BOOK
+    If Dialogo.Radio1=1
+        SQL.ADD(" AND O.Vehiculo1 IN  ("~Pipe2Comillas(&lista2)~")")
+    Else
+        SQL.ADD(" AND O.Vehiculo1 = '"~&vehiculo~"' and O.Book1 IN ("~Pipe2Comillas(&books)~") ")
+    Endif    
+EndIf
+
+SQL.ADD("ORDER BY O.NrOperacion")
+Watch(SQL.batch)   
+Recorrer SQL
+    If Incluido(FBN('TipoOp'),Var('OPEACT'))
+       let &nrCot VAR('NRCOTACT')
+    Else
+       let &nrCot VAR('NRCOTPAS')
+    Endif
+    ***
+    ***Datos DC Capital***
+    *CELDAS QUE YA NO SE USAN*
+    *    MO:88 = Especie de la operacion - ACT(MO:88, FBN('Especie'))
+    *    AL:88 = Moneda Local el vehículo -ACT(AL:88, FBN('Alias4'))
+    *    MO:55 = Capital - ACN(MO:55, FBN('Cantidad'))
+    let &monedaOp FBN('Especie')
+    let &monedaLocal FBN('Alias4')
+    let &capital FBN('Cantidad')
+    **Cintia 091123 - PCR Prestamos
+    let &tieneCuotas SQL("Select 1 from "~DBO~".OPERACIONES Where NrOperacion='"~FBN['NrOperacion']~"' and Cuotas1>0 ")
+    IF Vacio(&tieneCuotas)
+        let &tieneCuotas 0
+    ENDIF
+
+    If &tieneCuotas=0
+        **No Tiene Cuotas
+        If FBN['FechaVto']<=Fecha(Dialogo.Fecha1)+VAR('PLCAPCORR')
+            let &tipoDc 'CTE'
+        Else
+            let &tipoDc 'NCT'
+        Endif
+        
+        (.'DCDIARIA'.)     
+        **Para OPERACIONES se calcula DCCAPITAL y DCINTERES
+        IF Query("SELECT 1 FROM "~DBO~".DCMM WHERE NrOperacion='"~FBN['NrOperacion']~"' AND Fecha='"~IdxDate(Dialogo.Fecha1)~"' AND TipoDC='"~&tipoDC~"' ")=1 
+            *Update DC Capital
+            SQL.ADD(" UPDATE "~DBO~".DCMM ")
+            SQL.ADD(" SET TCHoy="~Fstr(&tcHoy,0,2)~", TCAyer="~Fstr(&tcAyer,0,2)~", ")
+            *SQL.ADD(" Monto="~Fstr(Val(MO:55),0,2)~", DC="~Fstr(Val(DK:55),0,2)~", ")
+            SQL.ADD(" Monto="~Fstr(&capital,0,2)~", DC="~Fstr(&dcCapitalMonFuerte,0,2)~", ")
+            SQL.ADD(" FechaCarga="~SQLAhora~", FechaCargaSys='"~IdxDate(Fsys)~"' ")
+            SQL.ADD(" WHERE NrOperacion='"~FBN['NrOperacion']~"' AND Fecha='"~IdxDate(Dialogo.Fecha1)~"' AND TipoDC='"~&tipoDC~"'")
+            SQL.NEW()
+            SQL.EXEC()
+        ELSE
+            *Query INSERT DC Capital
+            SQL.ADD("INSERT INTO "~DBO~".DCMM")
+            SQL.ADD("(NrOperacion, Fecha, TipoDC, Cliente,")
+            SQL.ADD("Vehiculo, TCHoy, TCAyer, Monto,DC, Producto,")
+            SQL.ADD("Especie, MonedaDC, Book, FechaCarga, FechaCargaSys)")
+            SQL.ADD("VALUES")
+            SQL.ADD("('"~FBN['NrOperacion']~"', '"~IdxDate(Dialogo.Fecha1)~"','"~&tipoDC~"', '"~FBN['Cliente1']~"',")
+            *SQL.ADD("'"~FBN['Vehiculo1']~"', "~Fstr(&tcHoy,0,2)~", "~Fstr(&tcAyer,0,2)~", "~Fstr(Val(MO:55),0,2)~", "~Fstr(Val(DK:55),0,2)~", '"~FBN['TipoOp']~"',")
+            *SQL.ADD("'"~Val(MO:88)~"', '"~Val(ML:1)~"','"~FBN['Book1']~"', "~SQLAhora~", '"~IdxDate(Fsys)~"')")
+            SQL.ADD("'"~FBN['Vehiculo1']~"', "~Fstr(&tcHoy,0,2)~", "~Fstr(&tcAyer,0,2)~", "~Fstr(&capital,0,2)~", "~Fstr(&dcCapitalMonFuerte,0,2)~", '"~FBN['TipoOp']~"',")
+            SQL.ADD("'"~&monedaOp~"', '"~&monedaLocal~"','"~FBN['Book1']~"', "~SQLAhora~", '"~IdxDate(Fsys)~"')")
+            SQL.NEW()
+            SQL.EXEC()
+        ENDIF
+    Else
+        let &flagIteracion 0
+        *let &nrCuotaVig SQL(" Select NrCuota From "~DBO~".CUOTAS Where NrOperacion = '"~FBN('NrOperacion')~"' and Fecha1  <= '"~IdxDate(Dialogo.Fecha1)~"' and Fecha2  > '"~IdxDate(Dialogo.Fecha1)~"' ")
+        let &fechaLimCte Fecha(Dialogo.Fecha1)+VAR('PLCAPCORR')
+        IF Incluido(FBN('TipoOp'),'MMPCLM|MMPOSM|MMPEM|MMPIM|MMPCCM|SEPVMV|MMCPM|')
+            let &campoCant 'Cantidad1'
+        Else
+           let &campoCant 'Cantidad4'        
+           IF NOT #OBLIGNEG
+               let &noCteCero 1
+           Endif
+        Endif
+        
+        If &noCteCero<>1
+            let &capNoCte SQL(" Select SUM("~&campoCant~") FROM "~DBO~".CUOTAS Where NrOperacion= '"~FBN('NrOperacion')~"' and Fecha2>'"~IdxDate(&fechaLimCte)~"'")
+        Else
+            let &capNoCte 0
+        Endif
+        let &capCte SQL(" Select SUM("~&campoCant~") FROM "~DBO~".CUOTAS Where NrOperacion= '"~FBN('NrOperacion')~"' and Fecha2<='"~IdxDate(&fechaLimCte)~"' and Fecha2>='"~IdxDate(Dialogo.Fecha1)~"' ")
+
+        IF Vacio(&capCte)
+            let &capCte 0
+        ELSE
+            let &flagIteracion &flagIteracion+1
+        ENDIF
+        
+        IF Vacio(&capNoCte)
+            let &capNoCte 0
+        ELSE
+            let &flagIteracion &flagIteracion+1            
+        ENDIF    
+        
+        Recorrer&j 1,&flagIteracion
+            If (&flagIteracion>1 y &j=1) O (&flagIteracion=1 y &capCte<>0)
+                let &capital &capCte
+                let &tipoDC 'CTE'
+            Else
+                let &capital &capNOCte
+                let &tipoDC 'NCT'
+            Endif
+            (.'DCDIARIA'.)     
+            **Para OPERACIONES se calcula DCCAPITAL y DCINTERES
+            IF Query("SELECT 1 FROM "~DBO~".DCMM WHERE NrOperacion='"~FBN['NrOperacion']~"' AND Fecha='"~IdxDate(Dialogo.Fecha1)~"' AND TipoDC='"~&tipoDC~"' ")=1 
+                *Update DC Capital
+                SQL.ADD(" UPDATE "~DBO~".DCMM ")
+                SQL.ADD(" SET TCHoy="~Fstr(&tcHoy,0,2)~", TCAyer="~Fstr(&tcAyer,0,2)~", ")
+                *SQL.ADD(" Monto="~Fstr(Val(MO:55),0,2)~", DC="~Fstr(Val(DK:55),0,2)~", ")
+                SQL.ADD(" Monto="~Fstr(&capital,0,2)~", DC="~Fstr(&dcCapitalMonFuerte,0,2)~", ")
+                SQL.ADD(" FechaCarga="~SQLAhora~", FechaCargaSys='"~IdxDate(Fsys)~"' ")
+                SQL.ADD(" WHERE NrOperacion='"~FBN['NrOperacion']~"' AND Fecha='"~IdxDate(Dialogo.Fecha1)~"' AND TipoDC='"~&tipoDC~"'")
+                SQL.NEW()
+                SQL.EXEC()
+            ELSE
+                *Query INSERT DC Capital
+                SQL.ADD("INSERT INTO "~DBO~".DCMM")
+                SQL.ADD("(NrOperacion, Fecha, TipoDC, Cliente,")
+                SQL.ADD("Vehiculo, TCHoy, TCAyer, Monto,DC, Producto,")
+                SQL.ADD("Especie, MonedaDC, Book, FechaCarga, FechaCargaSys)")
+                SQL.ADD("VALUES")
+                SQL.ADD("('"~FBN['NrOperacion']~"', '"~IdxDate(Dialogo.Fecha1)~"', '"~&tipoDC~"', '"~FBN['Cliente1']~"',")
+                *SQL.ADD("'"~FBN['Vehiculo1']~"', "~Fstr(&tcHoy,0,2)~", "~Fstr(&tcAyer,0,2)~", "~Fstr(Val(MO:55),0,2)~", "~Fstr(Val(DK:55),0,2)~", '"~FBN['TipoOp']~"',")
+                *SQL.ADD("'"~Val(MO:88)~"', '"~Val(ML:1)~"','"~FBN['Book1']~"', "~SQLAhora~", '"~IdxDate(Fsys)~"')")
+                SQL.ADD("'"~FBN['Vehiculo1']~"', "~Fstr(&tcHoy,0,2)~", "~Fstr(&tcAyer,0,2)~", "~Fstr(&capital,0,2)~", "~Fstr(&dcCapitalMonFuerte,0,2)~", '"~FBN['TipoOp']~"',")
+                SQL.ADD("'"~&monedaOp~"', '"~&monedaLocal~"','"~FBN['Book1']~"', "~SQLAhora~", '"~IdxDate(Fsys)~"')")
+                SQL.NEW()
+                SQL.EXEC()
+            ENDIF
+        Proximo
+        
+    Endif
+    
+    
+    *************DC INTERESES (+PRIMA Y GASTOS CTE Y NO CTE)
+    let &nrOperacion FBN['NrOperacion']
+    let &tipoOp FBN['TipoOp']
+    let &cliente FBN['Cliente1']
+    let &book FBN['Book1']
+    let &vehiculo FBN['Vehiculo1']
+    
+    let &fechaLimCte Habiles(Dialogo.Fecha1,VAR('PLCAPCORR'),'ARG',NO)
+    
+    **Gastos Cte
+    SQL.ADD(" Select Sum(M.Monto) as 'Devengados', 'CCT' as 'TipoDC' from MOVDEVENGADOS M,COMISIONES2 C ,OPERACIONES O ")
+    SQL.ADD(" Where M.NrOperacion=C.NrOperacion and C.NrOperacion=O.NrOperacion and O.NrOperacion='"~&nrOperacion~"' ")
+    SQL.ADD(" and M.Fecha<'"~IdxDate(&fechaLimCte)~"' and M.TipoDevengado='COMION' AND O.FechaVto>='"~IdxDate(Dialogo.Fecha1)~"' ")
+    SQL.ADD(" and C.Fecha1<'"~IdxDate(Dialogo.Fecha1)~"' AND M.Fecha>C.Fecha1 ")
+    
+    SQL.ADD(" UNION ")
+    
+    **Gastos No Cte.
+    SQL.ADD(" Select Sum(M.Monto) as 'Devengados', 'CNC' as 'TipoDC' from MOVDEVENGADOS M,COMISIONES2 C ,OPERACIONES O ")
+    SQL.ADD(" Where M.NrOperacion=C.NrOperacion and C.NrOperacion=O.NrOperacion and O.NrOperacion='"~&nrOperacion~"'")
+    SQL.ADD(" and M.Fecha>='"~IdxDate(&fechaLimCte)~"' and M.TipoDevengado='COMION' AND O.FechaVto>='"~IdxDate(Dialogo.Fecha1)~"' ")
+    SQL.ADD(" and C.Fecha1<'"~IdxDate(Dialogo.Fecha1)~"' AND M.Fecha>C.Fecha1")
+    
+    SQL.ADD("UNION")
+    
+    **Prima/Dcto Cte
+    SQL.ADD(" Select Sum(Monto) as 'Devengados' ,'PTE' as 'TipoDC' from "~DBO~".MOVDEVENGADOS Where NrOperacion='"~&nrOperacion~"' and Fecha>='"~IdxDate(Dialogo.Fecha1)~"' ")
+    SQL.ADD(" and Fecha< '"~IdxDate(Habiles(Dialogo.Fecha1,VAR('PLCAPCORR'),'ARG',NO))~"' and TipoDevengado='PRION'  ") 
+    
+    SQL.ADD(" UNION ")
+    
+    **Prima/Dcto No Cte        
+    SQL.ADD(" Select Sum(Monto) as 'Devengados' ,'PNC' as 'TipoDC' from "~DBO~".MOVDEVENGADOS Where NrOperacion='"~&nrOperacion~"' ")
+    SQL.ADD(" and Fecha>= '"~IdxDate(Habiles(Dialogo.Fecha1,VAR('PLCAPCORR'),'ARG',NO))~"' and TipoDevengado='PRION'  ")     
+    
+    SQL.ADD(" UNION ")
+
+    If &tieneCuotas=0
+        *****La operacion NO tiene CUOTAS 
+        **Interes
+        SQL.ADD(" Select Sum(Monto) as 'Devengados' , 'INT' as 'TipoDC' from "~DBO~".MOVDEVENGADOS Where NrOperacion='"~&nrOperacion~"' and Fecha<'"~IdxDate(Dialogo.Fecha1)~"' ")
+        SQL.ADD(" and TipoDevengado ='INTLEN' ") 
+    Else
+        *****La operacion tiene CUOTAS
+        **INTERESES
+        SQL.ADD("Select Sum(M.Monto) as 'Devengados' , 'INT' as 'TipoDC' from "~DBO~".MOVDEVENGADOS M,"~DBO~".CUOTAS C Where M.NrOperacion=C.NrOperacion and M.NrOperacion='"~&nrOperacion~"'  ")
+        SQL.ADD("and M.Fecha<'"~IdxDate(Dialogo.Fecha1)~"' and M.TipoDevengado='INTLEN' AND C.Fecha2>='"~IdxDate(Dialogo.Fecha1)~"' ") 
+        SQL.ADD("and C.Fecha1<'"~IdxDate(Dialogo.Fecha1)~"' AND M.Fecha>C.Fecha1 ")  
+    Endif      
+    Recorrer SQL
+        DFA
+        let &DevengAcum FBN['Devengados']
+        let &tipoDC FBN['TipoDC']
+        If &DevengAcum<>0
+            let &capital ABS(&DevengAcum)
+            (.'DCDIARIA'.)
+            IF Query("SELECT 1 FROM "~DBO~".DCMM WHERE NrOperacion='"~&nrOperacion~"' AND Fecha='"~IdxDate(Dialogo.Fecha1)~"' AND TipoDC='"~&tipoDC~"'")=1 
+                SQL.ADD(" UPDATE "~DBO~".DCMM ")
+                SQL.ADD(" SET TCHoy="~Fstr(&tcHoy,0,2)~", TCAyer="~Fstr(&tcAyer,0,2)~", ")
+                SQL.ADD(" Monto="~Fstr(&capital,0,2)~", DC="~Fstr(&dcCapitalMonFuerte,0,2)~", ")
+                SQL.ADD(" FechaCarga="~SQLAhora~", FechaCargaSys='"~IdxDate(Fsys)~"' ")
+                SQL.ADD(" WHERE NrOperacion='"~&nrOperacion~"' AND Fecha='"~IdxDate(Dialogo.Fecha1)~"' AND TipoDC='"~&tipoDC~"' ")
+                SQL.NEW()
+                SQL.EXEC()
+            ELSE   
+                SQL.ADD("INSERT INTO "~DBO~".DCMM")
+                SQL.ADD("(NrOperacion, Fecha, TipoDC, Cliente,")
+                SQL.ADD("Vehiculo, TCHoy, TCAyer, Monto, DC, Producto,")
+                SQL.ADD("Especie, MonedaDC, Book,FechaCarga, FechaCargaSys)")
+                SQL.ADD("VALUES")
+                SQL.ADD("('"~&nrOperacion~"', '"~IdxDate(Dialogo.Fecha1)~"', '"~&tipoDC~"', '"~&cliente~"',")
+                SQL.ADD("'"~&vehiculo~"', "~Fstr(&tcHoy,0,2)~", "~Fstr(&tcAyer,0,2)~", "~Fstr(&capital,0,2)~", "~Fstr(&dcCapitalMonFuerte,0,2)~", '"~&tipoOp~"',")
+                SQL.ADD("'"~&monedaOp~"', '"~&monedaLocal~"', '"~&book~"', "~SQLAhora~", '"~IdxDate(Fsys)~"')")
+                SQL.NEW()
+                SQL.EXEC()
+            ENDIF
+        ENDIF
+    Proximo
+Proximo
+
+
+
+***Se agrega este IF NO por el momento para trabajar solo con DC de operaciones referido a Préstamos de PCR ya que lo referido a 
+***SALDOSBANCARIO y SALDOSDIA está en revisión. FALTA AGREGAR ACA FILTRO POR VH Y BOOK
+IF NO
+If Vacio(Dialogo.NrOperacion1)
+    ***SELECT para SALDOSBANCARIOS***
+    SQL.ADD("SELECT  SB.FechaSaldo, SB.SaldoContable as Cantidad, SB.DCMM, SB.NrCuenta, ")
+    SQL.ADD("C.Especies as Especie,C.Cliente as Vehiculo1, V.Alias4, C.Alias1 as Book1, C.Comitente as Cliente1,C.Codigo Cuenta")
+    SQL.ADD("FROM "~DBO~".SALDOSBANCARIOS SB   ")
+    SQL.ADD(" JOIN "~DBO~".CUENTAS C  ON SB.NrCuenta = C.Numero  ")
+    SQL.ADD(" JOIN "~DBO~".VEHICULOS V   ON C.Cliente = V.Codigo  ")
+    **Cintia 261023 - Se trae saldo del dia anterior real ya que SALDOSBANCARIOS hay para todos los dias
+    *SQL.ADD("WHERE SB.FechaSaldo = '"~IdxDate(Habiles(Dialogo.Fecha1,-1,'ARG',SI))~"'")
+    SQL.ADD("WHERE SB.FechaSaldo = '"~IdxDate(Habiles(Dialogo.Fecha1,-1,,NO))~"'")
+    SQL.ADD("AND SB.Estado NOT IN ('ANU')")
+    SQL.ADD("AND NOT C.Especies like '%"~Val(ML:1)~"%'") 
+    Watch(SQL.batch)
+    Recorrer SQL           
+        let &monedaOp Copy(fbn('Especie'),1,Posicion('|',fbn('Especie'),0)-1)
+        let &monedaLocal FBN('Alias4')
+        let &capital FBN('Cantidad') 
+        *Cintia 231023
+        let &cuentaSB fbn['Cuenta']
+        **
+        (.'DCDIARIA'.)                 
+         **Para SALDOSBANCARIOS solo se calcula DCCAPITAL
+         IF Query("SELECT 1 FROM "~DBO~".DCMM WHERE NrOperacion='"~FBN['DCMM']~"' AND Fecha='"~IdxDate(Dialogo.Fecha1)~"' AND TipoDC='CAP' AND Producto='SALBAN'")=1 
+            *Update DC Capital
+            SQL.ADD(" UPDATE "~DBO~".DCMM ")
+            SQL.ADD(" SET TCHoy="~Fstr(&tcHoy,0,2)~", TCAyer="~Fstr(&tcAyer,0,2)~", ")
+            SQL.ADD(" Monto="~Fstr(&capital,0,2)~", DC="~Fstr(&dcCapitalMonFuerte,0,2)~", ")
+            SQL.ADD(" Cliente='"~FBN['Cliente1']~"', Book='"~FBN['Book1']~"',FechaCarga="~SQLAhora~", ")
+            SQL.ADD(" FechaCargaSys='"~IdxDate(Fsys)~"', Fecha2= '"~IdxDate(fbn('FechaSaldo'))~"', Cuenta='"~&cuentaSB~"' ")
+            SQL.ADD(" WHERE NrOperacion='"~FBN['DCMM']~"' AND Fecha='"~IdxDate(Dialogo.Fecha1)~"' AND TipoDC='CAP'")
+            SQL.NEW()
+            SQL.EXEC()
+        ELSE
+            let &NrOpSALBAN GetNumerador(10)
+            *Query INSERT DC Capital
+            SQL.ADD("INSERT INTO "~DBO~".DCMM")
+            SQL.ADD("(NrOperacion, Fecha, TipoDC, Cliente,")
+            SQL.ADD("Vehiculo, TCHoy, TCAyer, Monto,DC, Producto,")
+            SQL.ADD("Especie, MonedaDC, Book, FechaCarga, FechaCargaSys,Fecha2,Cuenta)")
+            SQL.ADD("VALUES")
+            SQL.ADD("('"~&NrOpSALBAN~"', '"~IdxDate(Dialogo.Fecha1)~"', 'CAP', '"~FBN['Cliente1']~"',")
+            SQL.ADD("'"~FBN['Vehiculo1']~"', "~Fstr(&tcHoy,0,2)~", "~Fstr(&tcAyer,0,2)~", "~Fstr(&capital,0,2)~", "~Fstr(&dcCapitalMonFuerte,0,2)~", 'SALBAN',")
+            SQL.ADD("'"~&monedaOp~"', '"~&monedaLocal~"','"~FBN['Book1']~"', "~SQLAhora~", '"~IdxDate(Fsys)~"','"~IdxDate(fbn('FechaSaldo'))~"','"~&cuentaSB~"')")
+            SQL.NEW()
+            SQL.EXEC()
+            
+            SQL.ADD("UPDATE "~DBO~".SALDOSBANCARIOS")
+            SQL.ADD("SET DCMM = '"~&NrOpSALBAN~"'")
+            SQL.ADD("WHERE FechaSaldo = '"~IdxDate(fbn('FechaSaldo'))~"' AND NrCuenta = '"~fbn('NrCuenta')~"' ")
+            SQL.NEW()
+            SQL.EXEC()
+        ENDIF
+    Proximo
+    
+    ***Nuevo SELECT para SALDOSDIA***CINTIA 231023
+    SQL.ADD("SELECT  SD.Fecha, SD.Saldo as Cantidad, SD.Cuenta,SD.DCMM, ")
+    SQL.ADD("SD.Especie as Especie,C.Cliente as Vehiculo1, V.Alias4, C.Alias1 as Book1, C.Comitente as Cliente1,SD.EnteCustodia EnteCus")
+    SQL.ADD("FROM "~DBO~".SALDOSDIA SD   ")
+    SQL.ADD(" JOIN "~DBO~".CUENTAS C  ON SD.Cuenta = C.Codigo  ")
+    SQL.ADD(" JOIN "~DBO~".VEHICULOS V   ON C.Cliente = V.Codigo  ")
+    SQL.ADD(" AND SD.NrSaldo=50 AND C.TipoCuenta IN ('CUS','INV')")
+    SQL.ADD(" AND dbo.DESCIENDEDEESPECIE(SD.Especie,'MONEDA') = 1 ")
+    SQL.ADD(" AND SD.Especie<>V.Alias4 ")
+    **Cintia 261023 - SALDOSDIA NO TIENE REGISTROS PARA TODOS LOS DIAS (INLUSO TAMPOCO TIENE REGISTROS PARA TODOS LOS DIAS HÁBILES)
+    *SQL.ADD("WHERE SD.FechaS = '"~IdxDate(Habiles(Dialogo.Fecha1,-1,'ARG',SI))~"'")
+    SQL.ADD(" AND SD.Fecha = (Select Max(Fecha)FROM "~DBO~".SALDOSDIA ") 
+    SQL.ADD("                   WHERE  Cuenta =SD.Cuenta  ")
+    SQL.ADD("                   AND Especie =SD.Especie  ")
+    SQL.ADD("                   AND NrSaldo=50 ")
+    SQL.ADD("                   AND EnteCustodia =SD.EnteCustodia ")
+    SQL.ADD("                   AND dbo.DESCIENDEDEESPECIE(Especie,'MONEDA') = 1 ")
+    SQL.ADD("                   AND Fecha  <= '"~IdxDate(Habiles(Dialogo.Fecha1,-1,,NO))~"' )")
+
+
+    Recorrer SQL           
+        let &monedaOp fbn('Especie')
+        let &monedaLocal FBN('Alias4')
+        let &capital FBN('Cantidad')  
+        let &cuentaSD FBN('Cuenta') 
+        (.'DCDIARIA'.)                 
+        IF Query("SELECT 1 FROM "~DBO~".DCMM  WHERE NrOperacion='"~FBN['DCMM']~"' AND Fecha='"~IdxDate(Dialogo.Fecha1)~"' AND TipoDC='CAP' and Producto='SALCOM'")=1 
+            *Update DC Capital
+            SQL.ADD(" UPDATE "~DBO~".DCMM ")
+            SQL.ADD(" SET TCHoy="~Fstr(&tcHoy,0,2)~", TCAyer="~Fstr(&tcAyer,0,2)~", ")
+            SQL.ADD(" Monto="~Fstr(&capital,0,2)~", DC="~Fstr(&dcCapitalMonFuerte,0,2)~", ")
+            SQL.ADD(" Cliente='"~FBN['Cliente1']~"', Book='"~FBN['Book1']~"', ")
+            SQL.ADD(" FechaCarga="~SQLAhora~", FechaCargaSys='"~IdxDate(Fsys)~"', Fecha2= '"~IdxDate(fbn('Fecha'))~"',Cuenta='"~&cuentaSD~"'")
+            SQL.ADD(" WHERE NrOperacion='"~FBN['DCMM']~"' AND Fecha='"~IdxDate(Dialogo.Fecha1)~"' AND TipoDC='CAP'")
+            SQL.NEW()
+            SQL.EXEC()
+        ELSE
+            *Query INSERT DC Capital
+            let &NrOpSALCOM GetNumerador(11)
+            SQL.ADD("INSERT INTO "~DBO~".DCMM")
+            SQL.ADD("(NrOperacion, Fecha, TipoDC, Cliente,")
+            SQL.ADD("Vehiculo, TCHoy, TCAyer, Monto,DC, Producto,")
+            SQL.ADD("Especie, MonedaDC, Book, FechaCarga, FechaCargaSys,Fecha2,Cuenta)")
+            SQL.ADD("VALUES")
+            SQL.ADD("('"~&NrOpSALCOM~"', '"~IdxDate(Dialogo.Fecha1)~"', 'CAP', '"~FBN['Cliente1']~"',")
+            SQL.ADD("'"~FBN['Vehiculo1']~"', "~Fstr(&tcHoy,0,2)~", "~Fstr(&tcAyer,0,2)~", "~Fstr(&capital,0,2)~", "~Fstr(&dcCapitalMonFuerte,0,2)~", 'SALCOM',")
+            SQL.ADD("'"~&monedaOp~"', '"~&monedaLocal~"','"~FBN['Book1']~"', "~SQLAhora~", '"~IdxDate(Fsys)~"','"~IdxDate(fbn('Fecha'))~"','"~&cuentaSD~"')")
+            SQL.NEW()
+            SQL.EXEC()
+            
+            SQL.ADD("UPDATE "~DBO~".SALDOSDIA")
+            SQL.ADD("SET DCMM = '"~&NrOpSALCOM~"'")
+            SQL.ADD("WHERE Fecha = '"~IdxDate(fbn('Fecha'))~"' AND Cuenta='"~&cuentaSD~"' and NrSaldo=50 AND Especie='"~fbn('Especie')~"' and EnteCustodia='"~fbn('EnteCus')~"'")
+            SQL.NEW()
+            SQL.EXEC()
+            
+        ENDIF
+    Proximo   
+ENDIF    
+ENDIF

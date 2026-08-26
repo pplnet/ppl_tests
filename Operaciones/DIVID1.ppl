@@ -1,0 +1,90 @@
+﻿CAMPOS:1;;BuscarCampo('VEHICULOS','Alias1','Codigo',Vehiculo1)
+@VEHITO
+Especie        : 'Especie'            ; 2;1; ;NO;;
+Cantidad       : 'Tenencia'           ;  ; ; ;NO;;
+FechaOp        : 'F.Posicion'         ; 1;1; ;NO;;
+FechaPago      : 'F.Pago'             ; 3;2; ;NO;;
+MB3            : 'Tipo|Cobro|Pago'    ;  ; ; ;  ;;
+TotalBrutoCli1 : IF(CB7=1, 'Monto FCI', 'Monto Acc.')         ; 5;1; ;NO;;
+TotalNetoCli1  : 'Neto Efec.'         ;  ; ; ;NO;MB4 < 4;
+MB4: 'Origen|Spot|Posicion|Repo|Saldo|Ptmo';  ; ; ;NO;;
+MB2          : 'NoVencido|Spot|Futuro';  ; ; ;NO;MB4=2;
+ContraEspecie  : 'Moneda'             ; 6;1; ;NO;MB4 < 4 O SI;
+Vehiculo2      : 'Vehiculo Contr'     ; 5;2; ;NO;MB4 = 4;
+Spread         : 'Pr.Posic.'          ; 8;2; ;NO;MB4=1 O MB4 = 4;
+Precio3        : 'Pr.Pos.Ant'         ;  ;2; ;NO;MB4=1 O MB4 = 4;
+TipoCambio3    : 'NrSaldo'            ;  ;2; ;NO;MB4>0 Y TIPOCAMBIO3<>0; ; ; ; ; ;;;;;'###'
+Cliente1       : 'Cliente'            ; 9;1; ;NO;;
+CB7            : 'FCI'                ;11; ; ;NO;;
+Operador       : 'Operador'           ;13;1; ;NO;;
+TipoCambio     : 'Tipo Cambio'        ;  ; ; ;NO;TIPOCAMBIO<>0;
+OperacionRef   : 'OperacionRef'       ;  ; ; ;NO;NOVACIO(OPERACIONREF);
+RB1            : 'Div.Efec'           ; 2;1;2;NO;  ;
+RB2            : IF(CB7=1, 'Div.FCI', 'Div.Acc.')           ;  ; ;2;NO;;
+RB4            : 'Revaluo'            ;  ; ;2;NO;NO;
+RB5            : 'Canje'              ;  ; ;2;NO;NO;
+Precio1        : 'Porc.'              ; 2;2;2;NO;  ;
+Precio2        : 'Porc.'              ;  ;2;2;NO;  ;
+TipoCambio2    : 'Porc.'              ;  ;2;2;NO;NO;
+TotalBrutoCli2 : 'Porc.'              ;  ;2;2;NO;NO;
+TotalBrutoCli3 : 'Imp.Fraccion'       ; 7;1;2;NO;NO;
+Precio4        : 'Precio Fr.'         ; 8;2;2;NO;NO;
+RB3            : 'MOF'                ;10;2; ;NO;NO;;;;;IF(INSTANCIA=2,0,1)
+VTXT11  : 'Ascend. Especie'  ;18;2;2;NO;NO;;;;Ascendientes('ESPECIES',ESPECIE);Ascendientes('ESPECIES',ESPECIE)
+VTXT12  : 'Ascend. ContraE'  ;19;2;2;NO;NO;;;;Ascendientes('ESPECIES',CONTRAESPECIE);Ascendientes('ESPECIES',CONTRAESPECIE)
+VTXT15  : 'Ascend. Especie'  ;18;2;2;NO;NO;;;;Ascendientes('ESPECIES',ESPECIE);Ascendientes('ESPECIES',ESPECIE)
+Label1     : ''              ;17;1;2;NO;NoVacio(CONTRAESPECIE);;;;'Especie                                                     ContraEspecie';'Especie                                                     ContraEspecie';;;;;;
+Label2     : ''              ;17;1;2;NO;Vacio(CONTRAESPECIE);;;;'Especie';'Especie';;;;;;
+Cuenta1 : If(MB3 = 0,'Credito a','Debito en')       ;18;1;2;;;[CLIENTECUENTA(VEHICULO1,CUENTA1) y ESPECIECUENTA(ESPECIE,CUENTA1) y EqSTr(BuscarCampo('CUENTAS','Estado','Codigo',CUENTA1),'HAB')] y NOVACIO(CUENTA1);"Error en Cuenta '"~If(Incluido(TIPOOP,EXE('CARTA1V')),'Credito a','Debito en')~"' "~ESPECIE;;IF(Eqstr(ABM, 'A'), CUENTACLIENTE(VEHICULO1,ESPECIE,CLIENTE1,,TIPOOP,'HAB'), CUENTA1);IF(Eqstr(ABM, 'A'), CUENTACLIENTE(VEHICULO1,ESPECIE,CLIENTE1,,TIPOOP,'HAB'), CUENTA1);;;;;;"Cliente='"~VEHICULO1~"' and Estado = 'HAB' and (Especies Like '%"~Especie~"%' or Especies Like '%"~ItemLista(VTXT11,Elementos(VTXT11))~"%')"     
+Cuenta2 : If(MB3 = 0,'Credito a','Debito en')       ;18;2;2;;;[CLIENTECUENTA(VEHICULO1,CUENTA2) y ESPECIECUENTA(CONTRAESPECIE,CUENTA2) y EqSTr(BuscarCampo('CUENTAS','Estado','Codigo',CUENTA2),'HAB')] y NOVACIO(CUENTA2);"Error en Cuenta de '"~If(Incluido(TIPOOP,EXE('CARTA1V')),'Credito a','Debito en')~"' "~CONTRAESPECIE;;IF(Eqstr(ABM, 'A'),CUENTACLIENTE(VEHICULO1,CONTRAESPECIE,CLIENTE1,,TIPOOP,'HAB'), CUENTA2);IF(Eqstr(ABM, 'A'),CUENTACLIENTE(VEHICULO1,CONTRAESPECIE,CLIENTE1,,TIPOOP,'HAB'), CUENTA2);;;;;;"Cliente='"~VEHICULO1~"' and Estado = 'HAB' and (Especies Like '%"~ContraEspecie~"%' or Especies Like '%"~ItemLista(VTXT12,Elementos(VTXT12))~"%')"     
+                                                                                                                                                                                                                                                                        
+
+MOVIMIENTOS
+FechaPago;Cliente1;ContraEspecie;;;;;Vehiculo1;1;IF(MB3=1,TotalNetoCli1,-TotalNetoCli1);;'Dividendo en Efectivo';SI;Not Incluido(Vehiculo1,Var('VLIQUIDA')~Var('VLIQUIDA2'));;CB7=0 y TotalNetoCli1<>0 y [MB4=0 o [MB4=2 y TipoCambio3=2] o [MB4=3 y TipoCambio3=3]];; Cuenta2;;1;;;;;;;;;;;;;;500
+FechaPago;Cliente1;Especie;;;;;Vehiculo1;1 ;IF(MB3=1,TotalBrutoCli1,-TotalBrutoCli1);;'Div.Spot en Acciones' ;SI;Not Incluido(Vehiculo1,Var('VLIQUIDA')~Var('VLIQUIDA2'));;CB7=0 y TotalBrutoCli1<>0 y MB4=0;; Cuenta1;;2;;;'0';;;;;;;;;;;500
+
+FechaPago;Cliente1;Especie;;;;;Vehiculo1;1 ;IF(MB3=1,TotalBrutoCli1,-TotalBrutoCli1);;'Dividendo en Acciones';SI;Not Incluido(Vehiculo1,Var('VLIQUIDA')~Var('VLIQUIDA2'));;CB7=0 y TotalBrutoCli1<>0 y MB4=3 Y TipoCambio3=3;; Cuenta1 ;;3;;;'0';;;;;;;;;;;500
+
+FechaPago;Cliente1;ContraEspecie ;;;;;;3 ;IF(MB3=0,TotalNetoCli1,-TotalNetoCli1);;'Dividendo en Efectivo';SI;SI;;CB7=0 y TotalNetoCli1<>0 y [MB4=0 o [MB4=2 y TipoCambio3=2] o [MB4=3 y TipoCambio3=3]];;Cuenta1;;4;;;;;;;Book1
+FechaPago;Cliente1;Especie;;;;;;3 ;IF(MB3=0,TotalBrutoCli1,-TotalBrutoCli1);;'Div.Spot en Acciones' ;SI;SI;;CB7=0 y TotalBrutoCli1<>0 y MB4=0;;;;5;;;'0';;;;Book1
+FechaPago;Cliente1;Especie;;;;;;10;IF(MB3=0,TotalBrutoCli1,-TotalBrutoCli1);;'Div.Spot en Acciones' ;SI;SI;;CB7=0 y TotalBrutoCli1<>0 y MB4=0 y TipoCambio3=10;;Cuenta1;;6;;;'0';;;;Book1
+
+FechaPago;Cliente1;Especie;;;;;Vehiculo1;1 ;IF(MB3=0,-TotalBrutoCli1,TotalBrutoCli1);;'Div.Repo en Acciones';SI;Not Incluido(Vehiculo1,Var('VLIQUIDA')~Var('VLIQUIDA2'));;CB7=0 y TotalBrutoCli1<>0 y MB4=2;; Cuenta1;;7;;;'0';;;;;;;;;;;500
+
+FechaPago;Vehiculo1;Especie;;;;;;3;IF(MB3=0,TotalBrutoCli1,-TotalBrutoCli1);;'Div.Repo en Acciones';SI;SI;;CB7=0 y TotalBrutoCli1<>0 y MB4=2;;;;8;;;'0';;;;Book1
+FechaPago;Cliente1;Especie;;;;;If(TipoCambio3=1 O TipoCambio3=2,Vehiculo1);TipoCambio3;IF(MB3=0,TotalBrutoCli1,-TotalBrutoCli1);;'Dividendo en Acciones';SI;SI;;CB7=0 y TotalBrutoCli1<>0 y MB4=3;;Cuenta1;;9;;;'0';;;;If(TipoCambio3 = 2 O TipoCambio3 = 10 O TipoCambio3 = 3, Book1);;;;;;;If(TipoCambio3 = 1, 500)
+
+FechaPago;Cliente1;ContraEspecie ;;;;;Vehiculo1;1;-TotalNetoCli1;;'Dividendo en Efectivo de FCI';SI;NO;;CB7=1 y [MB4=0 O MB4=1] Y TipoCambio3=101;;Cuenta2;;10;;;;;;;;;;;;;;500
+FechaPago;Cliente1;Especie ;;;;;Vehiculo1;1;-TotalBrutoCli1;;'Dividendo en Cuotas Partes de FCI';SI;NO;;CB7=1 y [[MB4=1 Y TipoCambio3=101] O [MB4=4 Y MB3=1 Y TipoCambio3=101]];;Cuenta1;;11;;;;;;;;;;;;;;500
+FechaPago;Vehiculo1;Especie;;;;;Vehiculo1;2;IF(MB3=0,TotalBrutoCli1,-TotalBrutoCli1);;'Dividendos en Cuotas Partes';SI;SI;;CB7=1 Y [[MB4=1 Y TipoCambio3=101] O [MB4=4 Y MB3=1 Y TipoCambio3=101]];;Cuenta1;;;;;;;;;Book1;
+
+POSICION
+FechaOp;Vehiculo1;Especie;;;;Vehiculo1;;;;;TipoCambio3;Cantidad+TotalBrutoCli1;Spread ;;;Book1; ;'SEC';MB4=1 Y CB7=0;'0';'2'
+FechaOp;Vehiculo1;Especie;;;;Vehiculo1;;;;;TipoCambio3;-Cantidad;Precio3;;;Book1; ;'SEC';MB4=1 Y CB7=0;'0';'2'
+FechaOp;Vehiculo1;Especie;;;;Vehiculo1;;;;;TipoCambio3;-Cantidad;Precio3;;;Book1;;'FC';CB7=1 Y MB4 < 4;
+FechaOp;Vehiculo1;Especie;;;;Vehiculo1;;;;;TipoCambio3;-Cantidad;Precio3;;;Book1;;'FC';CB7=1 Y MB4 = 4 Y MB3 = 1;
+FechaOp;Vehiculo1;Especie;;;;Vehiculo1;;;;;TipoCambio3;Cantidad+TotalBrutoCli1;Spread ;;;Book1;;'FC';CB7=1 Y MB4 < 4;
+FechaOp;Vehiculo1;Especie;;;;Vehiculo1;;;;;TipoCambio3;Cantidad+TotalBrutoCli1;Spread ;;;Book1;;'FC';CB7=1 Y MB4 = 4 Y MB3 = 1;
+
+
+POSICION2
+FechaOp;Vehiculo1;Book1;'SEC';Especie;;1;'NA';TotalBrutoCli1;Precio2/100;0;'30';RB2=1 Y CB7=0 Y TipoCambio3 = 101;
+FechaOp;Vehiculo1;Book1;'SEC';Especie;;2;'NA';TotalBrutoCli1;Precio2/100;0;'30';CB15=1 Y RB2=1 Y CB7=0 Y TipoCambio3 = 101;
+FechaOp;Vehiculo1;Book1;'SEC';Especie;;1;'NA';TotalNetoCli1;Precio1/100;0;'31';RB1=1 Y CB7=0 Y TipoCambio3 = 101;
+FechaOp;Vehiculo1;Book1;'SEC';Especie;;2;'NA';TotalNetoCli1;Precio1/100;0;'31';CB15=1 Y RB1=1 Y CB7=0 Y TipoCambio3 = 101;
+
+FechaOp;Vehiculo1;Book1;'FC';Especie;'0';1;'NA';TotalBrutoCli1;Precio2/100;0;'30';RB2=1 Y CB7=1 Y TipoCambio3 = 101;
+FechaOp;Vehiculo1;Book1;'FC';Especie;'0';2;'NA';TotalBrutoCli1;Precio2/100;0;'30';CB15=1 Y RB2=1 Y CB7=1 Y TipoCambio3 = 101;
+FechaOp;Vehiculo1;Book1;'FC';Especie;'0';1;'NA';TotalNetoCli1;Precio1/100;0;'31';RB1=1 Y CB7=1 Y TipoCambio3 = 101;
+FechaOp;Vehiculo1;Book1;'FC';Especie;'0';2;'NA';TotalNetoCli1;Precio1/100;0;'31';CB15=1 Y RB1=1 Y CB7=1 Y TipoCambio3 = 101;
+
+FechaOp;Vehiculo1;Book1;'FC';Especie;'0';1;'NA';IF(MB3=1, -TotalBrutoCli1, TotalBrutoCli1);Precio2/100;0;'30';CB7=1 Y MB4 = 4 Y TipoCambio3 = 101;
+FechaOp;Vehiculo1;Book1;'FC';Especie;'0';2;'NA';IF(MB3=1, -TotalBrutoCli1, TotalBrutoCli1);Precio2/100;0;'30';[[CB15=1 O SI] Y CB7=1 Y MB4 = 4] Y TipoCambio3 = 101;
+
+
+POSTEDICION
+CB7=1 y Incluido(ABM,'D');'DIVFON';Radio2=0;NrOperacion1=NROPERACION;Radio1=1;Fecha1=FECHAOP;Check1=1
+
+@INSTOPE
+@INST19GENE
+@INST19BITS

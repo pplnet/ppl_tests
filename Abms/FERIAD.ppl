@@ -1,0 +1,233 @@
+﻿def abm 'Feriados'        
+    def grid
+        Codigo:, Descripcion:
+    end
+    def key
+            Codigo:
+    end
+    def dialog
+        #**************************************************************************
+        tab 'General'       
+            column          
+                Codigo: ,, small_text
+                Descripcion: ,,large_text
+        #**************************************************************************
+        tab 'Feriados'       
+            column  
+                Fecha01:  ,, small_text    
+                Fecha02:  ,, small_text
+                Fecha03:  ,, small_text
+                Fecha04:  ,, small_text
+                Fecha05:  ,, small_text
+                Fecha06:  ,, small_text
+                Fecha07:  ,, small_text
+                Fecha08:  ,, small_text
+                Fecha09:  ,, small_text
+                Fecha10:  ,, small_text
+                Fecha11:  ,, small_text
+                Fecha12:  ,, small_text
+                Fecha13:  ,, small_text
+                Fecha14:  ,, small_text
+                Fecha15:  ,, small_text
+            column
+                Fecha16:  ,, small_text
+                Fecha17:  ,, small_text
+                Fecha18:  ,, small_text
+                Fecha19:  ,, small_text
+                Fecha20:  ,, small_text
+                Fecha21:  ,, small_text
+                Fecha22:  ,, small_text
+                Fecha23:  ,, small_text
+                Fecha24:  ,, small_text
+                Fecha25:  ,, small_text
+                Fecha26:  ,, small_text
+                Fecha27:  ,, small_text
+                Fecha28:  ,, small_text
+                Fecha29:  ,, small_text
+                Fecha30:  ,, small_text
+            column
+                Fecha31:  ,, small_text    
+                Fecha32:  ,, small_text
+                Fecha33:  ,, small_text
+                Fecha34:  ,, small_text
+                Fecha35:  ,, small_text
+                Fecha36:  ,, small_text
+                Fecha37:  ,, small_text
+                Fecha38:  ,, small_text
+                Fecha39:  ,, small_text
+                Fecha40:  ,, small_text
+                Fecha41:  ,, small_text
+                Fecha42:  ,, small_text
+                Fecha43:  ,, small_text
+                Fecha44:  ,, small_text
+                Fecha45:  ,, small_text
+        #**************************************************************************
+        tab 'Feriados +'       
+            column  
+                Fecha46:  ,, small_text    
+                Fecha47:  ,, small_text
+                Fecha48:  ,, small_text
+                Fecha49:  ,, small_text
+                Fecha50:  ,, small_text
+                Fecha51:  ,, small_text
+                Fecha52:  ,, small_text
+                Fecha53:  ,, small_text
+                Fecha54:  ,, small_text
+                Fecha55:  ,, small_text
+                Fecha56:  ,, small_text
+                Fecha57:  ,, small_text
+                Fecha58:  ,, small_text
+                Fecha59:  ,, small_text
+                Fecha60:  ,, small_text
+            column
+                Fecha61:  ,, small_text
+                Fecha62:  ,, small_text
+                Fecha63:  ,, small_text
+                Fecha64:  ,, small_text
+                Fecha65:  ,, small_text
+                Fecha66:  ,, small_text
+                Fecha67:  ,, small_text
+                Fecha68:  ,, small_text
+                Fecha69:  ,, small_text
+                Fecha70:  ,, small_text
+                Fecha71:  ,, small_text
+                Fecha72:  ,, small_text
+                Fecha73:  ,, small_text
+                Fecha74:  ,, small_text
+                Fecha75:  ,, small_text
+            column
+                Fecha76:  ,, small_text    
+                Fecha77:  ,, small_text
+                Fecha78:  ,, small_text
+                Fecha79:  ,, small_text
+                Fecha80:  ,, small_text
+                Fecha81:  ,, small_text
+                Fecha82:  ,, small_text
+                Fecha83:  ,, small_text
+                Fecha84:  ,, small_text
+                Fecha85:  ,, small_text
+                Fecha86:  ,, small_text
+                Fecha87:  ,, small_text
+                Fecha88:  ,, small_text
+                Fecha89:  ,, small_text
+                Fecha90:  ,, small_text
+        #**************************************************************************
+        tab 'Feriados ++'       
+            column  
+                Fecha91:  ,, small_text    
+                Fecha92:  ,, small_text
+                Fecha93:  ,, small_text
+                Fecha94:  ,, small_text
+                Fecha95:  ,, small_text
+                Fecha96:  ,, small_text
+                Fecha97:  ,, small_text
+                Fecha98:  ,, small_text
+                Fecha99:  ,, small_text
+                Fecha100:  ,, small_text
+    end
+        upper_case_fields: Codigo:
+        validates_max_length_of:
+                Codigo:,6,true;      
+                Descripcion:,20,true;
+                Fecha01:,10,true;  
+                Fecha02:,10,true;
+                Fecha03:,10,true;
+                Fecha04:,10,true;
+                Fecha05:,10,true;
+                Fecha06:,10,true;
+                Fecha07:,10,true;
+                Fecha08:,10,true;
+                Fecha09:,10,true;
+                Fecha10:,10,true;
+                Fecha11:,10,true;
+                Fecha12:,10,true;
+                Fecha13:,10,true;
+                Fecha14:,10,true;
+                Fecha15:,10,true;
+                Fecha16:,10,true;
+                Fecha17:,10,true;
+                Fecha18:,10,true;
+                Fecha19:,10,true;
+                Fecha20:,10,true;
+                Fecha21:,10,true;
+                Fecha22:,10,true;
+                Fecha23:,10,true;
+                Fecha24:,10,true;
+                Fecha25:,10,true;
+                Fecha26:,10,true;
+                Fecha27:,10,true;
+                Fecha28:,10,true;
+                Fecha29:,10,true;
+                Fecha30:,10,true;
+                Fecha31:,10,true;  
+                Fecha32:,10,true;
+                Fecha33:,10,true;
+                Fecha34:,10,true;
+                Fecha35:,10,true;
+                Fecha36:,10,true;
+                Fecha37:,10,true;
+                Fecha38:,10,true;
+                Fecha39:,10,true;
+                Fecha40:,10,true;
+                Fecha41:,10,true;
+                Fecha42:,10,true;
+                Fecha43:,10,true;
+                Fecha44:,10,true;
+                Fecha45:,10,true;
+                Fecha46:,10,true;
+                Fecha47:,10,true;
+                Fecha48:,10,true;
+                Fecha49:,10,true;
+                Fecha50:,10,true;
+                Fecha51:,10,true;
+                Fecha52:,10,true;
+                Fecha53:,10,true;
+                Fecha54:,10,true;
+                Fecha55:,10,true;
+                Fecha56:,10,true;
+                Fecha57:,10,true;
+                Fecha58:,10,true;
+                Fecha59:,10,true;
+                Fecha60:,10,true;
+                Fecha61:,10,true;  
+                Fecha62:,10,true;
+                Fecha63:,10,true;
+                Fecha64:,10,true;
+                Fecha65:,10,true;
+                Fecha66:,10,true;
+                Fecha67:,10,true;
+                Fecha68:,10,true;
+                Fecha69:,10,true;
+                Fecha70:,10,true;
+                Fecha71:,10,true;
+                Fecha72:,10,true;
+                Fecha73:,10,true;
+                Fecha74:,10,true;
+                Fecha75:,10,true;
+                Fecha76:,10,true;
+                Fecha77:,10,true;
+                Fecha78:,10,true;
+                Fecha79:,10,true;
+                Fecha80:,10,true;
+                Fecha81:,10,true;
+                Fecha82:,10,true;
+                Fecha83:,10,true;
+                Fecha84:,10,true;
+                Fecha85:,10,true;
+                Fecha86:,10,true;
+                Fecha87:,10,true;
+                Fecha88:,10,true;
+                Fecha89:,10,true;
+                Fecha90:,10,true;
+                Fecha91:,10,true;
+                Fecha92:,10,true;
+                Fecha93:,10,true;
+                Fecha94:,10,true;
+                Fecha95:,10,true;
+                Fecha96:,10,true;
+                Fecha97:,10,true;
+                Fecha98:,10,true;
+                Fecha99:,10,true;
+                Fecha100:,10,true;
+       validates_uniqueness_of: Codigo:
+end

@@ -1,0 +1,83 @@
+﻿set ds_CB1 = "SI:Si|NO:No"
+set ds_tipoDeDias = "COR:Corridos|HAB:Habiles"
+
+def abm 'LIMASIGNADOSBOOK'
+    def grid
+        Codigo:,NrLim:, Especies:,TiposOperacion:, Porcentaje:, Monto:, Plazo:, Clientes:, CB1:
+    end
+    def filter
+        "Codigo = '" + $.parent('Codigo') + "' "
+    end
+        def key
+                Codigo:,NrLim:
+        #Especies:
+    end  
+    def dialog
+        tab 'General'
+            column
+                Especies:   , 'Especies', autocomplete_ar_list, 'ESPECIES', 'Codigo,Nombre'
+                Porcentaje:  , '% Global', numeric, '##0'
+                Porcentaje1: , '% Por Entidad', numeric, '##0'
+                Monto1: , 'Monto Minimo', numeric, '#########0'
+                Monto:  , 'Monto Maximo', numeric, '#########0'
+                Moneda:, 'Moneda Monto', autocomplete, 'ESPECIES', 'Codigo,Nombre',''," Tipo='MON'"
+                Plazo:   , 'Plazo', numeric,'####0'
+                TipoDias:   ,'Tipo de Dias' , combo, ds_tipoDeDias
+             column
+                CB1:   ,'Inst. Fiduciante' , combo, ds_CB1
+                Codigo:,,
+                TiposOperacion: , , autocomplete_ar_list, 'TIPOSOPERACION', 'Codigo,Nombre'  
+                Clientes:   , 'Clientes', autocomplete_ar_list, 'CLIENTES', 'Codigo,RazonSocial'             
+                #CB2:   ,'FCI MM' , check,
+                #CB3:   ,'FCI Rta Fija' , check,
+                #CB4:   ,'FCI t+2' , check,
+             column
+                NrLim:,,numeric,'####0'
+                Monedas:, 'Monedas', autocomplete_ar_list, 'ESPECIES', 'Codigo,Nombre',''," Tipo='MON'"
+    end
+    
+    disable_fields: Codigo:
+    hide_fields: Codigo:
+    before_show_dialog: do
+        If ppl.Vacio($.val TipoDias:) 
+            $.set_field TipoDias:,'COR'
+        end
+    end
+    
+    before_show_create_dialog: do
+        $.set_field CB1:, 'NO'
+        $.set_field Porcentaje:, 0
+        $.set_field Porcentaje1:, 0
+        $.set_field Monto1:, 0
+        $.set_field Monto:, 0
+        $.set_field  (Codigo:, $.parent("Codigo"))
+        $.set_field NrLim:, ppl.SQL("Select Max(NrLim)+1 from "+dbo+".LIMASIGNADOSBOOK where Codigo = '"+ppl.Copy($.val(Codigo:),1,10)+"' ")
+        IF $.val(NrLim:) < 1
+            $.set_field  (NrLim:, 1)
+        ENDIF
+    
+    end
+
+    before_show_dialog:  do
+        If ppl.Vacio($.val Porcentaje:) 
+            $.set_field Porcentaje:, 0
+        end    
+        If ppl.Vacio($.val Porcentaje1:) 
+            $.set_field Porcentaje1:, 0
+        end    
+        If ppl.Vacio($.val Monto1:) 
+            $.set_field Monto1:, 0
+        end 
+        If ppl.Vacio($.val Monto:) 
+            $.set_field Monto:, 0
+        end 
+    end
+    
+    validates_uniqueness_of_set:  Codigo:, NrLim:
+    
+    validations: 
+        NrLim:, not ppl.Vacio($.val(NrLim:)), 'El campo NrLim no puede ser vacio','error';
+        Moneda:, not (ppl.Vacio($.val(Moneda:)) AND $.val(Monto:)), 'El campo Moneda no puede ser vacio','error';     
+        TiposOperacion:, $.val(TiposOperacion:)<>'', 'El campo Tipos Operacion no puede ser vacio','messagebox';
+   
+end

@@ -1,0 +1,21 @@
+﻿CAMPOS:1;;2
+FechaOp        : 'Fec.Desde'    ;1;1;;;;NoVacio(FECHAOP)  ;'Fecha Desde Invalida';NO;FSYS;;
+FechaVto       : 'Fec.Hasta'    ;2;1;;;;NoVacio(FECHAVTO) y FECHAVTO>=FECHAOP;'Fecha Hasta Invalida';NO;FSYS;
+@VEHITO
+Cliente1       : 'Cliente'      ;3;1;;;;;;;
+Especie        : 'Moneda'       ;;;;;;Incluido(ESPECIE,VAR('MONEEXTR')~'|'~VAR('MONELOCA'));'La Especie debe ser '~VAR('MONEEXTR')~' O '~VAR('MONELOCA');NO;;VAR('MONEEXTR');
+Cantidad       : 'Importe'      ;;;;;;;;;
+RB9            : 'Tipo|Inversiones|Deudas|Otros';;;;;;;;;0
+RB6            : 'Activo|CtUSD|CtasPesos|DTrans|OCptos|USDAtesor|OTROS|'            ;;;;RB9=0;RB9=0;RB9<>0 o RB6>=0;'Debe Indicar una Inversion';NO;;IF(RB9=0,RB6,-1)
+RB10           : 'OTROS |OpDinTransito|BonosTransito|CCredFiscal'                   ;;;;RB9=0 y RB6=5;RB9=0 y RB6=5;[Not [RB9=0 y RB6=5]] o RB10>=0;'Debe Indicar una Inversion del Tipo OTROS';NO;;IF(RB9=0 y RB6=5,RB10,-1)
+RB7            : 'Pasivo|Imp_Endeud|WHT|OtConcep|UnwindDer|CC|'                     ;;;;RB9=1;RB9=1;RB9<>1 o RB7>=0;'Debe Indicar una Deuda';NO;;IF(RB9=1,RB7,-1)
+RB8            : 'Otros |Difer_TLock|UnderWriting_Fee|OtrosFees_Devengar|';;;;RB9=2;RB9=2;RB9<>2 o RB8>=0;'Debe Indicar algun Concepto';NO;;IF(RB9=2,RB8,-1)
+RB5            : 'OtrasCtas|CtaCte|Efectivo|'  ;;;;RB6=0 o RB6=1;RB6=0 o RB6=1;[RB6<>0 y RB6<>1] o RB5>=0;'Debe Indicar el Tipo de Otras Cuentas';NO;;IF(RB6=0 o RB6=1,RB5,-1)
+RB11           : 'Unwind|Capital|Interes'      ;;;;RB7=3;RB7=3;RB7<>3 O RB11>=0;'Debe Indicar Capital o Interes';NO;;IF(RB7=3,RB11,-1);
+ValorRB1       : 'Devenga|NO|SI';;;;NO;RB8=0 o RB8=1 o RB8=2;;;;IF(RB8=0 o RB8=1 o RB8=2,1,0);IF(RB8=0 o RB8=1 o RB8=2,1,0)
+Operador       : 'Operador'     ;;;;NO;;;;;USUARIOACTIVO;
+OperacionRef   : ''             ;;;2;NO;NO;
+
+@INSTOPE
+@INST19GENE
+@INST19BITS

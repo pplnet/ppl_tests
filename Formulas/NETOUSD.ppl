@@ -1,0 +1,4 @@
+﻿Iif (Incluido(fbn('ContraEspecie'), Val(US:1)),
+     #MONTONETO,
+     #MONTONETO*COTIZACIONC(fbn('ContraEspecie'),,,,Val(FV:2),1,SI,'USD')
+     )

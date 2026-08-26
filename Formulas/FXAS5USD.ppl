@@ -1,0 +1,4 @@
+﻿IIF(Incluido(#CONTRAESP, Val(US:1)), #IMPORTE,
+IIF(Incluido(#ESPECIE, Val(US:1)), #CANTIDAD,
+#IMPORTE * 
+COTIZACIONC(#CONTRAESP,,,,Val(FV:2),1,SI,'USD')))

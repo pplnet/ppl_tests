@@ -1,0 +1,18 @@
+﻿CAMPOS:8;;BuscarCampo('VEHICULOS','Alias3','Codigo',Vehiculo1)
+Especie       : 'Especie'                        ;1;;;;;
+Especie1      : 'Moneda'                         ;;;;;;
+Cliente1      : 'Entidad '                       ;;;;;;
+Precio1       : 'Precio'                         ;;;;;;
+Precio2       : 'Precio Anterior'                ;;;;;;
+Cantidad1     : 'Posicion'                       ;;;;;;
+Vehiculo1     : 'Vehiculo'                       ;;;;;;
+Fecha1        : 'Fecha'                          ;;;;;;
+Fecha2        : 'Fecha Anterior'                 ;;;;;;
+Cantidad2     : 'Limite Anterior'                ;;;;;;
+Cantidad3     : 'Ajuste'                         ;;;;;;
+Especie2      : 'EspecieLimiteCotor'             ;;;;;;
+
+MOVIMIENTOS
+
+LIMITES
+Fecha1;Cliente1;'COTOR';Especie2;;Cantidad3;'Ajuste Limite Diario '~Especie;;;;;;;;;Especie;;;

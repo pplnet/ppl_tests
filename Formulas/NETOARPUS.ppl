@@ -1,0 +1,5 @@
+﻿IIF(Eqstr(fbn('ContraEspecie'), Var('MONELOCA')), #MONTONETO,
+    IIF(Incluido(fbn('ContraEspecie'), Val(US:1)),
+      #MONTONETO*COTIZACIONC('USD',,,,Val(FV:2),1,SI,VAR('MONELOCA')),
+        #MONTONETO*COTIZACIONC(fbn('ContraEspecie'),,,,Val(FV:2),1,SI,VAR('MONELOCA'))
+     ))

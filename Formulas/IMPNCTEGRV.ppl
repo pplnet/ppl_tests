@@ -1,0 +1,10 @@
+﻿IIF(Eqstr(#MONEDA, #MONEGRUPO),
+   #IMPNOCTE,
+   IIF(Eqstr(#MONEDA, #MONEURU),
+      #IMPNOCTE/#COTBCUMONV,
+      IIF(Eqstr(#MONEDA, #MONELOCAL),
+         #IMPNOCTE/#COTBNAGRUV,
+         #IMPNOCTE*#COTBNAGRUV/#COTBNAMONV
+      )
+   )
+)

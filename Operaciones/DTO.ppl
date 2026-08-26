@@ -1,0 +1,82 @@
+﻿CAMPOS:1;;BuscarCampo('VEHICULOS','Alias1','Codigo',Vehiculo1)
+FechaOp        : 'Fecha Conc.'                ;1;1;;NOT EV y VERIFICAACCESO('OPFVALOR');;ESHABIL(FECHAOP,TABLAFERIADOS1);'FECHA CONCERTACION NO HABIL EN TABLA SELECCIONADA';NO;FSYS;
+MB2            : 'C_Settlement|Net|Transf'    ;;;;;;;;;0;
+CB9            : 'Mark_To_Mkt'                ;;;;NO;NO;;;;0;
+@VEHITO
+Operador       :                              ;;;;;;NOVACIO(OPERADOR);'El Operador es Invalido';NO;USUARIOACTIVO;
+MB3            : 'Tipo|COMPRA |VENTA'         ;;;;NOT EV;;;;;0;
+MB1            : '    |CALL   |PUT'           ;;;;NOT EV;;;;;0;
+TipoOpcion     : 'C_Ej|Europea|Americana|Asiatica'     ;4;1;;;;;;;0;0
+RB8            : 'Day_Count|Act Act|Act 365F|Act 360|360 360|30E 360' ;;;;;;;;;2;
+Cliente1       : 'ContraParte'                ;;;;NOT EV;;NOVACIO(CLIENTE1);'EL CLIENTE NO ES VALIDO';NO;;;;
+Observac2      : 'Op.Contraparte'             ;6;2;;;;NOVACIO(OBSERVAC2);'EL OPERADOR CONTRAPARTE NO ES VALIDO';SI;;;;;;;'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'
+Especie        : 'Moneda Especie'             ;8;1;;NOT EV;;NoVacio(ESPECIE) y DesciendeDeEspecie(ESPECIE,'MONEDA') y EsTerminal(ESPECIE, Especie);'DEBE INGRESAR UNA MONEDA VALIDA';NO;;;;;;;;"Codigo IN ("~Pipe2Comillas(Descendientes('ESPECIES','MONEDA')) ~")and Status = 'HAB'";;
+TipoTasa       : 'Tipo_Tasa'                  ;;;;;;NOVACIO(TIPOTASA);'EL TIPO DE TASA ES INVALIDO';NO;;
+PrecioEj       : 'Precio_Ejerc'               ;;;;;;PRECIOEJ<>0 Y PRECIOEJ>=VAR('RTASA1') Y PRECIOEJ<=VAR('RTASA2');'LA TASA ES CERO O ESTA FUERA DE RANGO:'~VAR('RTASA1')~' '~VAR('RTASA2');NO;
+
+FechaOp2       : 'F_Inicio'                   ;12;1;;;;ESHABIL(FECHAOP2,BuscarCampo('FERIADOS','Codigo','Codigo',BuscarCampo('ESPECIES','PaisOrigen','Codigo',BuscarCampo('TIPOSTASA','EspecieValida','Codigo',TipoTasa))));'FECHA INICIO OPCION DEBE SER HABIL EN TABLA DE '~ BuscarCampo('FERIADOS','Descripcion','Codigo',BuscarCampo('ESPECIES','PaisOrigen','Codigo',BuscarCampo('TIPOSTASA','EspecieValida','Codigo',TipoTasa)));NO;FECHAOP;FECHAOP
+Plazo          : 'Plazo_Op'                   ;;;;;;PLAZO>0;'PLAZO DE LA OPCION INVALIDO';NO;;
+FechaEj        : 'F_Fin'                      ;;;;NO;;FECHAEJ>FECHAOP Y ESHABIL(FECHAEJ,BuscarCampo('FERIADOS','Codigo','Codigo',BuscarCampo('ESPECIES','PaisOrigen','Codigo',BuscarCampo('TIPOSTASA','EspecieValida','Codigo',TipoTasa))));'FECHA FIN OPCION DEBE SER > A FECHA CONCERTACION Y HABIL EN TABLA DE '~ BuscarCampo('FERIADOS','Descripcion','Codigo',BuscarCampo('ESPECIES','PaisOrigen','Codigo',BuscarCampo('TIPOSTASA','EspecieValida','Codigo',TipoTasa)));NO;0;IF(FECHAOP2=0,0,FECHAOP2+PLAZO-1)
+
+FechaPago      : 'F_Settlement'               ;;;;;;FECHAPAGO>=FECHAOP Y ESHABIL(FECHAPAGO,TABLAFERIADOS1);'FECHA SETTLEMENT DEBE SER HABIL EN TABLA SELECCIONADA Y >= A FECHA CONCERTACION';NO;FECHAEX2;FECHAEX2
+Cantidad       : 'Notional Ammount'           ;;;;NOT EV;;CANTIDAD>0;'El NOTIONAL AMMOUNT DEBE SER POSITIVO';NO;;;;;;;'###,###,###,###,###.##'
+TablaFeriados1 : 'Feriados'                   ;;;;;;NOVACIO(TABLAFERIADOS1);'Se debe indicar feriados a utilizar';NO;;BuscarCampo('Feriados','Codigo','Codigo',BuscarCampo('Especies','PaisOrigen','Codigo',ESPECIE)) 
+Precio1        : 'Prima'                      ;;;;;;PRECIO1>=0 Y PRECIO1<=100;'LA PRIMA DEBE SER POSITIVA';NO;
+ContraEspecie  : 'Especie_Liq'                ;;;;NOT EV;;NOVACIO(CONTRAESPECIE) y DESCIENDEDEESPECIE(CONTRAESPECIE,'MONEDA') y ESTERMINAL(CONTRAESPECIE,ESPECIE);'Debe ingresar una ContraEspecie';NO;;;;;;;;"Codigo IN ("~Pipe2Comillas(Descendientes('ESPECIES','MONEDA')) ~")and Status = 'HAB'";;;;;;;;
+FechaEx1       : 'Inicio N.A.'                ;12;2;;;;FECHAEX1>=FECHAOP Y ESHABIL(FECHAEX1,TABLAFERIADOS1);'FECHA INICIO N.A. DEBE SER HABIL EN TABLA SELECCIONADA Y >= A FECHA CONCERTACION';NO;Habiles(FECHAEJ,2,TABLAFERIADOS1,SI);Habiles(FECHAEJ,2,TABLAFERIADOS1,SI)
+Plazo2         : 'Plazo N.A.'                 ;;;;;;PLAZO2>0;'PLAZO NOTIONAL AMMOUNT INVALIDO';NO;
+FechaEx2       : 'Fin N.A.'                   ;;;;NO;;ESHABIL(FECHAEX2,TABLAFERIADOS1);'FECHA FIN N.A. NO HABIL EN TABLA SELECCIONADA';NO;;IF(FECHAEX1=0,0,FECHAEX1+PLAZO2);
+TotalNetoCli1  : 'Monto_Prima'                ;17;2;;NO;;;;;;CANTIDAD*PRECIO1/100*IF(CB7=1,TCCOMCOR1,IF(TCCOMCOR1<>0,1/TCCOMCOR1,0));
+FechaVto       : 'Fecha_Prima'                ;18;2;;;;FECHAVTO>=FECHAOP Y ESHABIL(FECHAVTO,TABLAFERIADOS1);'FECHA PRIMA DEBE SER HABIL EN TABLA SELECCIONADA Y >= A FECHA CONCERTACION';NO;HABILES(FECHAOP,2,'ARG',SI);HABILES(FECHAOP,2,'ARG',SI)
+TCComCor1      : 'T_Cambio'                   ;19;2;;NOT EQSTR(CONTRAESPECIE,ESPECIE);NOT EQSTR(CONTRAESPECIE,ESPECIE);TCCOMCOR1>=0;'Tipo de Cambio Especie de Liquidaci¢n Invalido';NO;;IF(EQSTR(ESPECIE,CONTRAESPECIE),1);
+CB8            : 'Ejercicio'                  ;1;1;2;NO;CB8=1;;;;0
+FechaVto2      : 'F_Real_Ej'                  ;;;2;NO;CB8=1;;;;
+Precio4        : 'Resultado'                  ;;;2;NO;CB8=1;;;;;;;;;;'###,###,###,###,###.##'
+Precio2        : 'Precio_Ref'                 ;;;2;NO;CB8=1;;;;
+NrOperacion2   : 'Op. Rel.'                   ;;;2;NO;NOVACIO(NROPERACION2);;;;
+
+TipoCambio2    : 'Cotizacion'                 ;14;3;;NO;NO;;;;;IF(CB6=7,COTIZACIONC(ESPECIE,,,,FECHAOP,1,SI,'ARP')/COTIZACIONC(CONTRAESPECIE,,,,FECHAOP,1,SI,'ARP'),COTIZACIONC(CONTRAESPECIE,,,,FECHAOP,1,SI,'ARP')/COTIZACIONC(ESPECIE,,,,FECHAOP,1,SI,'ARP'))
+CB7            : 'Cot.Esp/ComCorDirecta'      ;14;3;;NO;NO;;;;;IF(eqstr(QUERY(" Select Modo from "~DBO~".MODOESPECIES where Especie1='"~ESPECIE~"' and Especie2='"~CONTRAESPECIE~"' "),'INV'),0,1)
+Impresa        : 'Modificado'                 ;10;3;;NO;NO;;;;0
+RB3            : 'MOF'                        ;10;2;;NO;NO;;;;;IF(INSTANCIA=2,0,1)
+TCComCor2      : 'Exposicion MtoM'            ;19;2;;NO;NO;;;;;;
+
+PrecioMer       : 'Monto USD WF'               ;1;2;2;NO;NO;;;;CANTIDAD*COTIZACIONC(ESPECIE,,,,FECHAOP,1,SI,VAR('MONEEXTR'));CANTIDAD*COTIZACIONC(ESPECIE,,,,FECHAOP,1,SI,VAR('MONEEXTR'))
+OperacionRef   : 'Operacion Ref'              ;;;;NO;NO;
+CB6            : ''                           ;;;;NO;NO;  
+
+@CUENTAS
+
+
+CONDICIONES
+ESHABIL(FECHAOP,'ARG');'LA FECHA DE CONCERTACION NO ES DIA HABIL EN ARGENTINA';SI;SI;FSYS;'COINH'
+ESHABIL(FECHAOP2,'ARG');'LA FECHA DE INICIO DE LA OPCION NO ES DIA HABIL EN ARGENTINA';SI;SI;FSYS;'INICOINH'
+ESHABIL(FECHAEJ,'ARG');'LA FECHA DE FIN DE LA OPCION NO ES DIA HABIL EN ARGENTINA';SI;SI;FSYS;'FINOINH'
+ESHABIL(FECHAPAGO,'ARG');'LA FECHA DE SETTLEMENT DE LA OPCION NO ES DIA HABIL EN ARGENTINA';SI;SI;FSYS;'FSETTINH'
+ESHABIL(FECHAEX1,'ARG');'LA FECHA DE INICIO N.A. NO ES DIA HABIL EN ARGENTINA';SI;SI;FSYS;'FINNAINH'
+ESHABIL(FECHAEX2,'ARG');'LA FECHA DE FIN N.A. NO ES DIA HABIL EN ARGENTINA';SI;SI;FSYS;'FFINAINH'
+ESHABIL(FECHAVTO,'ARG');'LA FECHA DE PRIMA NO ES DIA HABIL EN ARGENTINA';SI;SI;FSYS;'FPRIMAINH'
+FECHAEJ<=FECHAPAGO;'LA FECHA DE SETTLEMENT DEBE SER MAYOR O IGUAL A LA FECHA DE FIN DE LA OPCION';NO
+Vacio(Cliente1) o EqStr(BuscarCampo('Clientes','Status','Codigo',Cliente1),'HAB');'El Cliente No esta Habilitado';NO
+EqStr(BuscarCampo('Especies','Status','Codigo',Especie),'HAB');'La Especie No esta Habilitada';NO
+FechaOp > Fecha(Var('FECHAVALOR'));'La Fecha Valor No Debe Superar el '~Var('FECHAVALOR');NO
+EQSTR(ESPECIE,CONTRAESPECIE) O [TCCOMCOR1<=TIPOCAMBIO2*(1+VAR('RPRECIO2')/100) Y TCCOMCOR1>=TIPOCAMBIO2*(1-VAR('RPRECIO2')/100)];'Tipo de Cambio Especie de Liquidaci¢n Fuera de Rango: '~FSTR(TIPOCAMBIO2*(1-VAR('RPRECIO2')/100),1,7)~' y '~FSTR(TIPOCAMBIO2*(1+VAR('RPRECIO2')/100),1,7);NO
+NOT EQSTR (VEHICULO1,CLIENTE1);'El Cliente y el Vehiculo deben ser distintos';NO
+ESTERMINAL(VEHICULO1,VEHICULO);'El Vehiculo debe ser Terminal';NO
+ESTERMINAL(CLIENTE1,CLIENTE);'El Cliente debe ser Terminal';NO
+FECHAOP =Fsys;'La Fecha de Origen no coincide con la de Sistema';SI;SI;FSYS;'ORIGFVALOR'
+VACIO(BuscarCampo('USUARIOS','Perfil','Codigo',OPERADOR)) O  VERIFICAPERFIL(BuscarCampo('USUARIOS','Perfil','Codigo',OPERADOR),'TO'~TIPOOP);'Operador no habilitado para ingresar Operaciones del Tipo '~TIPOOP;NO
+
+EDICION
+EqStr(Operador, UsuarioActivo) o Incluido(UsuarioActivo, Var('ULMODI'));'No se puede modificar, Operador: '~Operador
+
+BAJA
+EqStr(Operador, UsuarioActivo) o Incluido(UsuarioActivo, Var('ULBAJA'));'No se puede dar de baja, Operador: '~Operador
+
+MOVIMIENTOS
+FechaVto ;Cliente1;ContraEspecie ;;;;;Vehiculo1;1;IF(MB3=0,TotalNetoCli1,-TotalNetoCli1);;IF(MB3=0,'Compra de Opciones','Venta de Opciones');SI;Incluido(Vehiculo1,Var('VLIQUIDAA'));;TotalNetoCli1<>0;;Cuenta2;;1;
+FechaPago;Cliente1;ContraEspecie ;;;;;Vehiculo1;1;IF(MB3=0,-Precio4,Precio4);;'Resultado Opcion';SI;Incluido(Vehiculo1,Var('VLIQUIDAA'));;Precio4<>0;;Cuenta2;;2;
+
+@INSTOPE
+@INST19OP
+@INST19BITS

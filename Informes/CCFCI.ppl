@@ -1,0 +1,487 @@
+﻿ModoReproceso(ConDialogo)
+CrearDialogo
+  Fecha1     : "Fecha Desde" ;1;1;;;;Dialogo.Fecha1<Dialogo.Fecha2 Y Dialogo.Fecha1 <> 0;'Fecha Incorrecta';NO;Fsys
+  Fecha2     : "Fecha Hasta" ;2;1;;;;Dialogo.Fecha2>Dialogo.Fecha1 Y Dialogo.Fecha2 <> 0;'Fecha Incorrecta';NO;Fsys
+  Cliente1   : "Entidad"     ;3;1;;;;
+  Especie2   : "Moneda"      ;4;1;;;;;;;;;;;;"Tipo='MON'"
+  Especie1   : "Fondo"       ;5;1;;;;;;;;;;;;"Tipo='FON'"
+  Radio1     : "Tipo|Money Markets|Securities|Todos" ;6;1;;;;;;;2
+  Radio2     : 'Filtra Book|SI|NO'    ;7;1;;;;;;;1;
+  Lista1     : 'Vehiculos'            ;8;1;;;Dialogo.Radio2=1;;;;;;IIF(Vacio(UsrVehiculos(UsuarioActivo)),SQLSET("Select Codigo from "~DBO~".VEHICULOS Where (Status='HAB' or Status Is Null or Status='')"),SQLSET("Select U.Vehiculo from "~DBO~".USRVEHICULO U,"~DBO~".VEHICULOS V where U.Codigo='"~UsuarioActivo~"' and U.Vehiculo=V.Codigo and (Status='HAB' or Status Is Null or Status='') "))
+  Vehiculo1  : 'Vehiculo'             ;2;1;;Dialogo.Radio2=0;Dialogo.Radio2=0;Dialogo.Radio2=1 O NoVacio(Dialogo.Vehiculo1) ;'Vehiculo Invalido';NO;;;;;;;
+  Lista2     : 'Books'                ;3;1;;;Dialogo.Radio2=0;;;;;;SQLSet(" Select Codigo From "~DBO~".BOOKS Where Vehiculo = '"~Dialogo.Vehiculo1~"' ");;
+  Radio3     : 'Consolida Book|SI|NO' ;4;1;;;;;;;0;
+FinDialogo
+
+if Not Ok
+  Cancelar
+endif
+
+***Si se selecciona Book, uso el mismo código cambiando lista vehiculo por campo vehiculo
+IF Dialogo.Radio2 = 0 
+  ACT(zz6,Dialogo.Vehiculo1)
+  IF NoVacio(Dialogo.Lista2)
+    ***ZZ6 es la celda que guarda la variable de vehiculo, seguirla a través del script
+    ***ZZ7 Guarda el dato del Book
+    ACT(ZZ:7, Dialogo.Lista2)
+  ELSE
+    ACT(ZZ:7, SQLSet(" Select Codigo From "~DBO~".BOOKS Where Vehiculo = '"~Dialogo.Vehiculo1~"' "))
+  EndIf
+  *** Si no se selecciona Book (el Radio2 es uno) entonces trabaja igual que antes:
+ELSE
+  * Vehiculos permitidos por el usuario
+  If NoVacio(Dialogo.Lista1)
+     ACT(zz6,Dialogo.Lista1)
+  Else
+    If NoVacio(UsrVehiculos(UsuarioActivo))
+      ACT(zz6,SQLSET("Select U.Vehiculo from "~DBO~".USRVEHICULO U,"~DBO~".VEHICULOS V where U.Codigo='"~UsuarioActivo~"' and U.Vehiculo=V.Codigo and (Status='HAB' or Status Is Null or Status='') "))
+    Else
+      ACT(zz6,SQLSET("Select Codigo from "~DBO~".VEHICULOS Where (Status='HAB' or Status Is Null or Status='')")) 
+    EndIf
+    EndIf
+ENDIF
+
+
+CrearFont(1,"Arial,8,")
+CrearFont(2,"Arial,8,B")
+CrearFont(3,"Arial,10,B")
+
+let &FechaTC Dialogo.Fecha1-1
+(.'VARTIPOCAM'.)
+*Se reemplazan las variables declaradas en la función
+let &cotDolDivisa CotizacionBNA(&monedaExtr,Ahora,1,NO,NO)
+let &cotDolBillete CotizacionBNA(&dolBillete,Ahora,1,NO,NO)
+**************
+*INSERTAR LOGO
+**************
+let &filaLogo 1
+(.'LOGO'.)
+
+*******
+*HEADER
+*******
+SetFilaActual(fac+5)
+*ACT(a:fac,'Operaciones Financieras CONFIDENCIAL')
+*SetFont(a:fac..a:fac,2)
+*SetFilaActual(7)
+ACT(a:FAC, "Informe Control Contable FCI")
+SetFont(a:fac..a:fac,3)
+
+ACT(c:fac,'Fecha Sistema: '~Var('FECHASYS'))
+SetFont(c:fac..c:fac,1)
+SetFont(c:fac..c:FAC,2)
+
+SetFilaActual(fac+1)
+ACN(w1,FAC)
+
+if Vacio(Dialogo.Lista1)
+  ACT(a:FAC+1, 'Vehiculos : Todos')
+else
+  ACT(a:FAC+1, 'Vehiculos : '~VAL(ZZ6))
+endif
+
+IF NoVacio(Dialogo.Lista2)
+    ACT(A:FAC+2,'Book : ' ~Dialogo.Lista2)
+Else
+    ACT(A:FAC+2,'Book : Todos')
+Endif
+
+ACT(a:FAC+3, 'Fecha Desde : '~Dialogo.Fecha1)
+ACT(a:FAC+4, 'Fecha Hasta : '~Dialogo.Fecha2)
+if NoVacio(Dialogo.Cliente1)
+  ACT(a:FAC+5, 'Entidad : '~Dialogo.Cliente1~'  '~BuscarCampo('Clientes','RazonSocial','Codigo',Dialogo.Cliente1))
+ else
+ ACT(a:FAC+5, 'Entidad : Todas')
+endif
+if NoVacio(Dialogo.Especie2)
+  ACT(a:FAC+6, 'Moneda : '~Dialogo.Especie2~'  '~BuscarCampo('Especies','Nombre','Codigo',Dialogo.Especie2))
+ else
+ ACT(a:FAC+6, 'Moneda : Todas')
+endif
+if NoVacio(Dialogo.Especie1)
+  ACT(a:FAC+7, 'Fondo : '~Dialogo.Especie1~'  '~BuscarCampo('Especies','Nombre','Codigo',Dialogo.Especie1))
+ else
+ ACT(a:FAC+7, 'Fondo : Todos')
+endif
+ACT(a:FAC+8, 'Tipo Fondo : '~iif(Dialogo.Radio1=2,'Todos',iif(Dialogo.Radio1=1,'Securities','Money Markets')))
+SetFont(a:fac..n:FAC+8,2)
+
+SetFilaActual(FAC+11)
+
+***********
+*SELECT SQL
+***********
+SQL.ADD("Select E.Cotiza, E.Issuer, S.Especie, S.EnteCustodia, S.Saldo Cantidad, ")
+SQL.ADD("       0 Precio1, S.Fecha, '00000000' NrOperacion, 0 Tip, '' TipoOp,S.Book, ")
+*UPDATE 16/04/2025 : Se quitaron los campos de "Moneda Local" y se dejó CRMEDAY por Moneda Emisión
+*SQL.ADD("0 VRMEMTD,0 RRMEMTD,0 CRMLDAY,0 FTMLDAY,0 RTMLDAY, S.Fecha FechaVto")
+SQL.ADD("0 VRMEMTD,0 RRMEMTD,0 CRMEDAY, S.Fecha FechaVto")
+SQL.ADD("from "~DBO~".SALDOSDIA S, "~DBO~".ESPECIES E ")
+SQL.ADD("where  S.Especie = E.Codigo  ")
+SQL.ADD("  and  S.NrSaldo = 2 ")
+SQL.ADD("  and  Round(S.Saldo,0) <> 0 ")
+SQL.ADD("  and  E.Tipo = 'FON' ")
+if NoVacio(VAL(ZZ6))
+   SQL.ADD("and S.Cliente  in ("~Pipe2Comillas(val(zz6))~")")
+   SQL.ADD("and S.EnteCustodia in ("~Pipe2Comillas(val(zz6))~") ")
+endif
+IF Dialogo.Radio2 = 0
+   SQL.ADD(" AND S.Book IN ("~Pipe2Comillas(val(zz7))~") ")
+ENDIF
+if NoVacio(Dialogo.Especie2)
+   SQL.ADD("and E.Cotiza = '"~Dialogo.Especie2~"' ")
+endif
+if NoVacio(Dialogo.Cliente1)
+   SQL.ADD("and E.Issuer = '"~Dialogo.Cliente1~"' ")
+endif
+if NoVacio(Dialogo.Especie1)
+   SQL.ADD("and S.Especie = '"~Dialogo.Especie1~"' ")
+endif
+if Dialogo.Radio1 = 0
+   SQL.ADD(" and E.Alias2 = '0' ")
+endif
+if Dialogo.Radio1 = 1
+   SQL.ADD(" and E.Alias2 = '1' ")
+endif
+SQL.ADD("and   S.Fecha = (Select Max(D.Fecha) from "~DBO~".SALDOSDIA D ")
+SQL.ADD("                   where  D.EnteCustodia = S.EnteCustodia ")
+SQL.ADD("                   and    D.Especie = S.Especie  ")
+SQL.ADD("                   and    D.Cliente = S.Cliente  ")
+SQL.ADD("                   and    D.Book = S.Book")
+SQL.ADD("                   and    D.NrSaldo = 2 ")
+**UPDATE 12/12/24 - Se igualan las cuentas para evitar errores de saldo con el subquery (igual a cambio en FOND02)
+SQL.ADD("                   and    D.Cuenta = S.Cuenta")
+SQL.ADD("                   and    D.Fecha < '"~IdxDate(Dialogo.Fecha1)~"') ")
+*****************
+SQL.ADD("Union ")
+*****************
+SQL.ADD("Select E.Cotiza, E.Issuer, S.Especie, S.EnteCustodia, S.Cantidad, ")
+SQL.ADD("O.Precio1, S.FechaMov Fecha, O.NrOperacion, 1 Tip, O.TipoOp ,O.Book1,")
+*UPDATE 16/04/2025 : Se quitaron los campos de "Moneda Local" y se dejó CRMEDAY por Moneda Emisión
+*SQL.ADD("0 VRMEMTD, 0 RRMEMTD,0 CRMLDAY,0 FTMLDAY,0 RTMLDAY, O.FechaVto")
+SQL.ADD("0 VRMEMTD, 0 RRMEMTD,0 CRMEDAY,O.FechaVto")
+
+SQL.ADD(" from "~DBO~".MOVEJECUTADOS S, "~DBO~".ESPECIES E,"~DBO~".OPERACIONES O ")
+SQL.ADD("where  S.Especie = E.Codigo  ")
+SQL.ADD("  and  S.NrOperacion = O.NrOperacion ")
+SQL.ADD("  and  S.NrSaldo = 2 ")
+SQL.ADD("  and  E.Tipo = 'FON' ")
+
+if NoVacio(VAL(zz6))
+   SQL.ADD("and S.Cliente  in ("~Pipe2Comillas(val(zz6))~") ")
+   SQL.ADD("and S.EnteCustodia in ("~Pipe2Comillas(val(zz6))~") ")
+endif
+IF Dialogo.Radio2 = 0
+   SQL.ADD(" AND O.Book1 IN ("~Pipe2Comillas(val(zz7))~") ")
+ENDIF
+if NoVacio(Dialogo.Especie2)
+   SQL.ADD("and E.Cotiza = '"~Dialogo.Especie2~"' ")
+endif
+if NoVacio(Dialogo.Cliente1)
+   SQL.ADD("and E.Issuer = '"~Dialogo.Cliente1~"' ")
+endif
+if NoVacio(Dialogo.Especie1)
+   SQL.ADD("and S.Especie = '"~Dialogo.Especie1~"' ")
+endif
+if Dialogo.Radio1 = 0
+   SQL.ADD(" and E.Alias2 = '0' ")
+endif
+if Dialogo.Radio1 = 1
+   SQL.ADD(" and E.Alias2 = '1' ")
+endif
+SQL.ADD("and   S.FechaMov Between '"~IdxDate(Dialogo.Fecha1)~"' and '"~IdxDate(Dialogo.Fecha2)~"' ")
+*****************
+SQL.ADD("Union ")
+*****************
+SQL.ADD("SELECT E.Cotiza, E.Issuer,R.Especie, R.Vehiculo EnteCustodia, 0 Cantidad,")
+SQL.ADD("0 Precio1, R.Fecha, '00000000' NrOperacion, 2 Tip, 'Revaluo' TipoOp, R.Book,")
+*UPDATE 16/04/2025 : Se quitaron los campos de "Moneda Local" y se dejó CRMEDAY por Moneda Emisión
+*SQL.ADD(" R.VRMEMTD, R.RRMEMTD, R.CRMLDAY, R.FTMLDAY, R.RTMLDAY, R.Fecha FechaVto")
+SQL.ADD(" R.VRMEMTD, R.RRMEMTD, R.CRMEDAY, R.Fecha FechaVto")
+SQL.ADD("FROM "~DBO~".RESULTADOS2 R, "~DBO~".ESPECIES E ")
+SQL.ADD("WHERE NrSaldo=2 ")
+SQL.ADD("AND R.Especie = E.Codigo")
+SQL.ADD("and  E.Tipo = 'FON'")
+if NoVacio(VAL(ZZ6))
+   SQL.ADD("and R.Vehiculo  in ("~Pipe2Comillas(val(zz6))~")")
+endif
+*Si Filtra Book
+IF Dialogo.Radio2 = 0
+   SQL.ADD(" AND R.Book IN ("~Pipe2Comillas(val(zz7))~") ")
+ENDIF
+if NoVacio(Dialogo.Cliente1)
+   SQL.ADD("and E.Issuer = '"~Dialogo.Cliente1~"' ")
+endif
+if NoVacio(Dialogo.Especie1)
+   SQL.ADD("and R.Especie = '"~Dialogo.Especie1~"' ")
+endif
+SQL.ADD("AND R.Fecha Between '"~IdxDate(Dialogo.Fecha1)~"' and '"~IdxDate(Dialogo.Fecha2)~"'")
+*Si Consolida Book
+IF Dialogo.Radio3 = 0
+    SQL.ADD("order by 4, 2, 1, 3, 7, 11, 9")
+ELSE
+    SQL.ADD("order by 4, 2, 1, 3, 11, 7, 9")
+ENDIF
+watch(sql.batch)
+act(ca1,' ')
+act(ca2,' ')
+act(ca3,' ')
+act(ca4,' ')
+act(ca5,' ')
+acn(cz1,0)
+let &fechaAnterior Dialogo.Fecha1
+let &primerRegistro 0
+************
+Recorrer SQL
+************
+    *Tip 0 y 1 entran siempre, Tip = 2 solo si es fin de mes.
+    IF FBN['Tip'] < 2 O (FBN['Tip'] = 2 Y fbn['Fecha'] = FinDeMes(fbn['Fecha'],NO))
+        **************
+        *BLOQUE NUEVO*
+        **************
+        if Not EqStr(val(ca4),fbn['EnteCustodia']) o Not EqStr(val(ca2),fbn['Issuer']) o Not EqStr(val(ca1),fbn['Cotiza']) o Not EqStr(val(ca3),fbn['Especie']) o (Dialogo.Radio3=1 y Not EqStr(Val(ca5),fbn['Book']))
+            ACT(ca5,fbn['Book'])
+        ****Totales****
+        If &primerRegistro=1
+            ACT(I:fac, 'RESULTADO DEL PERIODO')
+            ACN(j:fac,&sumatoriaResultado)
+            let &sumatoriaResultado 0
+            SetFont(a:fac..j:fac,2)
+            AgregarMarco(a:fac..j:fac,2,0,Exe('COLOR'))
+            Alinearceldas(J:fac.. J:fac, 'C')
+            FormatoCeldas(j:fac..j:fac,Exe('F2'))
+        Endif
+        *******************
+            if val(cz1) > 0
+                ifa
+                ifa
+                ifa
+            ENDIF
+            act(a:fac,'Vehiculo : '~fbn['EnteCustodia']~'  '~BuscarCampo('Vehiculos','Descripcion','Codigo',fbn['EnteCustodia']))
+            act(ca4,fbn['EnteCustodia'])
+            If Dialogo.Radio3=1
+                act(a:fac+1,'Book : '~fbn['Book']  )
+                *act(a:fac+1,Val(a:fac+1)~'| ' ~fbn['Book']  )
+                act(ca5,fbn['Book'])
+            Else
+                act(a:fac+1,'Book : Todos ')
+                act(ca5,fbn['Book'])
+            Endif
+            act(a:fac+2,'Entidad : '~fbn['Issuer']~'  '~BuscarCampo('Clientes','RazonSocial','Codigo',fbn['Issuer']))
+            act(ca2,fbn['Issuer'])
+            act(a:fac+3,'Moneda : '~fbn['Cotiza']~' '~BuscarCampo('Especies','Nombre','Codigo',fbn['Cotiza']) )
+            act(ca1,fbn['Cotiza'])
+            act(a:fac+4,'Fondo: '~fbn['Especie']~'  '~BuscarCampo('Especies','Nombre','Codigo',fbn['Especie']))
+            act(ca3,fbn['Especie'])
+            act(a:fac+5,'Valor Cuotaparte: ')
+            acn(c:fac+5,Cotizacion(fbn['Especie'],,,,Habiles(Dialogo.Fecha2,0,'ARG',SI),1))
+            FormatoCeldas(c:fac+5..c:fac+5,Exe('F7'))
+            SetFont(a:fac..r:fac+5,2)
+            ********************
+            *TÍTULOS DE COLUMNAS
+            ********************
+            SetFilaActual(fac+7)
+            act(a:fac,'Fecha Origen')
+            act(b:fac,'Valor Cuotaparte')
+            act(c:fac,'Debito')
+            act(e:fac,'Credito')
+            act(g:fac,'Saldo')
+            act(i:fac,'Nro.Operacion')
+            act(j:fac,'Resultado en ' ~fbn['Cotiza'])
+            act(c:fac+1,'Cuota')
+            act(d:fac+1,'Monto')
+            act(e:fac+1,'Cuota')
+            act(f:fac+1,'Monto')
+            act(g:fac+1,'Cuota')
+            act(h:fac+1,'Monto')
+            SetFont(a:fac..j:fac+1,2)
+            AgregarMarco(a:fac..b:fac+1,2,0,Exe('COLOR'))
+            AgregarMarco(c:fac..d:fac,2,0,Exe('COLOR'))
+            AgregarMarco(e:fac..f:fac,2,0,Exe('COLOR'))
+            AgregarMarco(g:fac..h:fac,2,0,Exe('COLOR'))
+            AgregarMarco(c:fac+1..h:fac+1,2,2,Exe('COLOR'))
+            AgregarMarco(i:fac..i:fac+1,2,0,Exe('COLOR'))
+            AgregarMarco(j:fac..j:fac+1,2,0,Exe('COLOR'))
+            ifa
+            ifa
+            let &primerRegistro 1
+        endif
+        acd(a:fac,fbn['Fecha'])
+        ***Saldo Inicial***
+        If fbn['Tip'] = 0
+            ***Fecha Saldo Inicial***
+            *Debe ser el último día del mes anterior a Fecha Desde
+            *Puede ser No Hábil pero no debe ser Sab ni Dom
+            *Línea anterior: acd(a:fac, FinDeMes(fbn['Fecha'], NO, 'ARG'))
+            let &fechaInicial SumarMeses(Dialogo.Fecha1,-1)
+            acd(a:fac, FinDeMes((&fechaInicial), NO, 'ARG')) 
+            acn(b:fac,Cotizacion(fbn['Especie'],,,,Fecha(val(a:fac)),1))
+            act(i:fac,'Inicial')
+        Endif
+        *****************************************************************
+        If fbn['Tip'] = 1
+            If Eqstr(FBN('TipoOp'), 'DIVIDE')
+                acn(b:fac, Cotizacion(fbn['Especie'],,,,Fecha(val(a:fac)),1,SI))
+            Else
+                acn(b:fac,fbn['Precio1'])
+            Endif
+            act(i:fac,fbn['NrOperacion'])
+            aclo(i:fac,fbn['NrOperacion'])
+        Endif
+
+        ***************
+        *VENTAS/COMPRAS
+        ***************
+        If fbn['Tip'] <> 2
+            *DEBITO
+            if fbn['Cantidad'] < 0
+                acn(c:fac,fbn['Cantidad']*(-1))
+                acn(d:fac,fbn['Cantidad']*val(b:fac)*(-1))
+                *Resultado en ARP para ventas*
+                *15/04/25 - Se cambian los datos - La Columna debería ser "resultado en" + Moneda de emisión.
+                *Se cambian todos los campos de Moneda Local ML a Moneda Emisión
+                let &cRMEDAY 0
+                ***********
+                *let &cRMLDAY 0
+                *let &fTMLDAY 0
+                *let &rTMLDAY 0
+                *SQL.ADD("SELECT CRMLDAY, FTMLDAY, RTMLDAY FROM RESULTADOS2")
+                **********
+                SQL.ADD("SELECT CRMEDAY FROM RESULTADOS2")
+                SQL.ADD("WHERE Fecha='"~IdxDate(fbn['FechaVto'])~"' AND Vehiculo='"~fbn['EnteCustodia']~"' AND Especie='"~fbn['Especie']~"' AND Book='"~fbn['Book']~"' AND NrSaldo=2")
+                Recorrer SQL
+                    let &cRMEDAY FBN['CRMEDAY']
+                    *let &cRMLDAY FBN['CRMLDAY']
+                    *let &fTMLDAY FBN['FTMLDAY']
+                    *let &rTMLDAY FBN['RTMLDAY']
+                    dfa
+                Proximo    
+                *ACN(J:FAC, &cRMLDAY+&fTMLDAY+&rTMLDAY )
+                ACN(J:FAC, &cRMEDAY)
+                *Si viene un registro que coincidan Fecha/TipoOp/EnteCustodia/Especie, borro FAC-1 y lo dejo en FAC
+                IF &fechaAnterior = fbn['Fecha'] Y EqStr(&tipoOpAnterior,fbn['TipoOp']) Y EqStr(&vehiculoAnterior,fbn['EnteCustodia']) Y EqStr(&especieAnterior,fbn['Especie']) 
+                    ACT(J:FAC-1, '-')
+                    let &cRMEDAY 0
+                EndIf
+                Let &sumatoriaResultado (&sumatoriaResultado+&cRMEDAY)
+            *CREDITO
+            else     
+                acn(e:fac,fbn['Cantidad'])
+                acn(f:fac,fbn['Cantidad']*val(b:fac))
+                ACT(J:FAC, '-')
+            endif
+            Alinearceldas(J:fac.. J:fac, 'C')
+            *SALDO
+            if val(cz1) = 0
+                acn(g:fac,fbn['Cantidad'])
+                acn(h:fac,fbn['Cantidad']*val(b:fac))
+            else
+                acn(g:fac,val(g:fac-1)+fbn['Cantidad'])
+                acn(h:fac,(val(g:fac-1)+fbn['Cantidad'])*val(b:fac))
+            endif
+        EndIf
+
+        ************
+        *FIN DE MES
+        ************
+        IF fbn['Tip'] = 2
+        *Guardo Cotización Vehiculo
+            *Si está en pesos, se iguala a 1
+            IF EqStr(FBN['Cotiza'], &monedaLocal )
+                let &cotVehiculo 1
+            Else
+                *Sino, Dólares divisa o billete según corresponda por vehiculo
+                let &vehiculoTC VAL(ZZ6)
+                (.'COTVEHIC'.)
+                ***15/04/2025
+                ***---El revaluo debe expresarse en ME => lo dejamos siempre en 1
+                let &cotVehiculo 1
+            EndIF
+            *Si todos los datos son el mismo salvo el book, se suma el Resultado en ARP
+            IF EqStr(&vehiculoAnterior,fbn['EnteCustodia']) Y EqStr(&issuerAnterior,fbn['Issuer'])Y EqStr(&cotizaAnterior,fbn['Cotiza']) Y EqStr(&especieAnterior,fbn['Especie']) Y EqStr(&fechaAnterior,fbn['Fecha'])
+                *05/04/2024 -> Se muestra el revaluo en la ultima columna
+                *dfa
+                *Columna I - Nro Operacion
+                ACT(I:FAC, fbn['TipoOP'])
+                ACN(J:FAC, (Fbn['VRMEMTD'] + Fbn['RRMEMTD'])*&cotVehiculo)
+                Let &sumatoriaResultado (&sumatoriaResultado+VAL(J:FAC))
+                Alinearceldas(J:fac.. J:fac, 'C')
+            ELSE
+                *Columna A - Fecha Origen
+                ACT(A:FAC,fbn['Fecha'])
+                *Columna B - Valor cuota parte a fin de mes, es el precio del FCI a fin de mes
+                ACN(B:FAC, Cotizacion(fbn['Especie'],,,,fbn['Fecha'],1,SI))
+                *Columna G - Saldo/Cuota = Cuotas Partes
+                ACN(G:FAC,val(G:fac-1))
+                *Columna H - Saldo/Monto a fin de mes = Valor Cuota parte * Cuotas partes
+                ACN(H:FAC,Val(B:FAC)*Val(G:FAC))
+                *Columna I - Nro Operacion
+                ACT(I:FAC, fbn['TipoOP'])
+                *Columna J - Resultado por revalúo.
+                *Tomaremos el resultado en moneda emisión de RESULTADOS2 y lo pasaremos a ARP con el TC del vehículo USD o USB
+                * ACN(J:FAC,(Fbn['VRMEMTD'] + Fbn['RRMEMTD'])*&cotVehiculo)
+                ACN(J:FAC,Fbn['VRMEMTD'] + Fbn['RRMEMTD'])
+                Let &sumatoriaResultado (&sumatoriaResultado+VAL(J:FAC))
+                *Formato
+                SetFont(a:fac..j:fac,2)
+                Alinearceldas(a:fac.. a:fac, 'D')
+                Alinearceldas(J:fac.. J:fac, 'C')
+                FormatoCeldas(b:fac..b:fac,Exe('F7'))
+                FormatoCeldas(C:fac..H:fac,Exe('F2'))
+                FormatoCeldas(j:fac..j:fac,Exe('F2'))
+                *AgregarMarco(a:fac..j:fac,2,0)
+                EndIF
+            
+        EndIf
+        SetFont(a:fac..j:fac,1)
+        FormatoCeldas(b:fac..b:fac,Exe('F7'))
+        FormatoCeldas(C:fac..H:fac,Exe('F2'))
+        acn(cz1,1) 
+
+        *******************************
+        *VARIABLES
+        *******************************
+        *Columna A - Fecha
+        let &fechaAnterior fbn['Fecha']
+        let &tipoOpAnterior fbn['TipoOp']
+        let &vehiculoAnterior fbn['EnteCustodia']
+        let &especieAnterior fbn['Especie']
+        let &cotizaAnterior fbn['Cotiza']
+        let &issuerAnterior fbn['Issuer']
+        let &operacionAnterior fbn['NrOperacion']
+    ELSE
+        DFA
+    ENDIF
+
+proximo
+
+****Totales para el último registro****
+If &primerRegistro=1
+    ifa
+    ACT(I:fac, 'RESULTADO DEL PERIODO')
+    ACN(j:fac,&sumatoriaResultado)
+    SetFont(a:fac..j:fac,2)
+    AgregarMarco(a:fac..j:fac,2,0,Exe('COLOR'))
+    Alinearceldas(J:fac.. J:fac, 'C')
+    FormatoCeldas(j:fac..j:fac,Exe('F2'))
+Endif
+ifa
+
+
+ACO(1,9)
+ACO(2,11)
+ACO(3,11)
+ACO(4,11)
+ACO(5,11)
+ACO(6,11)
+ACO(7,11)
+ACO(8,11)
+ACO(9,15)
+ACO(10,20)
+
+Impresion(1,2)
+SetFilaActual(fac+3)
+ACT(a:FAC, 'FIN DE LISTADO')
+SetFont(a:FAC, 2)
+LimitesVision(j:fac)
+RangoTitulo(a1..j:fac,13)

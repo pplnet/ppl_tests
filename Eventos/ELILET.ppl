@@ -1,0 +1,37 @@
+﻿MostrarCuadroDeMensajes
+CrearDialogo
+   Especie1: 'Especie' ;;;;;;NoVacio(Dialogo.Especie1) Y Incluido(Dialogo.Especie1, 'S29N4|S13D4|S17E5|S14F5|S28F5|S14M5|S31M5|S16A5|S28A5|S16Y5|S30Y5|S18J5|S30J5|S31L5|S29G5|S12S5|S30S5');;NO;;;;;;" Codigo IN ('S29N4', 'S13D4','S17E5' ,'S14F5' ,'S28F5' ,'S14M5', 'S31M5' ,'S16A5' ,'S28A5' ,'S16Y5' ,'S30Y5' ,'S18J5' ,'S30J5' ,'S31L5' ,'S29G5' ,'S12S5' ,'S30S5') ";;;;;;;;;;;;;
+   Fecha1 : 'Fecha' ;;;;NO;;NoVacio(Dialogo.Fecha1);'Debe indicar una Fecha Valida';NO;FSYS;;;;;;;
+FinDialogo
+
+If Not OK
+    Cancelar
+Endif
+
+ACT(LS:1, Dialogo.Especie1)
+*S29N4|S13D4|S17E5|S14F5|S28F5|S14M5|S31M5|S16A5|S28A5|S16Y5|S30Y5|S18J5|S30J5|S31L5|S29G5|S12S5|S30S5')
+
+
+Recorrer &k 1, Elementos(Val(LS:1))
+    ACN(BD:1, 0)
+    SQL.ADD(" SELECT NrOperacion, FechaOp, Especie FROM "~DBO~".OPERACIONES ")
+    SQL.ADD("  Where Especie = '"~ItemLista(Val(LS:1), &k)~"' ")
+    SQL.ADD(" ORDER BY FechaOp ")
+    WATCH(SQL.BATCH)
+    Message('Procesando Especie '~ItemLista(Val(LS:1), &k))
+    Recorrer SQL
+        let &nrOperacion fbn('NrOperacion')
+        EjecutarEvento('ELILIX', NrOperacion1 = &nrOperacion)
+        SQL.ADD("UPDATE "~DBO~".OPERACIONES ")
+        SQL.ADD("Set Cupon1 = '0' ")
+        SQL.ADD("Where NrOperacion = '"~&nrOperacion~"'")
+        SQL.NEW
+        SQL.EXEC
+        IF Val(BD:1) = 0
+            ACD(FE:1, fbn('FechaOp'))
+        ENDIF
+        ACN(BD:1, 1)
+    Proximo
+    EjecutarEvento('ACTMOV', Vehiculo1 = '', Fecha1 = Val(FE:1), Fecha2 = Dialogo.Fecha1, NrOperacion1 = '', TipoOp1 = '', Especie1 = ItemLista(Val(LS:1), &k), Radio1 = 6, Radio2 = 0)
+   * EjecutarEvento('REGEPO',Fecha1=Val(FE:1), Vehiculo1='', Especie1=ItemLista(Val(LS:1), &k), String1 = '')
+Proximo

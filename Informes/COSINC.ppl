@@ -1,0 +1,132 @@
+﻿MostrarCuadrodeMensajes
+DialogoVisible(SI)
+CrearDialogo
+  Vehiculo1   : 'Vehiculo'                 ;1;2;;;;NoVacio(Dialogo.Vehiculo1);'Debe Ingresar un Vehiculo';NO;Var('DDVEHDEF')
+  Book1       : 'Book'                     ;2;2;;SI;SI;EqStr(Dialogo.Vehiculo1,BuscarCampo('BOOKS','Vehiculo','Codigo',Dialogo.Book1));'El book ingresado no corresponde al Vehiculo';NO;Var('BOOKDDCHE');BuscarCampo('VEHICULOS','Alias5','Codigo',Dialogo.Vehiculo1);;;;" Vehiculo = '"~Dialogo.Vehiculo1~"'"  
+  Especie1    : 'Moneda'                   ;1;1;;;;NoVacio(Dialogo.Especie1) Y DesciendeDeEspecie(Dialogo.Especie1,'MONEDA');'Se debe ingresar una Moneda';NO;Var('MONELOCA');;;;;"dbo.DESCIENDEDEESPECIE(Codigo,'MONEDA') = 1"  
+  Radio1      : 'Filtra Fecha |SI|NO'      ;2;1;;;;;;;1
+  Fecha1      : 'Fecha Desde'              ;3;1;;;Dialogo.Radio1=0;NoVacio(Dialogo.Fecha1);;;SumarMeses(PriDeMes(Fsys),-1,0)
+  Fecha2      : 'Fecha Hasta'              ;4;1;;;Dialogo.Radio1=0;NoVacio(Dialogo.Fecha1);;;FSYS
+*  1- “Desde” Default = PriDeMes del mes anterior a Fsys y “Hasta” Default Fsys.
+*  2- Recordar actualizar el header.
+FinDialogo
+
+
+if Not Ok
+  Cancelar
+  endif
+
+CrearFont(1, 'Arial,8,')
+CrearFont(2, 'Arial,8,B')
+CrearFont(3, 'Arial,16,B')
+
+
+let &filaLogo 1
+(.'LOGO'.)
+
+SetFilaActual(fac+3)
+
+ACT(c:1, 'Informe Cobranzas sin Conciliar')
+SetFont(c:1, 3)
+SetFilaActual(fac+2)
+
+
+**_Header
+If Dialogo.Radio1=0
+    ACT(A:fac, 'Fecha Desde: '~Dialogo.Fecha1)
+    ifa
+    ACT(A:fac, 'Fecha Hasta: '~Dialogo.Fecha2)
+    ifa
+Endif
+If NoVacio(Dialogo.Vehiculo1)
+   ACT(A:fac, 'Vehiculo: '~Dialogo.Vehiculo1)
+   ifa
+Else
+    ACT(A:fac, 'Vehiculos: Todos')
+   ifa
+Endif
+    If NoVacio(Dialogo.Book1)
+    ACT(A:fac, 'Book: '~Dialogo.Book1)
+   ifa
+Else
+    ACT(A:fac, 'Books: Todos')
+   ifa
+Endif
+    If NoVacio(Dialogo.Especie1)
+    ACT(A:fac, 'Moneda: '~Dialogo.Especie1)
+    ifa
+Else
+    ACT(A:fac, 'Monedas: Todas')
+   ifa
+Endif
+
+SetFont(A:&fi1..A:fac, 2)
+SetFont(B:&fi1..B:fac, 2)
+ifa
+
+**_Columnas
+ACT(A:fac, 'Fecha')
+ACT(B:fac, 'Movimiento')
+ACT(C:fac, 'Comprobante')
+ACT(D:fac, 'Ingreso')
+ACT(E:fac, 'Haber')
+*ACT(F:fac, 'Moneda')
+
+AlinearCeldas(A:fac..EF:fac,'C')
+SetFont(A:fac..F:fac, 2)
+AgregarMarco(A:fac..E:fac, 0, 0, Exe('COLOR'))
+Let &filaInicial fac+1
+
+**_Query
+SQL.ADD("   SELECT Fecha, Movimiento, Comprobante, FIngreso, Haber, Moneda ")
+SQL.ADD("   FROM "~DBO~".DDCOBRANZAS WHERE Conciliada IS NULL ")
+If Dialogo.Radio1=0
+    SQL.ADD("  AND Fecha >= '"~IdxDate(Dialogo.Fecha1)~"' and Fecha <= '"~IdxDate(Dialogo.Fecha2)~"'  ")
+    
+Endif
+
+If NoVacio(Dialogo.Especie1)
+    SQL.ADD("  AND Moneda = '"~Dialogo.Especie1~"' ")
+Endif
+
+If NoVacio(Dialogo.Vehiculo1)
+    SQL.ADD("  AND Vehiculo = '"~Dialogo.Vehiculo1~"' ")
+Endif
+
+If NoVacio(Dialogo.Book1)
+    SQL.ADD("  AND Book = '"~Dialogo.Book1~"' ")
+Endif
+
+WATCH(SQL.BATCH)
+
+Recorrer SQL
+    ACD(A:fac, fbn('Fecha'))
+    ACT(B:fac, fbn('Movimiento'))
+    ACT(C:fac, fbn('Comprobante'))
+    ACD(D:fac, fbn('FIngreso'))
+    ACN(E:fac, fbn('Haber'))
+    Let &totalHaber &totalHaber + fbn('Haber')
+    *ACT(F:fac, fbn('Moneda'))
+Proximo
+
+AlinearCeldas(A:&filaInicial..E:fac,'C')
+AgregarMarco(A:&filaInicial..E:fac, 0, 0,  Exe('COLOR7'))
+
+ACO(1,10)
+ACO(2,10)
+ACO(3,10)
+ACO(4,10)
+ACO(5,10)
+ACO(6,10)
+*****total Haber
+ifa
+ACT(D:fac, 'TOTAL: ')
+ACN(E:fac, &totalHaber)
+AlinearCeldas(D:fac..E:fac,'C')
+AgregarMarco(D:fac..E:fac, 0, 0,  Exe('COLOR7'))
+*****
+SetFilaActual(FAC+2)
+ACT(a:FAC, 'FIN DEL INFORME')
+SetFont(a:FAC, 2)
+LimitesVision(F:fac)  
+    

@@ -1,0 +1,21 @@
+﻿def abm 'ENTORNOSSTDCORP'
+    def grid 
+        Codigo:,Nombre:
+    end
+    def key
+        Codigo:
+    end
+    def dialog
+        tab 'General'
+            column
+                Codigo:,,small_text
+                Nombre:,,large_text
+    end
+    
+    validates_max_length_of:
+       Codigo:, 10,true;
+       Nombre:, 30,true;
+       
+    upper_case_fields: Codigo:
+    validates_uniqueness_of: Codigo:
+end

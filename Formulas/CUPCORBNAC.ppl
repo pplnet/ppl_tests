@@ -1,0 +1,3 @@
+﻿IIF(Eqstr(fbn('Cotiza'), Var('MONELOCA')),
+   #CUPONCORTE,
+   #CUPONCORTE*COTIZACIONBNA(fbn('Cotiza'),Val(FV:2),1,NO,NO))

@@ -1,0 +1,3 @@
+﻿COMISIONES2:SI;1;
+  Tasa1      : 'Tasa'          ;;;;;;COM2L.IMPORTE1[Fila]*100/(CANTIDAD);100;NO;Numero;'###.########';NO;NO;'2'
+  Importe1   : 'Importe'       ;;;;;;CANTIDAD*COM2L.TASA1[Fila]/100;200;;Numero;'###,###,###,###,###.##';NO;NO;'1'

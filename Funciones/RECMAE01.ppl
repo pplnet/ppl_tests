@@ -1,0 +1,129 @@
+﻿        If EqStr(Copy(Val(A:2),28,4),'0500')
+***********************************************************************************************
+*                 Recibo un Registro de Pedido de Confirmacion 0500                           *
+***********************************************************************************************
+          If Incluido(Copy(Val(A:2),97,4),'0301|0303|0401|0403|0302|0304|0402|0404')
+            Message('----- Mensaje de Pedido de Confirmacion')
+            If Incluido(Copy(Val(A:2),97,4),'0301|0303|0401|0403')
+*              ACT(M4,Var('ERROR0500')~Copy(Val(A:2),23,5)~'.TXT')
+              ACT(M4,Var('CONALTA')~Copy(Val(A:2),23,5)~'.TXT')
+              AbrirASCII(Val(M4),0)
+              EscribirASCII(Val(A:2))
+              CerrarASCII
+              EjecutarEvento('CONALT')
+            else
+              ACT(M4,Var('CONBAJA')~Copy(Val(A:2),23,5)~'.TXT')
+              AbrirASCII(Val(M4),0)
+              EscribirASCII(Val(A:2))
+              CerrarASCII
+              EjecutarEvento('CONBAJ')
+            endif
+          else
+            Message('----- Mensaje Recibido: 0500 Desconocido')
+            AbrirASCII('c:\fpa\FROMSIOP.txt',0)
+            EscribirASCII(Val(A:2))
+            CerrarASCII
+          endif
+        Else
+          If EqStr(Copy(Val(A:2),28,4),'2201')
+***********************************************************************************************
+*                 Recibio un Registro de Actualizacion de Agentes                              *
+***********************************************************************************************
+            if EqStr(Copy(Val(A:2),36,2),'00')
+              Message('----- Operador 00 Agente '~Copy(Val(A:2),33,3))
+            Else
+              If EqStr(Copy(Val(A:2),32,1),Var('MERSIOP'))
+                BorrarCeldas(P3..P4)
+                ACT(P3, SQL("Select Codigo from "~DBO~".CLIENTES where NrMAE = "~Copy(Val(A:2),33,3)))
+                If Vacio(Val(P3))
+                  Message('----- No encontrado Operador '~Copy(Val(A:2),33,3)~' para actualizar')
+                Else
+                  if Incluido(Copy(Val(A:2),38,1),'1')
+                    Message('----- Baja Agentes :'~Copy(Val(A:2),33,3)~' '~Copy(Val(A:2),36,2))
+                    SQL.ADD("Delete from "~DBO~".OPERADORESSIOPEL where AgenteMAE = '"~Copy(Val(A:2),33,3)~"' and CodOperador = '"~Copy(Val(A:2),36,2)~"'")
+                    SQL.NEW
+                    SQL.EXEC
+                  Else
+                    if Incluido(Copy(Val(A:2),38,1),'2')
+                      Message('----- Alta Agentes :'~Copy(Val(A:2),33,3)~' '~Copy(Val(A:2),36,2))
+                      ACN(P4,SQL("Select Count(*) from "~DBO~".OPERADORESSIOPEL where AgenteMAE = '"~Val(P3)~"' and CodOperador = '"~Copy(Val(A:2),36,2)~"'"))
+                      if Val(p4)=0
+                        SQL.ADD("Insert into "~DBO~".OPERADORESSIOPEL")
+                        SQL.ADD("(AgenteMAE, CodOperador, NomOperador ")
+                        SQL.ADD(") values (")
+                        SQL.ADD("'"~Val(P3)~"', '"~Copy(Val(A:2),36,2)~"', '"~Copy(Val(A:2),49,30)~"'")
+                        SQL.ADD(" ) ")
+                        SQL.NEW
+                        SQL.EXEC
+                      Else
+                        Message('----- Agentes :'~Copy(Val(A:2),33,3)~' '~Copy(Val(A:2),36,2)~' ya existente')
+                        SQL.ADD("Update "~DBO~".OPERADORESSIOPEL SET NomOperador = '"~Copy(Val(A:2),49,30)~"' where AgenteMAE = '"~Val(P3)~"' and CodOperador = '"~Copy(Val(A:2),36,2)~"'")
+                        SQL.NEW
+                        SQL.EXEC
+                      EndIf
+                    Else
+                      if Incluido(Copy(Val(A:2),38,1),'3')
+                        Message('----- Modificacion Agentes :'~Copy(Val(A:2),33,3)~' '~Copy(Val(A:2),36,2))
+                        ACN(P4,SQL("Select Count(*) from "~DBO~".OPERADORESSIOPEL where AgenteMAE = '"~Val(P3)~"' and CodOperador = '"~Copy(Val(A:2),36,2)~"'"))
+                        if Val(p4)=0
+                          Message('----- Agentes :'~Copy(Val(A:2),33,3)~' '~Copy(Val(A:2),36,2)~' NO existe')
+                          SQL.ADD("Insert into "~DBO~".OPERADORESSIOPEL")
+                          SQL.ADD("(AgenteMAE, CodOperador, NomOperador ")
+                          SQL.ADD(") values (")
+                          SQL.ADD("'"~Val(P3)~"', '"~Copy(Val(A:2),36,2)~"', '"~Copy(Val(A:2),49,30)~"'")
+                          SQL.ADD(" ) ")
+                          SQL.NEW
+                          SQL.EXEC
+                        Else
+                          SQL.ADD(" Update "~DBO~".OPERADORESSIOPEL SET NomOperador = '"~Copy(Val(A:2),49,30)~"' where AgenteMAE = '"~Val(P3)~"' and CodOperador = '"~Copy(Val(A:2),36,2)~"'")
+                          SQL.NEW
+                          SQL.EXEC
+                        EndIf
+                      Else
+                        MessageBox('----- Mensaje Actualizacion de Agentes incorrecto')
+                      EndIf
+                    EndIf
+                  EndIf
+                EndIf
+              Else
+                Message('----- Mensaje Recibido 2201 otro mercado')
+              EndIf
+            EndIf
+          Else
+            if Incluido(Copy(Val(a:2),28,4),'0301|0303|0401|0403')
+              **********************************************
+              *** Operacion generada por Cotizaciones SIOPEL
+              **********************************************
+              if EqStr(Copy(Val(a:2),93,4),'COTZ')
+                ACT(M4,Var('GENOPE')~Copy(Val(A:2),23,5)~'.GEN')
+                AbrirASCII(Val(M4),0)
+                EscribirASCII(Val(a:2))
+                CerrarASCII
+              else
+                AbrirASCII('C:\fpa\FROMSIOP.TXT',0)
+                EscribirASCII(Val(a:FAC))
+                CerrarASCII
+              endif
+            else
+              if Incluido(Copy(Val(a:2),28,4),'0105|0205')
+                *****************************************
+                *** Operacion generada por Ofertas SIOPEL
+                *****************************************
+                ACT(M4,Var('GENOPE')~Copy(Val(A:2),23,5)~'.GEN')
+                AbrirASCII(Val(M4),0)
+                EscribirASCII(Val(a:2))
+                CerrarASCII
+                ACT(M4,Var('GENOPE')~Copy(Val(A:2),23,5)~'.BAK')
+                AbrirASCII(Val(M4),0)
+                EscribirASCII(Val(a:2))
+                CerrarASCII
+              else
+**************************** Otros mensajes <> al 7020, al 0500 y al 2201 **********************
+                Message('----- Mensaje Recibido Desconocido : '~Copy(Val(A:2),28,4))
+                AbrirASCII('c:\fpa\FROMSIOP.txt',0)
+                EscribirASCII(Val(A:2))
+                CerrarASCII
+              EndIf
+            EndIf
+          EndIf
+        EndIf

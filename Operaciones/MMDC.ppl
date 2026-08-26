@@ -1,0 +1,74 @@
+﻿CAMPOS:1;;BuscarCampo('VEHICULOS','Alias1','Codigo',Vehiculo1)
+FechaOp2        : 'Fecha Conc.'                ; 1;1; ;VERIFICAACCESO('OPFVALOR');;FECHAOP2<=FECHAOP;'Fecha incorrecta';NO;FSYS;
+FechaOp         : 'Fecha_Origen'               ; 2;1; ;NOT EV y VERIFICAACCESO('OPFVALOR');;ESHABIL(FECHAOP,TABLAFERIADOS1);'Fecha de Origen Incorrecta';RB11 = 0;FSYS;
+@VEHITO
+Operador        :                              ;  ;2; ;  ;;NOVACIO(OPERADOR);'El Operador es Invalido';NO;USUARIOACTIVO;
+Cliente1        : 'Entidad'                    ; 4;1; ;NOT EV;;NOVACIO(CLIENTE1) Y DESCIENDEDECLIENTE(CLIENTE1,'BANCOS'); 'La Entidad Contratante DEBE SER BANCO';NO;;
+Observac2       : 'Op.Contraparte'             ; 4;2; ;  ;;NOVACIO(OBSERVAC2);'El Operador CONTRAPARTE es INVALIDO';SI;;;;;;;'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'
+CB10            : 'Caso Pmo.|Local|Extranjero' ; 5;1; ;NO;NO;CB10>=0;'Debe actualizar el Pais del Cliente Seleccionado para Identificar si es Local o Extranjero';NO;;IF(EQSTR('ARG',BuscarCampo('Clientes','PaisDir','Codigo',CLIENTE1)),0,1)
+Especie         : 'Moneda'                     ; 6;1; ;NOT EV;;NOVACIO(ESPECIE) y DESCIENDEDEESPECIE(ESPECIE,'MONEDA') y ESTERMINAL(ESPECIE, ESPECIE);'Debe Ingresar una Moneda';NO;;;;;;;;" Codigo IN ("~Pipe2Comillas(Descendientes('ESPECIES', 'MONEDA'))~")and Status = 'HAB' "
+Cantidad        : 'Valor Nominal'              ;  ; ; ;  ;;NOT EV y CANTIDAD>0;'El Valor Nominal DEBE SER POSITIVO';NO;;;;;;'###,###,###,###,###.##'
+TipoTasa        : 'Tipo_Tasa'                  ;  ; ; ;  ;;NOVACIO(TIPOTASA);'El Tipo de Tasa ES INVALIDO';NO;'FIJA';
+Precio1         : 'Tasa (%)'                   ;  ; ; ;  ;;PRECIO1>0;'La Tasa Debe ser positiva';NO;
+Spread          :                              ;  ; ; ;NOT EQSTR(TIPOTASA,'FIJA');NOT EQSTR(TIPOTASA,'FIJA');SPREAD>=0;'El SPREAD Debe SER POSITIVO';NO;0;
+Plazo4          : 'Dias Seteo Tasa'            ;;;;;NOT EQSTR(TIPOTASA,'FIJA') y NOVACIO(TIPOTASA)];[PLAZO4>=0] O [EQSTR(TIPOTASA,'FIJA')];'Indique la Cantidad de Dias Previos al Inicio para Setear la Tasa';NO;;
+RB8             : 'U.Tiempo|360|365'           ;  ; ; ;  ;;RB8>=0;'Unidad de Tiempo Tasa Interes INVALIDA';NO;IF(CB10=0,1,0);IF(CB10=0,1,0)
+TotalIntereses  : 'Interes'                    ;  ; ; ;NO;;;;;;CANTIDAD*(PRECIO1+SPREAD)*PLAZO/IF(RB8=1,36500,36000);;;;;'###,###,###,###,###.##'
+Plazo           : 'Plazo_VN'                   ; 6;2; ;  ;;PLAZO>0;'Debe INGRESAR el PLAZO';NO;0;
+FechaVto        : 'Vto_VN'                     ;  ; ; ;NO;;ESHABIL(FECHAVTO,TABLAFERIADOS1);'La Fecha de Vencimiento NO ES DIA HABIL';RB11 = 0;FECHAOP+PLAZO;FECHAOP+PLAZO
+FechaVto2       : 'Vto_Int'                    ;  ; ; ;  ;;NOVACIO (FECHAVTO2) Y ESHABIL(FECHAVTO2,'ARG');'El Vencimiento del Interes NO ES HABIL';NO;;
+TablaFeriados1  : 'Feriados'                   ;  ; ; ;  ;;NOVACIO(TABLAFERIADOS1);'Se debe indicar feriados a utilizar';NO;;BuscarCampo('Feriados','Codigo','Codigo',BuscarCampo('Especies','PaisOrigen','Codigo',ESPECIE)) 
+RB3             : 'MOF'                        ;10;2; ;NO;NO;;;;;IF(INSTANCIA=2,0,1)
+Impresa         : 'Modificado'                 ;10;3; ;NO;NO;;;;0
+Cotizacion1     : 'TC_Concert.'                ; 1;1;2;  ;Not Eqstr(ESPECIE,VAR('MONEEXTR'));Eqstr(ESPECIE,VAR('MONEEXTR')) O [COTIZACION1<=VPRE1*(1+VAR('RPRECIO2')/100) Y COTIZACION1>=VPRE1*(1-VAR('RPRECIO2')/100)];'Tipo de Cambio Concertacion Fuera de Rango: '~FSTR(VPRE1*(1-VAR('RPRECIO2')/100),1,7)~' y '~FSTR(VPRE1*(1+VAR('RPRECIO2')/100),1,7);NO;;IF(Eqstr(ESPECIE,VAR('MONEEXTR')),1)
+Cotizacion2     : 'TC_Vencim.'                 ;  ; ; ;COTIZACION2<>0;COTIZACION2<>0;;;;
+RB11            : 'Ajuste|NO|SI'               ; 5;1;2;  ;NO  ;;;;0;
+VPRE1           : 'Cot.TC/USD'                 ;10;2; ;NO;NO;;;;;COTIZACIONC(ESPECIE,,,,FECHAOP,1,SI,VAR('MONEEXTR'))^If(EqStr(Modo(ESPECIE,VAR('MONEEXTR')),'DIR'),1,-1)
+OperacionRef    : 'Referencia'                 ;3;1;2;NO;;
+PrecioMer       : 'Monto USD WF'               ;1;2;2;NO;SI;;;;CANTIDAD*COTIZACIONC(ESPECIE,,,,FECHAOP,1,SI,VAR('MONEEXTR'));CANTIDAD*COTIZACIONC(ESPECIE,,,,FECHAOP,1,SI,VAR('MONEEXTR'))
+CB5             : 'Fin Mes +'                  ;5;1;2;NO;SI;
+FechaPrecan     : 'F.Reset'                    ;;;2;NO;NOT EQSTR(TIPOTASA,'FIJA') y NOVACIO(TIPOTASA)];;;;;HABILES(FECHAOP,-PLAZO4,TABLAFERIADOS1,SI);
+
+VTXT18            : 'Book Def'    ; 1;2;2;NO;NO;;;;;BuscarCampo('VEHICULOS','Alias5','Codigo',VEHICULO1)
+VTXT19            : 'Codigo Book' ; 2;2;2;NO;NO;;;;;BuscarCampo('BOOKS','Codigo','Codigo',VTXT18)
+VTXT20            : 'Vehic.Book'  ; 3;2;2;NO;NO;;;;;BuscarCampo('BOOKS','Vehiculo','Codigo',VTXT19)
+ContraEspecie    : 'Contraespecie' ;;;;NO;NO;
+MB3            : 'Tipo|Pasiva|Activo'         ;15;1;1;NO;NO;;;;IF(Incluido(TIPOOP,VAR('OPEACT')),1,0);IF(Incluido(TIPOOP,VAR('OPEACT')),1,0)
+
+@CUENTAS
+@RANGOTASA
+
+
+CONDICIONES
+SI O [PRECIO1<=VPRE12 Y PRECIO1>=VPRE11];'Tasa Fuera de Rango: '~VPRE11~" Y "~VPRE12;SI;SI;FSYS;'RTASA'
+PRECIO1<=VAR('RTASA2') Y PRECIO1>=VAR('RTASA1');'Tasa Fuera de Rango: '~VAR('RTASA1')~" Y "~VAR('RTASA2');SI;SI;FSYS;'RTASA'
+FECHAVTO2-FECHAOP<=60 Y FECHAVTO2>=PLAZO;'El Vto. del Interes debe ser POSTERIOR al Vto. del Capital y NO DEBE SUPERAR los 60 Dias';SI
+ESHABIL(FECHAOP,'ARG');'La Fecha de Origen no es Dia Habil en Argentina';SI;SI;FSYS;'ORIGINH'
+ESHABIL(FECHAVTO,'ARG');'La Fecha de Vencimiento NO ES DIA HABIL en Argentina';SI;SI;FSYS;'VTOINH'
+Not EqStr('DES',BuscarCampo('Clientes','Status','Codigo',CLIENTE1));'El Cliente esta deshabilitado';NO
+Not EqStr('CLIOBS',BuscarCampo('Clientes','Alias7','Codigo',CLIENTE1));'El Cliente esta Observado';SI;SI;FSYS;'CLIOBS'
+EQSTR(TIPOTASA,'FIJA') O [SPREAD>=VAR('RSPREAD1') Y SPREAD<=VAR('RSPREAD2')];'El Spread esta Fuera de Rango '~VAR('RSPREAD1')~' '~VAR('RSPREAD2');SI;SI;FSYS;'RANGOSPREAD'
+FECHAOP2=Fsys;'La Fecha de Concertaci¦n no coincide con la de Sistema';SI;SI;FSYS;'CONCFVALOR'
+FECHAOP =Fsys;'La Fecha de Origen no coincide con la de Sistema';SI;SI;FSYS;'ORIGFVALOR'
+
+
+@CONDIOP
+
+SI O Incluido(Especie,'ARP|USD') o NoVacio(VTXT18);'El Vehiculo no tiene Book Default para Monedas';NO
+SI O Incluido(Especie,'ARP|USD') o NoVacio(VTXT19);'El Book default '~VTXT18~' no es valido';NO
+SI O Incluido(Especie,'ARP|USD') o EqStr(VTXT20,Vehiculo1);'El Book default '~VTXT18~' corresponde a otro vehiculo';NO
+
+MOVIMIENTOS
+
+DEVENGADOS
+FechaOp+1;FechaVto;NO;SI;NO;'ARG';SI;SI;'INTLEN';-TotalIntereses;140;Vehiculo1;Vehiculo1;;;;;;TipoOp;;Especie;;;;;;Book1;Operador;'MM';;;Especie;
+
+EDICION
+EqStr(Operador, UsuarioActivo) o Incluido(UsuarioActivo, Var('ULMODI'));'No se puede modificar, Operador: '~Operador
+
+BAJA
+EqStr(Operador, UsuarioActivo) o Incluido(UsuarioActivo, Var('ULBAJA'));'No se puede dar de baja, Operador: '~Operador
+
+@INSTOPE
+@INST19MM
+@INST19BITS

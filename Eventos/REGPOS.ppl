@@ -1,0 +1,24 @@
+﻿**************************************************
+* Recalcula posiciones en base a los movimientos *
+**************************************************
+
+CrearDialogo
+   Fecha1     : 'F. Desde'  ;;;;;;;;;FSys
+   Fecha2     : 'F. Hasta'  ;;;;;;;;;FSys
+   Vehiculo1  : 'Vehiculo'  ;;;;;;;;;VAR('VEHICULODE')
+   Especie1   : 'Especie'   ;;;;;;;;;'USD'
+FinDialogo
+
+If not Ok
+  Cancelar
+Endif
+
+ 
+
+Message('----- Recalculando Posiciones para '~Dialogo.Especie1)
+
+SQL.ADD("EXEC "~DBO~".Regenera_Posiciones '"~IdxDate(Dialogo.Fecha1)~"','"~IdxDate(Dialogo.Fecha2)~"','"~Dialogo.Vehiculo1~"','"~Dialogo.Vehiculo1~"','"~Dialogo.Especie1~"' ")
+SQL.NEW
+SQL.EXEC
+
+Message('-- Recalculo Terminado --')

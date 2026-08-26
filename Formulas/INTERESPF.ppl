@@ -1,0 +1,1 @@
+﻿(Round(Val(TI:1),2) + Round(#IVAINTPF,2))

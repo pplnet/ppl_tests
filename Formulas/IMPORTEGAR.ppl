@@ -1,0 +1,1 @@
+﻿IIF(Eqstr(fbn('Tipo'), 'MON'), #IMPORTE, #IMPORTE*COTIZACIONC(fbn('EspecieLiq'),,,,Val(FV:2),1,SI, fbn('Cotiza')))

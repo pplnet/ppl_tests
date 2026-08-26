@@ -1,0 +1,164 @@
+﻿MostrarCuadroDeMensajes
+HojaVisible(NO)
+
+CrearDialogo
+  Fecha1         : 'F.Valor'           ;;;;;;;;;;;;
+  Check1         : 'Filtra Asiento'    ;;;;;;;;;;;;
+  Check2         : 'Filtra Oper.'      ;;;;;;;;;;;;
+  Check3         : 'Filtra FValor.'    ;;;;;;;;;;;;
+  NrUnicoAsiento1: 'Nr Asiento'        ;;;;;;;;;;;;
+  NrOperacion1   : 'Operacion'         ;;;;;;;;;;;;
+  Lista1         : 'Vehiculo'          ;;;;;;;;;;;;
+FinDialogo
+
+If Not Ok
+   Cancelar
+Endif
+
+let &monedaLocal Var('MONELOCA')
+
+***** Barrera de habilitacion de proceso Contable Vrs Proceso SAP
+IF Eqstr(Var('INTASIENTO'), 'SI')
+   Cancelar('Se esta ejecutando el proceso contable con SAP...Por favor intente en unos minutos')
+*Else
+**** Barrera de habilitacion de proceso Contable
+   IF Eqstr(Var('GENASIENTO'), 'SI')
+      Cancelar('Ya esta siendo ejecutado el proceso contable...Por favor intente en unos minutos')
+   EndIf
+EndIf
+
+SQL.ADD(" Update "~DBO~".VARIABLES Set Valor='SI' Where Codigo='INTASIENTO' ")
+SQL.NEW
+SQL.EXEC
+
+SQL.ADD("SELECT A1.NrUnicoAsiento, A1.NrItem, A.Estado, A.Modelo,")
+
+SQL.ADD("A1.Alias4, A1.Cuenta, A.FechaValor, A1.Cantidad1, A1.Especie1, ")
+SQL.ADD("A1.Cantidad2, A1.Especie2, A1.Detalle, A1.DebitoCredito, A1.Alias6, ")
+SQL.ADD(" A1.Alias1, A1.Alias2, A1.Valor1, A1.Valor2, A1.Alias3 Book, A1.Alias7, A1.Cantidad2, ")
+SQL.ADD(" A.NrOperacion, A.Modelo, A.Vehiculo ")
+
+SQL.ADD("FROM "~DBO~".ASIENTOSCON A, "~DBO~".ASIENTOSCON1 A1")
+SQL.ADD(" WHERE A.NrUnicoAsiento=A1.NrUnicoAsiento ")
+SQL.ADD(" AND A1.Cantidad1 > 0 ")
+SQL.ADD(" AND (A.Estado IS Null OR A.Estado = '' OR A.Estado = ' ' OR A.Estado = 'COT' OR A.Estado = 'REV') ")
+SQL.ADD(" AND (A.Sector Is Null OR A.Sector = '' OR A.Sector = ' ') ")
+IF Dialogo.Check3 = 1
+    SQL.ADD(" AND A.FechaValor = '"~IdxDate(Dialogo.Fecha1)~"'" )
+ENDIF
+IF NoVacio(Dialogo.Lista1)
+    SQL.ADD("AND A.Vehiculo in ("~Pipe2Comillas(Dialogo.Lista1)~") ")
+ENDIF
+IF Dialogo.Check1 = 1
+    SQL.ADD("AND A.NrUnicoAsiento = '"~Dialogo.NrUnicoAsiento1~"' ")
+ENDIF
+IF Dialogo.Check2 = 1
+    SQL.ADD("AND A.NrOperacion = '"~Dialogo.NrOperacion1~"' ")
+ENDIF
+
+Watch(sql.batch)
+
+Recorrer SQL
+    ***Realizo INSERT a tabla ASIENTOSJDE, preparo campos antes de insertar***
+        **NrAsiento
+        **NrItem
+        **FechaCargaSys
+        ****************************************************************************************************************
+        **FechaCarga
+        **UsrInput
+        *TipoAsiento = ASIENTOSCON.Estado ---- Estado = Null => AEstado = COT => COTEstado = REV => REV
+        IF Eqstr(fbn('Estado'), 'COT')
+            let &tipoAsiento 'COE'
+        ELSE
+            IF Eqstr(fbn('Estado'), 'REV')
+                let &tipoAsiento 'REE'
+            ELSE
+                let &tipoAsiento 'E'
+            ENDIF
+        ENDIF
+        ****************************************************************************************************************
+        *Estado = No se inserta
+        *TipoDoc = TIPOSASIENTO.TipoDoc del Tipo de Asiento del modelo contable. 
+        *usando ASIENTOSCON.Modelo=MODELOSASIENTO.Codigo
+        *MODELOSASIENTO.TipoAsiento=TIPOSASIENTO.CODIGO
+        *TIPOSASIENTO.TipoDoc
+        *let &tipoDoc BuscarCampo('TIPOSASIENTO', 'TipoDoc',  'Codigo',BuscarCampo('MODELOSASIENTO','TipoAsiento','Codigo',FBN('Modelo')) ) 
+        let &tipoDoc SQL("SELECT DISTINCT T.TipoDoc FROM ASIENTOSCON A, MODELOSASIENTO M,TIPOSASIENTO T WHERE A.Modelo= '"~FBN('Modelo')~"' AND M.Codigo = A.Modelo AND T.Codigo = M.TipoAsiento ")
+        
+        *CodCia =CLIENTES.Alias1 del Vehiculo del Asiento (ASIENTOSCON.Vehiculo -> CLIENTES.Alias1)
+        let &codCia BuscarCampo('CLIENTES','Alias1','Alias1',FBN('Vehiculo'))
+        ****************************************************************************************************************
+        *Explicacion =MODELOSASIENTO.Descripcion del Modelo del asiento (Hacer Copy, tiene máximo de 30)
+        let &explicacion Copy(FBN('Descripcion'),30,0)
+        *FechaLM =ASIENTOSCON.FechaValor
+        *MonedaOp =De ASIENTOSCON1.Alias5 buscar ESPECIES.Alias10
+        let &monedaOp SQL("SELECT Alias10 FROM ESPECIES WHERE Alias10 ='"~FBN('Alias5')~"' ")
+        *MonedaCia =De ASIENTOSCON1.Especie2 buscar ESPECIES.Alias10
+        let &monedaCia SQL("SELECT Alias10 FROM ESPECIES WHERE Alias10 ='"~FBN('Especie2')~"' ")
+        *TipoCambio =ASIENTOSCON1.FormulaValor2
+        *MontoMonOp =ASIENTOSCON1.Valor1
+        ****************************************************************************************************************
+        *MontoMonCia =ASIENTOSCON1.Cantidad2
+        *Signo =ASIENTOSCON1.DebitoCredito
+        *Cuenta =ASIENTOSCON1(Alias10 + "." + Cuenta + "." + Alias9) Si el Alias9 viene vacío cuidar de no agregar el punto
+        If NoVacio(FBN('Alias9'))
+            let &cuenta (FBN('Alias10') ~"."~ FBN('Cuenta') ~ "." ~ FBN('Alias9') )
+        else
+            let &cuenta (FBN('Alias10') ~ "."~ FBN('Cuenta') )
+        endif
+        ****************************************************************************************************************
+        *TipoLMAux =Siempre "A"
+        **Modificacion GIAN 01/09/2023
+        *LMAux =Si TipoOp like MM% = ASIENTOSCON1.NrOperacion ELSE ASIENTOSCON1.Alias6
+        If Eqstr(Copy(fbn('Modelo'),1,2),'MM')
+            let &LMAux FBN('NrOperacion')
+        Else
+            let &LMAux FBN('Alias6')
+        Endif
+        *Observacion =ASIENTOSCON1.Detalle (Hasta 30)
+        let &observacion Copy(FBN('Detalle'),1,30)
+        ****************************************************************************************************************
+        ***INSERT***
+        SQL.ADD("INSERT INTO "~DBO~".ASIENTOSJDE")
+        SQL.ADD("(")
+        SQL.ADD(" NrAsiento,    NrItem,     FechaCargaSys,")
+        SQL.ADD(" FechaCarga,   UsrInput,   TipoAsiento,")
+        SQL.ADD(" Estado,       TipoDoc,    CodCia,")
+        SQL.ADD(" Explicacion,  FechaLM,    MonedaOp,")
+        SQL.ADD(" MonedaCia,    TipoCambio, MontoMonOp,")
+        SQL.ADD(" MontoMonCia,  Signo,      Cuenta,")
+        SQL.ADD(" TipoLMAux,    LMAux,      Observacion")
+        SQL.ADD(")")
+        SQL.ADD("VALUES")
+        SQL.ADD("(")
+        SQL.ADD(" "~FBN('NrUnicoAsiento')~" , "~FBN('NrItem')~"                  , '"~IdxDate(FSYS)~"', ")
+        SQL.ADD(" '"~IdxDate(SQLAhora)~"'   , '"~USUARIOACTIVO~"'                , '"~&tipoAsiento~"', ")
+        SQL.ADD("           ''              , '"~&tipoDoc~"'                     , '"~&codCia~"', ")
+        SQL.ADD(" '"~&explicacion~"'        , '"~IdxDate(FBN('FechaValor'))~"'   , '"~&monedaOp~"', ")
+        SQL.ADD(" '"~&monedaCia~"'          , '"~FBN('FormulaValor2')~"'         , '"~FBN('Valor1')~"', ")
+        SQL.ADD(" '"~FBN('Cantidad2')~"'    , '"~FBN('DebitoCredito')~"'         , '"~&cuenta~"', ")
+        SQL.ADD("         'A'               , '"~FBN('NrOperacion')~"'           , '"~&observacion~"', ")
+        SQL.ADD(")")
+        SQL.NEW
+        
+    ***/Marco asiento como enviado
+    SQL.ADD(" Update "~DBO~".ASIENTOSCON ")
+    IF Eqstr(fbn('Estado'), 'COT')
+        SQL.ADD(" Set Estado = 'COE', ")
+    ELSE
+         IF Eqstr(fbn('Estado'), 'REV')
+            SQL.ADD(" Set Estado = 'REE', ")
+         ELSE
+            SQL.ADD(" Set Estado = 'E', ")
+         ENDIF
+    ENDIF
+    ***/Fecha2 = Fecha de Envio
+    SQL.ADD(" Fecha2 = "~SQLAhora~" ")
+    SQL.ADD(" Where NrUnicoAsiento = '"~Val(VL:1)~"' ")
+    SQL.NEW    
+Proximo
+
+** Se coloca la variable INTASIENTO en NO para habilitar el proceso contable con SAP 
+SQL.ADD(" Update "~DBO~".VARIABLES Set Valor='NO' Where Codigo='INTASIENTO' ")
+SQL.NEW
+SQL.EXEC

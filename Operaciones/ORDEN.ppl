@@ -1,0 +1,4 @@
+﻿CAMPOS:1;;10
+RB15                            : 'Liquidada LIMI';30;1;1;NO;;;;;0;;
+Operador       :                              ;;;;No;;NOVACIO(OPERADOR);'El Operador es Invalido';NO;USUARIOACTIVO;
+TipoOpcion     : 'C_Ej|Europea|Americana'     ;;;;NOT EV;;;;;0;0

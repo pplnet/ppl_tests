@@ -1,0 +1,143 @@
+﻿#*********************************************************************************
+#combos data sources.
+set ds_CallPut             = "CON:Contado|CAL:O.Compra|PUT:O.Venta|FUT:Futuro|"
+set ds_Origen              = "MAN:Manual|SIB:SIB|REU:Reuters|OTR:Otros|"
+set fsys = db.get_scalar("SELECT convert(datetime, Valor, 103) from "+Dbo+".VARIABLES where Codigo='FECHASYS' ") 
+set today = db.get_scalar("Select GetDate()") 
+set lastYearFilter = "Fecha > CONVERT(datetime, DATEADD(day, -365, convert(datetime, '" + fsys + "', 103)))"
+#*********************************************************************************
+def abm 'Cotizaciones'
+   def grid
+       Fecha:, Codigo:, FechaEj:, PrecioEj:, CallPut:, Precio1:, Precio2:, Precio3:, Precio4:, Precio5:, Moneda:
+   end
+   def user_filter
+       "Del dia", "Fecha = FECHASYS"
+       #para filtro ultimo año habilitar la linea de abajo y deshabilitar la de arriba ya que solo puede tener un filtro por defecto (Cintia 080524)
+       #"Ultimo año", lastYearFilter
+   end
+   def key
+   Fecha:, Codigo:, FechaEj:, PrecioEj:, CallPut:, Moneda:
+   end
+   def context_menu
+       "Generar cotizaciones", do 
+           $.GenerarCotizacionesDialog()  
+           $.RefreshGrid()
+       end 
+   end
+   def dialog
+       #**************************************************************************
+       tab 'General'
+          column
+             Fecha:   , 'Fecha Cotizacion', date 
+             Codigo:  , 'Cod. Especie', autocomplete, 'ESPECIES', 'Codigo,Nombre'
+             FechaEj: , 'Fecha Fut/Ej', date
+             #FechaEj: , ppl.iif($.val(CallPut:) = 'FUT' Then 'Fecha Fut' Else 'Fecha Ej' EndIf), date
+             PrecioEj:, 'Precio Ej', numeric,'#######0.0000000000'
+             Precio1: , 'Precio Cierre,10', numeric,'#######0.0000000000'
+             Precio2: , 'Futuro Corto,20', numeric,'#######0.0000000000'
+             Precio3: , 'Futuro Largo,20', numeric,'#######0.0000000000'
+             Precio4: , 'Maximo,12.5', numeric,'#######0.0000000000'
+             Precio5: , 'Minimo,12.5', numeric,'#######0.0000000000'
+          column
+             CallPut: , 'Tipo', combo, ds_CallPut
+             Moneda:  , 'Moneda', autocomplete, 'ESPECIES', 'Codigo,Nombre',''," "+dbo+".DESCIENDEDEESPECIE(Codigo,'MONEDA') = 1 "
+       #**************************************************************************
+       tab 'Adicional'
+          column
+             Volumen: ,          , numeric,'##,###,###,##0.00'
+             VolumenPromedio: , 'Profundidad', numeric,'##,###,###,##0.00'
+             IndiceInts: , 'Indice Ints', numeric,'#######0.0000000000'
+             PrecioReuters: , 'P.Reuters', numeric,'#######0.0000000000'
+             PrecioBloomberg: , 'Bloomberg', numeric,'#######0.0000000000'
+             PrecioTelerate: , 'Pr. Telerate', numeric,'#######0.0000000000'
+             PrecioMAE: , 'Precio MAE', numeric,'#######0.0000000000'
+             VolatilidadHistorica: , 'Volat Historica', numeric,'#######0.0000000000'
+             PrecioCartera: , 'P.Cartera', numeric,'#######0.0000000000'
+             PrecioContable: , 'P.Contable', numeric,'#######0.0000000000'
+             FechaActualizacion: , 'Fecha Act.', date
+   end
+   #**************************************************************************************
+   upper_case_fields: Codigo:
+   before_show_create_dialog: do 
+      $.set_field(CallPut:,'CON')
+      #Fecha Fut/Ej  no debe editarse cuando Tipo=Contado
+      $.Disable(FechaEj:)
+      $.set_field(Fecha:, fsys)
+      $.Disable(PrecioEj:)
+   end
+   
+      before_show_dialog: do
+        #Fecha Fut/Ej  no debe editarse cuando Tipo=Contado
+        If $.val(CallPut:) = 'CON'
+            $.Disable(FechaEj:)
+        else
+            $.Enable(FechaEj:)
+        endif
+        #PrecioEJ solo debe editarse cuando Tipo=Opción de Compra(CAL) u Opción de Venta(PUT)
+        If $.val(CallPut:) = 'CAL' OR $.val(CallPut:) = 'PUT'
+            $.Enable(PrecioEj:)
+        else
+            $.Disable(PrecioEj:)
+        endif
+      end
+   
+   when_change: CallPut: do
+        $.enable PrecioEj:
+        $.show FechaEj:, PrecioEj:
+        #Fecha Fut/Ej  no debe editarse cuando Tipo=Contado
+        if($.val(CallPut:) = 'CON')
+            $.Disable(FechaEj:, PrecioEj:)
+        endif
+        if($.val(CallPut:) = 'FUT')
+            $.disable(PrecioEj:)
+            $.Enable(FechaEj:)
+        endif
+        #PrecioEJ solo debe editarse cuando Tipo=Opción de Compra(CAL) u Opción de Venta(PUT)
+        If $.val(CallPut:) = 'CAL' OR $.val(CallPut:) = 'PUT'
+            $.Enable(FechaEj:)
+        endif
+   end
+
+#   #CINTIA 180823 X RENTABILIDAD
+#    CINTIA 250823 POR AHORA SE COMENTA YA QUE NO FUNCIONA (REPORTADO A CORE) Y SE OPTA POR REALIZARLO DE OTRA MANERA (EN EVENTO CIERRE)
+#   after_save:  do
+#      if($.val(Fecha:)<fsys)      
+#         set fechaIni = $.val(Fecha:);
+#         set fechaFin = fsys-1
+#         set radio1 = 1;
+#         set especie = $.val(Codigo:);
+#         $.EjecutarEvento('RENTLO' , {fecha1:fechaIni,fecha2:fechaFin,radio1:radio1,lista1:'',lista2:'',vehiculo1:'',especie1:especie})
+#      end
+#    
+#    end
+
+
+   
+   #   required_fields: Codigo:, Moneda:
+#   
+#   when_change: CallPut: do 
+#       #reset 
+#       $.enable FechaEj:, PrecioEj:
+#       #
+#       if($.val (CallPut:) = 'CON')
+#          $.disable(FechaEj:,PrecioEj:)
+#       end
+#       if($.val (CallPut:) = 'FUT')
+#            $.disable(PrecioEj:)
+#       end
+#   end 
+
+   hide:
+        Moneda:
+
+   validations:
+   FechaEj:, ($.val(CallPut:) <> 'CAL' and $.val(CallPut:) <> 'PUT') or ppl.NoVacio($.val(FechaEj:)),'debe ingresar una fecha';
+   PrecioEj:, ($.val(CallPut:) <> 'CAL' and $.val(CallPut:) <> 'PUT') or ppl.NoVacio($.val(PrecioEj:)),'debe ingresar un Precio';    
+   FechaEj:, $.val(CallPut:) <> 'FUT' or $.val(FechaEj:) > $.val(Fecha:),'Fecha Ej debe ser mayor a Fecha Cotizacion';
+   
+   validates_max_length_of:
+        Codigo:, 6,true
+        
+        #validates_uniqueness_of_set: Fecha:, Codigo:, FechaEj:, PrecioEj:, CallPut:, Moneda:
+        validates_uniqueness_of_set: Fecha:, Codigo:, FechaEj:, PrecioEj:, CallPut:
+end

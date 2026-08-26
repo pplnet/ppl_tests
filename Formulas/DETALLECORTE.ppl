@@ -1,0 +1,1 @@
+﻿Copy(ItemLista(Val(la:1),&i)~'-'~BuscarCampo('MODELOSASIENTO','Descripcion','Codigo', fbn('CodAsi'))~'-'~fbn('Cliente1')~'-'~fbn('NrOperacion'), 1, 100)

@@ -1,0 +1,77 @@
+﻿CAMPOS:1;;BuscarCampo('VEHICULOS','Alias3','Codigo',Vehiculo1)
+Especie        : 'Cupon'        ;2;1;;NO;;
+Cupon1         : 'Nr.Cupon'     ;2;2;;NO;;;;;;;;;;;'###'
+Cliente1       : 'Cliente'      ;3;1;;NO;;NOVACIO(CLIENTE1)
+Fecha1         : 'F.Pago'       ;3;2;;NO;;
+
+Cuenta6        : 'Cta.Especie'  ;5;2;;NO;;
+Mercado1       : 'Mercado'      ;6;2;;NO;;
+Cantidad1      : 'Saldo'        ;5;1;;NO;;
+Especie1       : 'Moneda'       ;7;1;;NO;;
+Precio1        : 'Precio Cupon' ;8;1;;NO;;
+Cantidad2      : 'Importe'      ;9;1;;NO;;
+Cantidad4      : 'Total'        ;9;1;;NO;NO;
+
+Cuenta2        : 'Cta.Mon.Pago';11;1;;NO;
+Cliente2       : 'Custodio'    ;11;2;;NO;
+Vehiculo1      : 'Vehiculo'    ;13;1;;NO;
+
+Precio2        : '% Renta'          ;1;1;2;NO;;
+Precio3        : '% Amort'          ;2;1;2;NO;;
+
+
+Cantidad5      : 'Total Renta'      ;1;2;2;NO;;
+Cantidad6      : 'Total Amort'      ;2;2;2;NO;;
+CB2            : 'Pendiente'        ;3;1;2;NO
+
+Especie4       : 'Moneda Arancel'   ;5;2;2;NO;
+Cambio5        : '%Arancel'         ;6;2;2;NO;
+Cambio3        : 'Arancel'          ;7;2;2;NO;
+Cantidad7      : 'IVA Arancel'      ;8;2;2;NO;
+Precio4        : 'Cotizacion'       ;8;2;2;NO;NO
+Cuenta1        : 'Cta.Arancel'     ;10;2;2;NO;
+
+Especie3       : 'Mon.Gastos'       ;5;1;2;NO; 
+Cambio4        : 'W.H.T.'           ;6;1;2;NO;
+Cambio2        : 'Gastos'           ;7;1;2;NO;
+Cambio1        : 'IVA Gastos'       ;8;1;2;NO;;;;;;;;;;;'##,###,###,###,###.##';
+Cantidad8      : 'Total Gastos'     ;9;1;2;NO;
+Precio5        : 'Cotizacion'       ;10;1;2;NO;NO 
+Cuenta3        : 'Cta.Pesos'        ;10;1;2;NO;
+Cliente3       : 'Cust.Pesos'       ;11;1;2;NO;
+PrecioEj       : 'V.Teor.Ant'       ;11;2;2;NO; 
+RB8            : 'Marca Reimpresion'; ; ;2;NO;NO;
+
+Precio6        : 'Tasa PIK'      ;13;1;2;NO; 
+Cantidad9      : 'Renta PIK'     ;14;1;2;NO;
+
+Precio7        : 'IntCapAcu'     ;15;1;2;NO; 
+
+VTXT1          : 'Book Def'    ;12;1;2;NO;NO;;;;;BuscarCampo('VEHICULOS','Alias5','Codigo',VEHICULO1)
+VTXT2          : 'Codigo Book' ;13;1;2;NO;NO;;;;;BuscarCampo('BOOKS','Codigo','Codigo',VTXT1)
+VTXT3          : 'Vehic.Book'  ;14;1;2;NO;NO;;;;;BuscarCampo('BOOKS','Vehiculo','Codigo',VTXT2)
+
+MOVIMIENTOS
+Fecha1;Cliente1;Especie1       ;;;;BuscarCampo('CUENTAS','Mercado','Codigo',Cuenta2);Vehiculo1                                            ;1;-Cantidad4        ;;'Pago de Cupon '~Especie~' Cupon:'~Cupon1            ;SI;SI;1;Not Eqstr(CB2,'1');;Cuenta2;;1;
+Fecha1;Cliente1;Especie1       ;;;;BuscarCampo('CUENTAS','Mercado','Codigo',Cuenta2);Vehiculo1                                            ;1;-Cantidad4        ;;'Pago de Cupon '~Especie~' Cupon:'~Cupon1            ;SI;NO;1;    Eqstr(CB2,'1');;Cuenta2;;2;
+
+Fecha1;Cliente1;Especie        ;;;;Mercado1                                         ;Vehiculo1                                            ;1; Cantidad1        ;;'Pago de Cupon '~Especie~' Cupon:'~Cupon1            ;SI;SI;1;Not Eqstr(CB2,'1');;Cuenta6;;3;;;Cupon1;
+Fecha1;Cliente1;Especie        ;;;;Mercado1                                         ;Vehiculo1                                            ;1; Cantidad1        ;;'Pago de Cupon '~Especie~' Cupon:'~Cupon1            ;SI;NO;1;    Eqstr(CB2,'1');;Cuenta6;;4;;;Cupon1;
+
+Fecha1;Cliente1;Especie4       ;;;;BuscarCampo('CUENTAS','Mercado','Codigo',Cuenta1);Vehiculo1                                            ;1;-Cambio3          ;;'Arancel Pago de Cupon '~Especie~' Cupon:'~Cupon1    ;SI;SI;1;Not Eqstr(CB2,'1');;Cuenta1;;5;
+Fecha1;Cliente1;Especie4       ;;;;BuscarCampo('CUENTAS','Mercado','Codigo',Cuenta1);Vehiculo1                                            ;1;-Cambio3          ;;'Arancel Pago de Cupon '~Especie~' Cupon:'~Cupon1    ;SI;NO;1;    Eqstr(CB2,'1');;Cuenta1;;6;
+
+Fecha1;Cliente1;VAR('MONELOCA');;;;BuscarCampo('CUENTAS','Mercado','Codigo',Cuenta3);IF(Not Eqstr(Cliente1, Vehiculo1),Vehiculo1,Cliente3);1;-Cambio4-Cantidad8;;'Gastos Pago de Cupon '~Especie~' Cup:'~Cupon1       ;SI;SI;1;Not Eqstr(CB2,'1');;Cuenta3;;7;
+Fecha1;Cliente1;VAR('MONELOCA');;;;BuscarCampo('CUENTAS','Mercado','Codigo',Cuenta3);IF(Not Eqstr(Cliente1, Vehiculo1),Vehiculo1,Cliente3);1;-Cambio4-Cantidad8;;'Gastos Pago de Cupon '~Especie~' Cup:'~Cupon1       ;SI;NO;1;    Eqstr(CB2,'1');;Cuenta3;;8;
+
+Fecha1;Cliente1;VAR('MONELOCA');;;;BuscarCampo('CUENTAS','Mercado','Codigo',Cuenta3);IF(Not Eqstr(Cliente1, Vehiculo1),Vehiculo1,Cliente3);1;-Cantidad7        ;;'IVA/I.B. Arancel Pago Cupon '~Especie~' Cup:'~Cupon1;SI;SI;1;Not Eqstr(CB2,'1');;Cuenta3;; 9;
+Fecha1;Cliente1;VAR('MONELOCA');;;;BuscarCampo('CUENTAS','Mercado','Codigo',Cuenta3);IF(Not Eqstr(Cliente1, Vehiculo1),Vehiculo1,Cliente3);1;-Cantidad7        ;;'IVA/I.B. Arancel Pago Cupon '~Especie~' Cup:'~Cupon1;SI;NO;1;    Eqstr(CB2,'1');;Cuenta3;;10;
+
+POSICION
+Fecha1;Vehiculo1;Especie1;;;;Vehiculo1;;;;;122;-Cantidad4;COTIZACIONC(Especie1,,,,Fecha1-1,1,SI,'ARP');;;VTXT2;;'FXS';Not Incluido(Especie1,'ARP|USD') y NoVacio(VTXT2);
+Fecha1;Vehiculo1;Especie1;;;;Vehiculo1;;;;;132;-Cantidad4;COTIZACIONC(Especie1,,,,Fecha1-1,1,SI,'USD');;;VTXT2;;'FXS';Not Incluido(Especie1,'ARP|USD') y NoVacio(VTXT2);
+
+CASHFLOW
+Fecha1;Vehiculo1;;;       Especie1;'CCUPON';;-Cantidad4        ;14;Eqstr(Cliente1,Vehiculo1)
+Fecha1;Vehiculo1;;;Var('MONELOCA');'CCUPON';;-Cambio4-Cantidad8;14;Eqstr(Cliente1,Vehiculo1)
+

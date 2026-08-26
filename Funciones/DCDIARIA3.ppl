@@ -1,0 +1,89 @@
+﻿***---Esta fc calcula DC entre dos fechas
+***---MO:55 = Monto para calcular DC
+***---FD:55 = Fecha Desde
+***---FH:55 = Fecha Hasta
+***---DK:55 = DC Diaria en Moneda Fuerte ARP
+***---DK:66 = DC Diaria en Moneda Local
+***---DK:77 = DC Diaria en Moneda Grupo USD
+IF Eqstr(Val(MO:88), Val(ME:1))
+    let &tcHoy CotizacionBNA(Val(MO:88),Val(FH:55),Val(AP:1),NO,NO)  
+    let &tcAyer CotizacionBNA(Val(MO:88),Val(FD:55),Val(AP:1),NO,NO)
+    ACN(DK:55, (Val(MO:55) * &tcHoy) - (Val(MO:55) * &tcAyer))
+   IF Eqstr(Val(AL:88), Val(ML:1))
+      ACN(DK:66, Val(DK:55))
+   ELSE
+      ACN(DK:66, (Val(MO:55) * CotizacionBCU(Val(MO:88),Val(FH:55),Val(AP:1),NO,NO)) - (Val(MO:55) * CotizacionBCU(Val(MO:88),Val(FD:55),Val(AP:1),NO,NO)))
+   ENDIF
+   ACN(DK:77, 0)
+ELSE
+   IF Eqstr(Val(MO:88), Val(ML:1))
+      ACN(DK:55, 0)
+      IF Eqstr(Val(AL:88), Val(ML:1))
+         ACN(DK:66, Val(DK:55))
+      ELSE
+         ACN(DK:66, (Val(MO:55) * CotizacionBNABCU(Val(ME:1),Val(FH:55),Val(AP:1),NO,NO)) - (Val(MO:55) * CotizacionBNABCU(Val(ME:1),Val(FD:55),Val(AP:1),NO,NO)))
+      ENDIF
+      let &tcHoy CotizacionBNA(Val(ME:1),Val(FH:55),Val(AP:1),NO,NO)
+      let &tcAyer CotizacionBNA(Val(ME:1),Val(FD:55),Val(AP:1),NO,NO)
+      ACN(DK:77, (Val(MO:55) / &tcHoy) - (Val(MO:55) / &tcAyer))
+   ELSE
+      IF Eqstr(Val(MO:88), Val(MU:1))
+         ACN(DK:55, (Val(MO:55) / CotizacionBNABCU(Val(ME:1),Val(FH:55),Val(AP:1),NO,NO)) - (Val(MO:55) / CotizacionBNABCU(Val(ME:1),Val(FD:55),Val(AP:1),NO,NO)))
+         IF Eqstr(Val(AL:88), Val(ML:1))
+            ACN(DK:66, (Val(MO:55) / CotizacionBNABCU(Val(ME:1),Val(FH:55),Val(AP:1),NO,NO)) - (Val(MO:55) / CotizacionBNABCU(Val(ME:1),Val(FD:55),Val(AP:1),NO,NO)))
+         ELSE
+            ACN(DK:66, 0)
+         ENDIF
+         ACN(DK:77, (Val(MO:55) / CotizacionBCU(Val(ME:1),Val(FH:55),Val(AP:1),NO,NO)) - (Val(MO:55) / CotizacionBCU(Val(ME:1),Val(FD:55),Val(AP:1),NO,NO)))
+      ENDIF
+   ENDIF
+ENDIF
+
+**// Si es Op. Vinculada se saca el promedio de las Cotizacion de Compra y Venta
+If EqStr(BuscarCampo('TIPOSOPERACION','ClaseOperacion','Codigo',Val(TO:88)),VAR('CLASEOPVIN'))
+   IF Eqstr(Val(MO:88), Val(ME:1))
+      let &tcHoy CotizacionBNA(Val(MO:88),Val(FH:55),1,NO,NO) + CotizacionBNA(Val(MO:88),Val(FH:55),2,NO,NO)/2
+      let &tcAyer CotizacionBNA(Val(MO:88),Val(FD:55),1,NO,NO) + CotizacionBNA(Val(MO:88),Val(FD:55),2,NO,NO)/2
+      *ACN(CT:1, (CotizacionBNA(Val(MO:88),Val(FH:55),1,NO,NO) + CotizacionBNA(Val(MO:88),Val(FH:55),2,NO,NO))/2)
+      *ACN(CT:2, (CotizacionBNA(Val(MO:88),Val(FD:55),1,NO,NO) + CotizacionBNA(Val(MO:88),Val(FD:55),2,NO,NO))/2)
+      ACN(DK:55, (Val(MO:55) * &tcHoy) - (Val(MO:55) * &tcAyer))
+      IF Eqstr(Val(AL:88), Val(ML:1))
+         ACN(DK:66, Val(DK:55))
+      ELSE
+         ACN(CT:1, (CotizacionBCU(Val(MO:88),Val(FH:55),1,NO,NO) + CotizacionBCU(Val(MO:88),Val(FH:55),2,NO,NO))/2)
+         ACN(CT:2, (CotizacionBCU(Val(MO:88),Val(FD:55),1,NO,NO) + CotizacionBCU(Val(MO:88),Val(FD:55),2,NO,NO))/2)
+         ACN(DK:66, (Val(MO:55) * Val(CT:1)) - (Val(MO:55) * Val(CT:2)))
+      ENDIF
+      ACN(DK:77, 0)
+   ELSE
+      IF Eqstr(Val(MO:88), Val(ML:1))
+         ACN(DK:55, 0)
+         IF Eqstr(Val(AL:88), Val(ML:1))
+            ACN(DK:66, Val(DK:55))
+         ELSE
+            ACN(CT:1, (CotizacionBNABCU(Val(ME:1),Val(FH:55),1,NO,NO) + CotizacionBNABCU(Val(ME:1),Val(FH:55),2,NO,NO))/2)
+            ACN(CT:2, (CotizacionBNABCU(Val(ME:1),Val(FD:55),1,NO,NO) + CotizacionBNABCU(Val(ME:1),Val(FD:55),2,NO,NO))/2)
+            ACN(DK:66, (Val(MO:55) * Val(CT:1)) - (Val(MO:55) * Val(CT:2)))
+         ENDIF
+         let &tcHoy (CotizacionBNA(Val(ME:1),Val(FH:55),1,NO,NO) + CotizacionBNA(Val(ME:1),Val(FH:55),2,NO,NO))/2
+         let &tcAyer (CotizacionBNA(Val(ME:1),Val(FD:55),1,NO,NO) + CotizacionBNA(Val(ME:1),Val(FD:55),2,NO,NO))/2
+         *ACN(CT:1, (CotizacionBNA(Val(ME:1),Val(FH:55),1,NO,NO) + CotizacionBNA(Val(ME:1),Val(FH:55),2,NO,NO))/2)
+         *ACN(CT:2, (CotizacionBNA(Val(ME:1),Val(FD:55),1,NO,NO) + CotizacionBNA(Val(ME:1),Val(FD:55),2,NO,NO))/2)
+         ACN(DK:77, (Val(MO:55) / &tcHoy) - (Val(MO:55) / &tcAyer))
+      ELSE
+         IF Eqstr(Val(MO:88), Val(MU:1))
+            ACN(CT:1, (CotizacionBNABCU(Val(ME:1),Val(FH:55),1,NO,NO) + CotizacionBNABCU(Val(ME:1),Val(FH:55),2,NO,NO))/2)
+            ACN(CT:2, (CotizacionBNABCU(Val(ME:1),Val(FD:55),1,NO,NO) + CotizacionBNABCU(Val(ME:1),Val(FD:55),2,NO,NO))/2)
+            ACN(DK:55, (Val(MO:55) / Val(CT:1)) - (Val(MO:55) / Val(CT:2)))
+            IF Eqstr(Val(AL:88), Val(ML:1))
+               ACN(DK:66, Val(DK:55))
+            ELSE
+               ACN(DK:66, 0)
+            ENDIF
+            ACN(CT:1, (CotizacionBCU(Val(ME:1),Val(FH:55),1,NO,NO) + CotizacionBCU(Val(ME:1),Val(FH:55),2,NO,NO))/2)
+            ACN(CT:2, (CotizacionBCU(Val(ME:1),Val(FD:55),1,NO,NO) + CotizacionBCU(Val(ME:1),Val(FD:55),2,NO,NO))/2)
+            ACN(DK:77, (Val(MO:55) / Val(CT:1)) - (Val(MO:55) / Val(CT:2)))
+         ENDIF
+      ENDIF
+   ENDIF
+ENDIF

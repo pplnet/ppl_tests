@@ -1,0 +1,11 @@
+﻿***---IIF(Eqstr(#MONOPER, #COTIZA),
+***---#MONTOBRUTO,
+***---IIF(Eqstr(SQL(" Select Modo From "~DBO~".MODOESPECIES Where Especie1 = '"~#COTIZA~"' AND Especie2 = '"~#MONOPER~"' "), 'INV'),#MONTOBRUTO * #COTIZOPERA ,#MONTOBRUTO / #COTIZOPERA))
+
+
+***---Como en la op. se ingresa precio de COTIZA en
+***---moneda que se opera, siempre se divide
+IIF(Eqstr(#MONOPER, #COTIZA),
+   #MONTOBRUTO,
+   #MONTOBRUTO / #COTIZOPERA)
+

@@ -1,0 +1,150 @@
+﻿CrearDialogo
+  Fecha1     : "Fecha Desde"         ;1;1;;;;Dialogo.Fecha1 <> 0;'Fecha Desde Invalida';NO;PriDeMes(Fsys, SI);
+  Fecha2     : "Fecha Hasta"         ;1;2;;;;Dialogo.Fecha2 >= Dialogo.Fecha1;'Fecha Hasta Invalida';NO;Fsys;
+  Especie1   : "Moneda Oper."        ;3;1;;;;;;;Var('MONEEXTR');;LeerObjeto('Monedas')
+
+  Radio4     : "Consolidado|NO|SI"   ;3;2;;;;;;;0
+  Lista1     : "Vehiculo"            ;5;1;;;;;;;;;IIF(Vacio(UsrVehiculos(UsuarioActivo)), SQLSet(" Select Codigo From "~DBO~".VEHICULOS Where (Status='HAB' or Status Is Null or Status='') "), SQLSET(" Select U.Vehiculo From "~DBO~".USRVEHICULO U, "~DBO~".VEHICULOS V Where U.Codigo = '"~UsuarioActivo~"' AND U.Vehiculo = V.Codigo AND (Status='HAB' or Status Is Null or Status='') ") );
+  Especie2   : "Titulo"              ;1;1;;NO;NO;;;;
+FinDialogo
+
+IF Not Ok
+  Cancelar
+EndIF
+
+ACT(LS:1, IIF(NoVacio(Dialogo.Lista1), Dialogo.Lista1, IIF(Vacio(UsrVehiculos(UsuarioActivo)), SQLSet(" Select Codigo From "~DBO~".VEHICULOS Where (Status='HAB' or Status Is Null or Status='') "), SQLSet(" Select U.Vehiculo From "~DBO~".USRVEHICULO U, "~DBO~".VEHICULOS V Where U.Codigo = '"~UsuarioActivo~"' AND U.Vehiculo = V.Codigo AND (Status='HAB' or Status Is Null or Status='') ")) ) )
+
+ACN(EL:1, Elementos(Val(LS:1)))
+
+ACD(FE:1, Dialogo.Fecha1)
+ACD(FE:2, Dialogo.Fecha2)
+ACT(ES:1, Dialogo.Especie1)
+ACT(ES:2, Dialogo.Especie2)
+ACN(RA:4, Dialogo.Radio4)
+
+*---Saldo Inicial de Cupones
+SQL.ADD("SELECT S.Especie ")
+SQL.ADD("FROM   "~DBO~".SALDOSDIA S, "~DBO~".ESPECIES E ")
+SQL.ADD("WHERE  S.NrSaldo = 1  ")
+SQL.ADD("AND    E.EsCupon = 'SI' ")
+If NoVacio(Dialogo.Lista1)
+   SQL.ADD(" AND (S.EnteCustodia IN ("~Pipe2Comillas(Dialogo.Lista1)~") OR S.Cliente IN ("~Pipe2Comillas(Dialogo.Lista1)~") ) ")
+Endif
+SQL.ADD("       AND E.Codigo = S.Especie ")
+SQL.ADD("       AND E.Cotiza = '"~Dialogo.Especie1~"' ")
+SQL.ADD("       AND S.Saldo <> 0 ")
+SQL.ADD("       AND S.Fecha IN (Select MAX(Fecha) from  "~DBO~".SALDOSDIA ")
+SQL.ADD("       WHERE (Mercado = S.Mercado OR (Mercado IS NULL AND S.Mercado IS NULL) ) ")
+SQL.ADD("       and  Cuenta       = S.Cuenta  ")
+SQL.ADD("       and  Cliente      = S.Cliente ")
+SQL.ADD("       and  Especie      = S.Especie ")
+SQL.ADD("       and  Cupon        = S.Cupon   ")
+SQL.ADD("       and  (EnteCustodia = S.EnteCustodia OR (EnteCustodia IS NULL AND S.EnteCustodia IS NULL) ) ")
+SQL.ADD("       and  NrSaldo      = S.NrSaldo ")
+SQL.ADD("       and  Fecha       <= "~IdxDate2(Dialogo.Fecha2)~") ")
+SQL.ADD(" UNION ")
+SQL.ADD("SELECT O.Especie ")
+SQL.ADD("FROM   "~DBO~".OPERACIONES O, "~DBO~".ESPECIES E ")
+SQL.ADD("WHERE  O.ContraEspecie = '"~Dialogo.Especie1~"' ")
+SQL.ADD("       AND O.Especie = E.Codigo ")
+SQL.ADD("       AND O.TipoOp In ('SECS','SECSV','SECT','SECTV','SEVS','SEVSV','SEVT','SEVTV') ")
+If NoVacio(Dialogo.Lista1)
+   SQL.ADD("       AND O.Vehiculo1 IN ("~Pipe2Comillas(Dialogo.Lista1)~") ")
+Endif
+If NoVacio(Dialogo.Especie2)
+   SQL.ADD("       AND O.Especie ='"~Dialogo.Especie2~"' ")
+EndIf
+SQL.ADD("       AND O.FechaVto >= '"~IdxDate(Dialogo.Fecha1)~"' ")
+SQL.ADD("       AND O.FechaVto <= '"~IdxDate(Dialogo.Fecha2)~"' ")
+SQL.ADD(" UNION ")
+***---Saldo Inicial de la Especie
+SQL.ADD("SELECT S.Especie ")
+SQL.ADD("FROM   "~DBO~".SALDOSDIA S, "~DBO~".ESPECIES E ")
+SQL.ADD("WHERE  S.NrSaldo = 3 ")
+SQL.ADD("AND    E.Cotiza = '"~Dialogo.Especie1~"' ")
+If NoVacio(Dialogo.Especie2)
+   SQL.ADD("       AND E.Codigo ='"~Dialogo.Especie2~"' ")
+EndIf
+If NoVacio(Dialogo.Lista1)
+   SQL.ADD("       AND S.Cliente IN ("~Pipe2Comillas(Dialogo.Lista1)~") ")
+Endif
+SQL.ADD("       AND E.Codigo = S.Especie ")
+SQL.ADD("       AND S.Saldo <> 0 ")
+SQL.ADD("       AND S.Fecha = (SELECT Max(D.Fecha) FROM "~DBO~".SALDOSDIA D ")
+SQL.ADD("                      WHERE  D.Cliente = S.Cliente ")
+SQL.ADD("                             AND D.Especie = S.Especie ")
+SQL.ADD("                             AND D.NrSaldo = S.NrSaldo ")
+SQL.ADD("                             AND D.Fecha < '"~IdxDate(Dialogo.Fecha1)~"') ")
+SQL.ADD("ORDER BY 1")
+
+ACN(FI:3, fac+1)
+ACN(BD:1, 0)
+
+BorrarCeldas(LS:2..LS:4)
+
+Recorrer SQL
+    ACN(BD:1, 1)
+
+    If [NoVacio(Dialogo.Especie2) Y Incluido(Dialogo.Especie2~'|',Ascendientes('ESPECIES',FBN['Especie']))] o Vacio(Dialogo.Especie2)
+       ACT(WA:fac, fbn('Especie'))
+       ACT(WB:fac, 'Bloomberg')
+       ACN(WC:fac, Cotizacion(fbn('Especie'),,,,Dialogo.Fecha2,1))
+
+       *- Lista de Especie
+       ACT(LS:2, Val(LS:2)~Val(WA:fac)~'|')
+    Else
+       dfa
+    EndIf
+Proximo
+
+IF Val(BD:1) = 0
+    Cancelar('No hay informacion que concuerden con los datos ingresados')
+ENDIF
+
+*- Recupero las cotizaciones de los indices
+SQL.ADD("SELECT DISTINCT E.Indice as Especie ")
+SQL.ADD("FROM "~DBO~".ESPECIES E WHERE Indice IS NOT NULL ")
+SQL.ADD("and E.Codigo IN ("~Pipe2Comillas(val(ls2))~")    ")
+SQL.ADD("ORDER BY 1")
+
+Recorrer SQL
+    ACN(BD:1, 1)
+    ACT(WA:fac, fbn('Especie'))
+    ACT(WB:fac, 'Bloomberg')
+    ACN(WC:fac, Cotizacion(fbn('Especie'),,,,Dialogo.Fecha2,1))
+
+    *- Lista de Especie
+    ACT(LS:2, Val(LS:2)~Val(WA:fac)~'|')
+Proximo
+
+CrearDialogo
+  ListBox; 'Arial,8,N'; 350; 300
+    'Especie'            ;WA:Val(FI:3)..WA:fac;NO;;;;70;STRING;
+    'Fuente'             ;WB:Val(FI:3)..WB:fac;;;;;150;STRING;
+    'Precio'             ;WC:Val(FI:3)..WC:fac;SI;Val(WC:FLB)>0;'Precio Invalido';;80;NUMERO;'###,###,###.########';
+  FinListBox
+FinDialogo
+
+IF Not OK
+    Cancelar
+ENDIF
+
+ACN(FI:4, fac)
+
+Recorrer&k Val(FI:3), Val(FI:4)
+    ACT(LS:3, Val(LS:3)~Val(WB:&k)~'|')
+    ACT(LS:4, Val(LS:4)~Fstr(Val(WC:&k), 1, 8)~'|')
+Proximo
+
+********************************************************************************************
+IF Val(RA:4) = 0
+    ***---No Consolidado
+    Recorrer&k 1, Val(EL:1)
+        ACT(VH:1, ItemLista(Val(LS:1), &k) )
+        LinkearHoja('DETOPA', 1, Fecha1 = Val(FE:1), Fecha2 = Val(FE:2), Especie1 = Val(ES:1), Radio4 = Val(RA:4), Vehiculo1 = Val(VH:1), Lista1 = '', Lista2 = Val(LS:2), Lista3 = Val(LS:3), Lista4 = Val(LS:4),Especie2=val(es2))
+    Proximo
+ELSE
+    ***---Consolidado
+    LinkearHoja('DETOPA', 1, Fecha1 = Val(FE:1), Fecha2 = Val(FE:2), Especie1 = Val(ES:1), Radio4 = Val(RA:4), Vehiculo1 = '', Lista1 = Val(LS:1), Lista2 = Val(LS:2), Lista3 = Val(LS:3), Lista4 = Val(LS:4),Especie2=val(es2))
+ENDIF
+HojaVisible(NO)

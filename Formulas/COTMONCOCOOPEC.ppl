@@ -1,0 +1,6 @@
+﻿IIF(Eqstr(#MONECOMCORR, #CONTRAESP),
+    1,
+    IIF(Eqstr(#MONECOMCORR,#MONELOCAL),
+        #COTMONCOCOGRUC,
+        #COTMONCOCOFUEC)
+   )

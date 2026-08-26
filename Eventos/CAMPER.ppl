@@ -1,0 +1,16 @@
+﻿CrearDialogo
+    Usuario1:   'Usuario' ;;;;SI;SI;NoVacio(Dialogo.Usuario1);'Debe ingresar un Usuario';NO;;;;;;
+    Perfil1:    'Perfil'  ;;;;;;;;;;
+FinDialogo
+
+if Not Ok
+    Cancelar
+endif
+
+
+SQL.ADD("Update "~DBO~".USUARIOS set Perfiles = '"~Dialogo.Perfil1~"' where Codigo = '"~Dialogo.Usuario1~"' ")
+SQL.NEW
+SQL.EXEC
+
+Messagebox('Perfil Actualizado')
+

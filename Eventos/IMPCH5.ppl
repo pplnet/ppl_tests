@@ -1,0 +1,401 @@
+﻿MostrarCuadrodeMensajes
+DialogoVisible(SI)
+CrearDialogo
+  Directorio1 : 'Path'           ;1;1;;;;;;;Var('PATHDDCHE')
+  String1     : 'Archivo '       ;3;1;1;SI;SI;;;;Var('FILEDDCHE')
+  Fecha1      : 'Fecha'          ;;;;;;;;;Fsys
+  Vehiculo1   : 'Vehiculo'       ;;;;;;;;;Var('DDVEHDEF')
+  Book1       : 'Book '          ;;;;SI;SI;EqStr(Dialogo.Vehiculo1,BuscarCampo('BOOKS','Vehiculo','Codigo',Dialogo.Book1));'El book ingresado no corresponde al Vehiculo';NO;Var('BOOKDDCHE');BuscarCampo('VEHICULOS','Alias5','Codigo',Dialogo.Vehiculo1);;;;" Vehiculo = '"~Dialogo.Vehiculo1~"'"
+  Cliente1    : 'Comitente'      ;;;;;;;;;Var('DDCOMIDEF')
+  Check1      : 'Control Duplic.';;;;;;;;;1
+FinDialogo
+
+if Not Ok
+  Cancelar
+endif
+
+(.'VALIDPATH'.)
+
+*** Corregir path
+let &pf ''
+If EqStr(Copy(Dialogo.Directorio1,Longitud(Dialogo.Directorio1),1),'\')
+    let &pf Dialogo.Directorio1~Dialogo.String1
+Else
+    let &pf Dialogo.Directorio1~'\'~Dialogo.String1
+Endif
+
+ImportarXLS(A:2..AV:10000, A:1..AV:10000, &pf)
+
+If Not Ok
+  Cancelar('Error al cargar el archivo '~&pf)
+EndIf
+
+Let &TotalProcesados 0
+Let &TotalNoProcesados 0
+
+
+***Guarda Variable de directorio, agrega una '\' si no tiene
+If EqStr(Copy(Dialogo.Directorio1,Longitud(Dialogo.Directorio1),1),'\')
+    let &Directorio Dialogo.Directorio1
+Else
+    let &Directorio Dialogo.Directorio1~'\'
+EndIf
+
+***Valida que el directorio que se guardó sea correcto
+  If ExisteDirectorio(&Directorio)
+     **Si el directorio existe, guarda el nombre de archivo en una variable.
+     let &FileName Var('FILELOGCHE')~Pad0(FStr(Dia(FSYS),0,0),2)~Pad0(FStr(Mes(FSYS),0,0),2)~FStr(Anio(FSYS),0,0)     
+  Else
+      Cancelar('El directorio '~&Directorio~' no existe')
+  EndIf
+
+
+**Si el nombre del archivo del comprobante es el mismo, le agrega una enumeración al final del nombre del archivo.
+ACT(AR:1,&Directorio~&FileName~'.txt')
+
+IF ExisteArchivo(Val(AR:1))
+    Recorrer&I 1,9000
+    ACT(AR:1,&Directorio~&FileName~'_'~Fstr(&I,10,0)~'.txt')
+        IF Not ExisteArchivo(Val(AR:1))
+            Break
+        ENDIF
+    Proximo 
+ENDIF
+
+AbrirAscii(Val(AR:1),0,NO,1)
+
+let &flag 0
+
+**---Si Existen Ops para la fecha, vehiculo y cliente del dialogo
+If SQL("Select 1 from "~DBO~".OPERACIONES where FechaOp='"~IdxDate(Dialogo.Fecha1)~"' and Vehiculo1 = '"~Dialogo.Vehiculo1~"' and Cliente1 = '"~Dialogo.Cliente1~"' and TipoOp IN ('DDC','DDV') ")>0
+   ***---Si existe por lo menos UNA Op en Instancia 50
+   If SQL("Select 1 from "~DBO~".OPERACIONES o  JOIN "~DBO~".OPERACIONESBITS b ON o.NrOperacion = b.NrOperacion where o.FechaOp='"~IdxDate(Dialogo.Fecha1)~"' and o.Vehiculo1 = '"~Dialogo.Vehiculo1~"' and o.Cliente1 = '"~Dialogo.Cliente1~"' and o.TipoOp IN ('DDC','DDV') and b.NrBit= '50' and b.Valor = '1' ")>0
+          MessageBox('Ya existen operaciones aprobadas para la Fecha:'~Dialogo.Fecha1~' , Vehiculo:'~Dialogo.Vehiculo1~', Comitente:'~Dialogo.Cliente1~', debe rechazar primero esas operaciones',0,0)
+    Else
+            ***---Si existe por lo menos UNA Op en Instancia 18
+            If SQL("Select 1 from "~DBO~".OPERACIONES o  JOIN "~DBO~".OPERACIONESBITS b ON o.NrOperacion = b.NrOperacion where o.FechaOp='"~IdxDate(Dialogo.Fecha1)~"' and o.Vehiculo1 = '"~Dialogo.Vehiculo1~"' and o.Cliente1 = '"~Dialogo.Cliente1~"' and o.TipoOp IN ('DDC','DDV') and b.NrBit= '18' and b.Valor = '1' ")>0
+                  let &msgVal MessageBox('Existen operaciones ingresadas para la Fecha:'~Dialogo.Fecha1~' , Vehiculo:'~Dialogo.Vehiculo1~', Comitente:'~Dialogo.Cliente1~', desea anularlas y volver a ingresarlas?',1,3)
+                  ***--- Si le damos que SI se anularan las operaciones y luego se pasara a importar las nuevas
+                  If &msgVal = 6
+                     SQL("Delete From OPERACIONES Where FechaOp='"~IdxDate(Dialogo.Fecha1)~"' and Vehiculo1 = '"~Dialogo.Vehiculo1~"' and Cliente1 = '"~Dialogo.Cliente1~"' and TipoOp IN ('DDC','DDV') ")
+                     let &flag 1
+                  Endif
+            Endif
+     Endif
+Else
+***---Si no existe pasamos a la importacion
+    let &flag 1
+Endif
+
+***---Solo se va a importar si NO Existen Ops para la fecha, vehiculo y cliente del dialogo O tambien si existen en la Instancia 18 Y se desean ANULAR.                  
+If &flag = 1                  
+    Recorrer&i 1,10000
+      
+        If Vacio(Val(A:&i))
+            Break
+        Else
+            If Dialogo.Check1=1 y SQL("Select 1 from "~DBO~".OPERACIONES where FechaOp='"~IdxDate(Val(H:&i))~"' and NrOperacion2='"~FStr(Val(A:&i),0,0)~"' and NrOperacion3='"~FStr(Val(J:&i),0,0)~"' and NrOperacion4='"~FStr(Val(K:&i),0,0)~"' and CodComitente = '"~FStr(Val(S:&i),0,0)~"' " )>0
+                EscribirAscii('ID Cheque: '~FStr(Val(K:&i),0,0)~' duplicado')
+                Let &TotalNoProcesados &TotalNoProcesados+1 
+            Else
+              
+            
+            SQL.ADD("Select Codigo, Cliente, Comitente from "~DBO~".CUENTAS Where NrDepositante = '"~FStr(Val(S:&i),0,0)~"'  ")
+            Recorrer SQL
+                let &Cuenta fbn('Codigo')
+                let &Vehiculo fbn('Cliente')
+                let &Entidad fbn('Comitente')
+            Proximo
+                If Vacio(&Cuenta)
+                   EscribirAscii('No se encontró Cuenta para el Comitente '~FStr(Val(S:&i),0,0)~', el ID Cheque '~FStr(Val(K:&i),0,0)~' no se procesó')
+                   Let &TotalNoProcesados &TotalNoProcesados+1
+                Else
+                    If Vacio(&Vehiculo) O Not Eqstr(Dialogo.Vehiculo1,&Vehiculo)
+                        EscribirAscii('No se encontró Vehiculo del Comitente '~FStr(Val(S:&i),0,0)~', el ID Cheque '~FStr(Val(K:&i),0,0)~' no se procesó')
+                       Let &TotalNoProcesados &TotalNoProcesados+1 
+                    Else
+                        If Vacio(&Entidad)
+                            EscribirAscii('No se encontró Entidad del Comitente '~FStr(Val(S:&i),0,0)~', el ID Cheque '~FStr(Val(K:&i),0,0)~' no se procesó')
+                            Let &TotalNoProcesados &TotalNoProcesados+1
+                        Else
+                            If Dialogo.Fecha1 <> Fecha(Val(H:&i))
+                               EscribirAscii('La fecha ingresada no coincide con la importación, el ID Cheque '~FStr(Val(K:&i),0,0)~' no se procesó')
+                               Let &TotalNoProcesados &TotalNoProcesados+1 
+                            Else
+
+                                If Not Eqstr(Dialogo.Cliente1,&Entidad)
+                                   EscribirAscii('La Entidad del Comitente '~FStr(Val(S:&i),0,0)~' no es la ingresada, el ID Cheque '~FStr(Val(K:&i),0,0)~' no se procesó')
+                                   Let &TotalNoProcesados &TotalNoProcesados+1 
+                                Else
+                                    If Val(O:&i) <= 0
+                                        EscribirAscii('El monto debe ser MAYOR a 0, el ID Cheque '~FStr(Val(K:&i),0,0)~' no se procesó')
+                                        Let &TotalNoProcesados &TotalNoProcesados+1 
+                                    Else
+                                        If SQL("Select 1 from "~DBO~".TIPOSIMPORTE Where Codigo = '"~Val(AU:&i)~"' ") = 0
+                                            EscribirAscii('No se encontró el Instrumento, el ID Cheque '~FStr(Val(K:&i),0,0)~' no se procesó')
+                                            Let &TotalNoProcesados &TotalNoProcesados+1
+                                        Else
+                                            
+                                            **Busco el numerador del Vehiculo 
+                                            let &NumVh BuscarCampo('VEHICULOS','Alias1','Codigo',&Vehiculo)
+                                            If Vacio(&NumVh) 
+                                               EscribirAscii('No se encontró Numerador del Vehiculo del comitente '~FStr(Val(S:&i),0,0)~', el ID Cheque '~FStr(Val(K:&i),0,0)~' no se procesó')
+                                               Let &TotalNoProcesados &TotalNoProcesados+1
+                                            Else
+                                                 ** Numerador    
+                                                 let &Numerador GetNumerador(INT(&NumVh))
+                                                    
+                                                 
+
+                                                 **Avalado SI o NO //CUITLibrador si es NO
+                                                 If EqStr(Trim(Mirt(Val(B:&i))),'Avalado')
+                                                   let &cb1 1  
+                                                 Else
+                                                   let &cb1 0                
+                                                 EndIf
+
+                                                 *--------------------------------------------------Validacion de CODIGO SGR si es AVALADO--------------------------------------------------------------
+                                                If &cb1 = 1
+                                                    If SQL("Select 1 from "~DBO~".CLIENTES Where Codigo = '"~Val(AQ:&i)~"' OR Alias5 = '"~Val(AQ:&i)~"'  OR Alias6 = '"~Val(AQ:&i)~"' ")>0
+                                                    ** Cliente4 - Toma el Codigo de CLIENTES en base al Codigo ECheq que venga por archivo
+                                                        let &Cliente4 SQL("Select Codigo from "~DBO~".CLIENTES Where Codigo = '"~Val(AQ:&i)~"' OR Alias5 = '"~Val(AQ:&i)~"'  OR Alias6 = '"~Val(AQ:&i)~"' ")
+                                                        let &CUITLib ''
+                                                        let &Librador ''
+                                                        let &flag2 1
+                                                    Else
+                                                       EscribirAscii('No se encontró Codigo SGR '~Val(AQ:&i)~' en la tabla CLIENTES, el IDCheque '~FStr(Val(K:&i),0,0)~' no se procesó')
+                                                       Let &TotalNoProcesados &TotalNoProcesados+1
+                                                       let &flag2 0
+                                                    Endif
+                                                Endif
+                                                *--------------------------------------------------Validacion de CUITLibrador si es NO AVALADO--------------------------------------------------------------
+                                                If &cb1 = 0
+                                                    If SQL("Select 1 from "~DBO~".DDCUPOSNOAVALADOS Where CUITEmisor = '"~Val(AH:&i)~"' ")>0
+                                                        ** CUITLibrador
+                                                        let &CUITLib Val(AH:&i)
+                                                        **Nombre LIBRADOR
+                                                        let &Librador Val(AJ:&i)
+                                                        let &flag2 1
+                                                        let &Cliente4 ''
+                                                    Else
+                                                        EscribirAscii('No se encontró CUITLibrador '~Val(AH:&i)~' en la tabla CUPOS, el IDCheque '~FStr(Val(K:&i),0,0)~' no se procesó')
+                                                        Let &TotalNoProcesados &TotalNoProcesados+1
+                                                        let &flag2 0
+                                                    Endif
+                                                Endif   
+                                               
+                                                
+                                               ***---Flag para saber si sigo avanzando dependiendo de la validacion anterior
+                                                If &flag2 = 1
+                                                    ** Especie
+                                                    If EqStr(Trim(Mirt(Val(C:&i))),'$')
+                                                      let &Especie VAR('MONELOCA')
+                                                    Else
+                                                      let &Especie VAR('MONEEXTR')
+                                                    EndIf
+                                                    
+                                                    ** ContraEspecie
+                                                    If EqStr(Trim(Mirt(Val(Y:&i))),'$')
+                                                      let &ContraEspecie VAR('MONELOCA')
+                                                    Else
+                                                      let &ContraEspecie VAR('MONEEXTR')
+                                                    EndIf
+                                                    
+                                                    ** RB1 C-V
+                                                    If EqStr(Trim(Mirt(Val(D:&i))),'C')
+                                                        ACN(RB:1,0)
+                                                       let &TipoOp 'DDC'
+                                                    Else
+                                                        ACN(RB:1,1)
+                                                       let &TipoOp 'DDV'
+                                                    EndIf
+                                                    
+                                                    
+
+                                                    ** Cliente2
+                                                    let &Cliente2 BuscarCampo('CLIENTES','Codigo','CodigoMAV',FStr(Val(F:&i),0,0))
+    *                                                if Vacio(&Cliente2)
+    *                                                  SQL.ADD("INSERT INTO "~DBO~".CLIENTES ( ")
+    *                                                  SQL.ADD("Jerarquia, Codigo, CodigoMAV, RazonSocial")
+    *                                                  SQL.ADD("")
+    *                                                  SQL.ADD("   ) VALUES (")
+    *                                                  SQL.ADD("'"~GenerarJerarquiaporCodigo('CLIENTES',"AGENTES",SI)~"','A"~FStr(Val(F:&i),0,0)~"',"~FStr(Val(F:&i),0,0)~",'Agente Nro."~FStr(Val(F:&i),0,0)~"'")
+    *                                                  SQL.ADD("")
+    *                                                  SQL.ADD(")")
+    *                                                  SQL.NEW
+    *                                                  SQL.EXEC
+    *                                                  let &Cliente2 FStr(Val(F:&i),0,0)
+    *                                                
+    *                                                  Message('Se agrega Agente no encontrado: '~&Cliente2)
+    *                                                end
+                                                    
+                                                    ** Cliente3
+                                                    let &Cliente3 BuscarCampo('CLIENTES','Codigo','Alias3',Pad0(FStr(Val(L:&i),0,0),3))
+    *                                                if Vacio(&Cliente3)
+    *                                                  SQL.ADD("INSERT INTO "~DBO~".CLIENTES ( ")
+    *                                                  SQL.ADD("Jerarquia, Codigo, CodigoBCRA, RazonSocial")
+    *                                                  SQL.ADD("")
+    *                                                  SQL.ADD("   ) VALUES (")
+    *                                                  SQL.ADD("'"~GenerarJerarquiaporCodigo('CLIENTES',"BLOCAL",SI)~"','B"~FStr(Val(L:&i),0,0)~"',"~FStr(Val(L:&i),0,0)~",'Banco "~FStr(Val(L:&i),0,0)~"'")
+    *                                                  SQL.ADD("")
+    *                                                  SQL.ADD(")")
+    *                                                  SQL.NEW
+    *                                                  SQL.EXEC
+    *                                                  let &Cliente3 FStr(Val(L:&i),0,0)
+    *                                                
+    *                                                  Message('Se agrega Banco no encontrado: '~&Cliente3)
+    *                                                end  
+                                                      
+
+                                                    
+                                                    
+                                                    * Sin Recurso'
+                                                    If Incluido(Trim(Val(AA:&i)),'No|NO')
+                                                      let &CB2 0
+                                                    Else
+                                                      let &CB2 1
+                                                    EndIf
+                                                    
+                                                    
+                                                    ** a la orden
+                                                    If EqStr(Trim(Val(AB:&i)),'No') o EqStr(Trim(Val(AB:&i)),'NO')
+                                                      let &CB3 0
+                                                    Else
+                                                      let &CB3 1
+                                                    EndIf
+                                                    
+                                                    ** Plazo
+                                                    let &Plazo Fecha(Val(AS:&i)) 
+                                                    
+                                                    ** E.PyMe
+                                                    If EqStr(Trim(Val(AF:&i)),'No') o EqStr(Trim(Val(AF:&i)),'NO')
+                                                      let &CB4 0
+                                                    Else
+                                                      let &CB4 1
+                                                    EndIf
+                                                    
+                                                    ** Primera.Neg
+                                                    If EqStr(Trim(Val(AG:&i)),'No') o EqStr(Trim(Val(AG:&i)),'NO')
+                                                      let &CB5 0
+                                                    Else
+                                                      let &CB5 1
+                                                    EndIf
+
+
+                                                    ** MB2
+                                                    If EqStr(Trim(Mirt(Val(W:&i))),'EX') 
+                                                      let &MB2 0
+                                                    Else
+                                                      If EqStr(Trim(Mirt(Val(W:&i))),'RI') 
+                                                        let &MB2 1
+                                                      else
+                                                        let &MB2 2
+                                                      endif
+                                                    EndIf
+
+                                                    ** Cantidad
+                                                    if EqStr(&TipoOp,'DDC')
+                                                      let &Cantidad Val(O:&i) - Val(P:&i)
+                                                    else
+                                                      let &Cantidad Val(O:&i) - Val(P:&i)
+                                                    endif
+                                                    
+                                                    ** Book
+                                                    let &Book Dialogo.Book1
+                                                    *let &Book BuscarCampo('VEHICULOS','Alias5','Codigo',&Vehiculo)
+                                                    
+                                                    **Conciliado NO
+                                                    let &rb1 0 
+                                                    
+                                                    **CUIT Comprador
+                                                     ACT(T:&i,Val(T:&i))  
+    
+                                                    **CUIT Beneficiario
+                                                    let &CUITBene Val(AI:&i) 
+                                                    
+                                                    **Nombre LIBRADOR
+                                                    let &Librador Val(AJ:&i) 
+                                                    
+
+                                                    **FuenteTipoTasa - Plaza1 
+                                                    If EqStr(Val(Z:&i),Var('DDFCE'))
+                                                        let &fuente Var('DDFCE')
+                                                    Else
+                                                        If &cb1= 1
+                                                            let &fuente Var('DDINSAVA')
+                                                        Else
+                                                            let &fuente Var('DDINSNOAVA')
+                                                        EndIf
+                                                    Endif
+                                                    SQL.ADD("INSERT INTO "~DBO~".OPERACIONES ( ")
+                                                    SQL.ADD("   NrOperacion,     NrOperacion2,       CB1,                      Especie,       TipoOp, ")
+                                                    SQL.ADD("   Precio1,         Cliente2,           FechaOp,                  Hora1,         Hora2, ")
+                                                    SQL.ADD("   FechaPago,       NrOperacion3,       NrOperacion4,             Cliente3,      OperacionRef, ")
+                                                    SQL.ADD("   FechaVto2,       TotalBrutoCli1,     TotalIntereses,           Cantidad,      ImpComMer1,  ")
+                                                    SQL.ADD("   ImpGastos1,      Cliente1,           MensajeChequeo,           MB2,           Numerador,")
+                                                    SQL.ADD("   ObservacDoc,     ContraEspecie,      TipoCambio,               CB2,           CB3, ")
+                                                    SQL.ADD("   FechaVto,        NrSucursal,         CB4,                      CB5,           NrBoleto, ")
+                                                    SQL.ADD("   TotalImpuestos,  Plazo,              TipoDoc,                  FechaCarga,    FechaCargaSys,")
+                                                    SQL.ADD("   Cliente4,        Contrato,           Vehiculo1,                CodComitente,  Book1,     ")
+                                                    SQL.ADD("   Cuenta1,         RB1,                Plaza1,                   UsrInput,      Operador,     ")
+                                                    SQL.ADD("   Observac2,       Opcion                                                                   ")
+                                                    SQL.ADD("   ) VALUES (")
+                                                    SQL.ADD("   '"~&Numerador~"','"~FStr(Val(A:&i),0,0)~"', "~FStr(&cb1,0,0)~", '"~&Especie~"', '"~&TipoOp~"',")
+                                                    SQL.ADD("   "~FStr(Val(E:&i),1,8)~", '"~&Cliente2~"',  '"~IdxDate(Val(H:&i))~"', '"~Hora(Val(G:&i))~"', '"~Hora(Val(U:&i))~"', ")
+                                                    SQL.ADD("    '"~IdxDate(Val(I:&i))~"',  '"~FStr(Val(J:&i),0,0)~"', '"~FStr(Val(K:&i),0,0)~"', '"~&Cliente3~"', "~FStr(Val(M:&i),0,0)~", ")
+                                                    SQL.ADD("   '"~IdxDate(Val(N:&i))~"', "~FStr(Val(O:&i),0,2)~", "~FStr(Val(P:&i),0,2)~","~FStr(&Cantidad,0,2)~" ,"~FStr(Val(Q:&i),0,2)~",  ")
+                                                    SQL.ADD("   "~FStr(Val(R:&i),0,2)~",'"~&Entidad~"','"~Val(T:&i)~"', "~FStr(&MB2,0,0)~", '"~FStr(&Numerador,0,0)~"',  ")
+                                                    SQL.ADD("   '"~Val(X:&i)~"','"~&ContraEspecie~"',"~FStr(Val(Z:&i),1,8)~","~FStr(&CB2,0,0)~","~FStr(&CB3,0,0)~",")
+                                                    SQL.ADD("   '"~IdxDate(Val(AC:&i))~"',"~FStr(Val(AE:&i),0,0)~","~FStr(&CB4,0,0)~",  "~FStr(&CB5,0,0)~","~FStr(Val(AL:&i),0,0)~",")
+                                                    SQL.ADD("   "~FStr(Val(AO:&i),0,2)~", "~Fstr(Val(AS:&i),0,0)~", '"~Val(AU:&i)~"',"~SQLAhora~" , '"~IdxDate(FSYS)~"',  ")
+                                                    SQL.ADD("    '"~&Cliente4~"',  '"~&CUITLib~"', '"~&Vehiculo~"', "~FStr(Val(S:&i),0,0)~", '"~&Book~"',     ")
+                                                    SQL.ADD("    '"~&Cuenta~"' ,  "~FStr(&rb1,0,0)~", '"~&fuente~"', '"~UsuarioActivo~"', '"~UsuarioActivo~"',   ")
+                                                    SQL.ADD("    '"~&Librador~"' ,  '"~&CUITBene~"'  ")
+                                                    SQL.ADD("   )")
+                                                    SQL.NEW
+                                                    SQL.EXEC
+                                                    
+                                                    **Cintia 051023
+                                                    
+                                                    SQL.ADD(" Select ContraEspecie,TotalBrutoCli1,FechaOp from "~DBO~".OPERACIONES Where NrOperacion= '"~&Numerador~"' ")
+                                                    Recorrer SQL
+                                                        DFA
+                                                        If Eqstr(FBN['ContraEspecie'],VAR('MONELOCA'))
+                                                            let &totalBrutoCli2 FBN['TotalBrutoCli1']
+                                                        Else
+                                                            let &totalBrutoCli2 FBN['TotalBrutoCli1']*CotizacionBNA(FBN['ContraEspecie'],FBN['FechaOp'],1,NO,NO)
+                                                        Endif
+                                                    Proximo
+                                                    
+                                                    SQL.ADD("UPDATE "~DBO~".OPERACIONES Set TotalBrutoCli2='"~FStr(&totalBrutoCli2,0,2)~"' Where NrOperacion= '"~&Numerador~"'")
+                                                    SQL.NEW
+                                                    SQL.EXEC
+                                                    **
+                                                    
+                                                    EjecutarEvento('INSBIT', String1 = 'OPERACIONES', Entero1= 18, NrOperacion1= &Numerador)
+                                                    
+                                                    SQL.ActualizarMovimientos3(&Numerador,SI,SI,NO,NO,SI)
+                                                    SQL.NEW
+                                                    SQL.EXEC
+                                                    
+                                                    Let &TotalProcesados &TotalProcesados+1
+                                                Endif    
+                                            Endif
+                                        Endif
+                                    Endif
+                                Endif    
+                            Endif
+                        Endif    
+                    Endif
+                Endif    
+            Endif
+        Endif    
+    Proximo
+
+    EscribirAscii('Operaciones cargadas correctamente: '~FStr(&TotalProcesados, 0, 0))
+    EscribirAscii('Operaciones que no fueron cargadas: '~FStr(&TotalNoProcesados, 0, 0))
+Endif    
+
+CerrarAscii
+
+

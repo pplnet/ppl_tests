@@ -1,0 +1,47 @@
+﻿IF Vacio(UsrVehiculos(UsuarioActivo))
+    ACT(LS:1, SQLSet(" Select Codigo from "~DBO~".VEHICULOS where Status = 'HAB' "))
+ELSE
+    ACT(LS:1, UsrVehiculos(UsuarioActivo))
+ENDIF
+
+CrearDialogo
+  Fecha1: 'Fecha'                ;;;;;;;;;FSys
+  Lista1: 'Vehiculo'             ;;;;;;;;;;;IIF(Vacio(UsrVehiculos(UsuarioActivo)), Val(LS:1), SQLSet(" Select U.Vehiculo From "~DBO~".USRVEHICULO U, "~DBO~".VEHICULOS V Where V.Codigo = U.Vehiculo AND U.Codigo = '"~UsuarioActivo~"' AND V.Status = 'HAB' "));;
+FinDialogo
+
+If Not OK
+    Cancelar
+Endif
+
+
+*Expresado en ARP
+LinkearHoja('POSICI',1,Fecha1=Dialogo.Fecha1,Lista1=Dialogo.Lista1,Radio1=1,Radio2=0,Radio3=1,Check1=1,Radio4=0)
+
+let &radio2 0
+Recorrer&i LinkH(1, ZZ:1),LinkH(1, ZZ:2)
+    IF NoVacio(LinkH(1,D:&i))
+        let &book LinkH(1,D:&i)
+        let &tCartera LinkH(1,X:&i)
+        (.'CALCRENT'.)
+        **Calculo los campos Day de Rentabilidad (dentro ya aplica el TC para MONEEXTR y lo inserta, por eso se llama sólo una vez
+        (.'CALCDAY'.)
+    ELSE
+        let &vehiculo LinkH(1,A:&i)
+    ENDIF    
+Proximo
+
+*Expresado en USD
+LinkearHoja('POSICI',2,Fecha1=Dialogo.Fecha1,Lista1=Dialogo.Lista1,Radio1=1,Radio2=1,Radio3=1,Check1=1,Radio4=0)
+
+let &radio2 1
+Recorrer&i LinkH(2, ZZ:1),LinkH(2, ZZ:2)
+    IF NoVacio(LinkH(2,D:&i))
+        let &book LinkH(2,D:&i)
+        let &tCartera LinkH(2,X:&i)
+        (.'CALCRENT'.)
+    ELSE
+        let &vehiculo LinkH(2,A:&i)
+    ENDIF    
+Proximo
+
+

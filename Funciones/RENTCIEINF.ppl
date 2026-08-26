@@ -1,0 +1,28 @@
+﻿**Min FechaOp de Op FV cargadas a Fecha1 y Op eliminadas en Fecha1
+SQL.ADD("SELECT Min(FechaOp) FechaMinOp,Vehiculo1,Book1 from ")
+SQL.ADD(" (SELECT  FechaOp,Vehiculo1,Book1 FROM BOPERACIONES ")
+SQL.ADD(" WHERE FechaDel> '"~IdxDate(Habiles(Dialogo.Fecha1,-1,,NO))~"' and FechaDel<'"~IdxDate(Habiles(Dialogo.Fecha1,1,,NO))~"' ")
+SQL.ADD("AND TipoOp in ("~Pipe2Comillas(VAR('OPRENTAB'))~") ")
+SQL.ADD("AND Especie<>'ARP' ")
+SQL.ADD(" UNION ALL ")
+SQL.ADD(" SELECT  FechaOp,Vehiculo1,Book1 FROM OPERACIONES ")
+SQL.ADD(" WHERE FechaCargaSys= '"~IdxDate(Dialogo.Fecha1)~"' AND FechaOp < FechaCargaSys ")
+SQL.ADD("AND TipoOp in ("~Pipe2Comillas(VAR('OPRENTAB'))~") ")
+SQL.ADD("AND Especie<>'ARP')AS Todas ")
+SQL.ADD("Group By Vehiculo1, Book1 ")
+Recorrer SQL
+    DFA
+    If NoVacio(&FechaCotizFV)
+        If fbn('FechaMinOp') < &FechaCotizFV
+            *let &rentlo &rentlo+1
+            let &diasRENT DifDias(Habiles(&FechaCotizFV,-1,'ARG'),Fecha(fbn('FechaMinOp')),'ARG',SI)+1
+            ACN(AB:FAC,Val(AB:FAC)+&diasRENT)
+            ACN(AB:FAC+1,Val(AB:FAC+1)+1)
+        EndIf
+    Else
+        *let &rentlo &rentlo+1
+        let &diasRENT DifDias(Habiles(Dialogo.Fecha1,-1,'ARG'),Fecha(fbn('FechaMinOp')),'ARG',SI)+1
+        ACN(AB:FAC,Val(AB:FAC)+&diasRENT)
+        ACN(AB:FAC+1,Val(AB:FAC+1)+1)
+    EndIf
+Proximo

@@ -1,0 +1,50 @@
+﻿CAMPOS:1;;BuscarCampo('VEHICULOS','Alias1','Codigo',Vehiculo1)
+FechaOp        : 'Fecha Movimiento'       ;1;1;;EqStr(ABM,'A') y NOT EV y VERIFICAACCESO('OPFVALOR');;EsHabil(FECHAOP,'ARG');'Fecha incorrecta';NO;FSYS;
+
+CB13      : 'Sintetico'   ;6;1;1;Incluido(TIPOOP, 'SECS|SEVS|SECSV|SEVSV|FXCS|FXVS|FXCSV|FXVSV');Incluido(TIPOOP, 'SECS|SEVS|SECSV|SEVSV|FXCS|FXVS|FXCSV|FXVSV|FCCPV|FCVPV');;;;IF(Incluido(TIPOOP,'FCCPV|FCVPV'),1,0);IF(Incluido(TIPOOP,'FCCPV|FCVPV'),1,IF(Not Incluido(TIPOOP, 'SECS|SEVS|SECSV|SEVSV|FXCS|FXVS|FXCSV|FXVSV'),0,CB13))
+Vehiculo1 : 'Vehiculo'    ;1;2;1;NOT EV y EqStr(ABM,'A') Y [Not Incluido(TIPOOP, 'MMPRCO|MMPREC|MMONRE|SECS|SEVS|SECSV|SEVSV|FXCS|FXVS|FXCSV|FXVSV|FCCPV|FCVPV') o [Incluido(TIPOOP, 'SECS|SEVS|SECSV|SEVSV|FXCS|FXVS|FXCSV|FXVSV|FCCPV|FCVPV') y CB13=0]];;NOVACIO(VEHICULO1) Y  Incluido(VEHICULO1,SqlSet("Select Codigo from "~DBO~".VEHICULOS WHERE Codigo = '"~Vehiculo1~"' and Status ='HAB' ")) y [Vacio(UsrVehiculos(UsuarioActivo)) o Incluido(VEHICULO1,SqlSet("Select Vehiculo From "~DBO~".USRVEHICULO Where Codigo = '"~UsuarioActivo~"'"))];'El VEHICULO es INVALIDO';NO;;IIF([Incluido(TIPOOP,'MMPRCO|MMPREC') o [Incluido(TIPOOP,'SECS|SEVS|SECSV|SEVSV|FXCS|FXVS|FXCSV|FXVSV|FCCPV|FCVPV') y CB13=1]] THEN BuscarCampo('OPERACIONES','Vehiculo1','NrOperacion', NROPERACION5) ELSE IF(Incluido(TIPOOP, 'MMONRE'), OPREF.VEHICULO1) ENDIF);;If(Vacio(UsrVehiculos(UsuarioActivo)),SqlSet("Select Codigo from "~DBO~".VEHICULOS WHERE Status ='HAB' "),SqlSet("Select Vehiculo from "~DBO~".USRVEHICULO where Codigo = '"~UsuarioActivo~"'"));NO
+Book1     : 'Book'        ;2;2;1;Not Incluido(TIPOOP, 'MMPRCO|MMPREC|MMONRE|SECS|SEVS|SECSV|SEVSV|FXCS|FXVS|FXCSV|FXVSV|FCCPV|FCVPV') o [Incluido(TIPOOP,'SECS|SEVS|SECSV|SEVSV|FXCS|FXVS|FXCSV|FXVSV|FCCPV|FCVPV') y CB13=0];;[SI O BookValido(BOOK1, TIPOOP, ESPECIE, VEHICULO1, OPERADOR,'')] Y NoVacio(BOOK1);'Book Invalido';NO;Var('BOOKDEF');IIF([Incluido(TIPOOP,'SECS|SEVS|SECSV|SEVSV|FXCS|FXVS|FXCSV|FXVSV|FCCPV|FCVPV') y CB13=1] THEN BuscarCampo('OPERACIONES','Book1','NrOperacion', NROPERACION5) ELSE Var('BOOKDEF') ENDIF;;;;;;;
+
+Especie        : 'Moneda'                 ;2;1;;EqStr(ABM,'A') y NOT EV;;NOVACIO(ESPECIE) y ESTERMINAL(ESPECIE, ESPECIE);'Debe Ingresar una Especie Valida';NO;;;;
+Cantidad       : 'Cantidad'               ; ; ;;EqStr(ABM,'A') y NOT EV;;;'La Cantidad DEBE SER POSITIVA';NO;
+Operador       :                          ; ; ;;NO;;NOVACIO(OPERADOR);'El Operador es Invalido';NO;USUARIOACTIVO;
+Observac2      : 'Descripcion'            ; ; ;;;;;;;;;;
+Cliente1       : 'Cliente Tomador'        ;4;2;;NO;NO;;;;;VEHICULO1;;
+RB3            : 'MOF'                    ;6;2;;NO;NO;;;;;1
+
+OperacionRef   : 'Op Ref.'                ;3;2;;NO;NO;;;;;;;;;;;;
+
+CONDICIONES
+FECHAOP =Fsys;'La Fecha de Origen no coincide con la de Sistema';SI;SI;FSYS;'ORIGFVALOR'
+Incluido(VEHICULO1, UsrVehiculos(UsuarioActivo)) o Vacio(UsrVehiculos(UsuarioActivo));'El Operador no esta habilitado para operar con el Vehiculo ';NO
+Incluido(VEHICULO1,If(Vacio(UsrVehiculos(UsuarioActivo)),Query("Select Codigo from "~DBO~".VEHICULOS Where Codigo='"~VEHICULO1~"' and "~If(Vacio(VAR('VPOSOPE')),"1=1","Codigo In ("~VAR('VPOSOPE')~")")~" "),Query("Select Vehiculo from "~DBO~".USRVEHICULO where Vehiculo='"~VEHICULO1~"' and Codigo='"~UsuarioActivo~"'")));'El Usuario No esta Habilitado para Operar en este Vehiculo';NO
+FechaOp=Hoy;'FECHA POSOPE DIFERENTE A FECHA DE HOY, AUN NO SE ABRIO EL DIA';SI
+VACIO(BuscarCampo('USUARIOS','Perfil','Codigo',OPERADOR)) O  VERIFICAPERFIL(BuscarCampo('USUARIOS','Perfil','Codigo',OPERADOR),'TO'~TIPOOP);'Operador no habilitado para ingresar Operaciones del Tipo '~TIPOOP;NO
+Eqstr(TipoOp, 'MRO') O EqStr(BuscarCampo('ESPECIES','Status','Codigo',ESPECIE),'HAB');'La Especie No esta Habilitada';NO
+ESTERMINAL(VEHICULO1,VEHICULO);'El Vehiculo debe ser Terminal';NO
+INSTANCIA=1 o INSTANCIA=2 o ESEVENTUAL;'Instancia de Carga Incorrecta !!!';SI
+
+
+EDICION
+EqStr(Operador, UsuarioActivo) o Incluido(UsuarioActivo, Var('ULMODI'));'No se puede modificar, Operador: '~Operador
+
+BAJA
+EqStr(Operador, UsuarioActivo) o Incluido(UsuarioActivo, Var('ULBAJA'));'No se puede dar de baja, Operador: '~Operador
+
+
+MOVIMIENTOS
+FechaOp ;Vehiculo1;Especie ;;;;;Vehiculo1;1;Cantidad;;'Posicion Operativa '~Especie;SI;SI;;;;;;1;
+
+BITS
+1;1
+50;0
+
+INSTANCIA1
+BITS
+1 ;0;FW=1
+50;1;FW=1
+
+INSTANCIA50
+BITS
+50;0;FW=2
+1 ;1;FW=2

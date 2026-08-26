@@ -1,0 +1,6 @@
+﻿RelacionCuenta('','','','',
+                #TIPOOP,
+                #MONEDA,
+                '',
+                '',
+                Modelo.Alias1)

@@ -1,0 +1,34 @@
+﻿#*********************************************************************************
+#combos data sources.
+set ds_Sector              = "PUB:Publico|PRI:Privado|FIN:Financiero|STA:Staff|"
+#*********************************************************************************
+def abm 'RelacionCuenta'
+   def grid
+       Codigo:, TipoImporte:, CentroCosto:, Cuenta:, Libro:, Especies: 
+   end
+   def key
+       Codigo: 
+   end
+   def dialog_size
+       720,450
+   end
+   def dialog
+       #**************************************************************************
+       tab 'General'
+          column
+             Codigo: , 'Codigo', small_text
+             TipoImporte: , 'Tipo Importe', autocomplete, 'TIPOSIMPORTE', 'Codigo,Descripcion'
+             CentroCosto: , 'Centro Costo', autocomplete, 'CENTROSCOSTO', 'Codigo,Descripcion'
+             Cuenta: , 'Cuenta Contable', autocomplete, 'CONTABILIDAD', 'Codigo,Nombre'
+             Tabla: , 'Tabla', text
+             Residente: ,  , check
+             Vinculado: ,  , check
+          column
+             Sector: ,          , combo, ds_Sector
+             TiposOperacion: ,    , autocomplete_ar_list, 'TIPOSOPERACION', 'Codigo,Nombre'
+             Especies: ,          , autocomplete_ar_list, 'ESPECIES', 'Codigo,Nombre'
+       #**************************************************************************
+   end
+   validates_uniqueness_of: Codigo:
+   upper_case_fields: Codigo:, Tabla:
+end

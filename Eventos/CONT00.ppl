@@ -1,0 +1,15 @@
+﻿MostrarCuadroDeMensajes
+CrearDialogo
+  Fecha1:       'Desde'       ;;;;;;Dialogo.Fecha1 < Dialogo.Fecha2;'La Fecha Desde debe ser menor a la Fecha Hasta';NO;Fsys
+  Fecha2:       'Hasta'       ;;;;;;SI O Dialogo.Fecha2 <= FSys;'La Fecha Hasta debe ser menor a la Fecha del Sistema';NO;Fsys
+  Lista1:       'Vehiculos'   ;;;;;;;;;;;iif(Vacio(UsrVehiculos(UsuarioActivo)), SQLSET(" Select Codigo from "~DBO~".VEHICULOS Where (Status='HAB' or Status Is Null or Status='') and TipoVehiculo <> 'NOC' "), SQLSET(" Select U.Vehiculo from "~DBO~".USRVEHICULO U, "~DBO~".VEHICULOS V where U.Vehiculo=V.Codigo and U.Codigo = '"~UsuarioActivo~"' and V.TipoVehiculo <> 'NOC' "))
+FinDialogo
+
+If Not Ok
+  Cancelar
+Endif
+
+Recorrer&k Dialogo.Fecha1, Dialogo.Fecha2
+  Message('CONTABILIZANDO EL '~Fecha(&k))
+  EjecutarEvento('CONT0', Fecha1=&k, Lista1=Dialogo.Lista1, Check1=1)
+Proximo

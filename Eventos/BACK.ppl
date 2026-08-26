@@ -1,0 +1,356 @@
+﻿CrearDialogo
+  Radio1   : '|Informe|Evento|TipoOp|TipoTr'   ;1;1;;;;;;;0;
+  Informe1 : 'Informe'                         ;2;1;;Dialogo.Radio1=0;Dialogo.Radio1=0;[Dialogo.Radio1=0 Y NoVacio(Dialogo.Informe1)] O [Dialogo.Radio1=1 Y NoVacio(Dialogo.Evento1)] O [Dialogo.Radio1=2 Y NoVacio(Dialogo.TipoOp1)] O [Dialogo.Radio1=3 Y NoVacio(Dialogo.TipoTr1)];'Faltan Completar Datos';NO
+  Evento1  : 'Evento'                          ;2;1;;Dialogo.Radio1=1;Dialogo.Radio1=1;[Dialogo.Radio1=0 Y NoVacio(Dialogo.Informe1)] O [Dialogo.Radio1=1 Y NoVacio(Dialogo.Evento1)] O [Dialogo.Radio1=2 Y NoVacio(Dialogo.TipoOp1)] O [Dialogo.Radio1=3 Y NoVacio(Dialogo.TipoTr1)];'Faltan Completar Datos';NO
+  TipoOp1  : 'TipoOp'                          ;2;1;;Dialogo.Radio1=2;Dialogo.Radio1=2;[Dialogo.Radio1=0 Y NoVacio(Dialogo.Informe1)] O [Dialogo.Radio1=1 Y NoVacio(Dialogo.Evento1)] O [Dialogo.Radio1=2 Y NoVacio(Dialogo.TipoOp1)] O [Dialogo.Radio1=3 Y NoVacio(Dialogo.TipoTr1)];'Faltan Completar Datos';NO
+  TipoTr1  : 'TipoTr'                          ;2;1;;Dialogo.Radio1=3;Dialogo.Radio1=3;[Dialogo.Radio1=0 Y NoVacio(Dialogo.Informe1)] O [Dialogo.Radio1=1 Y NoVacio(Dialogo.Evento1)] O [Dialogo.Radio1=2 Y NoVacio(Dialogo.TipoOp1)] O [Dialogo.Radio1=3 Y NoVacio(Dialogo.TipoTr1)];'Faltan Completar Datos';NO
+FinDialogo
+
+If not OK
+  Cancelar
+Endif
+
+If Dialogo.Radio1=0
+   ACT(TP:1, '.INFORMES')
+   ACT(TP:2, 'Informe')
+   ACT(CD:1, Dialogo.Informe1)
+   ACT(CD:2, Dialogo.Informe1)
+Endif
+
+If Dialogo.Radio1=1
+   ACT(TP:1, '.EVENTOS')
+   ACT(TP:2, 'Evento')
+   ACT(CD:1, Dialogo.Evento1)
+   ACT(CD:2, Dialogo.Evento1)
+Endif
+
+If Dialogo.Radio1=2
+   ACT(TP:1, '.TIPOSOPERACION')
+   ACT(TP:2, 'TipoOp')
+   ACT(CD:1, Dialogo.TipoOp1)
+   ACT(CD:2, Dialogo.TipoOp1)
+Endif
+
+If Dialogo.Radio1=3
+   ACT(TP:1, '.TIPOSTRANSACCION2')
+   ACT(TP:2, 'TipoTr2')
+   ACT(CD:1, Dialogo.TipoTr1)
+   ACT(CD:2, Dialogo.TipoTr1)
+Endif
+
+ACN(DF:1, 1)
+**Longitud del código
+ACN(LN:1, Longitud(Val(CD:1)))
+**Ultimo dígito del código
+ACT(UL:1, Copy(Val(CD:1),Val(LN:1),1))
+
+**Si tiene 6 dígitos se toma como 5 (para poder crear el código de backup)
+If Val(LN:1)=6
+   ACN(LN:1, 5)
+Endif
+
+ACN(X:1, 0)
+
+**Si el código original NO termina en número
+If Not Incluido(Val(UL:1), '0|1|2|3|4|5|6|7|8|9|')
+   Recorrer&k 1, 9
+      **En CD:9 Copio los primeros LN:1 caracteres del código+ un número
+      ACT(CD:9, Copy(Val(CD:1),1, Val(LN:1))~Fstr(&k,0,0))
+      **Si no existe, lo guardo como código disponible
+      If SQL(" Select 1 from "~DBO~Val(TP:1)~" Where Codigo = '"~Val(CD:9)~"' ") <> 1
+         ACT(Z:1, Val(Z:1)~Val(CD:9)~'|')
+         SCN(X:1, 1)
+      Else
+        **Si existe y no es el código original, lo guardo como código ya utilizado
+         If Not Eqstr(Val(CD:9), Val(CD:2))
+            ACT(Z:2, Val(Z:2)~Val(CD:9)~'|')
+         Endif
+      Endif
+      **Solo lo hago hasta tener 5 códigos disponibles
+      If Val(X:1)>=5
+         Break
+      Endif
+   Proximo
+Else
+    **Si el código original termina en número
+   Recorrer&k 65, 90
+     **En CD:9 Copio los primeros LN:1 caracteres del código+ una letra
+      ACT(CD:9, Copy(Val(CD:1),1, Val(LN:1))~Chr(&k))
+      **Si no existe, lo guardo como código disponible
+      If SQL(" Select 1 from "~DBO~Val(TP:1)~" Where Codigo = '"~Val(CD:9)~"' ") <> 1
+         ACT(Z:1, Val(Z:1)~Val(CD:9)~'|')
+         SCN(X:1, 1)
+      Else
+        **Si existe y no es el código original, lo guardo como código ya utilizado
+         If Not Eqstr(Val(CD:9), Val(CD:2))
+            ACT(Z:2, Val(Z:2)~Val(CD:9)~'|')
+            ACN(DF:1, Val(X:1)+1)
+         Endif
+      Endif
+      **Solo lo hago hasta tener 10 códigos disponibles
+      If Val(X:1)>=10
+         Break
+      Endif
+   Proximo
+Endif
+
+**Si tiene 5 dígitos se toma como 4 (para poder crear mas códigos de backup)
+If Val(LN:1)>4
+   ACN(LN:1, 4)
+Endif
+
+Recorrer&k 10, 25
+   **En CD:9 Copio los primeros LN:1 caracteres del código+ un número
+   ACT(CD:9, Copy(Val(CD:1),1, Val(LN:1))~Fstr(&k,0,0))
+   **Si no existe, lo guardo como código disponible
+   If SQL(" Select 1 from "~DBO~Val(TP:1)~" Where Codigo = '"~Val(CD:9)~"' ") <> 1
+      ACT(Z:1, Val(Z:1)~Val(CD:9)~'|')
+      SCN(X:1, 1)
+   Else
+      **Si existe y no es el código original, lo guardo como código ya utilizado
+      If Not Eqstr(Val(CD:9), Val(CD:2))
+         ACT(Z:2, Val(Z:2)~Val(CD:9)~'|')
+      Endif
+   Endif
+   **Solo lo hago hasta tener 15 códigos totales disponibles
+   If Val(X:1)>=15
+      Break
+   Endif
+Proximo
+
+**Longitud del código original
+ACN(LN:1, Longitud(Val(CD:1)))
+
+**Si tiene 6 dígitos el código original
+If Val(LN:1)=6
+   **En CD:1 copio el código sin el anteúltimo caracter
+   ACT(CD:1, Copy(Val(CD:1),1,4)~Copy(Val(CD:1),6,1))
+   **Si el código ORIGINAL NO termina en número
+   If Not Incluido(Val(UL:1), '0|1|2|3|4|5|6|7|8|9|')
+      Recorrer&k 1, 9
+        **En CD:9 copio el código sin el anteúltimo caracter+ un número
+         ACT(CD:9, Val(CD:1)~Fstr(&k,0,0))
+         **Si no existe, lo guardo como código disponible
+         If SQL(" Select 1 from "~DBO~Val(TP:1)~" Where Codigo = '"~Val(CD:9)~"' ") <> 1
+            ACT(Z:1, Val(Z:1)~Val(CD:9)~'|')
+            SCN(X:1, 1)
+         Else
+            **Si existe, lo guardo como código ya utilizado
+            ACT(Z:2, Val(Z:2)~Val(CD:9)~'|')
+         Endif
+         **Solo lo hago hasta tener 25 códigos totales disponibles
+         If Val(X:1)>=25
+            Break
+         Endif
+      Proximo
+   Else
+      **Si el código ORIGINAL termina en número
+      Recorrer&k 65, 90
+         **En CD:9 copio el código sin el anteúltimo caracter+ una letra
+         ACT(CD:9, Val(CD:1)~Chr(&k))
+         **Si no existe, lo guardo como código disponible
+         If SQL(" Select 1 from "~DBO~Val(TP:1)~" Where Codigo = '"~Val(CD:9)~"' ") <> 1
+            ACT(Z:1, Val(Z:1)~Val(CD:9)~'|')
+            SCN(X:1, 1)
+         Else
+         **Si existe y no es el código original, lo guardo como código ya utilizado
+            If Not Eqstr(Val(CD:9), Val(CD:2))
+               ACT(Z:2, Val(Z:2)~Val(CD:9)~'|')
+               ACN(DF:1, Val(X:1)+1)
+            Endif
+         Endif
+         **Solo lo hago hasta tener 25 códigos totales disponibles
+         If Val(X:1)>=25
+            Break
+         Endif
+      Proximo
+   Endif
+Endif
+
+**Si tiene 5 o 6 dígitos el código original, se toma como 4 (para poder crear mas códigos de backup)
+If Val(LN:1)>4
+   ACN(LN:1, 4)
+Endif
+
+Recorrer&k 65, 67
+   Recorrer&i 1, 9
+    **En CD:9 copio el código sin el anteúltimo caracter+ una letra+ un número
+      ACT(CD:9, Copy(Val(CD:1),1, Val(LN:1))~Chr(&k)~Fstr(&i,0,0))
+      **Si no existe, lo guardo como código disponible
+      If SQL(" Select 1 from "~DBO~Val(TP:1)~" Where Codigo = '"~Val(CD:9)~"' ") <> 1
+         ACT(Z:1, Val(Z:1)~Val(CD:9)~'|')
+         SCN(X:1, 1)
+      Else
+         **Si existe , lo guardo como código ya utilizado
+         ACT(Z:2, Val(Z:2)~Val(CD:9)~'|')
+      Endif
+      **Solo lo hago hasta tener 25 códigos totales disponibles
+      If Val(X:1)>=30
+         Break
+         Break
+      Endif
+   Proximo
+Proximo
+************************************************************************************************************************************************************************************************************************************
+**Cintia 2024
+**Si no hay nombres disponibles
+If Vacio(Val(Z:1))
+    let &codigosAgotados 1
+    *Establezco como fecha inicial de comparación el día real
+    let &fechaBackReemplazo Hoy
+    
+    **recorro la lista de nombres ya utilizados para ESE Codigo Original
+    SQL.ADD("Select Codigo from "~DBO~Val(TP:1)~" Where Tipo='BACK' and Nombre Like '"~Val(CD:2)~" (Back%' ")
+    Recorrer SQL
+        DFA
+        ACT(Z:3, Val(Z:3)~FBN('Codigo')~'|')
+    Proximo
+    Recorrer&k 1, Elementos(Val(Z3))
+        *Guardo el nombre del backup sin blancos en los extremos
+        let &nombre SQL(" Select Nombre from "~DBO~Val(TP:1)~" Where Codigo = '"~ItemLista(Val(Z:3),&k)~"' ")
+        let &nombre TRIM(&nombre)
+        let &nombre MIRT(&nombre)
+        *Guardo la longitud del nombre
+        let &longNombreBack Longitud(&nombre)
+        *Guardo la fecha del backup
+        let &fechaBack Fecha(Copy(&nombre,Longitud(&nombre)-9, 9))
+        *Comparo la fecha con la anterior y establezco la mas antigua
+        If &fechaBack<&fechaBackReemplazo
+            let &codigoBackReemplazo ItemLista(Val(Z:3),&k)
+            let &nombreBackReemplazo SQL(" Select Nombre from "~DBO~Val(TP:1)~" Where Codigo = '"~&codigoBackReemplazo~"' ")
+            let &fechaBackReemplazo &fechaBack
+        Endif
+    Proximo
+    
+    If Vacio(&codigoBackReemplazo)
+        Cancelar('No se encontraron códigos disponibles ni reemplazables para realizar el BackUp')
+    Else
+        ACN(mb1,MessageBox('No se encontraron códigos disponibles para realizar el BackUp, desea reemplazar el BackUp mas antiguo? '~&codigoBackReemplazo~'-'~&nombreBackReemplazo,3,1))
+        If VAL(mb1)=2
+            Cancelar('BackUp Anulado')
+        Else
+            ACT(Z:1,&codigoBackReemplazo)
+        Endif
+    Endif
+Endif
+
+
+
+************************************************************************************************************************************************************************************************************************************
+
+*Cintia MAR2024 Se corrige ya que recorria hasta la cantidad de elementos de nombres DISPONIBLES pero debe recorrer los YA UTILIZADOS
+*Recorrer&k 1, Val(X:1) 
+If &codigosAgotados=1
+    let &elementosK Elementos(Val(Z3))
+    let &listaUtilizados Val(Z3)
+Else
+    let &elementosK Elementos(Val(Z2))
+    let &listaUtilizados Val(Z2)
+Endif
+Recorrer&k 1, &elementosK
+   ifa
+   *Cintia MAR2024 Se comenta ya que no se utiliza en ningun lado
+   *ACT(a:fac, ItemLista(Val(Z:1),&k))
+   ACT(b:fac, ItemLista(&listaUtilizados,&k))
+   ACT(c:fac, SQL(" Select Nombre from "~DBO~Val(TP:1)~" Where Codigo = '"~Val(b:fac)~"' "))
+Proximo
+
+If &codigosAgotados=1
+    CrearDialogo
+      String2  : Val(TP:2)      ;1;;;NO;;;;;Val(CD:2);;;;'XXXXXX'
+      Fecha1   : 'Fecha'        ;2;;;;;;;;SQLAhora;;;
+      String1  : 'Cod. BackUp'  ;3;;;;;SQL(" Select 1 from "~DBO~Val(TP:1)~" Where Codigo = '"~Dialogo.String1~"' ") <> 1;'Se eliminará el BackUp '~Dialogo.String1~' para ser reemplazado';SI;Val(Z:1);;Val(Z:1);;'XXXXXX'
+      Label1   : ''             ;1;2;;NO;;;;;'Ya Utilizados';
+      ListBox; 'Arial,8,N'; 250; 180
+         'Codigo'    ;b:1..b:Elementos(&listaUtilizados);;;;;60;STRING;
+         'Nombre'    ;c:1..c:Elementos(&listaUtilizados);;;;;155;STRING;
+      FinListBox  
+    FinDialogo
+else
+    CrearDialogo
+      String2  : Val(TP:2)      ;1;;;NO;;;;;Val(CD:2);;;;'XXXXXX'
+      Fecha1   : 'Fecha'        ;2;;;;;;;;SQLAhora;;;;
+      String1  : 'Cod. BackUp'  ;3;;;;;SQL(" Select 1 from "~DBO~Val(TP:1)~" Where Codigo = '"~Dialogo.String1~"' ") <> 1;'Ya existe un '~Dialogo.String1;NO;ItemLista(Val(Z:1),Val(DF:1));;Val(Z:1);;'XXXXXX'
+      Label1   : ''             ;1;2;;NO;;;;;'Ya Utilizados';
+      ListBox; 'Arial,8,N'; 250; 180
+         'Codigo'    ;b:1..b:Elementos(&listaUtilizados);;;;;60;STRING;
+         'Nombre'    ;c:1..c:Elementos(&listaUtilizados);;;;;155;STRING;
+      FinListBox  
+    FinDialogo
+endif
+
+
+
+If not OK
+  Cancelar
+Endif
+
+**Cintia 2024
+If &codigosAgotados=1
+    SQL.ADD("DELETE FROM "~DBO~Val(TP:1)~" Where Codigo = '"~Dialogo.String1~"' and Tipo='BACK' ")
+    SQL.NEW
+    SQL.EXEC
+Endif
+****
+ACN(FD:1, Dia(Dialogo.Fecha1))
+ACN(FM:1, Mes(Dialogo.Fecha1))
+ACN(FA:1, Anio(Dialogo.Fecha1))
+If Val(FA:1)>100
+   ACN(FA:1, Num(Copy(Fstr(Val(FA:1),0,0),3,2)))
+Endif
+
+ACT(NM:1, Val(CD:2)~' (Back '~Pad0(Fstr(Val(FD:1),0,0),2)~'-'~Pad0(Fstr(Val(FM:1),0,0),2)~'-'~Fstr(Val(FA:1),0,0)~')')
+
+ACN(KK:1, 0)
+Repetir
+   SCN(KK:1, 1)
+   If SQL("Select 1 from "~DBO~Val(TP:1)~" Where Nombre = '"~Val(NM:1)~"' ")=1
+      If Val(KK:1)=1
+         ACT(NM:1, Val(NM:1)~' ('~Fstr(Val(KK:1),0,0)~')')
+      Else
+         ACN(KL:1, Longitud(Val(NM:1)))
+         ACT(NM:1, Copy(Val(NM:1), 1, Val(KL:1)-2)~Fstr(Val(KK:1),0,0)~')')
+      Endif
+   Else
+      Break
+   Endif
+Proximo
+
+If Not Eqstr(Val(TP:1),'.TIPOSOPERACION')
+   IF Eqstr(Val(TP:1),'.TIPOSTRANSACCION2')
+       SQL.ADD(" Insert into "~DBO~Val(TP:1)~" ")
+       SQL.ADD(" (Codigo, Nombre, Especie, Codigo2, Script) ")
+       SQL.ADD(" Select '"~Dialogo.String1~"' Codigo, '"~Val(NM:1)~"' Nombre, Especie, Codigo2, Script ")
+       SQL.ADD(" from "~DBO~Val(TP:1)~" ")
+       SQL.ADD(" Where Codigo = '"~Val(CD:2)~"' ")
+   ELSE
+       SQL.ADD(" Insert into "~DBO~Val(TP:1)~" ")
+       SQL.ADD(" (Codigo, Nombre, Script, Tipo) ")
+       SQL.ADD(" Select '"~Dialogo.String1~"' Codigo, '"~Val(NM:1)~"' Nombre, Script, 'BACK' Tipo ")
+       SQL.ADD(" from "~DBO~Val(TP:1)~" ")
+       SQL.ADD(" Where Codigo = '"~Val(CD:2)~"' ")
+   ENDIF
+Else
+   If SQL("Select 1 from "~DBO~".CLASESOPERACION Where Codigo = 'BACKUP' ")=1
+      ACT(CL:1, 'BACKUP')
+   Else
+      If SQL("Select 1 from "~DBO~".CLASESOPERACION Where Codigo = 'BACK' ")=1
+         ACT(CL:1, 'BACK')
+      Else
+         ACT(CL:1, '')
+      Endif
+   Endif
+   SQL.ADD(" Insert into "~DBO~Val(TP:1)~" ")
+   SQL.ADD(" (Codigo, Nombre, Inversa, Script, TipoNegocio, ClaseOperacion) ")
+   SQL.ADD(" Select '"~Dialogo.String1~"' Codigo, '"~Val(NM:1)~"' Nombre, '' Inversa, Script, '' TipoNegocio, '"~Val(CL:1)~"' ClaseOperacion ")
+   SQL.ADD(" from "~DBO~Val(TP:1)~" ")
+   SQL.ADD(" Where Codigo = '"~Val(CD:2)~"' ")
+Endif
+SQL.NEW
+SQL.EXEC
+
+
+MessageBox("Creado "~Val(NM:1)~" con codigo "~Dialogo.String1)
+
+***HOJAVISIBLE(SI)
+

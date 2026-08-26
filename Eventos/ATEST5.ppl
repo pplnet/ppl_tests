@@ -1,0 +1,8 @@
+﻿SQL.ADD("SELECT Codigo, Nombre, ClaseOperacion FROM TIPOSOPERACION")
+Recorrer SQL
+    ACT(A:FAC,'TEST')
+    ACT(A:FAC,BuscarCampo('TIPOSOPERACION','ClaseOperacion','Codigo',fbn('Codigo')))
+    IF EqStr('TEST',Val(A:FAC))
+        MessageBox(Val(A:FAC))
+    EndIf
+Proximo
