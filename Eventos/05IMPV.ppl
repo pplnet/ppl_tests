@@ -114,6 +114,7 @@ else
           else
             LinkearHoja('EVOUV1',1,NrTrans1=Val(a:FilaCiclo),Check1=1,Check3=0,string='')
           endif
+          MessageBox('NrTrans: '~Val(a:FilaCiclo))
         endif
 IF NO        
         if EqStr(Val(aa:FilaCiclo),'CRYL')
