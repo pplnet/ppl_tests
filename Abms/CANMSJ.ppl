@@ -3,7 +3,7 @@
        Id:, Nombre: as 'Codigo', Descripcion:
    end
    def key
-       Id: 
+       Nombre: 
    end
    def dialog_size
        500,250
@@ -12,12 +12,11 @@
        #**************************************************************************
        tab 'General'
           column
-             Id: , , numeric,'#########0'
              Nombre: , 'Codigo', small_text
              Descripcion: ,,large_text
        #**************************************************************************
    end
-   validates_uniqueness_of: Id:
+   validates_uniqueness_of: Nombre:
 
 end
 
