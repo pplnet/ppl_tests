@@ -1,0 +1,31 @@
+﻿* Evento con memory leak
+
+HojaVisible(SI)
+MostrarCuadroDeMensajes
+
+CrearDialogo
+  NrOperacion1  :'Operacion|'   ;2;1;
+FiNdialogo
+*
+If not OK
+  Cancelar
+EndIf
+
+*ACT(A1, Dialogo.Lista1)
+*
+*ACT(A2, 'where Codigo in ('Pipe2Comillas(Dialogo.Lista1)')')
+
+recorrer&i 1, 1000
+FJL 14/2/19 - Saco esto porque falla en liquidacion con diferimientos parciales
+Hay que hacerlo en forma manual para saldos 122
+** Actualizo Movimientos de Posicion de la operacion
+   SQL.ActualizarMovimientos3(Dialogo.NrOperacion1,NO,NO,NO,SI,NO)
+   SQL.EXEC
+   Message(FStr(&i, 1, 0))
+  if [(&i mod 50) = 0] 
+    Message("Esperando...")
+    Esperar(5)
+  endif
+proximo
+
+OcultarCuadroDeMensajes
