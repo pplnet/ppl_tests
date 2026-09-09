@@ -128,5 +128,8 @@
 
 </div>
 
-<!-- Chart.js -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+<!-- Chart.js. 🔴 VENDOREADO: lo sirve el backend, no un CDN — el producto se instala en bancos
+     sin salida a internet. El __API_BASE__ lo reemplaza el frontend antes de montar el iframe
+     (ver VendorAssets.cs en v7_back). NO volver a poner una URL de CDN aca: este archivo NO pasa
+     por el consolidador, asi que su test no lo veria y quedaria UN webview roto entre doce. -->
+<script src="__API_BASE__/vendor/chartjs/chart-4.4.1.umd.min.js"></script>
